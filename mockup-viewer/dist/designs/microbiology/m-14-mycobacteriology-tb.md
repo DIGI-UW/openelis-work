@@ -1,7 +1,7 @@
 # M-14 Mycobacteriology / TB Case Workbench — Functional Requirements Specification
 
-**Version:** 1.0 (canonical — inline interactions per Principle 3; reuses the M-04 Case/Isolate/Timeline substrate; no separate addendum)
-**Date:** 2026-06-08
+**Version:** 1.1 (canonical — inline interactions per Principle 3; reuses the M-04 Case/Isolate/Timeline substrate; no separate addendum). **v1.1 aligns the TB bench with the no-growth amendment** — `NO_GROWTH_FINAL` → `NO_GROWTH_READY` + release, the negative-at-day-N culture becomes surveillance-eligible, and `CONTAMINATED` is declared **not** a result. See §5, §7, AC-M14-16…19, §14.
+**Date:** 2026-08-27 (v1.0: 2026-06-08)
 **Module:** Microbiology → Case Workbench → TB (a specialized case profile of M-04)
 **Route:** `/microbiology/case/:caseId` (TB profile; same route family as M-04)
 **Phase:** MVP-1A (smear, molecular, culture, species ID, interim reporting) + Phase 1A+ (analyzer ingest, second-line cascade)
@@ -56,6 +56,7 @@ All TB data entry renders as **inline panels/rows within the Case Detail section
 - **M-01 Reference Data** — TB drug list (isoniazid, rifampicin, ethambutol, pyrazinamide; fluoroquinolones, injectables, bedaquiline, linezolid, etc. as `antibiotic_master` rows), MTB-complex / NTM species (`organism_master`), TB DST panels (`ast_panel`), TB culture protocol (a Method, §3.1).
 - **M-02 Breakpoint Catalog** — **WHO-TB critical concentrations** come from a **new WHO-TB standard type** in M-02 (assumed to exist; referenced here). The DST lookup is keyed by drug + medium (MGIT / agar proportion) → the critical concentration, snapshotted on the run.
 - **M-04 Case Workbench Core** — the Case / Isolate / Timeline / state-machine substrate; this FRS specializes it.
+- **M-15 GLASS Surveillance via Consolidated FHIR** *(v1.1)* — owns the FHIR transform, transport, and GLASS dataset for **both** benches. M-14 supplies the TB surveillance-eligibility rules it consumes (§7.1); M-15 §4.9 and §6 defer to them by name.
 - **M-05 AST Entry & Interpretation** — DST **reuses** `micro_ast_run` + result rows and the inline-entry / override / accept patterns, with `interpretation_method = CRITICAL_CONCENTRATION` instead of breakpoint S/I/R (§3.2).
 - **M-06 Expert/Reflex** — the reflex/test-rules engine drives the TB cascade (§3.4).
 - **M-08 Macro Library** — macro-enabled comment/justification fields (smear comments, contamination notes, DST justifications).
@@ -178,7 +179,9 @@ TB reports out in stages; each stage is a **report version** on the Reports sect
 3. **Culture interim** — weeks later: culture positive/negative + time-to-detection.
 4. **Species-ID interim** — MTB complex vs NTM.
 5. **DST interim/final** — weeks later: per-drug R/S at critical concentration + molecular reconciliation + resistance classification.
-Each interim release is allowed as soon as its stage's result exists (e.g. smear interim needs only a saved smear). **Final release** is gated by a pass/fail readiness checklist (species ID done; DST complete-and-reviewed for MTB-complex isolates; discordant molecular/phenotypic rows resolved; no pending tests). Amendments preserve originals (M-04 §3). All five reports are **WHONET-exportable via M-09** (§7).
+Each interim release is allowed as soon as its stage's result exists (e.g. smear interim needs only a saved smear). **Final release** is gated by the M-04 §4.6 pass/fail readiness checklist, which on the TB profile leads with the **recorded culture outcome** item — satisfied by a completed MTB-complex workup, `NO_GROWTH_READY`, `CONTAMINATED`, or `NTM_IDENTIFIED` (§5). *(v1.1)* On the three branches without a worked-up MTB-complex isolate, the isolate-dependent items — **species ID done; DST complete-and-reviewed for MTB-complex isolates; discordant molecular/phenotypic rows resolved** — evaluate as **N/A, not as failures**; a negative-at-day-N culture has no species ID and no DST, and blocking on their absence would make the negative branch unreleasable. The isolate-independent item (**no pending tests**) still applies on every branch. On a completed MTB-complex workup the checklist is unchanged. Amendments preserve originals (M-04 §3).
+
+*(v1.1)* **Reportable is not the same as surveillance-eligible.** All five report types are produced and distributed on the case; what reaches **M-09 / M-15** is a narrower set decided by the **culture outcome** in §7.1 — a smear or molecular interim is not a surveillance outcome however clinically vital it is, and a `CONTAMINATED` case's final report exports nothing at all.
 
 ### 4.8 Critical notification (reuses M-11)
 A **Log critical notification** action sits in the case header (`target_type = CASE`) and on each isolate tile (`target_type = ISOLATE`), reusing M-11 unchanged. Two TB triggers **prompt** it automatically (the lab still confirms the call): **smear-positive** (any non-negative grade) and **rifampicin-resistance detected** (Xpert/Truenat/LPA). On save: M-11 record + AUTO timeline event + unacknowledged badge (optimistic).
@@ -186,11 +189,21 @@ A **Log critical notification** action sits in the case header (`target_type = C
 ---
 
 ## 5. State machine (TB profile of M-04 §3)
-Reuses the M-04 `micro_case` state machine and `micro_case_stage_transition`; the TB profile adds molecular/smear/species stages. Non-terminal TB stages:
+Reuses the M-04 `micro_case` state machine and `micro_case_stage_transition`; the TB profile adds molecular/smear/species stages. *(v1.1)* Stage **classes** follow M-04 §3.1's three names — *In workup*, *Released*, *Closed without a result* — not the older non-terminal/terminal pair.
 
-`RECEIVED → PROCESSED → SMEAR_DONE → MOLECULAR_DONE → CULTURING → CULTURE_POSITIVE → SPECIES_ID → DST_IN_PROGRESS → READY_REVIEW → (interim reports at each stage) → FINAL_REPORTED → AMENDED`.
+**In workup:** `RECEIVED → PROCESSED → SMEAR_DONE → MOLECULAR_DONE → CULTURING → CULTURE_POSITIVE → SPECIES_ID → DST_IN_PROGRESS → READY_REVIEW` (interim reports are released at each stage without leaving the class), plus the three culture-outcome branches **`NO_GROWTH_READY`** (negative-at-day-N), **`CONTAMINATED`** (repeat requested) and **`NTM_IDENTIFIED`** (off-ramp from SPECIES_ID) — all three are *in workup*, awaiting final release, **not** terminal.
 
-Branches/terminals reuse M-04: `NO_GROWTH_FINAL` (negative-at-day-N), `CONTAMINATED` (repeat), `NTM_IDENTIFIED` (off-ramp from SPECIES_ID), plus the M-04 cancellation/lost-specimen terminals. Smear and molecular stages can complete and report **before** culture is back (molecular-first), and a stage entering can fire the §3.4 reflexes. Each transition is atomic + audited, exactly as M-04 §3.
+**Released:** `FINAL_REPORTED`, and its in-flight amendment state `AMENDED`. Every branch above releases into it; there is no separate end state for negatives, contamination, or NTM.
+
+**Closed without a result:** the M-04 cancellation and lost-specimen terminals, unchanged.
+
+> ***(v1.1)* The negative branch releases, it does not just end.** M-04 v2.1 replaced the terminal `NO_GROWTH_FINAL` with the non-terminal **`NO_GROWTH_READY`**, which then releases into `FINAL_REPORTED`. TB inherits that change unaltered: a culture negative at day N is **read, called, and awaiting release**, and an authorized reviewer releases the final negative report exactly as on the bacteriology bench. This matters more on the TB bench than the bacterial one, because the interval between "we can call this negative" and "someone signs it out" is measured in weeks of a six-to-eight-week incubation, not hours — the two-stage gate is describing something the TB bench genuinely does. Final release is gated on a **recorded culture outcome**, never on an isolate existing (M-04 §4.6).
+>
+> ***(v1.1)* `CONTAMINATED` releases, but exports nothing — release-eligibility and surveillance-eligibility are different questions.** This is the case that separates them, and it is worth being explicit because the two are easy to conflate. The clinician **must** be told the specimen was contaminated and a repeat is needed — that is a final report, and withholding it would strand the patient. So `CONTAMINATED` is a **fourth recorded culture outcome** that satisfies the M-04 §4.6 release gate: the isolate-dependent checklist items (species ID done; DST complete-and-reviewed) evaluate **N/A**, exactly as they do on the no-growth branch, and the case releases into `FINAL_REPORTED` carrying the contaminated result. What it does **not** do is contribute to surveillance.
+>
+> **`CONTAMINATED` is not a result *for surveillance*.** A contaminated TB culture means the specimen was **not successfully cultured** — the lab asks for a repeat. It is therefore neither a positive nor a negative: it contributes to **neither** the numerator nor the denominator of any surveillance proportion, and it exports **nothing** (§7, M-15 §4.9). This deliberately differs from the bacteriology contaminant-only rule, where the culture *did* work and merely grew skin flora, and so still counts as a specimen tested. The distinction is the question *"did we successfully culture this specimen?"* — on the TB bench a contaminated culture answers no; on the bacteriology bench a contaminant-only culture answers yes.
+>
+> **`NTM_IDENTIFIED` is a positive culture, not a negative.** Non-tuberculous mycobacteria grew; they are simply not *M. tuberculosis* complex. For **TB** surveillance the case is not a TB positive, but it is emphatically not a no-growth either, and must not be exported with a no-growth code. Whether NTM isolates are themselves reportable to any surveillance stream is out of scope here — see §14 open item T-2. Smear and molecular stages can complete and report **before** culture is back (molecular-first), and a stage entering can fire the §3.4 reflexes. Each transition is atomic + audited, exactly as M-04 §3.
 
 ---
 
@@ -199,8 +212,23 @@ Reuses the M-04 analyzer event channel (M-04 §7) — no new mechanism. GeneXper
 
 ---
 
-## 7. Reporting & export (GLASS out of scope)
-TB results (smear, Xpert/Ultra/Truenat, culture, species, phenotypic + molecular DST, resistance classification) are reportable on the case (§4.7) and **exportable via the M-09 WHONET TB export** — M-09 owns the export format, dedup, and mapping (including the TB-specific columns); this FRS only produces the data and references M-09. **GLASS / consolidated-FHIR central reporting is explicitly out of scope of this FRS** — it is being designed separately as the last step of the module. Within this FRS, "report out" means the case's interim/final report versions plus availability to the M-09 exporter.
+## 7. Reporting & export (M-15 owns GLASS; §7.1 owns TB eligibility)
+TB results (smear, Xpert/Ultra/Truenat, culture, species, phenotypic + molecular DST, resistance classification) are reportable on the case (§4.7) and **exportable via the M-09 WHONET TB export** — M-09 owns the export format, dedup, and mapping (including the TB-specific columns); this FRS only produces the data and references M-09. **Designing the GLASS / consolidated-FHIR path is out of scope of this FRS** — **M-15** owns it (v1.1 as of 2026-08-27; the "being designed separately" wording in v1.0 is stale). What this FRS *does* own, and M-15 cannot, is **which TB outcomes are surveillance-eligible** — see §7.1, to which both M-15 §4.9 and M-09 §4.6 defer by name. Within this FRS, "report out" means the case's interim/final report versions plus availability to the M-09 exporter and the M-15 push.
+
+### 7.1 What a TB case contributes to surveillance *(v1.1)*
+
+M-15 and M-09 own the surveillance paths; this subsection states only **which TB cases are eligible**, because that is a property of the TB bench and cannot be decided in M-15. Four outcomes, three answers:
+
+| TB case outcome | Contributes | Why |
+|---|---|---|
+| Culture positive for MTB complex, with DST | **Positive record** — species, phenotypic DST (R/S at critical concentration), molecular flags, MDR/pre-XDR/XDR category | The numerator. Unchanged from v1.0 |
+| **`NO_GROWTH_READY` → released** (negative at day N) | **Negative record** — a coded no-growth conclusion, no DST | *(v1.1)* The specimen was successfully cultured and nothing grew. It is the denominator, for exactly the reason the bacteriology bench's negatives are (M-15 §5.2) — and a DR-TB resistance proportion computed without it is inflated in the same silent way |
+| **`CONTAMINATED`** | **Nothing** — but the case still **releases** | *(v1.1)* The specimen was not successfully cultured; a repeat is requested. The clinician is told, so the case releases a final contaminated report (§5). For surveillance it is neither numerator nor denominator — the same treatment as a rejected specimen, and deliberately unlike the bacteriology contaminant-only case |
+| **`NTM_IDENTIFIED`** | **Not a TB positive, and not a negative** | *(v1.1)* Mycobacteria grew, so a no-growth code would be a false statement about the culture. Whether NTM is reportable anywhere is open — §14 T-2 |
+
+**Three different things are called "contaminated" — do not conflate them.** (1) The TB case stage **`CONTAMINATED`**: the culture was overgrown, the specimen was not successfully cultured, a repeat is requested — this row. (2) The TB per-drug DST reading value **`contaminated`** (§3.2): the culture grew MTB fine, but *one drug's* well or slope was unreadable. That is a positive case with one unusable drug reading; it exports as a **positive** with that drug omitted, and never touches this row. (3) Bacteriology isolate **significance = contaminant** (M-09 `SIGNIFICANCE`): the culture worked and grew skin flora — a specimen tested, which *does* count in the denominator. Same word, three different meanings.
+
+**A smear or molecular result is not a culture outcome.** A TB case can report a positive Xpert MTB/RIF weeks before culture is back (molecular-first, §4.7). That interim report is clinically vital and is *not* a surveillance outcome on its own: eligibility is decided by the **culture** branch above, so a case still in `CULTURING` contributes nothing yet, however much has already been reported to the clinician. This is the one place where the TB bench's staged reporting and its surveillance eligibility deliberately come apart, and it is easy to get wrong.
 
 ---
 
@@ -238,11 +266,40 @@ Reuses M-NFR. TB Case Detail (smear + several molecular results + 1-2 isolates �
 - **AC-M14-11**: **Critical-result triggers** (smear-positive, rifampicin-resistance) reuse **M-11**; the only new TB entities are `tb_smear` and `tb_molecular_result`.
 - **AC-M14-12**: The **cascade** (smear+→Xpert; MTB+→culture+DST; Rif-R→second-line LPA/DST) is driven by the **existing reflex/test-rules engine**, not a TB-specific orchestrator.
 - **AC-M14-13**: Analyzer results (GeneXpert/Truenat/MGIT/digital microscopy) ingest via the M-04 channel (**no manual import**), land pre-populated, and require review/accept before counting; unmatched pushes go to Stuck analyzer events.
-- **AC-M14-14**: TB results are **exportable via M-09** (WHONET TB export); **GLASS / consolidated-FHIR central reporting is out of scope** of this FRS.
+- **AC-M14-14** *(reworded v1.1)*: TB results are **exportable via M-09** (WHONET TB export). **M-15 owns the consolidated-FHIR path and the GLASS dataset**; M-14 owns only **which TB outcomes are surveillance-eligible** (§7.1), because that depends on TB bench states M-15 does not model. Designing the FHIR transform, transport, or dataset is out of scope here.
 - **AC-M14-15**: **Reuse confirmations** hold (§10): reagent/kit lots via M-12 (FIFO+QC, expired/locked blocked), macros via M-08, timeline via the existing History/Note substrate, overrides/accept/retest via M-05, optimistic locking and per-action accountability via M-04/M-10.
+- **AC-M14-16** *(v1.1)*: A TB culture called negative at day N moves to **`NO_GROWTH_READY`**, not to a terminal state, and the negative reaches the patient's report only when an authorized reviewer releases the final report — at which point the case is `FINAL_REPORTED` and reports **no** outstanding blockers. Release is gated on a recorded culture outcome, never on an isolate existing (M-04 §4.6).
+- **AC-M14-17** *(v1.1)*: A released negative-at-day-N TB case is **surveillance-eligible** and exports as a negative on both paths (M-09 §4.6 no-growth row; M-15 §4.9 negative Bundle).
+- **AC-M14-18** *(v1.1)*: A `CONTAMINATED` TB case exports **nothing** on either path — it appears in neither the numerator nor the denominator — and is never emitted with a no-growth code.
+- **AC-M14-19** *(v1.1)*: An `NTM_IDENTIFIED` case is never exported with a no-growth code. A case still in `CULTURING` contributes nothing to surveillance regardless of how many interim smear or molecular reports have already been released.
+- **AC-M14-20** *(v1.1)*: A `CONTAMINATED` TB case **releases** a final contaminated report — the isolate-dependent checklist items evaluate N/A, not fail — while exporting nothing on either surveillance path. Release-eligibility and surveillance-eligibility are evaluated separately.
 
 ## 12. i18n (pattern `micro.tb.*`)
 ~120-160 keys: stage labels, section headers (processing, smear, molecular, culture, species, DST, reconciliation, reports), WHO smear grades + scanty count helper, stain methods, assay names + MTB/rif result values, Ultra semi-quant levels, LPA target/mutation/inferred-resistance labels, critical-concentration + medium labels, R/S values, resistance-classification labels (mono/poly/MDR/pre-XDR/XDR), reconciliation discordance messages, interim-report labels, critical prompts, NTM off-ramp, error strings. (Maintained with implementation.)
 
 ## 13. References
 M-00 (parent; reflex-vs-workbench division) · M-01 (TB drugs, MTB/NTM species, TB panels, TB Method) · M-02 (**WHO-TB critical-concentration standard** — new standard type) · M-04 (Case/Isolate/Timeline/state-machine substrate this FRS specializes) · M-05 (DST reuses `micro_ast_run` + override/accept/retest; `interpretation_method = CRITICAL_CONCENTRATION`) · M-08 (macros) · M-09 (WHONET TB export; GLASS out of scope) · M-11 (smear-positive / rifampicin-resistance criticals) · M-12 (reagent/kit lot FIFO + QC). Existing OE Sample/SampleItem/Result/Method/test-rules/History/Note/optimistic-lock infrastructure.
+
+---
+
+## 14. Open items *(v1.1)*
+
+| # | Item | Why it matters |
+|---|---|---|
+| T-1 | *(paired with M-15 §11 V-8, which owns the same question for GLASS-AMR)* Whether **GLASS-TB / DR-TB surveillance** uses a specimen-tested or patient-tested denominator, and whether it takes negatives at all in the way GLASS-AMR's sample-based dataset does | §7.1 assumes it does and mirrors the AMR treatment. Pairs with M-15 §11 V-8 — the same question, and it may not have the same answer on the TB stream, which is a separate WHO stream from GLASS-AMR (M-15 §6) |
+| T-2 | Whether **NTM isolates** are reportable to any surveillance stream, and if so which | §7.1 declares only what NTM is *not*. Leaving it undefined is safe (nothing is exported wrongly) but is a known blank |
+| T-3 | Whether a **contaminated** culture that is successfully repeated should have the repeat counted once or the pair counted once | §7.1 excludes the contaminated attempt entirely, which implies the repeat counts on its own. Confirm that is what the recipient expects rather than a de-duplication problem in disguise |
+
+---
+
+## 15. Changelog *(added in v1.1)*
+
+**v1.1 — 2026-08-27.** Aligns the TB bench with the no-growth amendment (M-15 v1.1 / M-09 v2.1 / M-04 v2.1 / M-00 v2.1). Prompted by two things: M-04 v2.1 renamed `NO_GROWTH_FINAL`, which §5 referenced, so this spec would otherwise carry a dangling reference; and the amendment as first drafted scoped the negative path to *bacterial* cases, silently leaving the TB bench with the same denominator gap it had just fixed for AMR.
+
+Changed: header; §2.5 (M-15 added to Integration); §5 (stage **classes** adopted from M-04 §3.1; `NO_GROWTH_READY` and release; `CONTAMINATED` releases but exports nothing; `NTM_IDENTIFIED` clarified); §7 heading and preamble (M-15 owns GLASS; the v1.0 "being designed separately" wording retired); **new §7.1** (what a TB case contributes to surveillance, the three meanings of "contaminated", and the smear/molecular-vs-culture distinction); AC-M14-14 reworded; **new AC-M14-16…20**; **new §14** open items T-1…T-3.
+
+**One design call made here rather than deferred:** `CONTAMINATED` **releases** but **exports nothing**. The clinician must be told the specimen was contaminated and a repeat is needed, so withholding release would strand the patient; but the specimen was never successfully cultured, so it belongs in neither the numerator nor the denominator. This is the case that demonstrates release-eligibility and surveillance-eligibility are separate questions — everywhere else in the bundle they happen to coincide.
+
+**v1.0 — 2026-06-08.** Initial canonical spec.
+
+---

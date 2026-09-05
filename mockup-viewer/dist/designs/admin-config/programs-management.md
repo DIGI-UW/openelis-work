@@ -209,6 +209,19 @@ for Choice/Checkbox (FR-14), and an `OverflowMenu` (⋮) with Delete (Modal-conf
 Save** — inputs commit to in-memory state on blur; the page Submit persists in one transaction. No
 "draft" visual treatment. "Add New Question" seeds "New Field" + Type "String".
 
+**FR-13.1 — Re-order question cards.** Each Question card carries **Move up** / **Move down**
+controls, so the admin can change the order questions are asked in without deleting and re-adding
+them. Order is the card order and is what the live preview (FR-13.5) and the persisted
+`Questionnaire.item[]` array reflect — moving a card reorders `item[]`, it does not renumber
+`linkId`s, so **existing `QuestionnaireResponse` answers stay bound to their questions**. The
+controls are ordinary buttons — keyboard-reachable and screen-reader-labelled ("Move *[question
+text]* up") — so re-ordering never requires a pointer drag; at the first and last card the
+corresponding control is **disabled, not hidden**, so the card's controls don't reflow as cards move
+past each other. Like every other Visual Builder edit there is no per-card Save: the move commits to
+in-memory state and the page Submit persists it in one transaction (FR-13). Re-ordering applies
+equally to the two **baseline** questionnaires (FR-21), which is where the
+`patient-additional-info-surveillance-pmtct` field catalog consumes it (that FRS's FR-15).
+
 **FR-14 — Answer-options editor (Choice/Checkbox).** Repeating `TextInput` rows + per-row ghost delete
 `IconButton` + "+ Add option"; empty-state placeholder; persists to `answerOption[]` as
 `{valueString}`; switching Type away preserves the array; imported `valueCoding` renders read-only with

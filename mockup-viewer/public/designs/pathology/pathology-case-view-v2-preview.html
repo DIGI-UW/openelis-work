@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pathology Case View v2 — OpenELIS Preview</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',-apple-system,sans-serif; color:#161616; }
+  .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:'IBM Plex Mono',monospace; }
+  .demo-bar { background:#161616; color:#f4f4f4; padding:8px 2rem; font-size:12px; display:flex; gap:1.5rem; align-items:center; flex-wrap:wrap; }
+  .demo-bar label { color:#c6c6c6; margin-right:.35rem; }
+  .demo-bar select { font-size:12px; padding:2px 4px; }
+  .demo-note { color:#8d8d8d; font-style:italic; }
+  .crumb { padding:.75rem 2rem .25rem; font-size:12px; color:#525252; }
+  .crumb a { color:#0f62fe; text-decoration:none; }
+  h1.page { margin:0; padding:0 2rem .75rem; font-size:24px; font-weight:400; }
+  .patient-header { background:#f4f4f4; border-left:4px solid #0f62fe; padding:.75rem 1rem; margin:0 2rem; }
+  .patient-line { display:flex; gap:2rem; align-items:center; flex-wrap:wrap; font-size:14px; }
+  .patient-line .nm { font-weight:600; }
+  .prior { margin-top:.75rem; background:#fff; border:1px solid #e0e0e0; }
+  .prior h4 { margin:0; padding:.5rem .75rem; font-size:12px; font-weight:600; color:#525252; border-bottom:1px solid #e0e0e0; background:#f4f4f4; }
+  table.mini { width:100%; border-collapse:collapse; font-size:13px; }
+  table.mini th { text-align:left; font-weight:600; font-size:11px; color:#525252; padding:.4rem .75rem; border-bottom:1px solid #e0e0e0; }
+  table.mini td { padding:.4rem .75rem; border-bottom:1px solid #f4f4f4; }
+  .prior-foot { padding:.4rem .75rem; text-align:right; }
+  .layout { display:grid; grid-template-columns:210px 1fr 300px; gap:1rem; padding:1rem 2rem; align-items:start; }
+  .rail { background:#fff; border:1px solid #e0e0e0; position:sticky; top:.5rem; }
+  .rail h4 { margin:0; padding:.5rem .75rem; font-size:11px; font-weight:600; color:#525252; border-bottom:1px solid #e0e0e0; }
+  .rail-item { display:flex; align-items:center; gap:.5rem; padding:.45rem .75rem; font-size:13px; cursor:pointer; border-left:3px solid transparent; }
+  .rail-item:hover { background:#e8e8e8; }
+  .rail-item.active { border-left-color:#0f62fe; background:#edf5ff; font-weight:600; }
+  .rail-item.locked { color:#a8a8a8; cursor:not-allowed; }
+  .rail-item.na { color:#a8a8a8; font-style:italic; }
+  .rail-ind { width:14px; text-align:center; font-size:11px; }
+  .work { display:flex; flex-direction:column; gap:.6rem; }
+  .section-card { background:#fff; border:1px solid #e0e0e0; }
+  .section-header { display:flex; justify-content:space-between; align-items:center; padding:.7rem .9rem; cursor:pointer; font-size:15px; font-weight:600; }
+  .section-header:hover { background:#f4f4f4; }
+  .section-header.locked { cursor:not-allowed; opacity:.55; }
+  .section-header .chev { transition:transform .15s; display:inline-block; color:#525252; }
+  .section-header.open .chev { transform:rotate(180deg); }
+  .section-body { display:none; padding:.9rem; border-top:1px solid #e0e0e0; font-size:14px; }
+  .section-body.open { display:block; }
+  .fieldgrid { display:grid; grid-template-columns:1fr 1fr; gap:.35rem 1.5rem; font-size:13px; }
+  .fieldgrid .row { display:flex; gap:.5rem; padding:.2rem 0; border-bottom:1px solid #f4f4f4; }
+  .fieldgrid .k { color:#525252; min-width:170px; }
+  .prov { margin-top:.75rem; font-size:12px; color:#525252; }
+  textarea.ta { width:100%; box-sizing:border-box; min-height:80px; font-family:inherit; font-size:13px; padding:.5rem; border:none; border-bottom:1px solid #8d8d8d; background:#f4f4f4; }
+  .macro-bar { margin-top:.35rem; font-size:12px; color:#525252; display:flex; gap:.4rem; align-items:center; flex-wrap:wrap; }
+  .macro-pill { background:#e0e0e0; border-radius:12px; padding:1px 8px; font-family:'IBM Plex Mono',monospace; font-size:11px; cursor:pointer; }
+  .macro-pill:hover { background:#c6c6c6; }
+  table.dt { width:100%; border-collapse:collapse; font-size:13px; }
+  table.dt th { text-align:left; font-size:11px; font-weight:600; color:#525252; padding:.45rem .6rem; background:#e0e0e0; border-bottom:1px solid #c6c6c6; }
+  table.dt td { padding:.45rem .6rem; border-bottom:1px solid #f4f4f4; vertical-align:middle; }
+  table.dt tr.blockrow td { background:#f4f4f4; font-weight:600; }
+  table.dt tr.slide td:first-child { padding-left:1.75rem; }
+  .mono { font-family:'IBM Plex Mono',monospace; font-size:12px; }
+  .toolbar { display:flex; gap:.5rem; align-items:center; margin-bottom:.6rem; flex-wrap:wrap; }
+  .toolbar .spacer { margin-left:auto; }
+  .chip { display:inline-flex; align-items:center; gap:.3rem; background:#e0e0e0; border-radius:12px; padding:2px 8px; font-size:12px; margin:2px 4px 2px 0; }
+  .chip .x { cursor:pointer; color:#525252; font-weight:600; }
+  .banner { padding:.6rem .75rem; font-size:13px; display:flex; gap:.5rem; align-items:flex-start; margin-bottom:.7rem; border-left:3px solid; }
+  .banner.warn { background:#fff8e1; border-color:#f1c21b; }
+  .banner.err { background:#fff1f1; border-color:#da1e28; }
+  .banner.info { background:#edf5ff; border-color:#0f62fe; }
+  .banner.ok { background:#defbe6; border-color:#24a148; }
+  .scanbox { background:#f4f4f4; border:1px dashed #8d8d8d; padding:.7rem; margin-bottom:.7rem; font-size:13px; }
+  .scanbox .row { display:flex; gap:1rem; align-items:center; margin-top:.4rem; flex-wrap:wrap; }
+  .scanbox input { font-family:'IBM Plex Mono',monospace; font-size:12px; padding:.3rem; border:none; border-bottom:1px solid #8d8d8d; background:#fff; width:180px; }
+  .summary { background:#fff; border:1px solid #e0e0e0; position:sticky; top:.5rem; }
+  .summary h4 { margin:0; padding:.5rem .75rem; font-size:11px; font-weight:600; color:#525252; border-bottom:1px solid #e0e0e0; }
+  .summary .row { display:flex; justify-content:space-between; gap:.5rem; padding:.35rem .75rem; font-size:13px; border-bottom:1px solid #f4f4f4; }
+  .summary .row .k { color:#525252; }
+  .action-bar { background:#fff; border-top:1px solid #e0e0e0; padding:.85rem 2rem; display:flex; justify-content:space-between; align-items:center; gap:.75rem; flex-wrap:wrap; }
+  .action-bar .status { font-size:13px; color:#525252; }
+  .btn-group { display:flex; gap:.5rem; flex-wrap:wrap; }
+  .inline-new { background:#edf5ff; }
+  .inline-new td { padding:.6rem; }
+  .newgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:.6rem; align-items:end; }
+  .newgrid label { display:block; font-size:11px; color:#525252; margin-bottom:.2rem; }
+  .newgrid select, .newgrid input { width:100%; box-sizing:border-box; font-size:13px; padding:.3rem; border:none; border-bottom:1px solid #8d8d8d; background:#fff; }
+  .toast { position:fixed; right:1rem; top:4.5rem; background:#161616; color:#fff; padding:.7rem 1rem; font-size:13px; z-index:99; max-width:340px; }
+  .sub { font-size:12px; color:#525252; }
+  h4.sh { margin:1rem 0 .5rem; font-size:13px; font-weight:600; }
+</style>
+</head>
+<body class="cds--white">
+<div class="preview-banner">
+  &#9889; Visual Preview &nbsp;|&nbsp; Pathology Case View v2 &nbsp;|&nbsp; Route: <code>/PathologyCaseView/:pathologySampleId</code> &nbsp;|&nbsp; OpenELIS Design Mockup &mdash; not a live application
+</div>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+const CASE = {
+  labNumber: '24TST000010',
+  requestDate: '2026-08-28',
+  arrivalDate: '2026-08-29',
+  patient: { name: 'VAISHA, LAMALI', dob: '1985-06-15', age: 40, sex: 'M' },
+  uhid: 'UHI123321IH', nic: '123457678',
+  provider: 'LISETTE, Jean Alex',
+  facility: 'Jawaharlal Nehru Hospital',
+  ward: 'Gastroenterology / Ward 4',
+  specimen: 'Liver — right lobe, segment VII',
+  specimenType: 'Core needle biopsy',
+  procedure: 'Ultrasound-guided core needle biopsy',
+  provisional: 'Suspected hepatocellular carcinoma',
+  priorSurgery: 'None recorded',
+  history: 'Rule out malignancy. Elevated liver enzymes (ALT 156, AST 142). Ultrasound showed a 3.2 cm hypoechoic lesion.',
+  technician: 'Kankan Musa, Mansa',
+  pathologist: 'Samini, Privashi',
+  prior: [
+    { lab:'24TST000091', date:'2026-01-22', spec:'Liver core biopsy', concl:'C22.0 Hepatocellular carcinoma' },
+    { lab:'25IHC000044', date:'2026-02-04', spec:'Liver — IHC panel',  concl:'HepPar-1 positive, CK7 negative' },
+    { lab:'23CYT000114', date:'2025-01-27', spec:'Ascitic fluid',      concl:'Negative for malignant cells' }
+  ]
+};
+
+const STAGES = [
+  { key:'ACCESSIONED',       label:'Accessioned' },
+  { key:'GROSSING',          label:'Grossing' },
+  { key:'DECALCIFICATION',   label:'Decalcification' },
+  { key:'PROCESSING',        label:'Processing' },
+  { key:'EMBEDDING',         label:'Embedding' },
+  { key:'MICROTOMY',         label:'Microtomy' },
+  { key:'STAINING',          label:'Staining' },
+  { key:'COVERSLIPPING',     label:'Coverslipping & QC' },
+  { key:'READY_PATHOLOGIST', label:'Ready for Pathologist' },
+  { key:'UNDER_REVIEW',      label:'Under Pathologist Review' },
+  { key:'COMPLETED',         label:'Completed' }
+];
+const stageIdx = (k) => STAGES.findIndex(s => s.key === k);
+
+const BLOCKS = [
+  { id:1, desig:'A1', barcode:'24TST000010.A1', tissue:'Liver — lesion, central', state:'BLOCK', storage:'Block store 2 · Drawer 5', embeddedBy:'Kankan Musa, M.', embeddedAt:'2026-08-30 08:14' },
+  { id:2, desig:'A2', barcode:'24TST000010.A2', tissue:'Liver — lesion, periphery', state:'BLOCK', storage:'Block store 2 · Drawer 5', embeddedBy:'Kankan Musa, M.', embeddedAt:'2026-08-30 08:16' },
+  { id:3, desig:'A3', barcode:'24TST000010.A3', tissue:'Liver — background parenchyma', state:'BLOCK', storage:'Block store 2 · Drawer 5', embeddedBy:'Kankan Musa, M.', embeddedAt:'2026-08-30 08:18' },
+  { id:4, desig:'A4', barcode:'24TST000010.A4', tissue:'Liver — capsular margin', state:'CASSETTE', storage:'—', embeddedBy:null, embeddedAt:null }
+];
+
+const SLIDES = [
+  { id:1, blockId:1, desig:'A1.1', barcode:'24TST000010.A1.1', level:'1', stain:'H&E', stainStatus:'Complete', verified:true, cutBy:'Tech, Lab', coverslip:'Pass' },
+  { id:2, blockId:1, desig:'A1.2', barcode:'24TST000010.A1.2', level:'2', stain:'H&E', stainStatus:'Complete', verified:true, cutBy:'Tech, Lab', coverslip:'Pass' },
+  { id:3, blockId:2, desig:'A2.1', barcode:'24TST000010.A2.1', level:'1', stain:'H&E', stainStatus:'Complete', verified:true, cutBy:'Tech, Lab', coverslip:'Pass' },
+  { id:4, blockId:2, desig:'A2.2', barcode:'24TST000010.A2.2', level:'1', stain:'Reticulin', stainStatus:'In progress', verified:true, cutBy:'Tech, Lab', coverslip:'—' },
+  { id:5, blockId:3, desig:'A3.1', barcode:'24TST000010.A3.1', level:'1', stain:'H&E', stainStatus:'Complete', verified:true, cutBy:'Tech, Lab', coverslip:'Pass' },
+  { id:6, blockId:3, desig:'A3.2', barcode:'24TST000010.A3.2', level:'2', stain:'Masson trichrome', stainStatus:'Pending', verified:true, cutBy:'Tech, Lab', coverslip:'—' }
+];
+
+const REQUESTS = [
+  { id:1, kind:'SLIDE', target:'Block A2', instruction:'Deeper sections at 3 µm rather than 5 µm — lesional interface not represented', priority:'URGENT', by:'Samini, P.', date:'2026-08-31', status:'OPENED' },
+  { id:2, kind:'STAIN', target:'Slide A2.1', instruction:'Reticulin to assess fibrosis pattern', priority:'NORMAL', by:'Samini, P.', date:'2026-08-31', status:'OPENED' },
+  { id:3, kind:'BLOCK', target:'—', instruction:'Additional capsular margin tissue from the superior aspect', priority:'NORMAL', by:'Samini, P.', date:'2026-08-30', status:'COMPLETED' }
+];
+
+const CONSULT = { consulted:'Chen, Wei', reason:'Difficult differential — HCC vs. cholangiocarcinoma', preTreatment:true, requestedAt:'2026-09-01 11:02' };
+
+const CONCLUSIONS = [
+  { code:'C22.0', label:'Hepatocellular carcinoma', malignant:true },
+  { code:'K74.6', label:'Cirrhosis, unspecified', malignant:false }
+];
+const TECHNIQUES = [
+  { c:'H&E', l:'Haematoxylin & eosin' },
+  { c:'RET', l:'Reticulin' },
+  { c:'TRI', l:'Masson trichrome' }
+];
+const REPORTS = [
+  { v:2, date:'2026-09-02 14:30', by:'Samini, P.', type:'FINAL' },
+  { v:1, date:'2026-09-01 09:05', by:'Samini, P.', type:'DRAFT' }
+];
+
+function Tag({ kind, children, strong }) {
+  return <span className={"cds--tag cds--tag--" + kind} style={strong ? {background:'#da1e28',color:'#fff'} : {}}>{children}</span>;
+}
+
+function Section({ id, num, title, badge, open, onToggle, locked, lockedHint, children }) {
+  return (
+    <div className="section-card" id={id}>
+      <div className={"section-header" + (open?" open":"") + (locked?" locked":"")}
+           onClick={() => !locked && onToggle()} role="button" tabIndex={locked?-1:0} aria-expanded={open}>
+        <span style={{display:'flex',alignItems:'center',gap:'.6rem'}}>
+          <span>{num}. {title}</span>{badge}
+        </span>
+        <span style={{display:'flex',alignItems:'center',gap:'.6rem'}}>
+          {locked && <span style={{fontSize:12,color:'#525252',fontWeight:400}}>&#128274; {lockedHint}</span>}
+          <span className="chev">&#9662;</span>
+        </span>
+      </div>
+      <div className={"section-body" + (open?" open":"")}>{children}</div>
+    </div>
+  );
+}
+
+const Prov = (props) => <div className="prov">&#8627; {props.children}</div>;
+
+const MacroBar = () => (
+  <div className="macro-bar"><span>Quick insert:</span>
+    {['.nmi','.hcc','.chronic','.adequat'].map(m => <span key={m} className="macro-pill">{m}</span>)}
+    <span className="sub">&mdash; expansion provided by the Macro Library (OGC-788)</span>
+  </div>
+);
+
+function App() {
+  const [stage, setStage] = useState('MICROTOMY');
+  const [role, setRole] = useState('TECH');
+  const [open, setOpen] = useState({ info:false, gross:false, decal:false, proc:false, embed:true, micro:true, stain:false, cover:false, review:false, find:false, rep:false });
+  const [showNewReq, setShowNewReq] = useState(false);
+  const [newReqKind, setNewReqKind] = useState('SLIDE');
+  const [scanBlock, setScanBlock] = useState('');
+  const [scanSlide, setScanSlide] = useState('');
+  const [toast, setToast] = useState(null);
+  const [showDeact, setShowDeact] = useState(false);
+
+  const toggle = (k) => setOpen(s => Object.assign({}, s, { [k]: !s[k] }));
+  const say = (m) => { setToast(m); setTimeout(() => setToast(null), 3000); };
+  const si = stageIdx(stage);
+  const reached = (k) => si >= stageIdx(k);
+  const isPath = role === 'PATH';
+
+  const cassettes = BLOCKS.length;
+  const embedded = BLOCKS.filter(b => b.state === 'BLOCK').length;
+  const outstanding = BLOCKS.filter(b => b.state === 'CASSETTE').map(b => b.desig);
+  const stained = SLIDES.filter(s => s.stainStatus === 'Complete').length;
+  const openReqs = REQUESTS.filter(r => r.status === 'OPENED');
+  const critical = CONCLUSIONS.some(c => c.malignant);
+
+  const scanMatch = scanBlock && scanSlide && scanSlide.indexOf(scanBlock + '.') === 0;
+  const scanMismatch = scanBlock && scanSlide && !scanMatch;
+
+  const railItems = [
+    { k:'info',   n:1,  key:'ACCESSIONED',       label:'Case Information' },
+    { k:'gross',  n:2,  key:'GROSSING',          label:'Grossing' },
+    { k:'decal',  n:3,  key:'DECALCIFICATION',   label:'Decalcification', na:true },
+    { k:'proc',   n:4,  key:'PROCESSING',        label:'Processing' },
+    { k:'embed',  n:5,  key:'EMBEDDING',         label:'Embedding' },
+    { k:'micro',  n:6,  key:'MICROTOMY',         label:'Microtomy' },
+    { k:'stain',  n:7,  key:'STAINING',          label:'Staining' },
+    { k:'cover',  n:8,  key:'COVERSLIPPING',     label:'Coverslipping' },
+    { k:'review', n:9,  key:'READY_PATHOLOGIST', label:'Pathologist Review', badge:openReqs.length },
+    { k:'find',   n:10, key:'READY_PATHOLOGIST', label:'Findings & Conclusion' },
+    { k:'rep',    n:11, key:'ACCESSIONED',       label:'Reports' }
+  ];
+
+  const primaryAction = () => {
+    if (stage === 'COMPLETED') return { label:'Reopen case', kind:'secondary' };
+    if (isPath && (stage === 'READY_PATHOLOGIST' || stage === 'UNDER_REVIEW')) return { label:'Sign out & finalize', kind:'primary' };
+    const next = STAGES[si+1];
+    const map = { PROCESSING:'Send for processing', EMBEDDING:'Send for embedding', MICROTOMY:'Send to microtomy',
+                  STAINING:'Send for staining', COVERSLIPPING:'Send for coverslipping', READY_PATHOLOGIST:'Send to pathologist',
+                  DECALCIFICATION:'Send for decalcification', GROSSING:'Begin grossing', UNDER_REVIEW:'Begin review' };
+    return { label: next ? (map[next.key] || ('Advance to ' + next.label)) : 'Advance', kind:'primary' };
+  };
+  const pa = primaryAction();
+
+  return (
+  <div>
+    <div className="demo-bar">
+      <span><label>Preview controls &mdash;</label></span>
+      <span><label>Stage:</label>
+        <select value={stage} onChange={e => setStage(e.target.value)}>
+          {STAGES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+        </select>
+      </span>
+      <span><label>Viewing as:</label>
+        <select value={role} onChange={e => setRole(e.target.value)}>
+          <option value="TECH">Technician</option><option value="PATH">Pathologist</option>
+        </select>
+      </span>
+      <span className="demo-note">These two controls exist only in this preview, to show the state model. They are not part of the design.</span>
+    </div>
+
+    <div className="crumb"><a href="#">Home</a> / <a href="#">Pathology</a> / <a href="#">Dashboard</a> / Case {CASE.labNumber}</div>
+    <h1 className="page">Pathology Case &mdash; {CASE.labNumber}</h1>
+
+    <div className="patient-header">
+      <div className="patient-line">
+        <span className="nm">{CASE.patient.name}</span>
+        <span>DOB {CASE.patient.dob} ({CASE.patient.age} y)</span>
+        <span>{CASE.patient.sex}</span>
+        <span className="sub">UHID {CASE.uhid}</span>
+        <span className="sub">NIC {CASE.nic}</span>
+        <span style={{marginLeft:'auto',display:'flex',gap:'1rem',alignItems:'center'}}>
+          <Tag kind="blue">{STAGES[si].label}</Tag>
+          <span className="sub">Tech: {CASE.technician} &middot; Path: {CASE.pathologist}</span>
+        </span>
+      </div>
+      <div className="prior">
+        <h4>PRIOR ANATOMIC-PATHOLOGY RESULTS FOR THIS PATIENT</h4>
+        <table className="mini">
+          <thead><tr><th>Lab no.</th><th>Date</th><th>Specimen</th><th>Conclusion</th></tr></thead>
+          <tbody>{CASE.prior.map(p => (
+            <tr key={p.lab}><td className="mono">{p.lab}</td><td>{p.date}</td><td>{p.spec}</td><td>{p.concl}</td></tr>
+          ))}</tbody>
+        </table>
+        <div className="prior-foot"><button className="cds--btn cds--btn--ghost cds--btn--sm">View full patient history</button></div>
+      </div>
+    </div>
+
+    <div className="layout">
+      <div className="rail">
+        <h4>CASE PROGRESS</h4>
+        {railItems.map(it => {
+          const done = stageIdx(it.key) < si;
+          const cur = STAGES[si].key === it.key;
+          const lock = !reached(it.key);
+          return (
+            <div key={it.k} className={"rail-item" + (cur?" active":"") + (lock && !it.na?" locked":"") + (it.na?" na":"")}
+                 onClick={() => { setOpen(s => Object.assign({}, s, { [it.k]: true }));
+                   const el = document.getElementById(it.k); if (el) el.scrollIntoView({behavior:'smooth',block:'center'}); }}>
+              <span className="rail-ind">{it.na ? '–' : done ? '✓' : cur ? '●' : lock ? '\u{1F512}' : ''}</span>
+              <span style={{flex:1}}>{it.label}</span>
+              {it.badge > 0 && <span className="cds--tag cds--tag--red" style={{fontSize:10}}
+                 title={it.badge + ' open bench requests: ' + openReqs.map(r => r.instruction.slice(0,30) + '…').join('; ')}
+                 aria-label={it.badge + ' open bench requests'}>&#9888; {it.badge}</span>}
+            </div>
+          );
+        })}
+        <div style={{padding:'.5rem .75rem',fontSize:11,color:'#8d8d8d',borderTop:'1px solid #e0e0e0'}}>
+          Rail shown because this screen has 8 gated sections (shell S-5.1).
+        </div>
+      </div>
+
+      <div className="work">
+
+        <Section id="info" num={1} title="Case Information" badge={<span className="sub">Read only</span>}
+                 open={open.info} onToggle={() => toggle('info')}>
+          <div className="fieldgrid">
+            {[['Lab number',CASE.labNumber],['Request date',CASE.requestDate],
+              ['Specimen arrival date',CASE.arrivalDate],['Specimen',CASE.specimen],
+              ['Specimen type',CASE.specimenType],['Procedure performed',CASE.procedure],
+              ['Referring provider',CASE.provider],['Referring facility',CASE.facility],
+              ['Ward / dept / unit',CASE.ward],['Provisional diagnosis',CASE.provisional],
+              ['Previous surgery / treatment',CASE.priorSurgery],['Assigned pathologist',CASE.pathologist]
+            ].map(p => <div className="row" key={p[0]}><span className="k">{p[0]}</span><span>{p[1]}</span></div>)}
+          </div>
+          <div style={{marginTop:'.6rem'}}><span className="k sub">Clinical history</span><div>{CASE.history}</div></div>
+          <Prov>Reads <span className="mono">sample</span>, <span className="mono">sample_item</span>, <span className="mono">sample_requester</span> and the questionnaire response. No new fields, and no field sourced from an unnamed &ldquo;Order&rdquo;.</Prov>
+        </Section>
+
+        <Section id="gross" num={2} title="Grossing" badge={<Tag kind="green">4 cassettes</Tag>}
+                 open={open.gross} onToggle={() => toggle('gross')}>
+          <h4 className="sh">Macroscopic description</h4>
+          <textarea className="ta" defaultValue={"Received in formalin, three cores of liver tissue, the longest 18 mm, tan-brown, one bearing a pale firm focus 6 mm across. Capsular surface identified on the fourth core. Entirely submitted in four cassettes: A1 lesion centre, A2 lesion periphery, A3 background parenchyma, A4 capsular margin."} />
+          <MacroBar />
+          <div style={{marginTop:'.8rem'}}>
+            <label style={{fontSize:13}}><input type="checkbox" /> Specimen requires decalcification</label>
+            <div className="sub">Ticking this is what makes the Decalcification stage reachable (FR-3.2).</div>
+          </div>
+          <h4 className="sh">Cassettes cut from this specimen</h4>
+          <div className="toolbar">
+            <button className="cds--btn cds--btn--secondary cds--btn--sm" onClick={() => say('New cassette added as an inline row')}>+ Add cassette</button>
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => say('Handed to the shared barcodeWorkflow print flow (OGC-284)')}>Print labels for selected</button>
+            <span className="spacer sub">Barcodes are assigned here, where the label is physically applied.</span>
+          </div>
+          <table className="dt">
+            <thead><tr><th>Designation</th><th>Barcode</th><th>Tissue</th><th>State</th><th></th></tr></thead>
+            <tbody>{BLOCKS.map(b => (
+              <tr key={b.id}>
+                <td className="mono">{b.desig}</td><td className="mono">{b.barcode}</td><td>{b.tissue}</td>
+                <td>{b.state === 'BLOCK' ? <Tag kind="teal">Block</Tag> : <Tag kind="purple">Cassette</Tag>}</td>
+                <td><button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => say('Print label · ' + b.barcode)}>Print label</button></td>
+              </tr>
+            ))}</tbody>
+          </table>
+          <Prov>Persists <span className="mono">grossExam</span> on <span className="mono">pathology_sample</span> plus one <span className="mono">pathology_block</span> row per cassette. A cassette and the block it becomes are the same row (FR-9.1).</Prov>
+        </Section>
+
+        <Section id="decal" num={3} title="Decalcification" badge={<span className="sub">n/a</span>}
+                 open={open.decal} onToggle={() => toggle('decal')} locked lockedHint="Not required for this specimen">
+          <div className="banner info"><span>&#8505;</span><span>This stage is enabled at this laboratory but was not flagged at grossing for this specimen, so the case skips it. It is shown rather than hidden, per shell S-3.3.</span></div>
+          <div className="fieldgrid">
+            <div className="row"><span className="k">Agent</span><span>&mdash;</span></div>
+            <div className="row"><span className="k">Start / end</span><span>&mdash;</span></div>
+            <div className="row"><span className="k">Operator</span><span>&mdash;</span></div>
+          </div>
+          <Prov>When entered, the agent and times are recorded in the stage event&rsquo;s notes &mdash; no new columns (FR-4.2).</Prov>
+        </Section>
+
+        <Section id="proc" num={4} title="Processing" badge={<Tag kind="green">Run TP-2026-0841</Tag>}
+                 open={open.proc} onToggle={() => toggle('proc')}>
+          <div className="banner warn"><span>&#9888;</span><span>Processor runs are not yet managed in OpenELIS. Record the run reference as it appears on the instrument &mdash; it becomes a real reference once run management exists (see Dependencies).</span></div>
+          <div className="fieldgrid">
+            <div className="row"><span className="k">Run reference</span><span className="mono">TP-2026-0841</span></div>
+            <div className="row"><span className="k">Instrument / program</span><span>Tissue-Tek VIP &middot; Overnight standard</span></div>
+            <div className="row"><span className="k">Run start / end</span><span>2026-08-29 17:40 &rarr; 2026-08-30 07:05</span></div>
+            <div className="row"><span className="k">Cassettes in this run</span><span>A1, A2, A3, A4 <span className="sub">(all four)</span></span></div>
+            <div className="row"><span className="k">Operator</span><span>Kankan Musa, Mansa <span className="sub">&mdash; from session, not typed</span></span></div>
+            <div className="row"><span className="k">Completed</span><span>2026-08-30 07:05 <span className="sub">&mdash; server clock</span></span></div>
+          </div>
+          <Prov>One <span className="mono">pathology_stage_event</span> row. Operator and timestamps are never user-editable (FR-2.4; ISO 15189:2022 7.3.1(d)).</Prov>
+        </Section>
+
+        <Section id="embed" num={5} title="Embedding" badge={<Tag kind="warm-gray">3 of 4 embedded</Tag>}
+                 open={open.embed} onToggle={() => toggle('embed')}>
+          <div className="banner warn"><span>&#9888;</span><span>
+            <strong>{embedded} of {cassettes} embedded &mdash; cassette {outstanding.join(', ')} outstanding.</strong>{' '}
+            Reconciliation is computed over rows and names the gap. No count is stored or typed anywhere (FR-6.3, FR-9.6).
+          </span></div>
+          <table className="dt">
+            <thead><tr><th>Cassette</th><th>Barcode</th><th>Tissue</th><th>Storage</th><th>Embedded by</th><th></th></tr></thead>
+            <tbody>{BLOCKS.map(b => (
+              <tr key={b.id}>
+                <td className="mono">{b.desig}</td><td className="mono">{b.barcode}</td><td>{b.tissue}</td><td>{b.storage}</td>
+                <td>{b.embeddedBy ? <span>{b.embeddedBy}<br /><span className="sub">{b.embeddedAt}</span></span> : <Tag kind="purple">Not embedded</Tag>}</td>
+                <td>{b.state === 'CASSETTE'
+                  ? <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={() => say('Embedded ' + b.desig + ' — operator and timestamp captured from the session')}>Embed</button>
+                  : <span className="sub">&#10003;</span>}</td>
+              </tr>
+            ))}</tbody>
+          </table>
+          <div className="sub" style={{marginTop:'.5rem'}}>Storage location reuses the shared sample Storage model and its location picker (D-035), not the free-text column the table carries today.</div>
+          <Prov><span className="mono">pathology_block.cassette_state</span> moves CASSETTE &rarr; BLOCK on the same row &mdash; same id, same designation, same barcode.</Prov>
+        </Section>
+
+        <Section id="micro" num={6} title="Microtomy" badge={<Tag kind="blue">6 slides</Tag>}
+                 open={open.micro} onToggle={() => toggle('micro')}>
+          <div className="scanbox">
+            <strong>Scan verification before sectioning</strong>
+            <div className="sub">Scan the block, print its slide label, then scan the printed label back before cutting. 52% of all mislabelling happens at this transition &mdash; 22% at block labelling, 30% at cutting (CAP Q-Probes, 136 institutions).</div>
+            <div className="row">
+              <span><label className="sub" style={{display:'block'}}>Block barcode</label>
+                <input value={scanBlock} onChange={e => setScanBlock(e.target.value)} placeholder="scan block&hellip;" /></span>
+              <span><label className="sub" style={{display:'block'}}>Printed slide label</label>
+                <input value={scanSlide} onChange={e => setScanSlide(e.target.value)} placeholder="scan slide label&hellip;" /></span>
+              <button className="cds--btn cds--btn--secondary cds--btn--sm" onClick={() => { setScanBlock('24TST000010.A2'); setScanSlide('24TST000010.A2.3'); }}>Simulate matching pair</button>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => { setScanBlock('24TST000010.A2'); setScanSlide('24TST000010.A3.1'); }}>Simulate mismatch</button>
+            </div>
+            {scanMatch ? <div className="banner ok" style={{marginTop:'.6rem',marginBottom:0}}><span>&#10003;</span><span>Match confirmed. The slide row may be committed; <span className="mono">label_verified_at</span> and <span className="mono">label_verified_by</span> are recorded.</span></div> : null}
+            {scanMismatch ? <div className="banner err" role="alert" style={{marginTop:'.6rem',marginBottom:0}}><span>&#10005;</span><span>Scanned slide label <span className="mono">{scanSlide}</span> does not match block <span className="mono">{scanBlock}</span>. The slide was not created.</span></div> : null}
+          </div>
+          <div className="toolbar">
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => setShowDeact(!showDeact)}>{showDeact ? 'Hide' : 'Show'} deactivated</button>
+            <span className="spacer sub">Blocks expand to the slides cut from them &mdash; the bench works block by block.</span>
+          </div>
+          <table className="dt">
+            <thead><tr><th>Block / slide</th><th>Barcode</th><th>Level</th><th>Stain</th><th>Label</th><th></th></tr></thead>
+            <tbody>
+              {BLOCKS.filter(b => b.state === 'BLOCK').map(b => {
+                const sl = SLIDES.filter(s => s.blockId === b.id);
+                const rows = [(
+                  <tr className="blockrow" key={'b' + b.id}>
+                    <td className="mono">{b.desig}</td><td className="mono">{b.barcode}</td>
+                    <td colSpan="2">{b.tissue}</td>
+                    <td colSpan="2" style={{textAlign:'right'}}>
+                      <span className="sub" style={{marginRight:'.5rem'}}>{sl.length} slide{sl.length === 1 ? '' : 's'}</span>
+                      <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => say('New slide row added inline under ' + b.desig)}>+ Add slide</button>
+                    </td>
+                  </tr>
+                )];
+                sl.forEach(s => rows.push(
+                  <tr className="slide" key={'s' + s.id}>
+                    <td className="mono">{s.desig}</td><td className="mono">{s.barcode}</td><td>{s.level}</td><td>{s.stain}</td>
+                    <td>{s.verified ? <Tag kind="teal">Verified</Tag> : <Tag kind="gray">Unverified</Tag>}</td>
+                    <td><button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => say('Print label · ' + s.barcode)}>Print label</button></td>
+                  </tr>
+                ));
+                return rows;
+              })}
+              {showDeact ? <tr className="slide" style={{opacity:.6}}>
+                <td className="mono">A1.3</td><td className="mono">24TST000010.A1.3</td><td>3</td><td>H&amp;E</td>
+                <td><Tag kind="gray">Deactivated</Tag></td><td className="sub">section folded</td></tr> : null}
+            </tbody>
+          </table>
+          <Prov>Each <span className="mono">pathology_slide</span> row references its parent <span className="mono">block_id</span> &mdash; a link that does not exist in the schema today (FR-9.2). Slides are deactivated, never deleted (42 CFR 493.1105: slides 10 y, blocks 2 y).</Prov>
+        </Section>
+
+        <Section id="stain" num={7} title="Staining" badge={<Tag kind="blue">{stained} of {SLIDES.length} complete</Tag>}
+                 open={open.stain} onToggle={() => toggle('stain')}
+                 locked={!reached('STAINING')} lockedHint="Available once the case reaches Staining">
+          <div className="toolbar">
+            <button className="cds--btn cds--btn--secondary cds--btn--sm" onClick={() => say('Confirmation names A2.2 and A3.2 — not "2 selected"')}>Apply stain to selected</button>
+            <span className="spacer sub">Stain is a dictionary entry chosen through a filterable ComboBox &mdash; the catalogue grows (D-007).</span>
+          </div>
+          <table className="dt">
+            <thead><tr><th></th><th>Slide</th><th>Block</th><th>Stain</th><th>Status</th><th>Cut by</th><th></th></tr></thead>
+            <tbody>{SLIDES.map(s => (
+              <tr key={s.id}>
+                <td><input type="checkbox" aria-label={'Select slide ' + s.desig} defaultChecked={s.stainStatus !== 'Complete'} /></td>
+                <td className="mono">{s.desig}</td>
+                <td className="mono">{BLOCKS.filter(b => b.id === s.blockId)[0].desig}</td>
+                <td>{s.stain}</td>
+                <td>{s.stainStatus === 'Complete' ? <Tag kind="green">Complete</Tag> : s.stainStatus === 'In progress' ? <Tag kind="blue">In progress</Tag> : <Tag kind="purple">Pending</Tag>}</td>
+                <td className="sub">{s.cutBy}</td>
+                <td>{s.stainStatus !== 'Complete' ? <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => say('Marked ' + s.desig + ' stained')}>Mark stained</button> : null}</td>
+              </tr>
+            ))}</tbody>
+          </table>
+          <div className="sub" style={{marginTop:'.5rem'}}>An unsatisfactory stain returns the slide for a recut through the explicit stage-return path (FR-8.3) &mdash; the honest route for what the bench does anyway.</div>
+          <Prov>Sets <span className="mono">stain_id</span> and <span className="mono">stain_status</span> on <span className="mono">pathology_slide</span>.</Prov>
+        </Section>
+
+        <Section id="cover" num={8} title="Coverslipping & QC" badge={<Tag kind="teal">4 pass</Tag>}
+                 open={open.cover} onToggle={() => toggle('cover')}
+                 locked={!reached('COVERSLIPPING')} lockedHint="Available once staining is complete">
+          <div className="sub" style={{marginBottom:'.6rem'}}>This stage can be switched off per deployment (<span className="mono">pathology.stage.COVERSLIPPING.enabled</span>); when off it renders n/a rather than disappearing.</div>
+          <table className="dt">
+            <thead><tr><th>Slide</th><th>Stain</th><th>Coverslip / QC</th><th></th></tr></thead>
+            <tbody>{SLIDES.map(s => (
+              <tr key={s.id}>
+                <td className="mono">{s.desig}</td><td>{s.stain}</td>
+                <td>{s.coverslip === 'Pass' ? <Tag kind="teal">Pass</Tag> : <Tag kind="gray">Awaiting</Tag>}</td>
+                <td>{s.coverslip !== 'Pass' ? <span>
+                  <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => say('QC pass · ' + s.desig)}>Pass</button>
+                  <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => say(s.desig + ' failed QC — returned for recut with a reason')}>Fail</button>
+                </span> : null}</td>
+              </tr>
+            ))}</tbody>
+          </table>
+          <Prov>A failed slide returns for recut through the stage-return path, recorded with a reason.</Prov>
+        </Section>
+
+        <Section id="review" num={9} title="Pathologist Review"
+                 badge={openReqs.length ? <Tag kind="red">&#9888; {openReqs.length} open requests</Tag> : <Tag kind="green">No open requests</Tag>}
+                 open={open.review} onToggle={() => toggle('review')}
+                 locked={!reached('READY_PATHOLOGIST')} lockedHint="Available once the case reaches Ready for Pathologist">
+          <div className="fieldgrid">
+            <div className="row"><span className="k">Assigned pathologist</span><span>{CASE.pathologist} <span className="sub">&mdash; typeahead over users holding the Histopathology bundle</span></span></div>
+            <div className="row"><span className="k">Slides received</span><span>{SLIDES.length}</span></div>
+          </div>
+
+          <h4 className="sh">Review notes</h4>
+          <textarea className="ta" style={{minHeight:60}} defaultValue={"Cores adequate. Lesional tissue present in A1 and A2. Awaiting reticulin and deeper levels before concluding."} />
+          <MacroBar />
+
+          <h4 className="sh">Bench requests</h4>
+          <div className="toolbar">
+            <button className="cds--btn cds--btn--secondary cds--btn--sm" onClick={() => setShowNewReq(!showNewReq)}>
+              {showNewReq ? 'Cancel new request' : '+ New request'}
+            </button>
+            <span className="spacer sub">An inline row, not a modal (D-005, D-011).</span>
+          </div>
+          <table className="dt">
+            <thead><tr><th>Raised</th><th>By</th><th>Type</th><th>Target</th><th>Instruction</th><th>Priority</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              {showNewReq ? <tr className="inline-new"><td colSpan="8">
+                <div className="newgrid">
+                  <span><label>Request type</label>
+                    <select value={newReqKind} onChange={e => setNewReqKind(e.target.value)}>
+                      <option value="BLOCK">Additional block</option>
+                      <option value="SLIDE">Additional slide</option>
+                      <option value="STAIN">Additional stain</option>
+                    </select></span>
+                  <span><label>Target{newReqKind === 'BLOCK' ? ' (optional)' : ''}</label>
+                    <select>
+                      {newReqKind === 'SLIDE' ? BLOCKS.filter(b => b.state === 'BLOCK').map(b => <option key={b.id}>Block {b.desig} &mdash; {b.tissue}</option>) : null}
+                      {newReqKind === 'STAIN' ? SLIDES.map(s => <option key={s.id}>Slide {s.desig} &mdash; {s.stain}</option>) : null}
+                      {newReqKind === 'BLOCK' ? <option>&mdash; specimen area, describe in the instruction &mdash;</option> : null}
+                    </select>
+                    <span className="sub">Filtered by request type (FR-10.4)</span></span>
+                  {newReqKind === 'STAIN' ? <span><label>Stain</label>
+                    <select><option>Reticulin</option><option>Masson trichrome</option><option>Perls iron</option><option>PAS</option></select></span> : null}
+                  <span><label>Priority</label><select><option>Normal</option><option>Urgent</option><option>STAT</option></select></span>
+                </div>
+                <div style={{marginTop:'.6rem'}}>
+                  <label className="sub" style={{display:'block'}}>Instruction (required)</label>
+                  <input style={{width:'100%',boxSizing:'border-box',fontSize:13,padding:'.3rem',border:'none',borderBottom:'1px solid #8d8d8d',background:'#fff'}}
+                         placeholder="e.g. deeper sections at 3 &micro;m rather than 5 &micro;m" />
+                </div>
+                <div style={{marginTop:'.6rem',display:'flex',gap:'.5rem'}}>
+                  <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={() => { setShowNewReq(false); say('Request raised on the existing pathology_request table'); }}>Raise request</button>
+                  <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => setShowNewReq(false)}>Cancel</button>
+                </div>
+              </td></tr> : null}
+              {REQUESTS.map(r => (
+                <tr key={r.id}>
+                  <td>{r.date}</td><td className="sub">{r.by}</td>
+                  <td><Tag kind={r.kind === 'BLOCK' ? 'purple' : r.kind === 'SLIDE' ? 'blue' : 'teal'}>{r.kind}</Tag></td>
+                  <td className="mono">{r.target}</td><td>{r.instruction}</td>
+                  <td>{r.priority === 'URGENT' ? <Tag kind="red">Urgent</Tag> : r.priority === 'STAT' ? <Tag kind="red" strong>STAT</Tag> : <Tag kind="gray">Normal</Tag>}</td>
+                  <td>{r.status === 'OPENED' ? <Tag kind="purple">Opened</Tag> : <Tag kind="green">Completed</Tag>}</td>
+                  <td>{r.status === 'OPENED'
+                    ? <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => say('Request completed — may record the object that fulfilled it')}>Complete</button>
+                    : <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => say('Reverted to Opened — audited')}>Revert</button>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <h4 className="sh">Second opinion</h4>
+          <div style={{background:'#f4f4f4',padding:'.7rem',fontSize:13}}>
+            <div className="fieldgrid">
+              <div className="row"><span className="k">Consulting pathologist</span><span>{CONSULT.consulted}</span></div>
+              <div className="row"><span className="k">Reason</span><span>{CONSULT.reason}</span></div>
+              <div className="row"><span className="k">Requested before treatment</span><span>{CONSULT.preTreatment ? 'Yes' : 'No'}</span></div>
+              <div className="row"><span className="k">Requested at</span><span>{CONSULT.requestedAt}</span></div>
+              <div className="row"><span className="k">Status</span><span><Tag kind="purple">Awaiting response</Tag></span></div>
+              <div className="row"><span className="k">Outcome</span><span>&mdash; <span className="sub">Agree / Disagree / Modified, stored as a queryable field</span></span></div>
+            </div>
+            <div style={{marginTop:'.6rem',display:'flex',gap:'.5rem'}}>
+              <button className="cds--btn cds--btn--secondary cds--btn--sm" onClick={() => say('Second-opinion request sent')}>Request second opinion</button>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => say('Withdrawn')}>Withdraw</button>
+            </div>
+            <div className="sub" style={{marginTop:'.4rem'}}>The outcome is a field rather than a comment because CAP/ADASP interpretive-error guidance requires review <em>results</em> to be monitored continuously. Triggers are configurable rules and never block sign-out.</div>
+          </div>
+          <Prov>Requests reuse the existing <span className="mono">pathology_request</span> table and its <span className="mono">RequestStatus</span> enum. Consultations use one new table, <span className="mono">pathology_consultation</span>.</Prov>
+        </Section>
+
+        <Section id="find" num={10} title="Findings & Conclusion"
+                 badge={critical ? <Tag kind="red" strong>Malignant</Tag> : <Tag kind="gray">Pending</Tag>}
+                 open={open.find} onToggle={() => toggle('find')}
+                 locked={!reached('READY_PATHOLOGIST')} lockedHint="Available once the case reaches Ready for Pathologist">
+          {critical ? <div className="banner err" role="alert"><span>&#9888;</span><span>
+            This conclusion requires critical-result acknowledgment by the ordering clinician. The case will be flagged in the Alerts Dashboard on sign-out.
+          </span></div> : null}
+          <h4 className="sh">Macroscopic description</h4>
+          <textarea className="ta" defaultValue={"Three cores of liver tissue, longest 18 mm; one bearing a pale firm focus 6 mm across. Capsular surface on the fourth core. Entirely submitted."} />
+          <MacroBar />
+          <h4 className="sh">Microscopic description</h4>
+          <textarea className="ta" defaultValue={"Sections show a trabecular and pseudoglandular proliferation of hepatocyte-like cells with enlarged nuclei, prominent nucleoli and a raised nuclear-to-cytoplasmic ratio. Reticulin highlights loss of the normal reticulin framework. Background parenchyma shows established cirrhosis with broad fibrous septa."} />
+          <MacroBar />
+          <h4 className="sh">Techniques used</h4>
+          <div>{TECHNIQUES.map(t => <span className="chip" key={t.c}><span className="mono">{t.c}</span> {t.l} <span className="x">&times;</span></span>)}</div>
+          <div className="sub">Existing <span className="mono">PathologyTechnique</span> entity. Selections render as labelled chips, never as a count.</div>
+          <h4 className="sh">Coded conclusion</h4>
+          <div>{CONCLUSIONS.map(c => (
+            <span className="chip" key={c.code} style={c.malignant ? {background:'#ffd7d9'} : {}}>
+              <span className="mono">{c.code}</span> {c.label}{c.malignant ? ' ⚠' : ''} <span className="x">&times;</span>
+            </span>
+          ))}</div>
+          <div className="sub">Typeahead searchable by name or code. Each selection is a <span className="mono">pathology_conclusion</span> row with <span className="mono">type = DICTIONARY</span> &mdash; no new diagnosis table. Which code system the dictionary carries is deployment configuration.</div>
+          <h4 className="sh">Narrative conclusion</h4>
+          <textarea className="ta" style={{minHeight:60}} defaultValue={"Hepatocellular carcinoma arising in a background of cirrhosis. Capsular margin not assessable on the material submitted; see the request for additional capsular tissue."} />
+          <div style={{marginTop:'.9rem'}}>
+            <label style={{fontSize:13}}><input type="checkbox" /> Refer to Immunohistochemistry</label>
+            <div className="sub">Creates the linked IHC case (OGC-265). Does not block sign-out of this report.</div>
+          </div>
+          <Prov>Persists to the existing <span className="mono">grossExam</span> and <span className="mono">microscopyExam</span> columns plus N <span className="mono">pathology_conclusion</span> rows. Malignancy is a dictionary attribute, not hardcoded logic.</Prov>
+        </Section>
+
+        <Section id="rep" num={11} title="Reports" badge={<Tag kind="green">v2 final</Tag>}
+                 open={open.rep} onToggle={() => toggle('rep')}>
+          <div className="toolbar">
+            <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={() => say('Generated v3 — opened in a new tab')}>Generate report</button>
+            <button className="cds--btn cds--btn--secondary cds--btn--sm" onClick={() => say('Upload an externally authored report as type EXTERNAL')}>Upload report</button>
+            <span className="spacer sub">One click on a row opens that report in a new tab. Download, print and email are the tab&rsquo;s own.</span>
+          </div>
+          <table className="dt">
+            <thead><tr><th>Version</th><th>Generated</th><th>By</th><th>Type</th></tr></thead>
+            <tbody>{REPORTS.map(r => (
+              <tr key={r.v} style={{cursor:'pointer'}} onClick={() => say('Opening report v' + r.v + ' in a new tab')}
+                  title={'Open report v' + r.v + ' in a new tab'}>
+                <td className="mono">v{r.v}</td><td>{r.date}</td><td>{r.by}</td>
+                <td>{r.type === 'FINAL' ? <Tag kind="green">Final</Tag> : <Tag kind="blue">Draft</Tag>}</td>
+              </tr>
+            ))}</tbody>
+          </table>
+          <div className="sub" style={{marginTop:'.5rem'}}>Versions accumulate; re-generating supersedes rather than overwrites. Delivery and print presets are owned by the Report Print Queue (OGC-1031). Generation is gated on both descriptions being non-empty and at least one conclusion existing &mdash; the same condition the disabled tooltip states.</div>
+          <Prov>Rows are <span className="mono">pathology_report</span> with <span className="mono">version_number</span>, <span className="mono">report_type</span> and <span className="mono">voided</span>.</Prov>
+        </Section>
+      </div>
+
+      <div className="summary">
+        <h4>CASE SUMMARY</h4>
+        <div className="row"><span className="k">Stage</span><span><Tag kind="blue">{STAGES[si].label}</Tag></span></div>
+        <div className="row"><span className="k">Cassettes</span><span>{cassettes}</span></div>
+        <div className="row"><span className="k">Blocks embedded</span><span>{embedded} of {cassettes}</span></div>
+        {outstanding.length ? <div className="row"><span className="k">Outstanding</span><span><Tag kind="warm-gray">{outstanding.join(', ')}</Tag></span></div> : null}
+        <div className="row"><span className="k">Slides</span><span>{SLIDES.length}</span></div>
+        <div className="row"><span className="k">Stained</span><span>{stained} of {SLIDES.length}</span></div>
+        <div className="row"><span className="k">Open requests</span><span>{openReqs.length ? <Tag kind="red">&#9888; {openReqs.length}</Tag> : '—'}</span></div>
+        <div className="row"><span className="k">Second opinion</span><span><Tag kind="purple">Awaiting</Tag></span></div>
+        <div className="row"><span className="k">Conclusion</span><span>{critical ? <Tag kind="red" strong>Malignant</Tag> : '—'}</span></div>
+        <div className="row"><span className="k">Report</span><span>v2 final</span></div>
+        <h4 style={{borderTop:'1px solid #e0e0e0'}}>SLIDES</h4>
+        {SLIDES.map(s => <div className="row" key={s.id}><span className="mono">{s.desig}</span><span className="sub">{s.stain}</span></div>)}
+        <div style={{padding:'.5rem .75rem',fontSize:11,color:'#8d8d8d',borderTop:'1px solid #e0e0e0'}}>
+          Every count here is computed over rows &mdash; none is stored (FR-9.6).
+        </div>
+      </div>
+    </div>
+
+    <div className="action-bar">
+      <div className="status">
+        Stage: <strong>{STAGES[si].label}</strong>
+        {openReqs.length ? <span style={{marginLeft:'1rem'}}><Tag kind="red">&#9888; {openReqs.length} open requests</Tag></span> : null}
+        {critical ? <span style={{marginLeft:'.5rem'}}><Tag kind="red" strong>Critical-result case</Tag></span> : null}
+        <span style={{marginLeft:'1rem'}} className="sub">&#9888; Unsaved changes</span>
+      </div>
+      <div className="btn-group">
+        <button className="cds--btn cds--btn--ghost">Discard changes</button>
+        <button className="cds--btn cds--btn--ghost" onClick={() => say('Returned to the previous stage — reason required, audited')}>Return to previous stage</button>
+        <button className="cds--btn cds--btn--secondary" onClick={() => say('Draft saved — no validation, no stage change')}>Save draft</button>
+        <button className={"cds--btn cds--btn--" + pa.kind} onClick={() => say(
+          pa.label === 'Sign out & finalize'
+            ? 'Signed out — report opened in a new tab; CriticalResultEvent emitted'
+            : openReqs.length
+              ? 'Confirmation lists both open requests by instruction before advancing (FR-10.11)'
+              : pa.label + ' — operator and timestamp captured from the session')}>
+          {pa.label}
+        </button>
+      </div>
+    </div>
+    {toast ? <div className="toast">{toast}</div> : null}
+  </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

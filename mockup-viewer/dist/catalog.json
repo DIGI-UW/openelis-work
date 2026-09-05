@@ -1,7 +1,7 @@
 {
-  "generated": "2026-08-12T18:28:35.441Z",
+  "generated": "2026-09-05T00:43:05.599Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
-  "totalDesigns": 222,
+  "totalDesigns": 228,
   "categories": [
     "admin-config",
     "analyzer-integration",
@@ -23,8 +23,8 @@
   ],
   "designs": [
     {
-      "name": "Test Catalog — Specimen Many-to-Many",
-      "slug": "test-catalog-specimen-many-to-many",
+      "name": "Test Catalog — Specimen Many-to-Many [Completed]",
+      "slug": "test-catalog-specimen-many-to-many-completed",
       "category": "admin-config",
       "description": "One test associates many sample types (shared config, Phase 1) with per-specimen override for ranges/LOINC (Phase 2). Sample type single→multi on Basic Info; specimen-aware resolution replaces first-match (.get(0)); flat list shows one row per test with its specimens; multi-association is normal (not an error). Supersedes D-028 (specimen-is-identity) and retires the variant grouping + \"Add specimen variant\" copy subsystem. Hero case: environmental physical-chemistry across water types (Color/Turbidity span ~10 sample types on indonesiademo).",
       "type": "jsx",
@@ -45,17 +45,17 @@
       "githubIssue": 234,
       "specPath": "designs/admin-config/test-catalog-specimen-mn.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-specimen-many-to-many",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/test-catalog-specimen-many-to-many",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/test-catalog-specimen-many-to-many",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-specimen-many-to-many-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/test-catalog-specimen-many-to-many-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/test-catalog-specimen-many-to-many-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-specimen-mn.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-specimen-mn.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-specimen-mn-preview.html"
       }
     },
     {
-      "name": "Test Catalog Editor — Completion & Correction",
-      "slug": "test-catalog-editor-completion-correction",
+      "name": "Test Catalog Editor — Completion & Correction [Completed]",
+      "slug": "test-catalog-editor-completion-correction-completed",
       "category": "admin-config",
       "description": "Completes the unified Test Catalog editor: create a test in place, edit shared settings across same-analyte/different-specimen tests together, result-type-first Sample & Results with live preview, LOINC integrity warnings (missing + duplicate-active), Ranges bug fixes, and language fallback for names/labels.",
       "type": "jsx",
@@ -76,17 +76,17 @@
       "githubIssue": null,
       "specPath": "designs/admin-config/test-catalog-editor-completion.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-editor-completion-correction",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/test-catalog-editor-completion-correction",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/test-catalog-editor-completion-correction",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-editor-completion-correction-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/test-catalog-editor-completion-correction-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/test-catalog-editor-completion-correction-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-editor-completion.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-editor-completion.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-editor-completion.html"
       }
     },
     {
-      "name": "Test Catalog Completion v2",
-      "slug": "test-catalog-completion-v2",
+      "name": "Test Catalog Completion v2 [Completed]",
+      "slug": "test-catalog-completion-v2-completed",
       "category": "admin-config",
       "description": "Consolidated Test Catalog FRS (v2) — the single implementing-agent handoff. Part A corrects delivered gaps in the shipped unified editor (custom label presets filtered out of the picker, terminology mappings missing display names, LOINC integrity warnings siloed in one section, half the combined shared-settings editor shipped, activation allowed on tests that cannot capture a result). Part B adds Manageability: grouped catalog view treating specimen variants of an assay as one family (link/unlink, issues toggle), create-in-place, add-specimen-variant with completeness rail + activation gate. FR-46–86. Supersedes the test-catalog-editor-completion and test-catalog-manageability work lists.",
       "type": "jsx",
@@ -107,9 +107,9 @@
       "githubIssue": null,
       "specPath": "designs/admin-config/test-catalog-completion-v2.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-completion-v2",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/test-catalog-completion-v2",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/test-catalog-completion-v2",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-completion-v2-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/test-catalog-completion-v2-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/test-catalog-completion-v2-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-completion-v2.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-completion-v2.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-panels-sampletypes.html"
@@ -312,8 +312,8 @@
       }
     },
     {
-      "name": "Barcode Configuration",
-      "slug": "barcode-configuration",
+      "name": "Barcode Configuration [Completed]",
+      "slug": "barcode-configuration-completed",
       "category": "admin-config",
       "description": "Barcode label v1 — freezer labels and order entry label configuration, field mapping, and system label type setup (OGC-284 gap analysis + v1.1 cohesive rewrite)",
       "type": "jsx",
@@ -333,17 +333,17 @@
       "githubIssue": null,
       "specPath": "designs/admin-config/barcode-config.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/barcode-configuration",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/barcode-configuration",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/barcode-configuration",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/barcode-configuration-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/barcode-configuration-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/barcode-configuration-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/barcode-config.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/barcode-config.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/barcode-config.html"
       }
     },
     {
-      "name": "Barcode Labels v2",
-      "slug": "barcode-labels-v2",
+      "name": "Barcode Labels v2 [Completed]",
+      "slug": "barcode-labels-v2-completed",
       "category": "admin-config",
       "description": "Admin-configurable label preset system — lab admins define custom label types with dimensions, barcode style, and content fields; Test Catalog declares label requirements; Order Entry aggregates into a deterministic label workload",
       "type": "jsx",
@@ -364,17 +364,17 @@
       "githubIssue": null,
       "specPath": "designs/admin-config/barcode-labels.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/barcode-labels-v2",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/barcode-labels-v2",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/barcode-labels-v2",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/barcode-labels-v2-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/barcode-labels-v2-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/barcode-labels-v2-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/barcode-labels.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/barcode-labels.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/barcode-labels.html"
       }
     },
     {
-      "name": "Panel Management",
-      "slug": "panel-management",
+      "name": "Panel Management [Completed]",
+      "slug": "panel-management-completed",
       "category": "admin-config",
       "description": "Panel Management — Domain Upgrade (OGC-224) — v2.2, aligned to the verified Test Catalog data model and Manageability decisions. Managed as a Panels context in the Test Catalog Management shell (peer of Tests / Sample Types / Lab Units). Adds a single required domain (unbuilt on develop — Dependency 1, Clinical at launch, backfill existing panels to Clinical). A panel has no code (LOINC is its identifier), no lab unit (panels span sections; scoped by domain instead), and its sample types are DERIVED from member tests (SAMPLETYPE_PANEL stays backend-synced, never surfaced).",
       "type": "jsx",
@@ -395,9 +395,9 @@
       "githubIssue": 5,
       "specPath": "designs/admin-config/panel.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/panel-management",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/panel-management",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/panel-management",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/panel-management-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/panel-management-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/panel-management-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/panel.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/panel.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-panels-sampletypes.html"
@@ -454,8 +454,8 @@
       }
     },
     {
-      "name": "Test Catalog",
-      "slug": "test-catalog",
+      "name": "Test Catalog [Completed]",
+      "slug": "test-catalog-completed",
       "category": "admin-config",
       "description": "Admin surface where lab managers define all tests offered — 14-section routed editor covering identity, result types, ranges, sample storage, panels, analyzers, alerts, AMR mapping, regulatory compliance thresholds, LOINC/SNOMED/CIEL/OCL terminology, and order entry configuration. Replaces five separate admin pages (Test, Section, Panel, Method, Reagent). v2.4: Result Components + multi-reading — each test has N labeled subresult fields (e.g., noise = heading° + dB); per-component result type, unit (FK to master table via ComboBox + inline Add), ranges, and FHIR one-Observation-per-component mapping.",
       "type": "jsx",
@@ -477,9 +477,9 @@
       "githubIssue": 8,
       "specPath": "designs/admin-config/test-catalog.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/test-catalog",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/test-catalog",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/test-catalog-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/test-catalog-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog.html"
@@ -711,8 +711,8 @@
       }
     },
     {
-      "name": "Test Catalog v2.5 — v1 Jira Story Breakdown",
-      "slug": "test-catalog-v2-5-v1-jira-story-breakdown",
+      "name": "Test Catalog v2.5 — v1 Jira Story Breakdown [Superseded]",
+      "slug": "test-catalog-v2-5-v1-jira-story-breakdown-superseded",
       "category": "admin-config",
       "description": "Historical v1 story breakdown as originally filed under OGC-746 umbrella — 16 stories. Superseded by the per-epic restructure; preserved as reference.",
       "type": "spec-only",
@@ -746,15 +746,15 @@
       "githubIssue": null,
       "specPath": "designs/admin-config/test-catalog/test-catalog-v2.5-v1-jira.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-v2-5-v1-jira-story-breakdown",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/test-catalog-v2-5-v1-jira-story-breakdown",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/test-catalog-v2-5-v1-jira-story-breakdown",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-v2-5-v1-jira-story-breakdown-superseded",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/test-catalog-v2-5-v1-jira-story-breakdown-superseded",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/test-catalog-v2-5-v1-jira-story-breakdown-superseded",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog/test-catalog-v2.5-v1-jira.md"
       }
     },
     {
-      "name": "Test Catalog v2.5 — v2 Jira Story Breakdown",
-      "slug": "test-catalog-v2-5-v2-jira-story-breakdown",
+      "name": "Test Catalog v2.5 — v2 Jira Story Breakdown [Superseded]",
+      "slug": "test-catalog-v2-5-v2-jira-story-breakdown-superseded",
       "category": "admin-config",
       "description": "Historical v2 story breakdown as originally filed under OGC-759 umbrella — 8 stories. Superseded by the per-epic restructure; preserved as reference.",
       "type": "spec-only",
@@ -780,9 +780,9 @@
       "githubIssue": null,
       "specPath": "designs/admin-config/test-catalog/test-catalog-v2.5-v2-jira.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-v2-5-v2-jira-story-breakdown",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/test-catalog-v2-5-v2-jira-story-breakdown",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/test-catalog-v2-5-v2-jira-story-breakdown",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-v2-5-v2-jira-story-breakdown-superseded",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/test-catalog-v2-5-v2-jira-story-breakdown-superseded",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/test-catalog-v2-5-v2-jira-story-breakdown-superseded",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog/test-catalog-v2.5-v2-jira.md"
       }
     },
@@ -1111,8 +1111,8 @@
       }
     },
     {
-      "name": "Compliance Standards Administration",
-      "slug": "compliance-standards-administration",
+      "name": "Compliance Standards Administration [Completed]",
+      "slug": "compliance-standards-administration-completed",
       "category": "vector-surveillance",
       "description": "Admin configuration for compliance standards (ISO 15189, WHO, CLSI) — link standards to test catalog entries, QC rules, and sampling protocols. Part of the Vector/Environmental LIMS epic.",
       "type": "jsx",
@@ -1131,17 +1131,17 @@
       "githubIssue": 72,
       "specPath": "designs/admin-config/compliance-standards-admin.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/compliance-standards-administration",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/compliance-standards-administration",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/compliance-standards-administration",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/compliance-standards-administration-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/compliance-standards-administration-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/compliance-standards-administration-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/compliance-standards-admin.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/compliance-standards-admin.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/compliance-standards-admin.html"
       }
     },
     {
-      "name": "Sample Type Management",
-      "slug": "sample-type-management",
+      "name": "Sample Type Management [Completed]",
+      "slug": "sample-type-management-completed",
       "category": "admin-config",
       "description": "Sample Type Management (OGC-296) — v2.1. Managed as a context in the Test Catalog Management shell (peer of Tests/Panels) with SideNav sections rather than a standalone 5-tab page. Sections: Basic Info (incl. required single Clinical/Environmental/Vector domain), Associated Tests (read-only — a test\\",
       "type": "jsx",
@@ -1164,17 +1164,17 @@
       "githubIssue": null,
       "specPath": "designs/admin-config/sample-type-management.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/sample-type-management",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/sample-type-management",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/sample-type-management",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/sample-type-management-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/sample-type-management-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/sample-type-management-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/sample-type-management.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/sample-type-management.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-panels-sampletypes.html"
       }
     },
     {
-      "name": "Sample Type Domain Classification",
-      "slug": "sample-type-domain-classification",
+      "name": "Sample Type Domain Classification [Completed]",
+      "slug": "sample-type-domain-classification-completed",
       "category": "vector-surveillance",
       "description": "Sample Type Domain Classification (S-04) — adds sampleDomain enum (CLINICAL/ENVIRONMENTAL/BOTH) to Sample Type entity, bulk assignment utility, and workflow toggle filtering. Addendum to OGC-296.",
       "type": "jsx",
@@ -1195,17 +1195,17 @@
       "githubIssue": 75,
       "specPath": "designs/admin-config/sample-type-domain-classification.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/sample-type-domain-classification",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/sample-type-domain-classification",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/sample-type-domain-classification",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/sample-type-domain-classification-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/sample-type-domain-classification-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/sample-type-domain-classification-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/sample-type-domain-classification.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/sample-type-domain-classification.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/sample-type-domain-classification.html"
       }
     },
     {
-      "name": "Sample Type Multi-Domain Addendum",
-      "slug": "sample-type-multi-domain-addendum",
+      "name": "Sample Type Multi-Domain Addendum [Completed]",
+      "slug": "sample-type-multi-domain-addendum-completed",
       "category": "admin-config",
       "description": "OGC-296 Addendum — replaces single-value sampleDomain enum with Set<SampleDomain> so a sample type can belong to multiple domain contexts simultaneously (Clinical, Environmental, Vector). Covers entity change, migration, API serialization as string array, and S-04 UI impact (CheckboxGroup replacing single Select).",
       "type": "html",
@@ -1227,9 +1227,9 @@
       "githubIssue": 90,
       "specPath": "designs/admin-config/sample-type-multi-domain-addendum.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/sample-type-multi-domain-addendum",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/sample-type-multi-domain-addendum",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/sample-type-multi-domain-addendum",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/sample-type-multi-domain-addendum-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/sample-type-multi-domain-addendum-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/sample-type-multi-domain-addendum-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/sample-type-multi-domain-addendum.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/sample-type-multi-domain-addendum.html"
       }
@@ -1432,6 +1432,33 @@
       }
     },
     {
+      "name": "Admin Phase 5 Finalization",
+      "slug": "admin-phase-5-finalization",
+      "category": "admin-config",
+      "description": "Phase 5 admin redesign finalization (v2.0) — re-grounds the whole program against the live v3.2.2.0 app (44 SideNav entries resolving to 33 pages, a finalized 12-bucket IA), resolves the contradictions accumulated across the planning documents, and states a finalized disposition for every admin page. Supersedes admin-phase5-roadmap and admin-mvp-scope.",
+      "type": "html",
+      "added": "2026-08-25",
+      "status": "draft",
+      "tags": [
+        "admin",
+        "phase-5",
+        "planning",
+        "finalization",
+        "redesign",
+        "IA"
+      ],
+      "jira": [],
+      "githubIssue": null,
+      "specPath": "designs/admin-config/admin-phase5-finalization.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/admin-phase-5-finalization",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/admin-phase-5-finalization",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/admin-phase-5-finalization",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/admin-phase5-finalization.md",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/admin-phase5-finalization.html"
+      }
+    },
+    {
       "name": "Test Rules Authoring Redesign — MVP",
       "slug": "test-rules-authoring-redesign-mvp",
       "category": "admin-config",
@@ -1466,7 +1493,7 @@
       "name": "Programs Management",
       "slug": "programs-management",
       "category": "admin-config",
-      "description": "Programs admin rework (v2, consolidated) — Domain (Clinical/Environmental/Vector) field matching Test Catalog & Lab Units; moves under Admin → Test Management; inline Edit/Add (no separate page); Deactivate/Reactivate lifecycle (no hard delete) with a Show-deactivated toggle; Carbon ContentSwitcher (Visual Builder ↔ JSON) with a live \"Example\" preview; multi Lab-unit select; heavy on-screen guidance; API & i18n reuse guardrails. Also FR-28 (one builder, per-context SideNav submenu: Programs / per-domain Order form fields / Patient form fields) and FR-29 (shipped fields: badge + Visible toggle, hide-not-delete, not deletable, excluded from the JSON view, Site-Information fields locked, hidden rows collapse). Epic: OGC-781.",
+      "description": "Programs admin rework (v2, consolidated) — Domain (Clinical/Environmental/Vector) field matching Test Catalog & Lab Units; moves under Admin → Test Management; inline Edit/Add (no separate page); Deactivate/Reactivate lifecycle (no hard delete) with a Show-deactivated toggle; Carbon ContentSwitcher (Visual Builder ↔ JSON) with a live \"Example\" preview; multi Lab-unit select; heavy on-screen guidance; API & i18n reuse guardrails. Also FR-28 (one builder, per-context SideNav submenu: Programs / per-domain Order form fields / Patient form fields) and FR-29 (shipped fields: badge + Visible toggle, hide-not-delete, not deletable, excluded from the JSON view, Site-Information fields locked, hidden rows collapse). FR-13.1 adds Move up/Move down controls on each Question card (keyboard-reachable, disabled-not-hidden at ends; reorders Questionnaire.item[] without renumbering linkIds, preserving existing responses). Epic: OGC-781.",
       "type": "jsx",
       "added": "2026-05-27",
       "status": "draft",
@@ -2057,8 +2084,8 @@
       }
     },
     {
-      "name": "QuantStudio 5/7 Flex Field Mapping",
-      "slug": "quantstudio-5-7-flex-field-mapping",
+      "name": "QuantStudio 5/7 Flex Field Mapping [Completed]",
+      "slug": "quantstudio-5-7-flex-field-mapping-completed",
       "category": "analyzer-integration",
       "description": "QuantStudio 5 / 7 Flex HIV Viral Load — XLS export field mapping, 31-column Results sheet parsing",
       "type": "spec-only",
@@ -2077,15 +2104,15 @@
       "githubIssue": 16,
       "specPath": "designs/analyzer-integration/quantstudio-field-mapping-spec-v131.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/analyzer-integration/quantstudio-5-7-flex-field-mapping",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/analyzer-integration/quantstudio-5-7-flex-field-mapping",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/analyzer-integration/quantstudio-5-7-flex-field-mapping",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/analyzer-integration/quantstudio-5-7-flex-field-mapping-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/analyzer-integration/quantstudio-5-7-flex-field-mapping-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/analyzer-integration/quantstudio-5-7-flex-field-mapping-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/analyzer-integration/quantstudio-field-mapping-spec-v131.md"
       }
     },
     {
-      "name": "QuantStudio 5/7 Flex Companion Guide",
-      "slug": "quantstudio-5-7-flex-companion-guide",
+      "name": "QuantStudio 5/7 Flex Companion Guide [Completed]",
+      "slug": "quantstudio-5-7-flex-companion-guide-completed",
       "category": "analyzer-integration",
       "description": "QuantStudio 5 / 7 Flex setup & export guide — QS D&A software export walkthrough for lab staff",
       "type": "spec-only",
@@ -2103,9 +2130,9 @@
       "githubIssue": 17,
       "specPath": "designs/analyzer-integration/quantstudio-companion-guide-v10.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/analyzer-integration/quantstudio-5-7-flex-companion-guide",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/analyzer-integration/quantstudio-5-7-flex-companion-guide",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/analyzer-integration/quantstudio-5-7-flex-companion-guide",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/analyzer-integration/quantstudio-5-7-flex-companion-guide-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/analyzer-integration/quantstudio-5-7-flex-companion-guide-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/analyzer-integration/quantstudio-5-7-flex-companion-guide-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/analyzer-integration/quantstudio-companion-guide-v10.md"
       }
     },
@@ -2236,8 +2263,8 @@
       }
     },
     {
-      "name": "Analyzer Mapping Templates",
-      "slug": "analyzer-mapping-templates",
+      "name": "Analyzer Mapping Templates [Completed]",
+      "slug": "analyzer-mapping-templates-completed",
       "category": "analyzer-integration",
       "description": "Configure analyzer-to-test mapping templates",
       "type": "jsx",
@@ -2255,16 +2282,16 @@
       "githubIssue": 23,
       "specPath": "designs/analyzer-integration/astm-analyzer-mapping-addendum.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-mapping-templates",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/analyzer-integration/analyzer-mapping-templates",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/analyzer-integration/analyzer-mapping-templates",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-mapping-templates-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/analyzer-integration/analyzer-mapping-templates-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/analyzer-integration/analyzer-mapping-templates-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/analyzer-integration/astm-analyzer-mapping-addendum.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/analyzer-integration/astm-analyzer-mapping-addendum.jsx"
       }
     },
     {
-      "name": "Flat File Analyzer Config",
-      "slug": "flat-file-analyzer-config",
+      "name": "Flat File Analyzer Config [Completed]",
+      "slug": "flat-file-analyzer-config-completed",
       "category": "analyzer-integration",
       "description": "Configure flat file (CSV/TSV) analyzer parsers",
       "type": "jsx",
@@ -2282,16 +2309,16 @@
       "githubIssue": 24,
       "specPath": "designs/analyzer-integration/flat-file-analyzer-config.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/analyzer-integration/flat-file-analyzer-config",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/analyzer-integration/flat-file-analyzer-config",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/analyzer-integration/flat-file-analyzer-config",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/analyzer-integration/flat-file-analyzer-config-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/analyzer-integration/flat-file-analyzer-config-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/analyzer-integration/flat-file-analyzer-config-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/analyzer-integration/flat-file-analyzer-config.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/analyzer-integration/flat-file-analyzer-config.jsx"
       }
     },
     {
-      "name": "HL7 Analyzer Mapping",
-      "slug": "hl7-analyzer-mapping",
+      "name": "HL7 Analyzer Mapping [Completed]",
+      "slug": "hl7-analyzer-mapping-completed",
       "category": "analyzer-integration",
       "description": "HL7 message field mapping for analyzers",
       "type": "jsx",
@@ -2310,9 +2337,9 @@
       "githubIssue": 25,
       "specPath": "designs/analyzer-integration/hl7-analyzer-mapping-addendum.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/analyzer-integration/hl7-analyzer-mapping",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/analyzer-integration/hl7-analyzer-mapping",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/analyzer-integration/hl7-analyzer-mapping",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/analyzer-integration/hl7-analyzer-mapping-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/analyzer-integration/hl7-analyzer-mapping-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/analyzer-integration/hl7-analyzer-mapping-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/analyzer-integration/hl7-analyzer-mapping-addendum.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/analyzer-integration/hl7-analyzer-mapping-addendum.jsx"
       }
@@ -2321,7 +2348,7 @@
       "name": "M-00 Microbiology Module Parent",
       "slug": "m-00-microbiology-module-parent",
       "category": "microbiology",
-      "description": "Spine spec for the M-* bundle: glossary, RBAC matrix, data model overview, phase plan, out-of-scope, v1.1 → v2 diff map.",
+      "description": "Spine spec for the M-* bundle: glossary, RBAC matrix, data model overview, phase plan, out-of-scope, v1.1 → v2 diff map. v2.1: NO_GROWTH_FINAL → NO_GROWTH_READY (releases to FINAL_REPORTED, not terminal).",
       "type": "spec-only",
       "added": "2026-05-15",
       "status": "draft",
@@ -2622,7 +2649,7 @@
       "name": "M-04 Case Workbench \\u2014 Interactive Prototype",
       "slug": "m-04-case-workbench-u2014-interactive-prototype",
       "category": "microbiology",
-      "description": "Clickable end-to-end case workup \\u2014 start inoculation, add/identify isolates, set up + receive AST, log critical, release reports; stage, sidebar and next-step guidance update live; opens on the current step.",
+      "description": "Clickable end-to-end case workup \\u2014 start inoculation, add/identify isolates, set up + receive AST, log critical, release reports; stage, sidebar and next-step guidance update live; opens on the current step. v2.1: release gate keys on a recorded outcome (isolate workup complete / no growth / all-contaminant / TB CONTAMINATED|NTM_IDENTIFIED), NO_GROWTH_FINAL to NO_GROWTH_READY.",
       "type": "html",
       "added": "2026-06-05",
       "status": "draft",
@@ -2758,7 +2785,7 @@
       "name": "M-09 WHONET Export",
       "slug": "m-09-whonet-export",
       "category": "microbiology",
-      "description": "Surveillance export with dedup parameters, validation pass, phenotype flag columns, lab profile bootstrap. To national reference lab. Phase 1B.",
+      "description": "Surveillance export with dedup parameters, validation pass, phenotype flag columns, lab profile bootstrap. To national reference lab. Phase 1B. v2.1 adds no-growth rows and the sample-based denominator (include-negatives toggle; export gated on recorded outcome).",
       "type": "html",
       "added": "2026-05-15",
       "status": "draft",
@@ -2874,7 +2901,7 @@
       "name": "M-14 TB Case — Interactive Prototype",
       "slug": "m-14-tb-case-interactive-prototype",
       "category": "microbiology",
-      "description": "The M-04 Case Workbench shell as a TB profile: smear, MGIT/LJ culture, species ID, critical-concentration DST, molecular flags, staged interim reports.",
+      "description": "The M-04 Case Workbench shell as a TB profile: smear, MGIT/LJ culture, species ID, critical-concentration DST, molecular flags, staged interim reports. v1.1 aligns the TB bench with the no-growth amendment (NO_GROWTH_READY + release; CONTAMINATED is not a result).",
       "type": "html",
       "added": "2026-06-08",
       "status": "draft",
@@ -3136,7 +3163,7 @@
       "name": "M-15 GLASS — FHIR Surveillance",
       "slug": "m-15-glass-fhir-surveillance",
       "category": "microbiology",
-      "description": "OE pushes finalized AMR results to a consolidated FHIR server (WHO GLASS reporting path). Reuses FhirTransformService / FhirPersistanceService + EQA submission pattern. Backend/admin spec — no clinical mockup. Cross-lab aggregation stays outside OE.",
+      "description": "OE pushes finalized AMR results to a consolidated FHIR server (WHO GLASS reporting path). Reuses FhirTransformService / FhirPersistanceService + EQA submission pattern. Backend/admin spec — no clinical mockup. Cross-lab aggregation stays outside OE. v1.1 adds the negative / no-growth path (case-keyed transform, include-negatives, release gated on recorded outcome).",
       "type": "spec-only",
       "added": "2026-06-08",
       "status": "draft",
@@ -3366,6 +3393,121 @@
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/pathology/cytology-case-view",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/pathology/cytology-case-view.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/pathology/cytology-case-view.html"
+      }
+    },
+    {
+      "name": "Case View Shell",
+      "slug": "case-view-shell",
+      "category": "pathology",
+      "description": "The shared structural contract (S-1 \\u2026 S-10) implemented by the Pathology, IHC and Cytology case views: PatientHeader, prior related results, accordion sections, the four-state section model, the optional progress rail, the sticky Case Summary, the status-and-role-driven action bar, status transitions, the critical-result hook, and identified objects with no hard delete. Carries a per-screen conformance table \\u2014 an adopting screen may not silently omit an element.",
+      "type": "spec-only",
+      "added": "2026-09-04",
+      "status": "draft",
+      "tags": [
+        "pathology",
+        "cytology",
+        "IHC",
+        "shell",
+        "shared-contract",
+        "cross-cutting",
+        "v2"
+      ],
+      "jira": [],
+      "githubIssue": 295,
+      "specPath": "designs/pathology/case-view-shell.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/pathology/case-view-shell",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/pathology/case-view-shell",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/pathology/case-view-shell",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/pathology/case-view-shell.md"
+      }
+    },
+    {
+      "name": "Pathology Case View v2",
+      "slug": "pathology-case-view-v2",
+      "category": "pathology",
+      "description": "Rebuilds the histopathology case-detail screen around the real bench stages, reworking PathologyStatus to eleven values. Cassette and block become one row with a continuous identity, every slide references its parent block, reconciliation is computed over rows rather than typed, and slide labels are scan-verified against the block before sectioning \\u2014 the transition where published work puts 52% of all mislabelling. Supersedes the December 2025 design. Ships with a slicing guide and a contributor handoff.",
+      "type": "jsx",
+      "added": "2026-09-04",
+      "status": "draft",
+      "tags": [
+        "pathology",
+        "histology",
+        "biopsy",
+        "case-management",
+        "traceability",
+        "barcode",
+        "ISO-15189",
+        "v2"
+      ],
+      "jira": [],
+      "githubIssue": 296,
+      "specPath": "designs/pathology/pathology-case-view-v2.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/pathology/pathology-case-view-v2",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/pathology/pathology-case-view-v2",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/pathology/pathology-case-view-v2",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/pathology/pathology-case-view-v2.md",
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/pathology/pathology-case-view-v2.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/pathology/pathology-case-view-v2-preview.html"
+      }
+    },
+    {
+      "name": "IHC Case View v2",
+      "slug": "ihc-case-view-v2",
+      "category": "pathology",
+      "description": "Moves every interpretive threshold out of application code into versioned, source-stamped reference data resolved on a composite key (marker, clone, assay/platform, scoring system, tumour type, indication). Each result stores its raw measurement alongside the set that interpreted it, and the set\\u2019s source and edition render beside the category. HER2 IHC stays four distinct values 0/1+/2+/3+; ISH has no equivocal category; Ki-67 5\\u201330% reports as indeterminate rather than being forced to a binary. HELD from implementation pending the threshold-set mechanism.",
+      "type": "jsx",
+      "added": "2026-09-04",
+      "status": "draft",
+      "tags": [
+        "pathology",
+        "IHC",
+        "immunohistochemistry",
+        "HER2",
+        "ER-PgR",
+        "Ki-67",
+        "thresholds",
+        "reference-data",
+        "held",
+        "v2"
+      ],
+      "jira": [],
+      "githubIssue": 297,
+      "specPath": "designs/pathology/ihc-case-view-v2.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/pathology/ihc-case-view-v2",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/pathology/ihc-case-view-v2",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/pathology/ihc-case-view-v2",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/pathology/ihc-case-view-v2.md",
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/pathology/ihc-case-view-v2.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/pathology/ihc-case-view-v2-preview.html"
+      }
+    },
+    {
+      "name": "Specimen Journey",
+      "slug": "specimen-journey",
+      "category": "pathology",
+      "description": "Developer orientation, not a screen design. Follows one fictional patient through all three anatomic-pathology benches \\u2014 cytology, histopathology, IHC \\u2014 explaining what physically happens to the tissue, who touches it, and where each screen sits. Includes SVG diagrams of the nine-stage journey with its real PathologyStatus values, and of the case \\u2192 part \\u2192 block \\u2192 slide hierarchy. Read this before the three case-view specs; they assume it.",
+      "type": "html",
+      "added": "2026-09-04",
+      "status": "draft",
+      "tags": [
+        "pathology",
+        "cytology",
+        "IHC",
+        "orientation",
+        "onboarding",
+        "diagrams",
+        "developer-guide"
+      ],
+      "jira": [],
+      "githubIssue": 298,
+      "specPath": null,
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/pathology/specimen-journey",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/pathology/specimen-journey",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/pathology/specimen-journey.html"
       }
     },
     {
@@ -3969,8 +4111,8 @@
       }
     },
     {
-      "name": "Results Entry v4",
-      "slug": "results-entry-v4",
+      "name": "Results Entry v4 [Superseded]",
+      "slug": "results-entry-v4-superseded",
       "category": "results-validation",
       "description": "⚠️ SUPERSEDED by the Multi-Component (integrated) FRS (results-entry-multicomponent.md). Results Entry consolidated redesign (v4) — per-row edit-state lock, Method + Analyzer split columns, inline NCE (real InlineNceForm field set), inline remaining-volume / disposal trigger, dual-axis notes, contrast-ratio critical flags, bulk-release action, cross-domain (Clinical/Environmental/Vector via Lab Unit). Supersedes v3 Results Page. Companion: Validation Page v4 and Result & Validation Configuration v4 (admin).",
       "type": "html",
@@ -3993,16 +4135,16 @@
       "githubIssue": null,
       "specPath": "designs/results-validation/results-entry-v4.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/results-validation/results-entry-v4",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/results-validation/results-entry-v4",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/results-validation/results-entry-v4",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/results-validation/results-entry-v4-superseded",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/results-validation/results-entry-v4-superseded",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/results-validation/results-entry-v4-superseded",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-v4.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-v4.html"
       }
     },
     {
-      "name": "Validation Page v4",
-      "slug": "validation-page-v4",
+      "name": "Validation Page v4 [Superseded]",
+      "slug": "validation-page-v4-superseded",
       "category": "results-validation",
       "description": "⚠️ SUPERSEDED by the Multi-Component (integrated) FRS (validation-multicomponent.md). Validation Page consolidated redesign (v4) — NCE / QC-fail / modification / critical-ack triage chips in the list view, smart bulk-release (excludes unreviewed criticals), Method + Analyzer split columns, inline rejection with NCE record, per-row review state, e-signature on release. Cross-domain (Clinical/Environmental/Vector). Companion: Results Entry v4 and Result & Validation Configuration v4.",
       "type": "html",
@@ -4024,9 +4166,9 @@
       "githubIssue": null,
       "specPath": "designs/results-validation/validation-page-v4.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/results-validation/validation-page-v4",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/results-validation/validation-page-v4",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/results-validation/validation-page-v4",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/results-validation/validation-page-v4-superseded",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/results-validation/validation-page-v4-superseded",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/results-validation/validation-page-v4-superseded",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/validation-page-v4.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/validation-page-v4.html"
       }
@@ -5015,8 +5157,8 @@
       }
     },
     {
-      "name": "TAT Report",
-      "slug": "tat-report",
+      "name": "TAT Report [Completed]",
+      "slug": "tat-report-completed",
       "category": "reports",
       "description": "Turn Around Time Report — summary stats, detail list, trends, and CSV export for lab performance analysis (OGC-307)",
       "type": "jsx",
@@ -5036,9 +5178,9 @@
       "githubIssue": null,
       "specPath": "designs/reports/tat-report.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/reports/tat-report",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/reports/tat-report",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/reports/tat-report",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/reports/tat-report-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/reports/tat-report-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/reports/tat-report-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/reports/tat-report.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/reports/tat-report.jsx"
       }
@@ -5173,8 +5315,8 @@
       }
     },
     {
-      "name": "Reagent Forecasting Facility View",
-      "slug": "reagent-forecasting-facility-view",
+      "name": "Reagent Forecasting Facility View [Superseded]",
+      "slug": "reagent-forecasting-facility-view-superseded",
       "category": "inventory",
       "description": "⚠️ SUPERSEDED by the Inventory Module Redesign (OGC-438), which replaces the facility forecast view. Facility-level reagent stock view — per-cartridge days-of-stock monitoring, stock-count updates, and proactive reorder alerts for lab technicians at a single site",
       "type": "jsx",
@@ -5190,9 +5332,9 @@
       "githubIssue": 61,
       "specPath": "designs/inventory/reagent-forecasting-facility.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/inventory/reagent-forecasting-facility-view",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/inventory/reagent-forecasting-facility-view",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/inventory/reagent-forecasting-facility-view",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/inventory/reagent-forecasting-facility-view-superseded",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/inventory/reagent-forecasting-facility-view-superseded",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/inventory/reagent-forecasting-facility-view-superseded",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/inventory/reagent-forecasting-facility.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/inventory/reagent-forecasting-facility.jsx"
       }
@@ -5293,8 +5435,8 @@
       }
     },
     {
-      "name": "Analyzer Import",
-      "slug": "analyzer-import",
+      "name": "Analyzer Import [Superseded]",
+      "slug": "analyzer-import-superseded",
       "category": "system",
       "description": "[Superseded by Analyzer Results Import (v2 redesign), OGC-288] Bulk analyzer configuration import (wireframe-era analyzer results import redesign).",
       "type": "jsx",
@@ -5310,9 +5452,9 @@
       "githubIssue": 45,
       "specPath": "designs/system/analyzer-import.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/system/analyzer-import",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/system/analyzer-import",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/system/analyzer-import",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/system/analyzer-import-superseded",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/system/analyzer-import-superseded",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/system/analyzer-import-superseded",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/system/analyzer-import.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/system/analyzer-import.jsx"
       }
@@ -5463,10 +5605,10 @@
       }
     },
     {
-      "name": "Multiple Samples per Test at Order Entry",
-      "slug": "multiple-samples-per-test-at-order-entry",
+      "name": "Multiple Samples per Test at Order Entry [Completed]",
+      "slug": "multiple-samples-per-test-at-order-entry-completed",
       "category": "sample-collection",
-      "description": "Multiple specimens of the same sample type at Add Order without re-entering the dozen shared fields, with per-specimen distinguishing labels (sputum #1/#2/#3, timed-urine 07:00/12:00, GTT fasting/1h/2h, blood-culture sets) carried through the worklist, tube labels, result entry and the patient report. Serves TB smear microscopy, stool O&P, timed urine, glucose tolerance, and blood cultures — replacing per-specimen re-entry, \"1 of 3\" marker-pen notes, or separate orders per specimen. Affects Add Order (/SamplePatientEntry), Edit Order, specimen labels, and result-entry display. FRS v1.0 + HTML preview.",
+      "description": "Multiple specimens of the same sample type at Add Order without re-entering the dozen shared fields, with per-specimen distinguishing labels (sputum #1/#2/#3, timed-urine 07:00/12:00, GTT fasting/1h/2h, blood-culture sets) carried through the worklist, tube labels, result entry and the patient report. Serves TB smear microscopy, stool O&P, timed urine, glucose tolerance, and blood cultures — replacing per-specimen re-entry, \"1 of 3\" marker-pen notes, or separate orders per specimen. Affects Add Order (/SamplePatientEntry), Edit Order, specimen labels, and result-entry display. FRS v1.4 + HTML preview.",
       "type": "html",
       "added": "2026-08-11",
       "status": "draft",
@@ -5487,11 +5629,42 @@
       "githubIssue": null,
       "specPath": "designs/sample-collection/multi-sample-order-entry.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/sample-collection/multiple-samples-per-test-at-order-entry",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/sample-collection/multiple-samples-per-test-at-order-entry",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/sample-collection/multiple-samples-per-test-at-order-entry",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/sample-collection/multiple-samples-per-test-at-order-entry-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/sample-collection/multiple-samples-per-test-at-order-entry-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/sample-collection/multiple-samples-per-test-at-order-entry-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/multi-sample-order-entry.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/multi-sample-order-entry-preview.html"
+      }
+    },
+    {
+      "name": "Combined Collections at Order Entry [Superseded]",
+      "slug": "combined-collections-at-order-entry-superseded",
+      "category": "sample-collection",
+      "description": "Combined-collection mode for a sample group at Add Order: several recorded collection events assemble into ONE specimen with a summed total volume and an explicit collection window (a 24-hour urine arriving in four bottles is one specimen, not four), rather than one specimen per collection. A result still points at exactly one specimen, so analysers, referral messages and reports all continue to see one specimen with one result. Deliberately excludes cross-patient pooling (OGC-527) and result computation — it captures the total volume and window a calculation needs and leaves the math to the test config. The deferred second half of Multiple Samples per Test at Order Entry (v1 tests each collection separately; v2 combines them). Affects Add Order (/SamplePatientEntry), Edit Order, specimen labels, result-entry display, patient report. FRS v2.0 — WITHDRAWN 2026-08-12 (superseded before review by the merged Derived & Calculated Results spec, which will own both the collection capture and the calculation that consumes it; kept for the record). HTML preview.",
+      "type": "html",
+      "added": "2026-08-12",
+      "status": "draft",
+      "tags": [
+        "order-entry",
+        "sample-collection",
+        "specimen",
+        "combined-collection",
+        "24h-urine",
+        "pooled-single-patient",
+        "labels",
+        "add-order"
+      ],
+      "jira": [
+        "OGC-285"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/sample-collection/combined-collections-order-entry.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/sample-collection/combined-collections-at-order-entry-superseded",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/sample-collection/combined-collections-at-order-entry-superseded",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/sample-collection/combined-collections-at-order-entry-superseded",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/combined-collections-order-entry.md",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/combined-collections-order-entry-preview.html"
       }
     },
     {
@@ -5525,8 +5698,8 @@
       }
     },
     {
-      "name": "Sampling Site Registry",
-      "slug": "sampling-site-registry",
+      "name": "Sampling Site Registry [Completed]",
+      "slug": "sampling-site-registry-completed",
       "category": "vector-surveillance",
       "description": "Environmental LIMS sampling site registry — manage sampling locations, GPS coordinates, site types, and compliance linkage to S-01 standards with hierarchical site grouping (S-02)",
       "type": "jsx",
@@ -5545,9 +5718,9 @@
       "githubIssue": 71,
       "specPath": "designs/sample-collection/sampling-site-registry.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/sampling-site-registry",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/sampling-site-registry",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/sampling-site-registry",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/sampling-site-registry-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/sampling-site-registry-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/sampling-site-registry-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/sampling-site-registry.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/sampling-site-registry.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/sampling-site-registry.html"
@@ -5836,8 +6009,8 @@
       }
     },
     {
-      "name": "Informed Consent Capture",
-      "slug": "informed-consent-capture",
+      "name": "Informed Consent Capture [Completed]",
+      "slug": "informed-consent-capture-completed",
       "category": "sample-collection",
       "description": "Informed consent capture section for sample order entry (OGC-557) — collapsible accordion with consent checkbox and optional form reference number, auditable agent/timestamp record for ISO 15189 compliance. Reusable ConsentAccordionSection component for Add Order and Edit Order workflows.",
       "type": "jsx",
@@ -5857,9 +6030,9 @@
       "githubIssue": null,
       "specPath": "designs/sample-collection/informed-consent.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/sample-collection/informed-consent-capture",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/sample-collection/informed-consent-capture",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/sample-collection/informed-consent-capture",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/sample-collection/informed-consent-capture-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/sample-collection/informed-consent-capture-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/sample-collection/informed-consent-capture-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/informed-consent.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/informed-consent.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/informed-consent.html"
@@ -6055,8 +6228,8 @@
       }
     },
     {
-      "name": "TAT Dashboard",
-      "slug": "tat-dashboard",
+      "name": "TAT Dashboard [Completed]",
+      "slug": "tat-dashboard-completed",
       "category": "other",
       "description": "Turnaround time monitoring dashboard",
       "type": "jsx",
@@ -6074,16 +6247,16 @@
       "githubIssue": 47,
       "specPath": "designs/other/tat-dashboard.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/other/tat-dashboard",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/other/tat-dashboard",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/other/tat-dashboard",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/other/tat-dashboard-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/other/tat-dashboard-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/other/tat-dashboard-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/other/tat-dashboard.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/other/tat-dashboard.jsx"
       }
     },
     {
-      "name": "Calendar Management",
-      "slug": "calendar-management",
+      "name": "Calendar Management [Completed]",
+      "slug": "calendar-management-completed",
       "category": "other",
       "description": "Lab calendar and scheduling management",
       "type": "jsx",
@@ -6102,9 +6275,9 @@
       "githubIssue": 48,
       "specPath": null,
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/other/calendar-management",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/other/calendar-management",
-        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/other/calendar-management.jsx"
+        "gallery": "https://digi-uw.github.io/openelis-work/#/other/calendar-management-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/other/calendar-management-completed",
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/other/calendar-management-completed.jsx"
       }
     },
     {
@@ -6319,8 +6492,8 @@
       }
     },
     {
-      "name": "Patient ID Card Scanning",
-      "slug": "patient-id-card-scanning",
+      "name": "Patient ID Card Scanning [Completed]",
+      "slug": "patient-id-card-scanning-completed",
       "category": "patient",
       "description": "Patient ID card scanning and document management. Adds an Identification Documents accordion to patient registration and edit screens, plus a document count column and inline preview panel in patient search results. Supports file upload, camera capture, and clipboard paste; stores documents as FHIR Patient attachments with full audit trail and role-based permissions.",
       "type": "jsx",
@@ -6339,9 +6512,9 @@
       "githubIssue": 82,
       "specPath": "designs/patient/patient-id-card-scanning.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/patient/patient-id-card-scanning",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/patient/patient-id-card-scanning",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/patient/patient-id-card-scanning",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/patient/patient-id-card-scanning-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/patient/patient-id-card-scanning-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/patient/patient-id-card-scanning-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/patient/patient-id-card-scanning.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/patient/patient-id-card-scanning.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/patient/patient-id-card-scanning.html"
