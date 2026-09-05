@@ -1,12 +1,12 @@
 # OpenELIS Design Gallery — Full Spec Content
 
-Generated: 2026-09-05T00:31:00.048Z
+Generated: 2026-09-05T00:43:05.601Z
 Total designs: 228
 
 ---
 
-# Test Catalog — Specimen Many-to-Many (admin-config)
-Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-specimen-many-to-many
+# Test Catalog — Specimen Many-to-Many [Completed] (admin-config)
+Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-specimen-many-to-many-completed
 Jira: OGC-1145
 
 # FRS — Test↔Sample-Type Many-to-Many, Phase 1 (shared config)
@@ -139,8 +139,8 @@ What a manager does instead: one test, its specimens on a multi-select, override
 
 ---
 
-# Test Catalog Editor — Completion & Correction (admin-config)
-Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-editor-completion-correction
+# Test Catalog Editor — Completion & Correction [Completed] (admin-config)
+Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-editor-completion-correction-completed
 Jira: OGC-1112
 
 # Test Catalog Editor — Completion & Correction FRS
@@ -427,8 +427,8 @@ No dependency on unbuilt upstreams outside this feature (Reagents linkage, EQA V
 
 ---
 
-# Test Catalog Completion v2 (admin-config)
-Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-completion-v2
+# Test Catalog Completion v2 [Completed] (admin-config)
+Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-completion-v2-completed
 Jira: OGC-1142
 
 # Test Catalog Completion v2 — Consolidated FRS
@@ -3756,8 +3756,8 @@ by key. Reuse verified against the `common.*` snapshot (2026-07-17); confirm aga
 
 ---
 
-# Barcode Configuration (admin-config)
-Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/barcode-configuration
+# Barcode Configuration [Completed] (admin-config)
+Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/barcode-configuration-completed
 Jira: OGC-284
 
 # OpenELIS Global — Barcode Labels v1: Order & Specimen Label Configuration
@@ -3997,8 +3997,8 @@ The new sample-registration "Label & Store" step described in [OGC-358](https://
 
 ---
 
-# Barcode Labels v2 (admin-config)
-Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/barcode-labels-v2
+# Barcode Labels v2 [Completed] (admin-config)
+Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/barcode-labels-v2-completed
 Jira: OGC-285
 
 # OpenELIS Global — Barcode Labels v2: Configurable Label Preset Management
@@ -4770,8 +4770,8 @@ OpenELIS Global localizes via Spring `MessageSource` keys. This FRS specifies th
 
 ---
 
-# Panel Management (admin-config)
-Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/panel-management
+# Panel Management [Completed] (admin-config)
+Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/panel-management-completed
 Jira: OGC-224
 
 # Panel Management — Domain Upgrade
@@ -5697,8 +5697,8 @@ Test Catalog â†’ [Select Test] â†’ Edit â†’ Results Tab â†’ 
 
 ---
 
-# Test Catalog (admin-config)
-Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog
+# Test Catalog [Completed] (admin-config)
+Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-completed
 Jira: OGC-173
 
 # Test Catalog Management - Updated Requirements
@@ -13897,8 +13897,8 @@ If you say go, I'll start Phase 1.
 
 ---
 
-# Test Catalog v2.5 — v1 Jira Story Breakdown (admin-config)
-Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-v2-5-v1-jira-story-breakdown
+# Test Catalog v2.5 — v1 Jira Story Breakdown [Superseded] (admin-config)
+Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-v2-5-v1-jira-story-breakdown-superseded
 Jira: OGC-747, OGC-927, OGC-928, OGC-929, OGC-748, OGC-749, OGC-930, OGC-750, OGC-751, OGC-931, OGC-758, OGC-752, OGC-756, OGC-753, OGC-754, OGC-755
 
 # Jira — Test Catalog Management v2.5 v1 — Epic + Stories
@@ -14265,8 +14265,8 @@ Labels, Reagents, Alerts, Reflex & Calc, Compliance + polish on v1 sections (Ran
 
 ---
 
-# Test Catalog v2.5 — v2 Jira Story Breakdown (admin-config)
-Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-v2-5-v2-jira-story-breakdown
+# Test Catalog v2.5 — v2 Jira Story Breakdown [Superseded] (admin-config)
+Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-v2-5-v2-jira-story-breakdown-superseded
 Jira: OGC-760, OGC-761, OGC-762, OGC-763, OGC-764, OGC-765, OGC-766, OGC-767
 
 # Jira — Test Catalog Management v2.5 v2 — Epic + Stories (DRAFT, not yet filed)
@@ -20663,8 +20663,8 @@ All UI text is externalized. The following i18n keys must be added to the messag
 
 ---
 
-# Compliance Standards Administration (vector-surveillance)
-Gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/compliance-standards-administration
+# Compliance Standards Administration [Completed] (vector-surveillance)
+Gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/compliance-standards-administration-completed
 Jira: OGC-528
 
 # Compliance Standards Administration
@@ -21384,8 +21384,8 @@ No existing v1.0 endpoints change their request schema — only response schemas
 
 ---
 
-# Sample Type Management (admin-config)
-Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/sample-type-management
+# Sample Type Management [Completed] (admin-config)
+Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/sample-type-management-completed
 Jira: OGC-296
 
 # Sample Type Management — Approach Update
@@ -21522,8 +21522,8 @@ Missing keys fall back to English.
 
 ---
 
-# Sample Type Domain Classification (vector-surveillance)
-Gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/sample-type-domain-classification
+# Sample Type Domain Classification [Completed] (vector-surveillance)
+Gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/sample-type-domain-classification-completed
 Jira: OGC-538, OGC-296
 
 # Sample Type Domain Classification
@@ -21940,8 +21940,8 @@ S-04 reuses existing OGC-296 permissions. No new permission keys are introduced.
 
 ---
 
-# Sample Type Multi-Domain Addendum (admin-config)
-Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/sample-type-multi-domain-addendum
+# Sample Type Multi-Domain Addendum [Completed] (admin-config)
+Gallery: https://digi-uw.github.io/openelis-work/#/admin-config/sample-type-multi-domain-addendum-completed
 Jira: OGC-296, OGC-538
 
 # Domain Routing via Lab Unit — Single-Domain Classification
@@ -34533,8 +34533,8 @@ Before accepting patient results, the plugin should validate QC wells (if plate 
 
 ---
 
-# QuantStudio 5/7 Flex Field Mapping (analyzer-integration)
-Gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/quantstudio-5-7-flex-field-mapping
+# QuantStudio 5/7 Flex Field Mapping [Completed] (analyzer-integration)
+Gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/quantstudio-5-7-flex-field-mapping-completed
 Jira: OGC-348
 
 # QuantStudio 5 / 7 Flex — Field Mapping & Integration Spec
@@ -35013,8 +35013,8 @@ def can_handle(file_path):
 
 ---
 
-# QuantStudio 5/7 Flex Companion Guide (analyzer-integration)
-Gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/quantstudio-5-7-flex-companion-guide
+# QuantStudio 5/7 Flex Companion Guide [Completed] (analyzer-integration)
+Gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/quantstudio-5-7-flex-companion-guide-completed
 Jira: OGC-348
 
 # QuantStudio 5 / 7 Flex — Analyzer Setup & Export Guide
@@ -37835,8 +37835,8 @@ CREATE INDEX idx_upload_by_user ON analyzer_file_upload(uploaded_by, uploaded_at
 
 ---
 
-# Analyzer Mapping Templates (analyzer-integration)
-Gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-mapping-templates
+# Analyzer Mapping Templates [Completed] (analyzer-integration)
+Gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-mapping-templates-completed
 Jira: OGC-173
 
 # OpenELIS ASTM Analyzer Mapping Specification — Addendum v1.2
@@ -38493,8 +38493,8 @@ CREATE INDEX idx_analyzer_lab_unit_unit ON analyzer_lab_unit(lab_unit_id);
 
 ---
 
-# Flat File Analyzer Config (analyzer-integration)
-Gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/flat-file-analyzer-config
+# Flat File Analyzer Config [Completed] (analyzer-integration)
+Gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/flat-file-analyzer-config-completed
 Jira: OGC-324
 
 # Flat File Import — Analyzer Configuration
@@ -39166,8 +39166,8 @@ The screenshots show the current implementation. The File Import feature extends
 
 ---
 
-# HL7 Analyzer Mapping (analyzer-integration)
-Gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/hl7-analyzer-mapping
+# HL7 Analyzer Mapping [Completed] (analyzer-integration)
+Gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/hl7-analyzer-mapping-completed
 Jira: OGC-324
 
 # OpenELIS HL7 Analyzer Mapping Specification — Addendum v1.1
@@ -72293,8 +72293,8 @@ The following FRs from v1.4 §6.6 "Export Adapters — eWARS + SILANTOR CSV" are
 
 ---
 
-# Results Entry v4 (results-validation)
-Gallery: https://digi-uw.github.io/openelis-work/#/results-validation/results-entry-v4
+# Results Entry v4 [Superseded] (results-validation)
+Gallery: https://digi-uw.github.io/openelis-work/#/results-validation/results-entry-v4-superseded
 
 # Results Entry — Functional Requirements Specification (consolidated)
 
@@ -72501,8 +72501,8 @@ All UI elements trace to existing OpenELIS entities; new data is declared as a n
 
 ---
 
-# Validation Page v4 (results-validation)
-Gallery: https://digi-uw.github.io/openelis-work/#/results-validation/validation-page-v4
+# Validation Page v4 [Superseded] (results-validation)
+Gallery: https://digi-uw.github.io/openelis-work/#/results-validation/validation-page-v4-superseded
 
 # Validation Page — Functional Requirements Specification (consolidated)
 
@@ -87594,8 +87594,8 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 
 ---
 
-# TAT Report (reports)
-Gallery: https://digi-uw.github.io/openelis-work/#/reports/tat-report
+# TAT Report [Completed] (reports)
+Gallery: https://digi-uw.github.io/openelis-work/#/reports/tat-report-completed
 Jira: OGC-307, OGC-310
 
 # TAT Report — Functional Requirements Specification
@@ -89337,8 +89337,8 @@ Confirm how the type is currently stored on inventory items before writing the m
 
 ---
 
-# Reagent Forecasting Facility View (inventory)
-Gallery: https://digi-uw.github.io/openelis-work/#/inventory/reagent-forecasting-facility-view
+# Reagent Forecasting Facility View [Superseded] (inventory)
+Gallery: https://digi-uw.github.io/openelis-work/#/inventory/reagent-forecasting-facility-view-superseded
 
 # Reagent Forecasting — Facility-Level Stock View
 ## Functional Requirements Specification — v1.0
@@ -90894,8 +90894,8 @@ unit. Add an `label.import.unmappedTarget` string for the exception if not prese
 
 ---
 
-# Analyzer Import (system)
-Gallery: https://digi-uw.github.io/openelis-work/#/system/analyzer-import
+# Analyzer Import [Superseded] (system)
+Gallery: https://digi-uw.github.io/openelis-work/#/system/analyzer-import-superseded
 
 # Analyzer Results Import Page Redesign - Requirements Specification
 
@@ -93699,8 +93699,8 @@ When an administrator enables e-signatures for the first time:
 
 ---
 
-# Multiple Samples per Test at Order Entry (sample-collection)
-Gallery: https://digi-uw.github.io/openelis-work/#/sample-collection/multiple-samples-per-test-at-order-entry
+# Multiple Samples per Test at Order Entry [Completed] (sample-collection)
+Gallery: https://digi-uw.github.io/openelis-work/#/sample-collection/multiple-samples-per-test-at-order-entry-completed
 Jira: OGC-285
 
 # Multiple Samples per Test at Order Entry — Functional Requirements Specification
@@ -94388,8 +94388,8 @@ no hardcoded hex values and no magic pixel spacing.
 
 ---
 
-# Combined Collections at Order Entry (sample-collection)
-Gallery: https://digi-uw.github.io/openelis-work/#/sample-collection/combined-collections-at-order-entry
+# Combined Collections at Order Entry [Superseded] (sample-collection)
+Gallery: https://digi-uw.github.io/openelis-work/#/sample-collection/combined-collections-at-order-entry-superseded
 Jira: OGC-285
 
 # Combined Collections at Order Entry — Functional Requirements Specification
@@ -95872,8 +95872,8 @@ This appendix maps every former S-03 requirement to its location in the unified 
 
 ---
 
-# Sampling Site Registry (vector-surveillance)
-Gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/sampling-site-registry
+# Sampling Site Registry [Completed] (vector-surveillance)
+Gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/sampling-site-registry-completed
 Jira: OGC-531
 
 # S-02: Sampling Site Registry
@@ -100549,8 +100549,8 @@ CREATE INDEX idx_test_sop_holding ON test(sop_max_holding_hours) WHERE sop_max_h
 
 ---
 
-# Informed Consent Capture (sample-collection)
-Gallery: https://digi-uw.github.io/openelis-work/#/sample-collection/informed-consent-capture
+# Informed Consent Capture [Completed] (sample-collection)
+Gallery: https://digi-uw.github.io/openelis-work/#/sample-collection/informed-consent-capture-completed
 Jira: OGC-557
 
 # Informed Consent Capture for Sample Collection
@@ -102838,8 +102838,8 @@ Layout presets (96-well / 128 / 10×10 / loose) as a single import-time choice w
 
 ---
 
-# TAT Dashboard (other)
-Gallery: https://digi-uw.github.io/openelis-work/#/other/tat-dashboard
+# TAT Dashboard [Completed] (other)
+Gallery: https://digi-uw.github.io/openelis-work/#/other/tat-dashboard-completed
 Jira: OGC-310
 
 # TAT Analytics Dashboard - Functional Requirements Specification
@@ -105714,8 +105714,8 @@ All spec deliverables are in the upload folder:
 
 ---
 
-# Patient ID Card Scanning (patient)
-Gallery: https://digi-uw.github.io/openelis-work/#/patient/patient-id-card-scanning
+# Patient ID Card Scanning [Completed] (patient)
+Gallery: https://digi-uw.github.io/openelis-work/#/patient/patient-id-card-scanning-completed
 Jira: OGC-66
 
 # Patient ID Card Scanning and Management
