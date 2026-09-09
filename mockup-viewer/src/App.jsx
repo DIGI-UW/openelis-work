@@ -2833,6 +2833,19 @@ export const MOCKUP_REGISTRY = [
     jira: ['OGC-66'],
     tags: ['patient', 'document-management', 'FHIR', 'scanning', 'registration'],
   },
+  {
+    name: 'Patient Search',
+    category: 'patient',
+    component: React.lazy(() => import('@designs/patient/patient-search.jsx')),
+    description: 'Redesign of the shared patient search panel used by eight screens. One smart search box expanded server-side over the configured patient identifiers, lab number and last name, Enter to submit, configuration-driven helper text, and a collapsed demographics refinement. Route-synced Search for Patient / New Patient switcher on Patient Management and clinical Add Order only. Fixed-height results rows with placeholder-first photos, configured identifier columns, a Shared ID warning tag, and merged patients hidden behind a toggle. Client registry results load progressively beneath local results and fold into local rows by FHIR UUID; external sources are admin-configured, never user-bypassable.',
+    specPath: 'designs/patient/patient-search.md',
+    htmlUrl: 'designs/patient/patient-search.html',
+    added: '2026-09-09',
+    status: 'draft',
+    githubIssue: 305,
+    jira: ['OGC-1197', 'OGC-354'],
+    tags: ['patient', 'reception', 'search', 'client-registry', 'FHIR', 'accessibility', 'PNG'],
+  },
 
   // ─── Figma-only entries (no JSX mockup) ───
   {

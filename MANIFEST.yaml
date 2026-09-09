@@ -4271,4 +4271,43 @@
     gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-results-lab-unit-access-control
     preview: https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-results-lab-unit-access-preview.html
   added: "2026-08-11"
+- id: patient-search
+  type: mockup
+  path: designs/patient/patient-search.jsx
+  frs_path: designs/patient/patient-search.md
+  breakdown: designs/patient/patient-search-breakdown.md
+  preview_path: mockup-viewer/public/designs/patient/patient-search.html
+  category: patient
+  description: >
+    Patient Search (shared panel) redesign. One smart search box expanded server-side over
+    the configured patient identifiers, lab number and last name; Enter submits; helper text
+    lists what the instance accepts; collapsed demographics refinement (DOB, sex, first name).
+    Route-synced Search for Patient / New Patient ContentSwitcher on /PatientManagement and the
+    clinical Add Order step only. Fixed-height results rows, placeholder-first photos, configured
+    identifier columns, Shared ID warning tag, merged patients hidden behind a toggle. Client
+    registry results load progressively beneath local rows and fold into them by FHIR UUID;
+    external sources are admin-configured only. FRS v1.3, JSX mockup, HTML preview, slicing guide.
+  links:
+    jira: ["OGC-1197", "OGC-354"]
+    github_issue: 305
+    gallery: https://digi-uw.github.io/openelis-work/#/patient/patient-search
+    preview: https://digi-uw.github.io/openelis-work/designs/patient/patient-search.html
+  added: "2026-09-09"
+  status: draft
+  tags: ["patient", "reception", "search", "client-registry", "FHIR", "accessibility", "PNG"]
 
+- id: patient-search-preview
+  type: html
+  path: designs/patient/patient-search.html
+  spec: designs/patient/patient-search.md
+  preview_path: mockup-viewer/public/designs/patient/patient-search.html
+  category: patient
+  description: >
+    Interactive HTML preview for the Patient Search shared panel (OGC-1197): host switcher,
+    registry enabled / timing out / off, Patient Merge permission toggle.
+  links:
+    jira: ["OGC-1197"]
+    github_issue: 305
+    gallery: https://digi-uw.github.io/openelis-work/#/patient/patient-search
+  added: "2026-09-09"
+  status: draft

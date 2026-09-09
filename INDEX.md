@@ -217,6 +217,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Feature | Mockup | Spec |
 |---------|--------|------|
 | Patient ID Card Scanning [Completed] | [patient-id-card-scanning.jsx](designs/patient/patient-id-card-scanning.jsx) \| [preview](designs/patient/patient-id-card-scanning.html) | [patient-id-card-scanning.md](designs/patient/patient-id-card-scanning.md) |
+| Patient Search | [patient-search.jsx](designs/patient/patient-search.jsx) \| [preview](designs/patient/patient-search.html) | [patient-search.md](designs/patient/patient-search.md) · [breakdown](designs/patient/patient-search-breakdown.md) |
 
 ## Sample Collection
 

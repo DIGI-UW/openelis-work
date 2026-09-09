@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M-16 Cluster Detection — OpenELIS Preview</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',sans-serif; color:#161616; }
+  .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
+  .shell { display:flex; min-height:100vh; }
+  .sidenav { width:256px; background:#fff; border-right:1px solid #e0e0e0; flex:0 0 256px; }
+  .sidenav h3 { font-size:.75rem; letter-spacing:.32px; text-transform:uppercase; color:#6f6f6f;
+                margin:0; padding:1rem 1rem .5rem; }
+  .sn-item { padding:.6rem 1rem; font-size:.875rem; cursor:pointer; border-left:3px solid transparent; }
+  .sn-item:hover { background:#e5e5e5; }
+  .sn-item.active { background:#e0e0e0; border-left-color:#0f62fe; font-weight:600; }
+  .sn-item.sub { padding-left:2rem; }
+  .sn-item.disabled { color:#a8a8a8; cursor:not-allowed; }
+  .sn-group { padding:.6rem 1rem; font-size:.875rem; font-weight:600; }
+  .content { flex:1; padding:1rem 2rem 4rem; max-width:1200px; }
+  .crumbs { font-size:.75rem; color:#525252; margin-bottom:.5rem; }
+  .crumbs span { color:#0f62fe; }
+  h1.page { font-size:1.75rem; font-weight:400; margin:.25rem 0 .25rem; }
+  .sub { color:#525252; font-size:.875rem; margin-bottom:1rem; }
+  table.cds--data-table td, table.cds--data-table th { font-size:.875rem; }
+  tr.sigrow { cursor:pointer; }
+  tr.sigrow.sel { background:#e5f0ff !important; box-shadow: inset 3px 0 0 #0f62fe; }
+  .filters { display:flex; gap:.75rem; flex-wrap:wrap; align-items:flex-end;
+             background:#fff; padding:.75rem 1rem; border:1px solid #e0e0e0; margin-bottom:.75rem; }
+  .fld { display:flex; flex-direction:column; gap:.25rem; }
+  .fld label { font-size:.75rem; color:#525252; }
+  .fld select, .fld input { font-size:.875rem; padding:.4rem .5rem; border:none; border-bottom:1px solid #8d8d8d;
+                            background:#f4f4f4; min-width:150px; }
+  .chips { display:flex; gap:.375rem; flex-wrap:wrap; margin:.5rem 0 0; }
+  .panel { background:#fff; border:1px solid #e0e0e0; margin-top:1rem; }
+  .panel > h4 { margin:0; padding:.75rem 1rem; font-size:.875rem; font-weight:600;
+                border-bottom:1px solid #e0e0e0; background:#f4f4f4; }
+  .panel > .body { padding:1rem; }
+  .kv { display:flex; gap:2.5rem; flex-wrap:wrap; }
+  .kv div span { display:block; font-size:.75rem; color:#6f6f6f; }
+  .kv div strong { font-size:1rem; font-weight:600; }
+  .curve { display:flex; align-items:flex-end; gap:4px; height:130px; padding-top:.5rem; }
+  .curve .bar { flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; height:100%; }
+  .curve .fill { width:100%; background:#8a3ffc; border-radius:1px 1px 0 0; }
+  .curve .fill.base { background:#c6c6c6; }
+  .curve .lbl { font-size:.625rem; color:#6f6f6f; margin-top:4px; white-space:nowrap; }
+  .curve .cnt { font-size:.6875rem; color:#393939; margin-bottom:2px; }
+  .gridmap { display:grid; grid-template-columns:repeat(6,42px); gap:3px; }
+  .gridmap div { height:42px; background:#e8e8e8; display:flex; align-items:center; justify-content:center;
+                 font-size:.75rem; color:#525252; border-radius:2px; }
+  .gridmap div.hot { background:#da1e28; color:#fff; font-weight:600; }
+  .gridmap div.warm { background:#ffb3b8; color:#750e13; font-weight:600; }
+  .mono { font-family:'IBM Plex Mono',monospace; font-size:.8125rem; }
+  .rgrid td.s { background:#defbe6; color:#0e6027; font-weight:600; text-align:center; }
+  .rgrid td.r { background:#fff1f1; color:#a2191f; font-weight:600; text-align:center; }
+  .rgrid td.i { background:#fff8e1; color:#8e6a00; font-weight:600; text-align:center; }
+  .rgrid td.n { background:#f4f4f4; color:#a8a8a8; text-align:center; }
+  .actbar { display:flex; gap:.5rem; flex-wrap:wrap; padding:1rem; border-top:1px solid #e0e0e0; background:#f4f4f4; }
+  .note { border-left:3px solid #0f62fe; background:#f4f4f4; padding:.5rem .75rem; font-size:.8125rem; margin-top:.5rem; }
+  .setting { display:grid; grid-template-columns:280px 130px 1fr; gap:1rem; align-items:start;
+             padding:.6rem 0; border-bottom:1px solid #f0f0f0; }
+  .setting label { font-size:.875rem; }
+  .setting .help { font-size:.75rem; color:#6f6f6f; }
+  .setting input { font-size:.875rem; padding:.35rem .5rem; border:none; border-bottom:1px solid #8d8d8d;
+                   background:#f4f4f4; width:110px; }
+  .bar-track { height:8px; background:#e0e0e0; border-radius:4px; overflow:hidden; max-width:340px; }
+  .bar-track > div { height:100%; background:#0f62fe; }
+  .modal-scrim { position:fixed; inset:0; background:rgba(22,22,22,.6); display:flex;
+                 align-items:center; justify-content:center; z-index:50; }
+  .modal-box { background:#fff; width:520px; max-width:92vw; }
+  .modal-box h3 { margin:0; padding:1rem; font-size:1.25rem; font-weight:400; }
+  .modal-box .mb { padding:0 1rem 1.5rem; font-size:.875rem; color:#393939; }
+  .modal-box .mf { display:flex; }
+  .modal-box .mf button { flex:1; }
+  .disp-form { display:flex; gap:1rem; flex-wrap:wrap; align-items:flex-end; }
+</style>
+</head>
+<body class="cds--white">
+<div class="preview-banner">
+  Visual Preview — M-16 Cluster Detection &amp; Outbreak Signals &nbsp;|&nbsp;
+  Route: /surveillance/clusters &nbsp;|&nbsp; SideNav: Surveillance → Cluster Detection → Signals
+  &nbsp;|&nbsp; OpenELIS Design Mockup — not a live application
+</div>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useMemo } = React;
+const t = (k, f) => f || k;
+
+/* ---------------- data ---------------- */
+
+const SIGNALS = [
+  {
+    id:"CS-2026-0031", domain:"Clinical", cls:"Space-time cluster",
+    agent:"Klebsiella pneumoniae", pheno:"carbapenem-resistant",
+    location:"ICU (Adult)", locKind:"ward",
+    riDays:2190, riText:"once every 6 years",
+    n:7, expected:0.8, from:"12 Aug 2026", to:"29 Aug 2026", windowDays:18,
+    age:6, disp:"Needs review",
+    curve:[{w:"29 Jun",c:0},{w:"6 Jul",c:1},{w:"13 Jul",c:0},{w:"20 Jul",c:0},{w:"27 Jul",c:1},
+           {w:"3 Aug",c:0},{w:"10 Aug",c:2,hot:true},{w:"17 Aug",c:2,hot:true},{w:"24 Aug",c:3,hot:true}],
+    locBreak:[["ICU (Adult)",7],["Surgical Ward B",1],["Medical Ward A",0],["Paediatric Ward",0]],
+    abx:["MEM","IPM","CAZ","CIP","GEN","AMK","SXT","COL"],
+    rows:[
+      {lab:"26-0048213",d:"12 Aug 2026",pid:"P-114857",spec:"Blood",loc:"ICU (Adult)",
+       ast:["R","R","R","R","R","S","R","S"]},
+      {lab:"26-0048561",d:"15 Aug 2026",pid:"P-115022",spec:"Tracheal aspirate",loc:"ICU (Adult)",
+       ast:["R","R","R","R","R","S","R","S"]},
+      {lab:"26-0048744",d:"18 Aug 2026",pid:"P-115190",spec:"Blood",loc:"ICU (Adult)",
+       ast:["R","R","R","R","R","S","R","S"]},
+      {lab:"26-0049002",d:"21 Aug 2026",pid:"P-115318",spec:"Urine",loc:"ICU (Adult)",
+       ast:["R","R","R","I","R","S","R","S"]},
+      {lab:"26-0049310",d:"25 Aug 2026",pid:"P-115477",spec:"Blood",loc:"ICU (Adult)",
+       ast:["R","R","R","R","R","S","R","S"]},
+      {lab:"26-0049588",d:"27 Aug 2026",pid:"P-115604",spec:"Wound swab",loc:"ICU (Adult)",
+       ast:["R","R","R","R","R","S","R",null]},
+      {lab:"26-0049771",d:"29 Aug 2026",pid:"P-115732",spec:"Blood",loc:"ICU (Adult)",
+       ast:["R","R","R","R","R","S","R","S"]},
+    ],
+    profileNote:"Six of seven isolates share an identical eight-drug pattern; the seventh differs only in ciprofloxacin (Intermediate rather than Resistant). A shared phenotype this tight is the strongest evidence of a common source available without sequencing.",
+  },
+  {
+    id:"CS-2026-0029", domain:"Clinical", cls:"Space-time cluster",
+    agent:"Salmonella Typhi", pheno:null,
+    location:"Grid N04 / N05 — Nabweru", locKind:"grid",
+    riDays:1460, riText:"once every 4 years",
+    n:6, expected:1.1, from:"11 Aug 2026", to:"24 Aug 2026", windowDays:14,
+    age:17, disp:"Needs review", overdue:true,
+    curve:[{w:"29 Jun",c:1},{w:"6 Jul",c:0},{w:"13 Jul",c:1},{w:"20 Jul",c:0},{w:"27 Jul",c:1},
+           {w:"3 Aug",c:0},{w:"10 Aug",c:3,hot:true},{w:"17 Aug",c:3,hot:true},{w:"24 Aug",c:0}],
+    gridmap:[0,0,1,0,0,0, 0,2,4,1,0,0, 0,1,3,2,0,0, 0,0,1,0,0,0, 0,0,0,0,0,0, 0,0,0,0,0,0],
+    locBreak:[["Grid N04 (Nabweru central)",4],["Grid N05 (Nabweru east)",3],["Grid N03",1],["All other cells",0]],
+    abx:["AMP","CIP","CRO","SXT","AZM","CHL"],
+    rows:[
+      {lab:"26-0048104",d:"11 Aug 2026",pid:"P-114790",spec:"Blood",loc:"Grid N04",ast:["R","I","S","R","S","S"]},
+      {lab:"26-0048330",d:"13 Aug 2026",pid:"P-114933",spec:"Blood",loc:"Grid N04",ast:["R","I","S","R","S","S"]},
+      {lab:"26-0048492",d:"15 Aug 2026",pid:"P-115001",spec:"Blood",loc:"Grid N05",ast:["R","I","S","R","S","S"]},
+      {lab:"26-0048820",d:"19 Aug 2026",pid:"P-115244",spec:"Stool",loc:"Grid N04",ast:["R","I","S","R","S","S"]},
+      {lab:"26-0049065",d:"22 Aug 2026",pid:"P-115366",spec:"Blood",loc:"Grid N05",ast:["R","S","S","R","S","S"]},
+      {lab:"26-0049240",d:"24 Aug 2026",pid:"P-115430",spec:"Blood",loc:"Grid N05",ast:["R","I","S","R","S","S"]},
+    ],
+    profileNote:"Not a resistance cluster — this is an organism cluster with a common susceptibility pattern. Five of six show the same ampicillin-resistant, ciprofloxacin-intermediate profile typical of the regional haplotype. The community geography, not the phenotype, is what makes this actionable.",
+  },
+  {
+    id:"CS-2026-0033", domain:"Environmental", cls:"Space-time cluster",
+    agent:"Vibrio cholerae O1", pheno:null,
+    location:"Grid K11 — Kawempe division", locKind:"grid",
+    riDays:1095, riText:"once every 3 years",
+    n:5, expected:0.3, from:"18 Aug 2026", to:"01 Sep 2026", windowDays:15,
+    age:3, disp:"Under investigation",
+    curve:[{w:"29 Jun",c:0},{w:"6 Jul",c:0},{w:"13 Jul",c:0},{w:"20 Jul",c:0},{w:"27 Jul",c:0},
+           {w:"3 Aug",c:0},{w:"10 Aug",c:0},{w:"17 Aug",c:2,hot:true},{w:"24 Aug",c:3,hot:true}],
+    gridmap:[0,0,0,0,0,0, 0,0,1,0,0,0, 0,1,3,1,0,0, 0,0,0,0,0,0, 0,0,0,0,0,0, 0,0,0,0,0,0],
+    locBreak:[["Grid K11 (Kawempe central)",3],["Grid K10",1],["Grid K12",1],["All other cells",0]],
+    abx:[],
+    rows:[
+      {lab:"26-E-00871",d:"18 Aug 2026",pid:"0.3612, 32.5541",spec:"Drinking water — borehole",loc:"Grid K11",ast:null},
+      {lab:"26-E-00884",d:"20 Aug 2026",pid:"0.3588, 32.5497",spec:"Drinking water — piped",loc:"Grid K10",ast:null},
+      {lab:"26-E-00902",d:"25 Aug 2026",pid:"0.3613, 32.5540",spec:"Drinking water — borehole",loc:"Grid K11",ast:null},
+      {lab:"26-E-00915",d:"28 Aug 2026",pid:"0.3641, 32.5588",spec:"Surface water — channel",loc:"Grid K12",ast:null},
+      {lab:"26-E-00931",d:"01 Sep 2026",pid:"0.3612, 32.5539",spec:"Drinking water — borehole",loc:"Grid K11",ast:null},
+    ],
+    profileNote:"Environmental detections carry no susceptibility testing, so there is no phenotype to compare. Note that three of the five sit within metres of each other in grid K11 — the same borehole, resampled. Environmental samples carry no named sampling-site record (only vector surveillance has one), so a repeat visit is recognised by coordinates falling in the same cell, not by a site identifier. Repeat sampling is deliberate here and each positive counts as a real event, so these are not de-duplicated.",
+  },
+  {
+    id:"CS-2026-0034", domain:"Clinical", cls:"Space-time cluster",
+    agent:"Acinetobacter baumannii", pheno:"multidrug-resistant",
+    location:"Surgical Ward B", locKind:"ward",
+    riDays:540, riText:"once every 18 months",
+    n:4, expected:0.9, from:"20 Aug 2026", to:"02 Sep 2026", windowDays:14,
+    age:2, disp:"Needs review",
+    curve:[{w:"29 Jun",c:0},{w:"6 Jul",c:1},{w:"13 Jul",c:0},{w:"20 Jul",c:1},{w:"27 Jul",c:0},
+           {w:"3 Aug",c:0},{w:"10 Aug",c:0},{w:"17 Aug",c:2,hot:true},{w:"24 Aug",c:2,hot:true}],
+    locBreak:[["Surgical Ward B",4],["ICU (Adult)",1],["Medical Ward A",0],["Paediatric Ward",0]],
+    abx:["MEM","IPM","CAZ","CIP","GEN","AMK","SXT","COL"],
+    rows:[
+      {lab:"26-0048951",d:"20 Aug 2026",pid:"P-115277",spec:"Wound swab",loc:"Surgical Ward B",
+       ast:["R","R","R","R","R","R","R","S"]},
+      {lab:"26-0049188",d:"24 Aug 2026",pid:"P-115401",spec:"Wound swab",loc:"Surgical Ward B",
+       ast:["R","R","R","R","R","R","R","S"]},
+      {lab:"26-0049502",d:"28 Aug 2026",pid:"P-115559",spec:"Tracheal aspirate",loc:"Surgical Ward B",
+       ast:["R","R","R","R","R","I","R","S"]},
+      {lab:"26-0049840",d:"02 Sep 2026",pid:"P-115788",spec:"Blood",loc:"Surgical Ward B",
+       ast:["R","R","R","R","R","R","R","S"]},
+    ],
+    profileNote:"Three of four are identical across all eight agents; the fourth differs only in amikacin. Colistin remains the sole susceptible agent in every isolate — worth flagging to the clinical team alongside the transmission question.",
+  },
+  {
+    id:"CS-2026-0035", domain:"Clinical", cls:"Watchlist alert",
+    agent:"Enterococcus faecium", pheno:"vancomycin-resistant",
+    location:"Medical Ward A", locKind:"ward",
+    riDays:null, riText:"First occurrence in this laboratory",
+    n:1, expected:null, from:"31 Aug 2026", to:"31 Aug 2026", windowDays:1,
+    age:4, disp:"Needs review",
+    curve:[{w:"29 Jun",c:0},{w:"6 Jul",c:0},{w:"13 Jul",c:0},{w:"20 Jul",c:0},{w:"27 Jul",c:0},
+           {w:"3 Aug",c:0},{w:"10 Aug",c:0},{w:"17 Aug",c:0},{w:"24 Aug",c:1,hot:true}],
+    locBreak:[["Medical Ward A",1],["ICU (Adult)",0],["Surgical Ward B",0],["Paediatric Ward",0]],
+    abx:["VAN","TEC","AMP","LZD","GEN-H","DAP"],
+    rows:[
+      {lab:"26-0049694",d:"31 Aug 2026",pid:"P-115688",spec:"Blood",loc:"Medical Ward A",
+       ast:["R","R","R","S",null,"S"]},
+    ],
+    profileNote:"A single isolate. No statistical test can flag one case — this signal comes from the sentinel watchlist, which fires on the first ever occurrence of a watched organism in this laboratory. Vancomycin-resistant Enterococcus faecium has never been isolated here before.",
+  },
+];
+
+const RUNS = [
+  {id:"RUN-2026-09-04-0200",when:"4 Sep 2026, 02:00",domains:"Clinical, Environmental, Vector",
+   window:"5 Sep 2025 – 4 Sep 2026",events:"5,142",noloc:"1,884",signals:1,dur:"4 m 11 s",ok:true},
+  {id:"RUN-2026-09-03-0200",when:"3 Sep 2026, 02:00",domains:"Clinical, Environmental, Vector",
+   window:"4 Sep 2025 – 3 Sep 2026",events:"5,128",noloc:"1,879",signals:0,dur:"3 m 58 s",ok:true},
+  {id:"RUN-2026-09-02-0200",when:"2 Sep 2026, 02:00",domains:"Clinical, Environmental, Vector",
+   window:"3 Sep 2025 – 2 Sep 2026",events:"5,109",noloc:"1,871",signals:1,dur:"4 m 02 s",ok:true},
+  {id:"RUN-2026-09-01-0200",when:"1 Sep 2026, 02:00",domains:"Clinical, Environmental",
+   window:"2 Sep 2025 – 1 Sep 2026",events:"5,088",noloc:"1,866",signals:0,dur:"—",ok:false,
+   err:"Vector domain skipped — insufficient baseline (143 days remaining)"},
+  {id:"RUN-2026-08-31-0200",when:"31 Aug 2026, 02:00",domains:"Clinical, Environmental, Vector",
+   window:"1 Sep 2025 – 31 Aug 2026",events:"5,061",noloc:"1,858",signals:2,dur:"4 m 19 s",ok:true},
+];
+
+const CLOSED = [
+  {id:"CS-2026-0028",domain:"Clinical",agent:"Pseudomonas aeruginosa · MDR",loc:"ICU (Adult)",n:5,
+   closed:"22 Aug 2026",by:"A. Nakato",disp:"Confirmed outbreak",
+   reason:"Confirmed — common ventilator circuit; IPC notified, isolates flagged for priority export"},
+  {id:"CS-2026-0027",domain:"Clinical",agent:"Staphylococcus aureus · MRSA",loc:"Surgical Ward B",n:4,
+   closed:"14 Aug 2026",by:"A. Nakato",disp:"Ruled out",
+   reason:"Four isolates from one patient's repeat wound swabs after de-duplication review; not transmission"},
+  {id:"CS-2026-0026",domain:"Environmental",agent:"Escherichia coli",loc:"Grid K08",n:6,
+   closed:"09 Aug 2026",by:"J. Okello",disp:"Confirmed outbreak",
+   reason:"Confirmed — pipe contamination after main repair; district water office notified"},
+  {id:"CS-2026-0025",domain:"Clinical",agent:"Candida auris",loc:"Medical Ward A",n:1,
+   closed:"02 Aug 2026",by:"A. Nakato",disp:"Confirmed outbreak",
+   reason:"Watchlist alert — first isolation in this laboratory; single case, contact screening initiated"},
+  {id:"CS-2026-0024",domain:"Clinical",agent:"Klebsiella pneumoniae · ESBL",loc:"Paediatric Ward",n:5,
+   closed:"28 Jul 2026",by:"D. Ssentongo",disp:"Ruled out",
+   reason:"Seasonal rise consistent with two previous years; no shared phenotype, no shared bay"},
+];
+
+const WATCHLIST = [
+  {agent:"Enterococcus faecium",pheno:"vancomycin-resistant",added:"12 Mar 2026",active:true,fired:"31 Aug 2026"},
+  {agent:"Acinetobacter baumannii",pheno:"carbapenem-resistant",added:"12 Mar 2026",active:true,fired:"—"},
+  {agent:"Candida auris",pheno:"any",added:"12 Mar 2026",active:true,fired:"02 Aug 2026"},
+  {agent:"Klebsiella pneumoniae",pheno:"colistin-resistant",added:"12 Mar 2026",active:true,fired:"—"},
+  {agent:"Staphylococcus aureus",pheno:"vancomycin-intermediate",added:"12 Mar 2026",active:true,fired:"—"},
+  {agent:"Neisseria gonorrhoeae",pheno:"ceftriaxone-resistant",added:"04 Apr 2026",active:true,fired:"—"},
+  {agent:"Salmonella Typhi",pheno:"azithromycin-resistant",added:"04 Apr 2026",active:true,fired:"—"},
+  {agent:"Shigella sonnei",pheno:"any",added:"12 Mar 2026",active:false,fired:"—"},
+];
+
+const ELIGIBLE_TESTS = [
+  {test:"Vibrio cholerae culture — water",domain:"Environmental",agentSrc:"Organism identified"},
+  {test:"Escherichia coli — water (membrane filtration)",domain:"Environmental",agentSrc:"Organism identified"},
+  {test:"Salmonella spp. — food/water culture",domain:"Environmental",agentSrc:"Organism identified"},
+  {test:"Plasmodium falciparum sporozoite ELISA — pool",domain:"Vector",agentSrc:"Pathogen detected (pool)"},
+  {test:"Dengue virus RT-PCR — mosquito pool",domain:"Vector",agentSrc:"Pathogen detected (pool)"},
+  {test:"West Nile virus RT-PCR — mosquito pool",domain:"Vector",agentSrc:"Pathogen detected (pool)"},
+];
+
+/* ---------------- small components ---------------- */
+
+function Tag({kind, children}) {
+  return <span className={"cds--tag cds--tag--"+kind} style={{marginRight:".25rem"}}>{children}</span>;
+}
+function Btn({kind="primary", size="", onClick, disabled, children}) {
+  return <button className={"cds--btn cds--btn--"+kind+(size==="sm"?" cds--btn--sm":"")}
+    onClick={onClick} disabled={disabled}
+    style={{minHeight:size==="sm"?"2rem":"2.5rem", cursor:disabled?"not-allowed":"pointer"}}>{children}</button>;
+}
+function Notif({kind, title, children}) {
+  return (
+    <div className={"cds--inline-notification cds--inline-notification--"+kind}
+         style={{maxWidth:"100%", marginBottom:".75rem"}}>
+      <div className="cds--inline-notification__details">
+        <div className="cds--inline-notification__text-wrapper" style={{display:"block", padding:".25rem 0"}}>
+          <p className="cds--inline-notification__title" style={{marginRight:".5rem"}}>{title}</p>
+          <p className="cds--inline-notification__subtitle">{children}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+const dispKind = d => d==="Confirmed outbreak" ? "red"
+                  : d==="Under investigation" ? "blue"
+                  : d==="Ruled out" ? "gray" : "purple";
+const clsKind  = c => c==="Watchlist alert" ? "magenta"
+                  : c==="Time cluster" ? "teal" : "warm-gray";
+const domKind  = d => d==="Clinical" ? "blue" : d==="Environmental" ? "teal" : "green";
+
+/* ---------------- signals view ---------------- */
+
+function EpiCurve({curve}) {
+  const max = Math.max(...curve.map(p=>p.c), 1);
+  return (
+    <div>
+      <div className="curve">
+        {curve.map((p,i)=>(
+          <div className="bar" key={i}>
+            <span className="cnt">{p.c}</span>
+            <div className={"fill"+(p.hot?"":" base")}
+                 style={{height:(p.c/max*100)+"%", minHeight:p.c===0?"2px":"6px"}}/>
+            <span className="lbl">{p.w}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{display:"flex",gap:"1rem",marginTop:".75rem",fontSize:".75rem",color:"#525252"}}>
+        <span><span style={{display:"inline-block",width:10,height:10,background:"#c6c6c6",marginRight:4}}/>
+          Baseline weeks</span>
+        <span><span style={{display:"inline-block",width:10,height:10,background:"#8a3ffc",marginRight:4}}/>
+          Signal window</span>
+      </div>
+      <table className="cds--data-table" style={{marginTop:".75rem",width:"auto"}}>
+        <thead><tr><th style={{fontSize:".75rem"}}>Week beginning</th><th style={{fontSize:".75rem"}}>Cases</th></tr></thead>
+        <tbody>{curve.map((p,i)=>(
+          <tr key={i}><td>{p.w} 2026</td><td>{p.c}</td></tr>))}</tbody>
+      </table>
+      <div className="note">Text-equivalent table shown beneath the chart — the curve is never the only
+        representation of the data (WCAG 2.1 AA). <strong>Preview note:</strong> the real build renders this
+        with <span className="mono">@carbon/charts-react</span>, already a frontend dependency. These bars are a
+        CDN-free approximation for the preview only.</div>
+    </div>
+  );
+}
+
+function LocationPanel({sig}) {
+  return (
+    <div>
+      {sig.locKind==="grid" && (
+        <div style={{marginBottom:"1rem"}}>
+          <div style={{fontSize:".75rem",color:"#525252",marginBottom:".5rem"}}>
+            Detections by grid cell — 500 m grid (configurable)
+          </div>
+          <div className="gridmap">
+            {sig.gridmap.map((v,i)=>(
+              <div key={i} className={v>=3?"hot":v>0?"warm":""}>{v>0?v:""}</div>
+            ))}
+          </div>
+        </div>
+      )}
+      <table className="cds--data-table" style={{width:"auto"}}>
+        <thead><tr><th>Location</th><th>In signal window</th></tr></thead>
+        <tbody>{sig.locBreak.map((r,i)=>(
+          <tr key={i}><td>{r[0]}</td><td><strong>{r[1]}</strong></td></tr>))}</tbody>
+      </table>
+      {sig.locKind==="ward" && (
+        <div className="note">This signal resolved to <strong>ward</strong>. No map is shown because
+          no patient coordinates were available for these cases — see Cluster Detection settings for
+          current coordinate coverage.</div>
+      )}
+    </div>
+  );
+}
+
+function ProfilePanel({sig}) {
+  if (!sig.abx.length) {
+    return <div>
+      <p style={{fontSize:".875rem",margin:0}}>{sig.profileNote}</p>
+    </div>;
+  }
+  return (
+    <div>
+      <div style={{overflowX:"auto"}}>
+        <table className="cds--data-table rgrid">
+          <thead><tr><th>Lab number</th>{sig.abx.map(a=><th key={a} style={{textAlign:"center"}}>{a}</th>)}</tr></thead>
+          <tbody>
+            {sig.rows.map(r=>(
+              <tr key={r.lab}>
+                <td className="mono">{r.lab}</td>
+                {r.ast.map((v,i)=>(
+                  <td key={i} className={v==="S"?"s":v==="R"?"r":v==="I"?"i":"n"}>{v||"—"}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div style={{display:"flex",gap:"1rem",marginTop:".5rem",fontSize:".75rem",color:"#525252"}}>
+        <span>S = Susceptible</span><span>I = Intermediate</span><span>R = Resistant</span>
+        <span>— = not tested</span>
+      </div>
+      <div className="note">{sig.profileNote}</div>
+    </div>
+  );
+}
+
+function Investigation({sig, onSend}) {
+  const [disp, setDisp] = useState(sig.disp);
+  const [reason, setReason] = useState("");
+  const [note, setNote] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  React.useEffect(()=>{ setDisp(sig.disp); setReason(""); setNote(""); setSaved(false); },[sig.id]);
+
+  const isWatch = sig.cls==="Watchlist alert";
+
+  return (
+    <div className="panel" style={{borderTop:"3px solid #0f62fe"}}>
+      <h4 style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <span>
+          <span className="mono" style={{color:"#525252",marginRight:".5rem"}}>{sig.id}</span>
+          <em>{sig.agent}</em>{sig.pheno ? " · "+sig.pheno : ""} — {sig.location}
+        </span>
+        <span>
+          <Tag kind={domKind(sig.domain)}>{sig.domain}</Tag>
+          <Tag kind={clsKind(sig.cls)}>{sig.cls}</Tag>
+          <Tag kind={dispKind(disp)}>{disp}</Tag>
+        </span>
+      </h4>
+
+      <div className="body">
+        <div className="kv" style={{marginBottom:"1rem"}}>
+          <div><span>{t("surveillance.cluster.panel.comparison","Compared to normal")}</span>
+            <strong>{isWatch ? "First ever occurrence" : sig.n+" vs ~"+sig.expected+" expected"}</strong></div>
+          <div><span>Strength</span><strong>{sig.riText}</strong></div>
+          {sig.riDays && <div><span>Recurrence interval</span><strong className="mono">{sig.riDays} days</strong></div>}
+          <div><span>Window</span><strong>{sig.from} – {sig.to} ({sig.windowDays} d)</strong></div>
+          <div><span>Signal age</span><strong>{sig.age} days {sig.overdue && <Tag kind="red">Overdue</Tag>}</strong></div>
+        </div>
+
+        {isWatch ? (
+          <Notif kind="warning" title="Watchlist alert, not a statistical finding">
+            First occurrence of a watched organism in this laboratory. Raised on a single case — no scan
+            statistic can flag n = 1.
+          </Notif>
+        ) : (
+          <div className="note" style={{borderLeftColor:"#8a3ffc"}}>
+            {sig.n} cases where about {sig.expected} would be usual for this organism, place and period.
+            A pattern this strong would be expected {sig.riText} by chance alone.
+          </div>
+        )}
+      </div>
+
+      <div className="panel" style={{margin:"0 1rem 1rem",border:"1px solid #e0e0e0"}}>
+        <h4>{t("surveillance.cluster.panel.curve","Cases over time")}</h4>
+        <div className="body"><EpiCurve curve={sig.curve}/></div>
+      </div>
+
+      <div className="panel" style={{margin:"0 1rem 1rem"}}>
+        <h4>{t("surveillance.cluster.panel.location","Where")}</h4>
+        <div className="body"><LocationPanel sig={sig}/></div>
+      </div>
+
+      <div className="panel" style={{margin:"0 1rem 1rem"}}>
+        <h4>{t("surveillance.cluster.panel.profile","Resistance patterns")}</h4>
+        <div className="body"><ProfilePanel sig={sig}/></div>
+      </div>
+
+      <div className="panel" style={{margin:"0 1rem 1rem"}}>
+        <h4>{t("surveillance.cluster.panel.lineList","Specimens in this signal")} ({sig.rows.length})</h4>
+        <div className="body" style={{padding:0}}>
+          <table className="cds--data-table">
+            <thead><tr>
+              <th>Lab number</th><th>Collected</th>
+              <th>{sig.domain==="Clinical"?"Patient":sig.domain==="Vector"?"Sampling site":"Sample coordinates"}</th>
+              <th>{sig.domain==="Clinical"?"Specimen":"Sample type"}</th>
+              <th>Location</th><th></th>
+            </tr></thead>
+            <tbody>
+              {sig.rows.map(r=>(
+                <tr key={r.lab}>
+                  <td className="mono">{r.lab}</td><td>{r.d}</td>
+                  <td className="mono">{r.pid}</td><td>{r.spec}</td><td>{r.loc}</td>
+                  <td><a href="#" onClick={e=>e.preventDefault()} style={{fontSize:".8125rem"}}>Open case</a></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="panel" style={{margin:"0 1rem 1rem"}}>
+        <h4>{t("surveillance.cluster.panel.notes","Investigation notes")}</h4>
+        <div className="body">
+          <div style={{fontSize:".8125rem",color:"#525252",marginBottom:".75rem"}}>
+            <div><strong>4 Sep 2026, 08:12 — System</strong> · Signal raised by run RUN-2026-09-04-0200</div>
+            {sig.disp==="Under investigation" &&
+              <div><strong>4 Sep 2026, 09:40 — J. Okello</strong> · Set to Under investigation.
+                District water office contacted; resampling the borehole at 0.3612, 32.5541 today.</div>}
+          </div>
+          <div className="cds--text-input-wrapper">
+            <textarea className="cds--text-area" rows="2" placeholder="Add a note…"
+              value={note} onChange={e=>setNote(e.target.value)}
+              style={{width:"100%",fontSize:".875rem",padding:".5rem",background:"#f4f4f4",
+                      border:"none",borderBottom:"1px solid #8d8d8d"}}/>
+          </div>
+        </div>
+      </div>
+
+      <div className="body" style={{paddingTop:0}}>
+        <div className="disp-form">
+          <div className="fld">
+            <label>{t("surveillance.cluster.action.setDisposition","Record outcome")}</label>
+            <div className="cds--select">
+              <select className="cds--select-input" value={disp}
+                      onChange={e=>{setDisp(e.target.value); setSaved(false);}}
+                      style={{fontSize:".875rem",padding:".4rem .5rem",background:"#f4f4f4",
+                              border:"none",borderBottom:"1px solid #8d8d8d",minWidth:"210px"}}>
+                <option>Needs review</option>
+                <option>Under investigation</option>
+                <option>Confirmed outbreak</option>
+                <option>Ruled out</option>
+              </select>
+            </div>
+          </div>
+          {disp==="Ruled out" && (
+            <div className="fld" style={{flex:1,minWidth:"320px"}}>
+              <label>{t("surveillance.cluster.action.ruledOut.reason","Why is this being ruled out?")} (required)</label>
+              <input value={reason} onChange={e=>setReason(e.target.value)}
+                     placeholder="e.g. repeat isolates from one patient, not transmission"
+                     style={{width:"100%"}}/>
+            </div>
+          )}
+          <Btn kind="primary" size="sm"
+               disabled={disp==="Ruled out" && !reason.trim()}
+               onClick={()=>setSaved(true)}>Save outcome</Btn>
+        </div>
+        {saved && <div style={{marginTop:".5rem"}}>
+          <Notif kind="success" title="Outcome recorded">
+            {sig.id} set to {disp}. The change is recorded with your name and the time.
+            {disp!=="Needs review" && " This signal moves to Detection History and stays readable there permanently — signals are never deleted."}
+          </Notif></div>}
+      </div>
+
+      <div className="actbar">
+        <Btn kind="danger" size="sm" disabled={disp!=="Confirmed outbreak"} onClick={onSend}>
+          {t("surveillance.cluster.action.notify","Notify infection prevention")}
+        </Btn>
+        <Btn kind="secondary" size="sm" disabled={disp!=="Confirmed outbreak"} onClick={onSend}>
+          {t("surveillance.cluster.action.priorityExport","Flag isolates for priority export")}
+        </Btn>
+        <Btn kind="ghost" size="sm">{t("surveillance.cluster.action.exportList","Export line list")} (CSV)</Btn>
+        <Btn kind="ghost" size="sm">Export line list (PDF)</Btn>
+        {disp!=="Confirmed outbreak" &&
+          <span style={{fontSize:".75rem",color:"#6f6f6f",alignSelf:"center"}}>
+            Outbound actions unlock once the cluster is confirmed — nothing leaves the laboratory automatically.
+          </span>}
+      </div>
+    </div>
+  );
+}
+
+function SignalsView() {
+  const [sel, setSel] = useState(SIGNALS[0].id);
+  const [fDomain, setFDomain] = useState("All");
+  const [fClass, setFClass] = useState("All");
+  const [fDisp, setFDisp] = useState("Open only");
+  const [modal, setModal] = useState(false);
+
+  const list = useMemo(()=>SIGNALS.filter(s=>
+    (fDomain==="All"||s.domain===fDomain) &&
+    (fClass==="All"||s.cls===fClass) &&
+    (fDisp==="All"|| (fDisp==="Open only" ? s.disp!=="Ruled out" : s.disp===fDisp))
+  ),[fDomain,fClass,fDisp]);
+
+  const sig = SIGNALS.find(s=>s.id===sel) || list[0];
+  const active = [fDomain!=="All"&&["Domain",fDomain], fClass!=="All"&&["Type",fClass],
+                  fDisp!=="All"&&["Status",fDisp]].filter(Boolean);
+
+  return (
+    <div>
+      <div className="crumbs">Home / Surveillance / Cluster Detection / <span>Signals</span></div>
+      <h1 className="page">{t("surveillance.cluster.title","Cluster Detection")}</h1>
+      <div className="sub">Detection last ran 4 September 2026 at 02:00 · next run tonight at 02:00 ·
+        5,142 results examined</div>
+
+      <Notif kind="info" title={t("surveillance.cluster.degraded.baseline.title","Statistical detection not yet available — Vector")}>
+        This laboratory needs <strong>143 more days</strong> of vector results before pathogen pools can be
+        compared against normal. Watchlist alerts are active for the vector domain now. Clinical and
+        environmental detection are running normally.
+      </Notif>
+
+      <div className="filters">
+        <div className="fld"><label>Domain</label>
+          <div className="cds--select"><select className="cds--select-input" value={fDomain}
+            onChange={e=>setFDomain(e.target.value)}>
+            <option>All</option><option>Clinical</option><option>Environmental</option><option>Vector</option>
+          </select></div></div>
+        <div className="fld"><label>Signal type</label>
+          <div className="cds--select"><select className="cds--select-input" value={fClass}
+            onChange={e=>setFClass(e.target.value)}>
+            <option>All</option><option>Space-time cluster</option><option>Time cluster</option>
+            <option>Watchlist alert</option>
+          </select></div></div>
+        <div className="fld"><label>Status</label>
+          <div className="cds--select"><select className="cds--select-input" value={fDisp}
+            onChange={e=>setFDisp(e.target.value)}>
+            <option>Open only</option><option>All</option><option>Needs review</option>
+            <option>Under investigation</option><option>Confirmed outbreak</option><option>Ruled out</option>
+          </select></div></div>
+        <div className="fld"><label>Organism / pathogen</label>
+          <input placeholder="Type to filter…" /></div>
+        <Btn kind="ghost" size="sm" onClick={()=>{setFDomain("All");setFClass("All");setFDisp("Open only");}}>
+          Reset</Btn>
+      </div>
+
+      {active.length>0 && <div className="chips" style={{marginBottom:".75rem"}}>
+        <span style={{fontSize:".75rem",color:"#525252",alignSelf:"center",marginRight:".25rem"}}>
+          Filters ({active.length}):</span>
+        {active.map((a,i)=><Tag key={i} kind="gray">{a[0]}: {a[1]} ✕</Tag>)}
+      </div>}
+
+      {list.length===0 ? (
+        <div className="cds--tile" style={{padding:"2.5rem",textAlign:"center"}}>
+          <h4 style={{margin:"0 0 .5rem"}}>{t("surveillance.cluster.queue.empty.title","No open signals")}</h4>
+          <p style={{fontSize:".875rem",color:"#525252",margin:0}}>
+            Detection last ran 4 September 2026 at 02:00. An empty queue is normal — signals appear only
+            when something is above expectation.
+          </p>
+        </div>
+      ) : (
+        <div className="cds--data-table-container">
+          <table className="cds--data-table">
+            <thead><tr>
+              <th>Signal</th><th>Domain</th><th>Organism / pathogen</th><th>Type</th>
+              <th>Location</th><th>Strength</th><th>Cases</th><th>Period</th><th>Age</th><th>Status</th>
+            </tr></thead>
+            <tbody>
+              {list.map(s=>(
+                <tr key={s.id} className={"sigrow"+(s.id===sel?" sel":"")} onClick={()=>setSel(s.id)}>
+                  <td className="mono">{s.id}</td>
+                  <td><Tag kind={domKind(s.domain)}>{s.domain}</Tag></td>
+                  <td><em>{s.agent}</em>{s.pheno && <div style={{fontSize:".75rem",color:"#525252"}}>{s.pheno}</div>}</td>
+                  <td><Tag kind={clsKind(s.cls)}>{s.cls}</Tag></td>
+                  <td>{s.location}</td>
+                  <td>{s.riText}{s.riDays && <div className="mono" style={{fontSize:".6875rem",color:"#6f6f6f"}}>RI {s.riDays} d</div>}</td>
+                  <td><strong>{s.n}</strong>{s.expected!==null && <span style={{color:"#6f6f6f"}}> / ~{s.expected}</span>}</td>
+                  <td style={{whiteSpace:"nowrap"}}>{s.from}<br/><span style={{color:"#6f6f6f"}}>– {s.to}</span></td>
+                  <td>{s.age} d {s.overdue && <Tag kind="red">Overdue</Tag>}</td>
+                  <td><Tag kind={dispKind(s.disp)}>{s.disp}</Tag></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div style={{fontSize:".75rem",color:"#6f6f6f",padding:".5rem 1rem",background:"#fff",
+                       borderTop:"1px solid #e0e0e0"}}>
+            Sorted strongest first. Select a row to investigate. 5 signals raised in the past 12 months —
+            within the 3–6 per year design target.
+          </div>
+        </div>
+      )}
+
+      {sig && <Investigation sig={sig} onSend={()=>setModal(true)}/>}
+
+      {modal && (
+        <div className="modal-scrim" onClick={()=>setModal(false)}>
+          <div className="modal-box" onClick={e=>e.stopPropagation()}>
+            <h3>{t("surveillance.cluster.confirm.send.title","Send this cluster onward?")}</h3>
+            <div className="mb">
+              <p style={{marginTop:0}}><strong>Infection prevention team</strong> (3 recipients —
+                A. Nakato, IPC Focal Person; Dr M. Wanyama, IPC Lead; ipc@hospital.example) will be
+                notified by email and SMS using the existing notification templates.</p>
+              <p><strong>{sig.rows.length} isolates</strong> will be flagged for priority surveillance
+                export, so they reach the national reference laboratory ahead of the next routine batch.</p>
+              <p style={{color:"#525252",fontSize:".8125rem",marginBottom:0}}>
+                This is the only confirmation dialog in the feature — it exists because the action leaves
+                the laboratory and cannot be recalled.</p>
+            </div>
+            <div className="mf">
+              <Btn kind="secondary" onClick={()=>setModal(false)}>Cancel</Btn>
+              <Btn kind="primary" onClick={()=>setModal(false)}>Send and flag</Btn>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------------- history view ---------------- */
+
+function HistoryView() {
+  return (
+    <div>
+      <div className="crumbs">Home / Surveillance / Cluster Detection / <span>Detection History</span></div>
+      <h1 className="page">{t("surveillance.cluster.history.title","Detection History")}</h1>
+      <div className="sub">Every run and every closed signal, kept permanently. Nothing here can be deleted.</div>
+
+      <div className="panel">
+        <h4>{t("surveillance.cluster.history.runs","Detection runs")}</h4>
+        <div className="body" style={{padding:0}}>
+          <table className="cds--data-table">
+            <thead><tr><th>Run</th><th>When</th><th>Domains</th><th>Window analysed</th>
+              <th>Events</th><th>No location</th><th>Signals</th><th>Duration</th><th>Outcome</th></tr></thead>
+            <tbody>
+              {RUNS.map(r=>(
+                <tr key={r.id}>
+                  <td className="mono">{r.id}</td><td>{r.when}</td><td>{r.domains}</td>
+                  <td style={{whiteSpace:"nowrap"}}>{r.window}</td>
+                  <td>{r.events}</td><td>{r.noloc}</td><td><strong>{r.signals}</strong></td><td>{r.dur}</td>
+                  <td>{r.ok ? <Tag kind="green">Completed</Tag>
+                            : <span><Tag kind="warm-gray">Partial</Tag>
+                                <div style={{fontSize:".75rem",color:"#8e6a00"}}>{r.err}</div></span>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="actbar">
+          <Btn kind="secondary" size="sm">{t("surveillance.cluster.action.runNow","Run detection now")}</Btn>
+          <span style={{fontSize:".75rem",color:"#6f6f6f",alignSelf:"center"}}>
+            A run that fails is recorded and surfaced — a scheduled analysis that silently stops running is
+            treated as a defect, not an edge case.
+          </span>
+        </div>
+      </div>
+
+      <div className="panel">
+        <h4>{t("surveillance.cluster.history.closed","Closed signals")}</h4>
+        <div className="body" style={{padding:0}}>
+          <table className="cds--data-table">
+            <thead><tr><th>Signal</th><th>Domain</th><th>Organism / pathogen</th><th>Location</th>
+              <th>Cases</th><th>Closed</th><th>By</th><th>Outcome</th><th>Reason recorded</th></tr></thead>
+            <tbody>
+              {CLOSED.map(c=>(
+                <tr key={c.id}>
+                  <td className="mono">{c.id}</td>
+                  <td><Tag kind={domKind(c.domain)}>{c.domain}</Tag></td>
+                  <td><em>{c.agent}</em></td><td>{c.loc}</td><td>{c.n}</td>
+                  <td style={{whiteSpace:"nowrap"}}>{c.closed}</td><td>{c.by}</td>
+                  <td><Tag kind={dispKind(c.disp)}>{c.disp}</Tag></td>
+                  <td style={{fontSize:".8125rem",maxWidth:"320px"}}>{c.reason}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="actbar">
+          <span style={{fontSize:".75rem",color:"#6f6f6f"}}>
+            3 confirmed, 2 ruled out over 12 months. This record is what makes threshold tuning possible —
+            settings can be judged against what signals actually turned out to be.
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- config view ---------------- */
+
+function ConfigView() {
+  const [domains, setDomains] = useState({Clinical:true, Environmental:true, Vector:true});
+  const [grid, setGrid] = useState(500);
+  const [thresh, setThresh] = useState(365);
+  const [maxWin, setMaxWin] = useState(60);
+  const [baseline, setBaseline] = useState(365);
+  const [reps, setReps] = useState(999);
+  const [overdue, setOverdue] = useState(14);
+  const [showDeact, setShowDeact] = useState(false);
+
+  const projected = useMemo(()=>{
+    let n = 5;
+    n *= (365/Math.max(thresh,30));
+    n *= (grid<=250?1.6: grid>=1000?0.7:1);
+    n *= (maxWin>=90?1.3: maxWin<=30?0.8:1);
+    return Math.max(0, Math.round(n));
+  },[thresh,grid,maxWin]);
+
+  const wl = WATCHLIST.filter(w=>showDeact||w.active);
+
+  return (
+    <div>
+      <div className="crumbs">Home / Admin Management / Microbiology Reference Data / <span>Cluster Detection</span></div>
+      <h1 className="page">{t("surveillance.cluster.config.title","Cluster Detection")}</h1>
+      <div className="sub mono" style={{fontSize:".75rem"}}>/MasterListsPage/clusterDetection</div>
+
+      <div className="panel">
+        <h4>{t("surveillance.cluster.config.domains","Domains")}</h4>
+        <div className="body">
+          {["Clinical","Environmental","Vector"].map(d=>(
+            <div key={d} style={{display:"flex",alignItems:"center",gap:"1rem",padding:".5rem 0",
+                                 borderBottom:"1px solid #f0f0f0"}}>
+              <input type="checkbox" checked={domains[d]}
+                     onChange={()=>setDomains({...domains,[d]:!domains[d]})}/>
+              <strong style={{fontSize:".875rem",minWidth:"120px"}}>{d}</strong>
+              <span style={{fontSize:".8125rem",color:"#525252"}}>
+                {d==="Clinical" && "Microbiology isolates — organism and resistance phenotype. De-duplicated to first isolate per patient per period."}
+                {d==="Environmental" && "Positive results on the detection-eligible tests below. Repeat sampling of a point is not de-duplicated."}
+                {d==="Vector" && "Pathogen-positive pools. One positive pool counts as one event, never as the number of insects in it."}
+              </span>
+              {d==="Vector" && <Tag kind="warm-gray">Baseline building — 143 d</Tag>}
+            </div>
+          ))}
+          <div className="note">Domains are scanned as separate populations. A clinical
+            <em> Escherichia coli</em> and an environmental <em>Escherichia coli</em> are the same species
+            but not the same population, and are never pooled into one count.</div>
+        </div>
+      </div>
+
+      <div className="panel">
+        <h4>{t("surveillance.cluster.config.parameters","Detection settings")}</h4>
+        <div className="body">
+          <div className="setting">
+            <label>{t("surveillance.cluster.config.threshold","Alert threshold (recurrence interval, days)")}</label>
+            <input type="number" value={thresh} onChange={e=>setThresh(+e.target.value||0)}/>
+            <span className="help">Default 365. Only patterns rarer than this raise a signal.
+              Lowering it finds more, and asks the laboratory to read more.</span>
+          </div>
+          <div className="setting">
+            <label>{t("surveillance.cluster.config.gridMetres","Location grid size (metres)")}</label>
+            <input type="number" step="50" value={grid} onChange={e=>setGrid(+e.target.value||0)}/>
+            <span className="help">Default 500. Smaller values find tighter clusters but may split real
+              ones across cell boundaries; larger values suit rural catchments. In sparsely populated
+              areas a very fine grid plus an organism name approaches identifying a household.</span>
+          </div>
+          <div className="setting">
+            <label>{t("surveillance.cluster.config.maxWindow","Longest cluster considered (days)")}</label>
+            <input type="number" value={maxWin} onChange={e=>setMaxWin(+e.target.value||0)}/>
+            <span className="help">Default 60. The longest stretch of time the scan will treat as one
+              cluster.</span>
+          </div>
+          <div className="setting">
+            <label>{t("surveillance.cluster.config.baselineDays","Baseline period (days)")}</label>
+            <input type="number" value={baseline} onChange={e=>setBaseline(+e.target.value||0)}/>
+            <span className="help">Default 365. How much of the laboratory's own history counts as
+              "normal". Statistical detection stays off for a domain until this much history exists.</span>
+          </div>
+          <div className="setting">
+            <label>{t("surveillance.cluster.config.replications","Simulation runs")}</label>
+            <input type="number" step="99" value={reps} onChange={e=>setReps(+e.target.value||0)}/>
+            <span className="help">Default 999. More runs give a more precise strength estimate and take
+              longer. This is the dominant cost of the nightly run.</span>
+          </div>
+          <div className="setting">
+            <label>{t("surveillance.cluster.config.overdueDays","Mark unreviewed signals overdue after (days)")}</label>
+            <input type="number" value={overdue} onChange={e=>setOverdue(+e.target.value||0)}/>
+            <span className="help">Default 14.</span>
+          </div>
+          <div className="setting">
+            <label>Detection schedule</label>
+            <div className="cds--select"><select className="cds--select-input" defaultValue="Nightly at 02:00"
+              style={{fontSize:".875rem",padding:".35rem",background:"#f4f4f4",border:"none",
+                      borderBottom:"1px solid #8d8d8d"}}>
+              <option>Nightly at 02:00</option><option>Twice weekly</option><option>Weekly</option>
+            </select></div>
+            <span className="help">Runs unattended. Nobody has to remember.</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="panel" style={{borderLeft:"3px solid #8a3ffc"}}>
+        <h4>{t("surveillance.cluster.config.tuning.title","What these settings would have done")}</h4>
+        <div className="body">
+          <p style={{fontSize:".875rem",marginTop:0}}>
+            Over the past year these settings would have raised <strong>{projected} signals</strong>.
+          </p>
+          <div className="bar-track"><div style={{width:Math.min(100,projected/12*100)+"%",
+            background: projected>10?"#da1e28": projected<2?"#8e6a00":"#0f62fe"}}/></div>
+          <p style={{fontSize:".75rem",color:"#525252",marginTop:".5rem"}}>
+            Design target is <strong>3–6 per year</strong>. Published evidence from an 82-hospital
+            randomised trial found automated detection at roughly three alerts per hospital per year
+            reduced outbreak size by 64%. A comparable WHONET evaluation produced 287 raw signals over
+            three years, which nobody could read.
+            {projected>10 && " At this setting the queue will be too noisy to act on."}
+            {projected<2 && " At this setting real clusters will be missed."}
+          </p>
+          <div className="note">
+            {t("surveillance.cluster.config.coverage","")}
+            <strong>38%</strong> of recent clinical results have a usable location. Patient coordinate
+            capture was switched on 21 June 2026; existing patients were not back-populated, so spatial
+            detection improves as new registrations accumulate. Ward and department scanning works for
+            all results regardless.
+          </div>
+        </div>
+      </div>
+
+      <div className="panel">
+        <h4 style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <span>{t("surveillance.cluster.config.watchlist","Watchlist")} — first occurrence raises an alert at a single case</span>
+          <label style={{fontSize:".75rem",fontWeight:400,display:"flex",gap:".375rem",alignItems:"center"}}>
+            <input type="checkbox" checked={showDeact} onChange={()=>setShowDeact(!showDeact)}/>
+            {t("surveillance.cluster.config.showDeactivated","Show deactivated")}
+          </label>
+        </h4>
+        <div className="body" style={{padding:0}}>
+          <table className="cds--data-table">
+            <thead><tr><th>Organism</th><th>Phenotype watched</th><th>Added</th><th>Last fired</th>
+              <th>Status</th><th></th></tr></thead>
+            <tbody>
+              {wl.map((w,i)=>(
+                <tr key={i} style={{opacity:w.active?1:.55}}>
+                  <td><em>{w.agent}</em></td><td>{w.pheno}</td><td>{w.added}</td><td>{w.fired}</td>
+                  <td>{w.active?<Tag kind="green">Active</Tag>:<Tag kind="gray">Deactivated</Tag>}</td>
+                  <td><Btn kind="ghost" size="sm">
+                    {w.active
+                      ? t("surveillance.cluster.config.action.deactivate","Deactivate")
+                      : t("surveillance.cluster.config.action.reactivate","Reactivate")}</Btn></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="actbar">
+          <Btn kind="secondary" size="sm">Add watchlist entry</Btn>
+          <span style={{fontSize:".75rem",color:"#6f6f6f",alignSelf:"center"}}>
+            Entries deactivate and reactivate; there is no delete. Organism and antibiotic pickers are
+            search-based, not long dropdowns.
+          </span>
+        </div>
+      </div>
+
+      <div className="panel">
+        <h4>{t("surveillance.cluster.config.eligibleTests","Tests counted as detections")} — environmental and vector</h4>
+        <div className="body" style={{padding:0}}>
+          <table className="cds--data-table">
+            <thead><tr><th>Test</th><th>Domain</th><th>Event agent taken from</th><th></th></tr></thead>
+            <tbody>
+              {ELIGIBLE_TESTS.map((e,i)=>(
+                <tr key={i}>
+                  <td>{e.test}</td>
+                  <td><Tag kind={domKind(e.domain)}>{e.domain}</Tag></td>
+                  <td>{e.agentSrc}</td>
+                  <td><Btn kind="ghost" size="sm">Remove</Btn></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="actbar">
+          <div className="fld" style={{flex:1,maxWidth:"420px"}}>
+            <label>Add a test</label>
+            <input placeholder="Search the test catalogue…"/>
+          </div>
+          <span style={{fontSize:".75rem",color:"#6f6f6f",alignSelf:"flex-end",paddingBottom:".4rem"}}>
+            Search-based, because a production catalogue runs to 500+ tests. New tests are created in the
+            test catalogue, not here.
+          </span>
+        </div>
+      </div>
+
+      <div className="panel">
+        <h4>{t("surveillance.cluster.config.recipients","Notification recipients")}</h4>
+        <div className="body">
+          <table className="cds--data-table" style={{width:"auto"}}>
+            <thead><tr><th>Recipient</th><th>Role</th><th>Channel</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>A. Nakato</td><td>IPC Focal Person</td><td>Email, SMS</td>
+                <td><Btn kind="ghost" size="sm">Remove</Btn></td></tr>
+              <tr><td>Dr M. Wanyama</td><td>IPC Lead</td><td>Email</td>
+                <td><Btn kind="ghost" size="sm">Remove</Btn></td></tr>
+              <tr><td>ipc@hospital.example</td><td>IPC shared inbox</td><td>Email</td>
+                <td><Btn kind="ghost" size="sm">Remove</Btn></td></tr>
+              <tr><td>National Reference Laboratory</td><td>Priority export destination</td><td>Export flag</td>
+                <td><Btn kind="ghost" size="sm">Remove</Btn></td></tr>
+            </tbody>
+          </table>
+          <div className="note">Message <em>delivery</em> reuses the existing notification channels and templates —
+            no new messaging mechanism. The <strong>recipient list itself is new information</strong>: the built
+            notification system addresses patients and providers and holds no standing infection-prevention
+            contact list. Declared in the FRS Dependencies rather than assumed.</div>
+        </div>
+      </div>
+
+      <div className="actbar" style={{background:"#fff",borderTop:"none"}}>
+        <Btn kind="primary" size="sm">Save settings</Btn>
+        <Btn kind="ghost" size="sm">Restore defaults</Btn>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- shell ---------------- */
+
+function App() {
+  const [view, setView] = useState("signals");
+  const open = SIGNALS.filter(s=>s.disp!=="Ruled out").length;
+  return (
+    <div className="shell">
+      <nav className="sidenav">
+        <h3>OpenELIS Global</h3>
+        <div className="sn-item">Home</div>
+        <div className="sn-item">Order</div>
+        <div className="sn-item">Patient Tests</div>
+        <div className="sn-item">Microbiology</div>
+        <div className="sn-item">Analyzers</div>
+        <div className="sn-item">Reports</div>
+        <div className="sn-group" style={{background:"#f4f4f4",marginTop:".25rem"}}>
+          Surveillance <Tag kind="red">{open}</Tag>
+        </div>
+        <div className={"sn-item sub"+(view==="signals"?" active":"")}
+             onClick={()=>setView("signals")}>Cluster Detection — Signals</div>
+        <div className={"sn-item sub"+(view==="history"?" active":"")}
+             onClick={()=>setView("history")}>Cluster Detection — History</div>
+        <div className="sn-item sub disabled" title="Not moved by this work">WHONET Export (M-09, today under Reports)</div>
+        <div className="sn-item sub disabled" title="Not moved by this work">Surveillance Submission (M-15, today under Reports)</div>
+        <div className="sn-item" style={{marginTop:".5rem"}}>Admin</div>
+        <div className={"sn-item sub"+(view==="config"?" active":"")}
+             onClick={()=>setView("config")}>Microbiology Reference Data — Cluster Detection</div>
+        <div style={{padding:"1rem",fontSize:".6875rem",color:"#6f6f6f",lineHeight:1.5}}>
+          A Microbiology Technician sees this group with the count, but the Signals item is
+          <strong> disabled</strong> — the existence of a signal is never hidden from bench staff, only
+          its clinical detail.
+        </div>
+      </nav>
+      <main className="content">
+        {view==="signals" && <SignalsView/>}
+        {view==="history" && <HistoryView/>}
+        {view==="config" && <ConfigView/>}
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>

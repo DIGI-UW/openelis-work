@@ -1,6 +1,6 @@
 # OpenELIS Design Gallery
 
-> Design mockups and functional requirement specs for OpenELIS Global, an open-source laboratory information management system. 228 designs across 17 categories.
+> Design mockups and functional requirement specs for OpenELIS Global, an open-source laboratory information management system. 230 designs across 17 categories.
 
 ## Catalog
 - [JSON Catalog](https://digi-uw.github.io/openelis-work/catalog.json): Machine-readable index of all designs
@@ -134,6 +134,7 @@
 - [M-14 Mycobacteriology / TB](https://digi-uw.github.io/openelis-work/designs/microbiology/m-14-mycobacteriology-tb.md): M-04 Case Workbench extended for TB: workflow_type = MYCOBACTERIOLOGY_TB, smear microscopy, MGIT/LJ culture, species ID, WHO critical-concentration DST, molecular resistance flags (GeneXpert, Hain LPA), staged interim reports, WHONET-TB export.
 - [M-15 GLASS — FHIR Surveillance](https://digi-uw.github.io/openelis-work/designs/microbiology/m-15-glass-fhir-surveillance.md): OE pushes finalized AMR results to a consolidated FHIR server (WHO GLASS reporting path). Reuses FhirTransformService / FhirPersistanceService + EQA submission pattern. Backend/admin spec — no clinical mockup. Cross-lab aggregation stays outside OE. v1.1 adds the negative / no-growth path (case-keyed transform, include-negatives, release gated on recorded outcome).
 - [Microbiology AMR Narrative — v2.1](https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-narrative.md): v2.1 narrative: folds in four post-v2.0 decisions — Case keying is SampleItem × workflow_type (not 1:1 with Sample); WHONET (M-09) extends the existing export; M-11 critical notification reuses the notifications dashboard + TestNotificationService; Expert Review (M-06) and critical log-and-acknowledge (M-11) are inline panels, not modals. Cross-module context doc for the full M-00–M-15 bundle.
+- [M-16 Cluster Detection & Outbreak Signals](https://digi-uw.github.io/openelis-work/designs/microbiology/m-16-cluster-detection.md): Native-Java scan-statistic cluster/outbreak detection across all three surveillance domains (clinical, environmental, vector). Consumes a domain-aware detection-event stream — no SaTScan binary, works air-gapped; reuses M-09 first-isolate de-duplication; a scan never crosses a domain boundary (extends D-004). Inline signal queue + Detection History; the only modal is the outbound-send confirm. Alert-volume design target ~3-6 signals/lab/year. FRS v1.0 + interactive preview. Depends on the OGC-782 microbiology module (stacked, not yet on develop).
 
 ## NCE
 - [NCE Analytics](https://digi-uw.github.io/openelis-work/designs/nce/nce-analytics.md): Non-conforming event analytics dashboard
@@ -162,6 +163,7 @@
 
 ## Patient
 - [Patient ID Card Scanning [Completed]](https://digi-uw.github.io/openelis-work/designs/patient/patient-id-card-scanning.md): Patient ID card scanning and document management. Adds an Identification Documents accordion to patient registration and edit screens, plus a document count column and inline preview panel in patient search results. Supports file upload, camera capture, and clipboard paste; stores documents as FHIR Patient attachments with full audit trail and role-based permissions.
+- [Patient Search](https://digi-uw.github.io/openelis-work/designs/patient/patient-search.md): Redesign of the shared patient search panel used by eight screens. One smart search box expanded server-side over the configured patient identifiers, lab number and last name, Enter to submit, configuration-driven helper text, and a collapsed demographics refinement. Route-synced Search for Patient / New Patient switcher on Patient Management and clinical Add Order only. Fixed-height results rows with placeholder-first photos, configured identifier columns, a Shared ID warning tag, and merged patients hidden behind a toggle. Client registry results load progressively beneath local results and fold into local rows by FHIR UUID; external sources are admin-configured, never user-bypassable.
 
 ## Results Portal
 - [Facility Results Portal](https://digi-uw.github.io/openelis-work/designs/portal/facility-results-portal.md): Read-only results-delivery portal (C3) for requesting facilities, running as a standalone lightweight mobile-first web app against the central FHIR R4 store — not an OpenELIS module. Clinicians log in (PractitionerRole-scoped, bundled Keycloak IdP with optional OIDC federation), see new released results since last visit with critical values pinned first, search by any requisition identifier, read released results on screen, and download the report PDF. Visibility honors the Test Catalog portal-visibility labels. Deliberately no ordering, acknowledgment, patient editing, or analytics.

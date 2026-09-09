@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Search (Shared Panel) — OpenELIS Preview v1.1</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; }
+    .preview-banner { background: #0f62fe; color: #fff; padding: 6px 1rem; font-size: 12px; font-family: monospace; display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; }
+    .preview-banner label { display: flex; gap: .35rem; align-items: center; }
+    .preview-banner select { font-size: 12px; }
+    .preview-content { padding: 1rem 2rem; max-width: 1440px; margin: 0 auto; }
+    .page-title { font-size: 1.75rem; font-weight: 400; margin: .5rem 0 1rem; }
+    .crumbs { font-size: .875rem; color: #525252; margin-bottom: .5rem; }
+    .crumbs a { color: #0f62fe; text-decoration: none; }
+    .panel { background: #fff; padding: 1rem; }
+    .row { display: flex; gap: 1rem; align-items: flex-start; flex-wrap: wrap; }
+    .search-wrap { flex: 1 1 520px; }
+    .helper { font-size: .75rem; color: #525252; margin-top: .25rem; }
+    .refine-tags { display: flex; gap: .5rem; margin: .5rem 0; flex-wrap: wrap; align-items: center; }
+    .fixed-row td { height: 48px; padding-top: 0; padding-bottom: 0; vertical-align: middle; }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 600; color: #fff; background: #8d8d8d; }
+    .avatar.photo { background: linear-gradient(135deg,#6f6f6f,#a8a8a8); color: #fff; }
+    .avatar.skel { background: #e0e0e0; }
+    .group-title { font-size: 1rem; font-weight: 600; padding: 1rem 1rem .5rem; }
+    .status-line { display: flex; gap: .75rem; align-items: center; padding: .75rem 1rem; font-size: .875rem; color: #525252; }
+    .empty { padding: 2.5rem 1rem; text-align: center; color: #525252; }
+    .empty .cta { margin-top: 1rem; }
+    .notes { margin-top: 2rem; font-size: .8rem; color: #525252; background: #e8e8e8; padding: .75rem 1rem; }
+    .dot { display: inline-block; width: 10px; height: 10px; border: 2px solid #0f62fe; border-right-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .tag-link { text-decoration: underline; cursor: pointer; }
+    .sr-only { position:absolute; left:-9999px; }
+    .skel-row td div { height: 14px; background: #e0e0e0; border-radius: 2px; }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner" id="banner"></div>
+  <div class="preview-content" id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // Route: /PatientManagement  (also /PatientManagement/new, /PatientManagement/:patientPK)
+    // SideNav: Patient → Add or Modify Patient
+    // Embedded hosts (Add Order, Patient History, Modify Order, Results, Reports, Merge) reuse the same panel.
+
+    const t = (key, fallback) => fallback || key;
+
+    // Realistic mock data. Five records share national ID 0123456 (the QA finding).
+    const LOCAL = [
+      { id: '503', lastName: 'Sebby', firstName: 'Abby', gender: 'F', dob: '12/03/1988', subjectNumber: 'UHID-000731', nationalId: '0123456', externalId: 'EMR-44821', mothersName: 'Grace Sebby', phone: '+675 7212 0011', guid: 'f1a2-0503', photo: true },
+      { id: '504', lastName: 'Sebby', firstName: 'Abby', gender: 'F', dob: '12/03/1988', subjectNumber: 'UHID-000902', nationalId: '0123456', externalId: '', mothersName: 'Grace Sebby', phone: '', guid: 'f1a2-0504', photo: false },
+      { id: '505', lastName: 'Sebby', firstName: 'Abby', gender: 'F', dob: '03/12/1988', subjectNumber: '', nationalId: '0123456', externalId: 'EMR-51077', mothersName: 'Ruth Kila', phone: '+675 7440 8823', guid: 'f1a2-0505', photo: true },
+      { id: '611', lastName: 'Sebby', firstName: 'Abby', gender: 'F', dob: '12/03/1988', subjectNumber: 'UHID-001188', nationalId: '0123456', externalId: '', mothersName: '', phone: '+675 7212 0011', guid: 'f1a2-0611', photo: false, merged: true, mergedInto: '503' },
+      { id: '742', lastName: 'Sebby', firstName: 'Abigail', gender: 'F', dob: '12/03/1998', subjectNumber: 'UHID-002204', nationalId: '0123456', externalId: 'EMR-60214', mothersName: 'Mary Sebby', phone: '+675 7009 1132', guid: 'f1a2-0742', photo: true },
+    ];
+    // Registry results: one matches local 503 by FHIR UUID (folded), one is registry-only.
+    const REGISTRY = [
+      { id: 'CR-88120', lastName: 'Sebby', firstName: 'Abby', gender: 'F', dob: '12/03/1988', subjectNumber: 'UHID-000731', nationalId: '0123456', mothersName: 'Grace Sebby', phone: '+675 7212 0011', guid: 'f1a2-0503' },
+      { id: 'CR-91377', lastName: 'Sebby', firstName: 'Abby', gender: 'F', dob: '12/03/1988', subjectNumber: 'UHID-004410', nationalId: '0123456', externalId: '', mothersName: 'Grace Sebby', phone: '+675 7811 2290', guid: 'c9d0-91377' },
+    ];
+
+    const IDENTIFIER_TYPES = ['national ID', 'health ID', 'external ID']; // from patientEntryConfig; ST number and referring-site ID disabled on this instance
+
+    function initials(p) { return ((p.firstName||'?')[0] + (p.lastName||'?')[0]).toUpperCase(); }
+
+    function Avatar({ p, loaded }) {
+      if (!loaded) return <span className="avatar skel" aria-label={t('patient.search.photo.placeholder', `Photo of ${p.firstName} ${p.lastName} not loaded`)}>{initials(p)}</span>;
+      return <span className={'avatar' + (p.photo ? ' photo' : '')} title={p.firstName + ' ' + p.lastName}>{initials(p)}</span>;
+    }
+
+    function Tag({ kind, children, title, onClick }) {
+      return <span className={`cds--tag cds--tag--${kind} cds--tag--sm ${onClick ? 'tag-link' : ''}`} title={title} onClick={onClick} style={{ marginLeft: 4 }}>{children}</span>;
+    }
+
+    function ResultsTable({ rows, sharedValues, inRegistryGuids, photosLoaded, source, isAdmin, selected, onSelect, onImport, imported }) {
+      const cols = [
+        t('patient.search.column.photo','Photo'), t('patient.last.name','Last name'), t('patient.first.name','First name'), t('patient.gender','Sex'), t('patient.dob','Date of birth'),
+        t('patient.natioanalid','National ID'), t('patient.subject.number','Health ID'), t('patient.search.column.externalId','External ID'), t('patient.search.column.mothersName',"Mother's name"), t('patient.search.column.contactPhone','Contact phone'), t('patient.search.column.source','Source')
+      ];
+      return (
+        <div className="cds--data-table-container">
+          <table className="cds--data-table cds--data-table--md">
+            <thead><tr><th style={{width:40}}></th>{cols.map(c => <th key={c}>{c}</th>)}</tr></thead>
+            <tbody>
+              {rows.map(p => {
+                const shared = sharedValues.has('nationalId:' + p.nationalId) || (p.subjectNumber && sharedValues.has('subjectNumber:' + p.subjectNumber));
+                const inReg = inRegistryGuids.has(p.guid);
+                return (
+                  <tr key={p.id} className="fixed-row">
+                    <td>
+                      <input type="radio" name="patient" className="cds--radio-button" disabled={p.merged} checked={selected === p.id} onChange={() => onSelect(p.id)} aria-label={`Select ${p.firstName} ${p.lastName}`} />
+                    </td>
+                    <td><Avatar p={p} loaded={source !== 'local' || photosLoaded} /></td>
+                    <td>{p.lastName}</td><td>{p.firstName}</td><td>{p.gender}</td><td>{p.dob}</td>
+                    <td>{p.nationalId}</td><td>{p.subjectNumber || '—'}</td><td>{p.externalId || '—'}</td><td>{p.mothersName || '—'}</td><td>{p.phone || '—'}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>
+                      <Tag kind={source === 'local' ? 'blue' : 'teal'}>{source === 'local' ? t('patient.search.source.local','This laboratory') : t('patient.search.source.registry','Client registry')}</Tag>
+                      {p.merged && <Tag kind="magenta" title={`Merged into ${p.mergedInto}`}>{t('patient.search.merged.tag','Merged')}</Tag>}
+                      {inReg && <Tag kind="green">{t('patient.search.tag.inRegistry','In registry')}</Tag>}
+                      {shared && <Tag kind="red" title={t('patient.search.tag.sharedId.tooltip', `National ID ${p.nationalId} appears on ${rows.filter(r=>r.nationalId===p.nationalId).length} records`)} onClick={isAdmin ? () => alert('Would open /PatientMerge?identifier=nationalId&value=' + p.nationalId) : undefined}>{t('patient.search.tag.sharedId','Shared ID')}</Tag>}
+                      {source !== 'local' && (
+                        <button className="cds--btn cds--btn--tertiary cds--btn--sm" style={{ marginLeft: 8 }} disabled={imported.has(p.id)} onClick={() => onImport(p.id)}>
+                          {imported.has(p.id) ? t('patient.search.import.done','Patient imported') : t('patient.search.import','Import patient')}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <div className="status-line" style={{ justifyContent: 'space-between' }}>
+            <span>{rows.length ? `1–${rows.length} of ${rows.length} items` : ''}</span>
+            <span>Items per page: 10 &nbsp; ‹ 1 / 1 ›</span>
+          </div>
+        </div>
+      );
+    }
+
+    function SkeletonTable() {
+      return (
+        <div className="cds--data-table-container"><table className="cds--data-table"><tbody>
+          {[1,2,3,4,5].map(i => <tr key={i} className="fixed-row skel-row">{Array.from({length: 6}).map((_, j) => <td key={j}><div style={{ width: j===0 ? 32 : '80%' }}></div></td>)}</tr>)}
+        </tbody></table></div>
+      );
+    }
+
+    function ModeSwitcher({ mode, setMode }) {
+      return (
+        <div className="cds--content-switcher" role="tablist" aria-label="Patient panel mode" style={{ maxWidth: 420 }}>
+          {[['search', t('search.patient.label','Search for Patient')], ['new', t('new.patient.label','New Patient')]].map(([k, label]) => (
+            <button key={k} role="tab" type="button" aria-selected={mode === k} className={'cds--content-switcher-btn' + (mode === k ? ' cds--content-switcher--selected' : '')} onClick={() => setMode(k)}>
+              <span className="cds--content-switcher__label">{label}</span>
+            </button>
+          ))}
+        </div>
+      );
+    }
+
+    function App() {
+      const [host, setHost] = useState('pm');            // pm | order | history
+      const [registry, setRegistry] = useState('ok');    // ok | slow-fail | off
+      const [isAdmin, setIsAdmin] = useState(false);
+      const [mode, setMode] = useState('search');
+      const [term, setTerm] = useState('');
+      const [refineOpen, setRefineOpen] = useState(false);
+      const [dob, setDob] = useState(''); const [sex, setSex] = useState(''); const [firstName, setFirstName] = useState('');
+      const [state, setState] = useState('initial'); // initial | loading | done
+      const [local, setLocal] = useState([]);
+      const [reg, setReg] = useState({ status: 'idle', rows: [] }); // idle | pending | done | failed
+      const [photosLoaded, setPhotosLoaded] = useState(false);
+      const [selected, setSelected] = useState(null);
+      const [imported, setImported] = useState(new Set());
+      const [lastTerm, setLastTerm] = useState('');
+      const timers = useRef([]);
+      const [showMerged, setShowMerged] = useState(false); // FR-18: off on every new search
+
+      const showModeSwitch = host === 'pm' || host === 'order';
+      const canSubmit = term.trim().length >= 2 || (!term.trim() && (dob || false));
+
+      useEffect(() => { window.__setScenario = { setHost, setRegistry, setIsAdmin }; }, []);
+
+      function clearTimers() { timers.current.forEach(clearTimeout); timers.current = []; }
+
+      function runRegistry() {
+        if (registry === 'off') { setReg({ status: 'idle', rows: [] }); return; }
+        setReg({ status: 'pending', rows: [] });
+        if (registry === 'ok') timers.current.push(setTimeout(() => setReg({ status: 'done', rows: REGISTRY.filter(matches) }), 1800));
+        else timers.current.push(setTimeout(() => setReg({ status: 'failed', rows: [] }), 2500));
+      }
+
+      function matches(p) {
+        const q = term.trim().toLowerCase();
+        let ok = !q || [p.nationalId, p.subjectNumber, p.lastName, p.id].some(v => (v||'').toLowerCase().startsWith(q));
+        if (dob) ok = ok && p.dob === dob;
+        if (sex) ok = ok && p.gender === sex;
+        if (firstName) ok = ok && p.firstName.toLowerCase().startsWith(firstName.toLowerCase());
+        return ok;
+      }
+
+      function submit(e) {
+        e && e.preventDefault();
+        if (!canSubmit) return;
+        clearTimers(); setSelected(null); setPhotosLoaded(false); setLastTerm(term.trim()); setShowMerged(false);
+        setState('loading');
+        timers.current.push(setTimeout(() => {
+          setLocal(LOCAL.filter(matches)); setState('done');
+          timers.current.push(setTimeout(() => setPhotosLoaded(true), 900)); // photos fill in after rows settle
+        }, 500));
+        runRegistry();
+      }
+
+      // FR-18: merged patients hidden unless the toggle is on; excluded from the Shared ID count
+      const activeLocal = local.filter(p => !p.merged);
+      const mergedCount = local.length - activeLocal.length;
+      const visibleLocal = showMerged ? local : activeLocal;
+      // Shared-identifier detection across the active local set
+      const sharedValues = new Set();
+      ['nationalId','subjectNumber'].forEach(k => {
+        const counts = {}; activeLocal.forEach(p => { if (p[k]) counts[p[k]] = (counts[p[k]]||0)+1; });
+        Object.entries(counts).forEach(([v,c]) => { if (c > 1) sharedValues.add(k + ':' + v); });
+      });
+      const localGuids = new Set(local.map(p => p.guid));
+      const regOnly = reg.rows.filter(r => !localGuids.has(r.guid));
+      const inRegistryGuids = new Set(reg.rows.filter(r => localGuids.has(r.guid)).map(r => r.guid));
+      const sourceName = t('patient.search.source.registry','Client registry');
+
+      const refinements = [dob && ['dob', t('patient.search.refine.tag.dob', `Date of birth: ${dob}`), () => setDob('')], sex && ['sex', t('patient.search.refine.tag.sex', `Sex: ${sex === 'F' ? 'Female' : 'Male'}`), () => setSex('')], firstName && ['fn', t('patient.search.refine.tag.firstName', `First name: ${firstName}`), () => setFirstName('')]].filter(Boolean);
+
+      const hostTitle = host === 'pm' ? t('patient.label.modify','Add Or Modify Patient') : host === 'order' ? 'Add Order — Patient Info' : 'Patient History';
+
+      return (
+        <div>
+          <div className="crumbs"><a href="#">Home</a> / {hostTitle}</div>
+          <h1 className="page-title">{hostTitle}</h1>
+
+          <div className="panel">
+            {showModeSwitch && <div style={{ marginBottom: '1rem' }}><ModeSwitcher mode={mode} setMode={setMode} /></div>}
+
+            {mode === 'new' && showModeSwitch ? (
+              <div className="cds--inline-notification cds--inline-notification--info" style={{ maxWidth: '100%' }}>
+                <div className="cds--inline-notification__details"><div className="cds--inline-notification__text-wrapper">
+                  <p className="cds--inline-notification__title">New Patient mode</p>
+                  <p className="cds--inline-notification__subtitle">The existing patient create form (CreatePatientForm) renders here at /PatientManagement/new. Out of scope for this spec; not redrawn.</p>
+                </div></div>
+              </div>
+            ) : (
+              <>
+                <form onSubmit={submit}>
+                  <div className="row">
+                    <div className="search-wrap">
+                      <label className="cds--label" htmlFor="q">{t('patient.search.input.label','Search for a patient')}</label>
+                      <div className="cds--search cds--search--lg" role="search">
+                        <svg className="cds--search-magnifier-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M15,14.3L10.7,10c1.9-2.3,1.6-5.8-0.7-7.7S4.2,0.7,2.3,3S0.7,8.8,3,10.7c2,1.7,5,1.7,7,0l4.3,4.3L15,14.3z M2,6.5C2,4,4,2,6.5,2S11,4,11,6.5S9,11,6.5,11S2,9,2,6.5z"/></svg>
+                        <input id="q" className="cds--search-input" type="text" autoComplete="off" placeholder={t('patient.search.input.placeholder','ID, lab number, or last name')} value={term} onChange={e => setTerm(e.target.value)} />
+                      </div>
+                      <div className="helper">{t('patient.search.input.helper', `Accepts ${IDENTIFIER_TYPES.join(', ')}, lab number, or last name`)}</div>
+                    </div>
+                    <div style={{ paddingTop: '1.5rem' }}>
+                      <button type="submit" className="cds--btn cds--btn--primary" disabled={!canSubmit}>{t('label.button.search','Search')}</button>
+                    </div>
+                  </div>
+
+                  <div className="refine-tags">
+                    {refinements.map(([k, label, clear]) => (
+                      <span key={k} className="cds--tag cds--tag--filter cds--tag--gray"><span className="cds--tag__label">{label}</span><button type="button" className="cds--tag__close-icon" aria-label={`Remove ${label}`} onClick={clear}>×</button></span>
+                    ))}
+                    {refinements.length > 0 && <button type="button" className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => { setDob(''); setSex(''); setFirstName(''); }}>{t('patient.search.refine.clear','Clear refinements')}</button>}
+                  </div>
+
+                  <ul className="cds--accordion" style={{ maxWidth: 720 }}>
+                    <li className={'cds--accordion__item' + (refineOpen ? ' cds--accordion__item--active' : '')}>
+                      <button type="button" className="cds--accordion__heading" aria-expanded={refineOpen} onClick={() => setRefineOpen(o => !o)}>
+                        <svg className="cds--accordion__arrow" width="16" height="16" viewBox="0 0 16 16"><path d="M11 8L6 13 5.3 12.3 9.6 8 5.3 3.7 6 3z"/></svg>
+                        <div className="cds--accordion__title">{t('patient.search.refine.title','Refine by demographics')}</div>
+                      </button>
+                      <div className="cds--accordion__content" style={{ display: refineOpen ? 'block' : 'none' }}>
+                        <div className="row">
+                          <div className="cds--form-item" style={{ flex: '0 0 200px' }}>
+                            <label className="cds--label" htmlFor="dob">{t('patient.dob','Date of birth')}</label>
+                            <div className="cds--text-input-wrapper"><input id="dob" className="cds--text-input" placeholder="dd/mm/yyyy" value={dob} onChange={e => setDob(e.target.value)} /></div>
+                            <div className="helper">Date picker in the real component; never parsed from the search box.</div>
+                          </div>
+                          <fieldset className="cds--fieldset" style={{ flex: '0 0 220px' }}>
+                            <legend className="cds--label">{t('patient.gender','Sex')}</legend>
+                            <div className="cds--radio-button-group">
+                              {[['M', t('patient.male','Male')], ['F', t('patient.female','Female')]].map(([v, l]) => (
+                                <div key={v} className="cds--radio-button-wrapper" style={{ marginRight: '1rem' }}>
+                                  <input type="radio" className="cds--radio-button" id={'sex'+v} name="sex" checked={sex === v} onChange={() => setSex(v)} />
+                                  <label className="cds--radio-button__label" htmlFor={'sex'+v}><span className="cds--radio-button__appearance"></span>{l}</label>
+                                </div>
+                              ))}
+                            </div>
+                          </fieldset>
+                          <div className="cds--form-item" style={{ flex: '0 0 220px' }}>
+                            <label className="cds--label" htmlFor="fn">{t('patient.first.name','First name')}</label>
+                            <div className="cds--text-input-wrapper"><input id="fn" className="cds--text-input" value={firstName} onChange={e => setFirstName(e.target.value)} /></div>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                </form>
+
+                {/* Results area */}
+                <div style={{ marginTop: '1.5rem' }}>
+                  {state === 'initial' && <div className="empty">{t('patient.search.empty.initial','Search for a patient by ID, lab number, or name.')}</div>}
+                  {state === 'loading' && <SkeletonTable />}
+                  {state === 'done' && (
+                    <>
+                      <div className="group-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>{t('patient.search.results.title','Patient results')}</span>
+                        {mergedCount > 0 && (
+                          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '.875rem', fontWeight: 400 }}>
+                            <span className="cds--toggle__text" style={{ color: '#525252' }}>{t('patient.search.filter.mergedHidden', `${mergedCount} merged patient${mergedCount>1?'s':''} hidden`)}</span>
+                            <input type="checkbox" checked={showMerged} onChange={e => setShowMerged(e.target.checked)} />
+                            {t('patient.search.filter.showMerged','Show merged patients')}
+                          </label>
+                        )}
+                      </div>
+                      {visibleLocal.length > 0 ? (
+                        <ResultsTable rows={visibleLocal} sharedValues={sharedValues} inRegistryGuids={inRegistryGuids} photosLoaded={photosLoaded} source="local" isAdmin={isAdmin} selected={selected} onSelect={setSelected} onImport={() => {}} imported={imported} />
+                      ) : (
+                        <div className="empty">
+                          {reg.status === 'pending' && <span>{t('patient.search.empty.localPending', `No local patient matched "${lastTerm}". Searching ${sourceName}…`)} <span className="dot" style={{ marginLeft: 8 }}></span></span>}
+                          {reg.status === 'failed' && <span>{t('patient.search.empty.externalFailed', `No local patient matched "${lastTerm}". ${sourceName} did not respond.`)} <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={runRegistry}>{t('patient.search.external.retry','Retry')}</button></span>}
+                          {reg.status === 'done' && regOnly.length === 0 && <span>{t('patient.search.empty.none', `No patient matched "${lastTerm}" locally or in ${sourceName}.`)}</span>}
+                          {reg.status === 'done' && regOnly.length > 0 && <span>{t('patient.search.empty.local', `No local patient matched "${lastTerm}".`)} See {sourceName} results below.</span>}
+                          {reg.status === 'idle' && <span>{t('patient.search.empty.local', `No patient matched "${lastTerm}".`)}</span>}
+                          {showModeSwitch && reg.status !== 'pending' && <div className="cta"><button className="cds--btn cds--btn--tertiary" onClick={() => setMode('new')}>{t('patient.search.empty.create','Create new patient')}</button></div>}
+                        </div>
+                      )}
+
+                      {reg.status !== 'idle' && (
+                        <div style={{ marginTop: '1rem', borderTop: '1px solid #e0e0e0' }}>
+                          <div className="group-title">{t('patient.search.results.external.title', `${sourceName} results`)}</div>
+                          {reg.status === 'pending' && <div className="status-line"><span className="dot"></span>{t('patient.search.external.loading', `Searching ${sourceName}…`)}</div>}
+                          {reg.status === 'failed' && <div className="status-line">{t('patient.search.external.failed', `${sourceName} did not respond. Local results are shown.`)} <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={runRegistry}>{t('patient.search.external.retry','Retry')}</button></div>}
+                          {reg.status === 'done' && regOnly.length > 0 && <ResultsTable rows={regOnly} sharedValues={new Set()} inRegistryGuids={new Set()} photosLoaded={true} source="registry" isAdmin={isAdmin} selected={selected} onSelect={setSelected} onImport={id => setImported(s => new Set([...s, id]))} imported={imported} />}
+                          {reg.status === 'done' && regOnly.length === 0 && <div className="status-line">{inRegistryGuids.size > 0 ? `${inRegistryGuids.size} registry match${inRegistryGuids.size>1?'es':''} already shown above as a local patient (In registry).` : `No additional patients in ${sourceName}.`}</div>}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="notes">
+            <strong>Try:</strong> type <code>0123456</code> and press Enter to see the four active shared-ID records (a fifth, merged, is hidden until you tick Show merged patients), photos filling in after rows settle, then the registry group arriving (one match folded into row 503 as "In registry", one registry-only row with Import). Type <code>Kila</code> for a no-local-match state. Use the banner to switch host (embedded hosts hide the mode switch), make the registry slow-and-fail, or grant the Patient Merge permission (Shared ID becomes a link to Patient Merge).
+          </div>
+        </div>
+      );
+    }
+
+    function Banner() {
+      const [host, setHost] = useState('pm'); const [registry, setRegistry] = useState('ok'); const [admin, setAdmin] = useState(false);
+      useEffect(() => { if (window.__setScenario) { window.__setScenario.setHost(host); window.__setScenario.setRegistry(registry); window.__setScenario.setIsAdmin(admin); } }, [host, registry, admin]);
+      return (
+        <>
+          <span>⚡ Visual Preview — Patient Search (Shared Panel) | Route: /PatientManagement | Not a live application</span>
+          <label>Host <select value={host} onChange={e => setHost(e.target.value)}><option value="pm">/PatientManagement</option><option value="order">Add Order (clinical)</option><option value="history">/PatientHistory (embedded, search-only)</option></select></label>
+          <label>Client registry <select value={registry} onChange={e => setRegistry(e.target.value)}><option value="ok">enabled, responds</option><option value="slow-fail">enabled, times out</option><option value="off">not configured</option></select></label>
+          <label><input type="checkbox" checked={admin} onChange={e => setAdmin(e.target.checked)} /> Role has Patient Merge permission</label>
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    ReactDOM.createRoot(document.getElementById('banner')).render(<Banner />);
+  </script>
+</body>
+</html>
