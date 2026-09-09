@@ -209,6 +209,8 @@
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-14-mycobacteriology-tb.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-15-glass-fhir-surveillance.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-narrative.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-16-cluster-detection.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-16-cluster-detection-preview.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/nce/nce-analytics.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/nce/nce-analytics.jsx</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/nce/nce-dashboard-v4.0.md</loc></url>
@@ -451,6 +453,9 @@
   <url><loc>https://digi-uw.github.io/openelis-work/designs/patient/patient-id-card-scanning.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/patient/patient-id-card-scanning.jsx</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/patient/patient-id-card-scanning.html</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/patient/patient-search.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/patient/patient-search.jsx</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/patient/patient-search.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/portal/facility-results-portal.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/portal/facility-results-portal-preview.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/portal/patient-self-registration.md</loc></url>

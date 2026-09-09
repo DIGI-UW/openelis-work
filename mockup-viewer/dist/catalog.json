@@ -1,7 +1,7 @@
 {
-  "generated": "2026-09-05T00:43:05.599Z",
+  "generated": "2026-09-09T01:06:39.039Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
-  "totalDesigns": 228,
+  "totalDesigns": 230,
   "categories": [
     "admin-config",
     "analyzer-integration",
@@ -3214,6 +3214,34 @@
         "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/microbiology-amr-narrative-v2-1",
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/microbiology-amr-narrative-v2-1",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-narrative.md"
+      }
+    },
+    {
+      "name": "M-16 Cluster Detection & Outbreak Signals",
+      "slug": "m-16-cluster-detection-outbreak-signals",
+      "category": "microbiology",
+      "description": "Native-Java scan-statistic cluster/outbreak detection across all three surveillance domains (clinical, environmental, vector). Consumes a domain-aware detection-event stream — no SaTScan binary, works air-gapped; reuses M-09 first-isolate de-duplication; a scan never crosses a domain boundary (extends D-004). Inline signal queue + Detection History; the only modal is the outbound-send confirm. Alert-volume design target ~3-6 signals/lab/year. FRS v1.0 + interactive preview. Depends on the OGC-782 microbiology module (stacked, not yet on develop).",
+      "type": "html",
+      "added": "2026-09-04",
+      "status": "draft",
+      "tags": [
+        "microbiology",
+        "surveillance",
+        "cluster-detection",
+        "outbreak",
+        "scan-statistic",
+        "glass",
+        "phase-2"
+      ],
+      "jira": [],
+      "githubIssue": null,
+      "specPath": "designs/microbiology/m-16-cluster-detection.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-16-cluster-detection-outbreak-signals",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-16-cluster-detection-outbreak-signals",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-16-cluster-detection-outbreak-signals",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-16-cluster-detection.md",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-16-cluster-detection-preview.html"
       }
     },
     {
@@ -6518,6 +6546,38 @@
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/patient/patient-id-card-scanning.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/patient/patient-id-card-scanning.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/patient/patient-id-card-scanning.html"
+      }
+    },
+    {
+      "name": "Patient Search",
+      "slug": "patient-search",
+      "category": "patient",
+      "description": "Redesign of the shared patient search panel used by eight screens. One smart search box expanded server-side over the configured patient identifiers, lab number and last name, Enter to submit, configuration-driven helper text, and a collapsed demographics refinement. Route-synced Search for Patient / New Patient switcher on Patient Management and clinical Add Order only. Fixed-height results rows with placeholder-first photos, configured identifier columns, a Shared ID warning tag, and merged patients hidden behind a toggle. Client registry results load progressively beneath local results and fold into local rows by FHIR UUID; external sources are admin-configured, never user-bypassable.",
+      "type": "jsx",
+      "added": "2026-09-09",
+      "status": "draft",
+      "tags": [
+        "patient",
+        "reception",
+        "search",
+        "client-registry",
+        "FHIR",
+        "accessibility",
+        "PNG"
+      ],
+      "jira": [
+        "OGC-1197",
+        "OGC-354"
+      ],
+      "githubIssue": 305,
+      "specPath": "designs/patient/patient-search.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/patient/patient-search",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/patient/patient-search",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/patient/patient-search",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/patient/patient-search.md",
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/patient/patient-search.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/patient/patient-search.html"
       }
     },
     {

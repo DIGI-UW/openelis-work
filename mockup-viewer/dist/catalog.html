@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OpenELIS Design Gallery — Catalog</title>
-  <meta name="description" content="Searchable catalog of 228 design mockups and specifications for OpenELIS Global">
+  <meta name="description" content="Searchable catalog of 230 design mockups and specifications for OpenELIS Global">
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 960px; margin: 0 auto; padding: 2rem 1rem; color: #161616; line-height: 1.5; }
     h1 { border-bottom: 2px solid #0f62fe; padding-bottom: 0.5rem; }
@@ -22,13 +22,13 @@
 </head>
 <body>
   <h1>OpenELIS Design Gallery — Catalog</h1>
-  <p>228 designs across 17 categories.
+  <p>230 designs across 17 categories.
     <a href="./">Interactive Gallery</a> |
     <a href="catalog.json">JSON Catalog</a> |
     <a href="llms.txt">LLM Index</a> |
     <a href="sitemap.xml">Sitemap</a>
   </p>
-  <nav><a href="#cat-admin-config">Admin & Config (52)</a> <a href="#cat-analyzer-integration">Analyzer Integration (26)</a> <a href="#cat-blood-bank">Blood Bank (5)</a> <a href="#cat-inventory">Inventory & Supply (4)</a> <a href="#cat-microbiology">Microbiology (31)</a> <a href="#cat-nce">NCE (4)</a> <a href="#cat-notifications">Notifications (2)</a> <a href="#cat-other">Other (4)</a> <a href="#cat-pathology">Pathology (7)</a> <a href="#cat-patient">Patient (1)</a> <a href="#cat-portal">Results Portal (3)</a> <a href="#cat-quality">Quality & EQA (16)</a> <a href="#cat-reports">Reports (8)</a> <a href="#cat-results-validation">Results & Validation (19)</a> <a href="#cat-sample-collection">Sample Collection (10)</a> <a href="#cat-system">System (10)</a> <a href="#cat-vector-surveillance">Vector Surveillance (26)</a> </nav>
+  <nav><a href="#cat-admin-config">Admin & Config (52)</a> <a href="#cat-analyzer-integration">Analyzer Integration (26)</a> <a href="#cat-blood-bank">Blood Bank (5)</a> <a href="#cat-inventory">Inventory & Supply (4)</a> <a href="#cat-microbiology">Microbiology (32)</a> <a href="#cat-nce">NCE (4)</a> <a href="#cat-notifications">Notifications (2)</a> <a href="#cat-other">Other (4)</a> <a href="#cat-pathology">Pathology (7)</a> <a href="#cat-patient">Patient (2)</a> <a href="#cat-portal">Results Portal (3)</a> <a href="#cat-quality">Quality & EQA (16)</a> <a href="#cat-reports">Reports (8)</a> <a href="#cat-results-validation">Results & Validation (19)</a> <a href="#cat-sample-collection">Sample Collection (10)</a> <a href="#cat-system">System (10)</a> <a href="#cat-vector-surveillance">Vector Surveillance (26)</a> </nav>
 
   <h2 id="cat-admin-config">Admin & Config (52)</h2>
   <div class="design">
@@ -1186,7 +1186,7 @@
     <div class="tags"><span class="tag">inventory</span> <span class="tag">reagents</span> <span class="tag">forecasting</span> <span class="tag">facility</span></div>
   </div>
 
-  <h2 id="cat-microbiology">Microbiology (31)</h2>
+  <h2 id="cat-microbiology">Microbiology (32)</h2>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/microbiology/m-00-microbiology-module-parent">M-00 Microbiology Module Parent</a></h3>
     <p>Spine spec for the M-* bundle: glossary, RBAC matrix, data model overview, phase plan, out-of-scope, v1.1 → v2 diff map. v2.1: NO_GROWTH_FINAL → NO_GROWTH_READY (releases to FINAL_REPORTED, not terminal).</p>
@@ -1549,6 +1549,17 @@
     </div>
     <div class="tags"><span class="tag">microbiology</span> <span class="tag">narrative</span> <span class="tag">workflow-selection</span> <span class="tag">tb</span> <span class="tag">antibiogram</span> <span class="tag">glass</span> <span class="tag">v2.1</span></div>
   </div>
+  <div class="design">
+    <h3><a href="https://digi-uw.github.io/openelis-work/#/microbiology/m-16-cluster-detection-outbreak-signals">M-16 Cluster Detection & Outbreak Signals</a></h3>
+    <p>Native-Java scan-statistic cluster/outbreak detection across all three surveillance domains (clinical, environmental, vector). Consumes a domain-aware detection-event stream — no SaTScan binary, works air-gapped; reuses M-09 first-isolate de-duplication; a scan never crosses a domain boundary (extends D-004). Inline signal queue + Detection History; the only modal is the outbound-send confirm. Alert-volume design target ~3-6 signals/lab/year. FRS v1.0 + interactive preview. Depends on the OGC-782 microbiology module (stacked, not yet on develop).</p>
+    <div class="links">
+      <a href="https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-16-cluster-detection-outbreak-signals">Preview</a>
+      <a href="https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-16-cluster-detection-outbreak-signals">Spec</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/microbiology/m-16-cluster-detection.md">Raw Spec (MD)</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/microbiology/m-16-cluster-detection-preview.html">HTML Mockup</a>
+    </div>
+    <div class="tags"><span class="tag">microbiology</span> <span class="tag">surveillance</span> <span class="tag">cluster-detection</span> <span class="tag">outbreak</span> <span class="tag">scan-statistic</span> <span class="tag">glass</span> <span class="tag">phase-2</span></div>
+  </div>
 
   <h2 id="cat-nce">NCE (4)</h2>
   <div class="design">
@@ -1760,7 +1771,7 @@
     <div class="tags"><span class="tag">pathology</span> <span class="tag">cytology</span> <span class="tag">IHC</span> <span class="tag">orientation</span> <span class="tag">onboarding</span> <span class="tag">diagrams</span> <span class="tag">developer-guide</span></div>
   </div>
 
-  <h2 id="cat-patient">Patient (1)</h2>
+  <h2 id="cat-patient">Patient (2)</h2>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/patient/patient-id-card-scanning-completed">Patient ID Card Scanning [Completed]</a></h3>
     <p>Patient ID card scanning and document management. Adds an Identification Documents accordion to patient registration and edit screens, plus a document count column and inline preview panel in patient search results. Supports file upload, camera capture, and clipboard paste; stores documents as FHIR Patient attachments with full audit trail and role-based permissions.</p>
@@ -1774,6 +1785,21 @@
       <a href="https://github.com/DIGI-UW/openelis-work/issues/82">#82</a>
     </div>
     <div class="tags"><span class="tag">patient</span> <span class="tag">document-management</span> <span class="tag">FHIR</span> <span class="tag">scanning</span> <span class="tag">registration</span></div>
+  </div>
+  <div class="design">
+    <h3><a href="https://digi-uw.github.io/openelis-work/#/patient/patient-search">Patient Search</a></h3>
+    <p>Redesign of the shared patient search panel used by eight screens. One smart search box expanded server-side over the configured patient identifiers, lab number and last name, Enter to submit, configuration-driven helper text, and a collapsed demographics refinement. Route-synced Search for Patient / New Patient switcher on Patient Management and clinical Add Order only. Fixed-height results rows with placeholder-first photos, configured identifier columns, a Shared ID warning tag, and merged patients hidden behind a toggle. Client registry results load progressively beneath local results and fold into local rows by FHIR UUID; external sources are admin-configured, never user-bypassable.</p>
+    <div class="links">
+      <a href="https://digi-uw.github.io/openelis-work/#/preview/patient/patient-search">Preview</a>
+      <a href="https://digi-uw.github.io/openelis-work/#/spec/patient/patient-search">Spec</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/patient/patient-search.md">Raw Spec (MD)</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/patient/patient-search.jsx">Source (JSX)</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/patient/patient-search.html">HTML Mockup</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-1197">OGC-1197</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-354">OGC-354</a>
+      <a href="https://github.com/DIGI-UW/openelis-work/issues/305">#305</a>
+    </div>
+    <div class="tags"><span class="tag">patient</span> <span class="tag">reception</span> <span class="tag">search</span> <span class="tag">client-registry</span> <span class="tag">FHIR</span> <span class="tag">accessibility</span> <span class="tag">PNG</span></div>
   </div>
 
   <h2 id="cat-portal">Results Portal (3)</h2>
