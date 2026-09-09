@@ -412,3 +412,59 @@ This is the third method fault of the same family in this engagement, after the 
 ### 9.7 Expected, not defects
 
 There is **no mycobacteriology / TB test section** — the eleven active sections are Hematology, Biochemistry, Bacteriology, Immunology, Virology, Coliform analysis, Serology-Immunology, Molecular Biology, MACROSCOPY&MICROSCOPY, Immunohistochemistry, GRAM STAIN. Per the Director of Product these arrive with the feature, so this is a known gap rather than a finding. It does mean **M-14 has nowhere to land yet**.
+
+---
+
+## 10. Regression re-run on build `39dccac` (2026-09-09)
+
+**Instance:** amr.openelis-global.org · **Deployment:** `20260906T232520Z-39dccac64688` · **Branch:** `feat/782-ogc-782-microbiology-r16-order-entry`
+
+The branch name matters: this build is specifically an **order-entry** revision, which is exactly the surface §9's findings live on. Every §9 finding was re-run against it. All API checks were repeated three times and matched; UI findings were re-confirmed on a second, freshly-opened tab.
+
+### 10.1 Result summary
+
+| § | Finding | Result on `39dccac` |
+|---|---|---|
+| 9.1 | Two indistinguishable "Microbiology" programs | **Reproduces, unchanged** |
+| 9.2 | Program → test-section wiring crossed | **Reproduces, unchanged** |
+| 9.3 | Routing chip reads *Unassigned* | **Reproduces, unchanged** |
+| 9.4 | Discard-modal copy mismatched its trigger | **Changed — the modal is gone, and what replaced it is worse. See §10.3** |
+
+### 10.2 What still reproduces exactly
+
+**P-1.** Programs 8 (`MICROBIOLOGY`) and 9 (`MICROBIOLO`) remain, both named "Microbiology", both pointing at test section 57 (Bacteriology), both with 176-byte empty questionnaire shells. They still render as two adjacent, identical options in the order-entry Program dropdown.
+
+**P-2.** `Bacteriology` (10) still points at section 97 · **Coliform analysis**; `Cytology` (5) still points at section 165 · **GRAM STAIN**. Section names are unchanged, so this is the same crossed wiring, not a renaming artefact.
+
+**P-3.** With Program = Microbiology, sample type = Urines and the real **Urine Culture** test ticked, the micro panel header still carries the blue **Unassigned** tag beside *"Culture workflow selected — This will create a Microbiology Case for culture and susceptibility testing."* Re-confirmed on a fresh tab. **This one is worth dwelling on**: an order-entry-focused revision shipped without touching it.
+
+### 10.3 P-5 *(new, regression)* — switching program away from Microbiology silently keeps the microbiology details
+
+On `b1c692b`, changing the Program away from Microbiology raised a **"Discard Microbiology details?"** guard (§9.4). Its body copy was wrong, but the guard was right to exist.
+
+On `39dccac` **the guard no longer fires at all, and the microbiology details are not discarded** — they stay attached under the new program.
+
+Evidence, three runs:
+
+| Run | Sequence | Micro panel after | Guard modal |
+|---|---|---|---|
+| Control | **Bacteriology selected first**, clean tab | **Absent** (correct) | n/a |
+| 1 | Microbiology → Urines → Urine Culture → switch to **Bacteriology** | **Still visible**; Urine Culture still ticked | **None** |
+| 2 | Microbiology → switch to **Cytology** | **Still visible** | **None** |
+
+The control is what makes this a defect rather than a rendering quirk: choosing Bacteriology from the start correctly renders no micro panel, so the panel surviving the switch is retained state, not normal behaviour.
+
+**Why it matters more than the old copy bug.** A user who picks Microbiology, changes their mind, and selects Cytology now has an order carrying microbiology program details — culture protocol, culture purpose, patient origin — under a Cytology program, with nothing on screen telling them so and no opportunity to decline. The previous build at least stopped and asked, however badly worded. Fixing the copy would have been a one-line change; removing the guard traded a wording defect for a data-integrity one.
+
+**Severity: High.** It silently attaches clinical routing context to the wrong program, and the §9.3 chip means the resulting case's workflow is already in question.
+
+### 10.4 Also changed in this build (not defects)
+
+- **Order entry is now split by domain.** `/order/enter` redirects to `/order/clinical/enter`; the form carries Clinical / Environmental-Other tabs and grew from 15 to 23 inputs.
+- **A new Vector Field Survey program** (id 13, code `VFS`) with a real 1,704-byte questionnaire.
+- **Cytology gained a real questionnaire** — 2,401 bytes, up from the 176-byte empty shell. So questionnaires are being filled in program by program, which makes the two empty Microbiology shells (§10.2) look more like an oversight than a deliberate blank.
+- **Test sections grew from 11 to 13**, and there is **still no mycobacteriology / TB section** — expected with the feature per the Director of Product, but M-14 still has nowhere to land.
+
+### 10.5 Still not settled
+
+§9.3 remains **confirmed at the UI, unconfirmed at the server**. Settling it needs one order saved and its `workflow_type` read. It was not possible to drive Save, the patient search, or the Site Name typeahead through automation on this page — those controls register the click and produce no request, no error and no message, while the same actions work when performed by hand. That is an automation limitation, not a product finding, and is recorded here only to explain the gap.
