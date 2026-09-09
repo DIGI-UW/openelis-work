@@ -419,16 +419,18 @@ There is **no mycobacteriology / TB test section** — the eleven active section
 
 **Instance:** amr.openelis-global.org · **Deployment:** `20260906T232520Z-39dccac64688` · **Branch:** `feat/782-ogc-782-microbiology-r16-order-entry`
 
-The branch name matters: this build is specifically an **order-entry** revision, which is exactly the surface §9's findings live on. Every §9 finding was re-run against it. All API checks were repeated three times and matched; UI findings were re-confirmed on a second, freshly-opened tab.
+> **This section was published in commit `8ead6ad` with a false High-severity finding (P-5) and a wrong verdict on §9.4. Both are corrected below — see §10.5 for the retraction and the method fault that caused it.** The corrected results are in §10.1.
 
-### 10.1 Result summary
+### 10.1 Result summary (corrected)
 
 | § | Finding | Result on `39dccac` |
 |---|---|---|
 | 9.1 | Two indistinguishable "Microbiology" programs | **Reproduces, unchanged** |
 | 9.2 | Program → test-section wiring crossed | **Reproduces, unchanged** |
 | 9.3 | Routing chip reads *Unassigned* | **Reproduces, unchanged** |
-| 9.4 | Discard-modal copy mismatched its trigger | **Changed — the modal is gone, and what replaced it is worse. See §10.3** |
+| 9.4 | Discard-modal copy mismatched its trigger | **FIXED** — see §10.3 |
+| — | *P-5 "discard guard removed"* | **RETRACTED — never real. See §10.5** |
+| 10.4 | Program field shows the declined program after Cancel | **New, Medium** |
 
 ### 10.2 What still reproduces exactly
 
@@ -436,35 +438,56 @@ The branch name matters: this build is specifically an **order-entry** revision,
 
 **P-2.** `Bacteriology` (10) still points at section 97 · **Coliform analysis**; `Cytology` (5) still points at section 165 · **GRAM STAIN**. Section names are unchanged, so this is the same crossed wiring, not a renaming artefact.
 
-**P-3.** With Program = Microbiology, sample type = Urines and the real **Urine Culture** test ticked, the micro panel header still carries the blue **Unassigned** tag beside *"Culture workflow selected — This will create a Microbiology Case for culture and susceptibility testing."* Re-confirmed on a fresh tab. **This one is worth dwelling on**: an order-entry-focused revision shipped without touching it.
+**P-3.** With Program = Microbiology, sample type = Urines and the real **Urine Culture** test ticked, the micro panel header still carries the blue **Unassigned** tag beside *"Culture workflow selected — This will create a Microbiology Case for culture and susceptibility testing."* Re-confirmed on a fresh tab. This reading never involved a modal, so it is unaffected by the fault in §10.5. **Worth dwelling on**: an order-entry-focused revision shipped without touching it.
 
-### 10.3 P-5 *(new, regression)* — switching program away from Microbiology silently keeps the microbiology details
+### 10.3 §9.4 is FIXED
 
-On `b1c692b`, changing the Program away from Microbiology raised a **"Discard Microbiology details?"** guard (§9.4). Its body copy was wrong, but the guard was right to exist.
+The guard fires on a program change, and its body copy is now:
 
-On `39dccac` **the guard no longer fires at all, and the microbiology details are not discarded** — they stay attached under the new program.
+> *"You have entered Microbiology details. Changing the Program will discard them."*
 
-Evidence, three runs:
+That correctly names both the trigger (changing the Program) and the effect (discarding the details), replacing the `b1c692b` copy that described *"removing the final culture test"* — an action the user had not taken. Good fix; §9.4 can be closed.
 
-| Run | Sequence | Micro panel after | Guard modal |
-|---|---|---|---|
-| Control | **Bacteriology selected first**, clean tab | **Absent** (correct) | n/a |
-| 1 | Microbiology → Urines → Urine Culture → switch to **Bacteriology** | **Still visible**; Urine Culture still ticked | **None** |
-| 2 | Microbiology → switch to **Cytology** | **Still visible** | **None** |
+### 10.4 P-6 *(new, Medium)* — after **Cancel**, the Program field displays the program the user declined
 
-The control is what makes this a defect rather than a rendering quirk: choosing Bacteriology from the start correctly renders no micro panel, so the panel surviving the switch is retained state, not normal behaviour.
+Cancelling the discard guard correctly aborts the change, but the combobox is left showing the *new* program while the order is still on the old one.
 
-**Why it matters more than the old copy bug.** A user who picks Microbiology, changes their mind, and selects Cytology now has an order carrying microbiology program details — culture protocol, culture purpose, patient origin — under a Cytology program, with nothing on screen telling them so and no opportunity to decline. The previous build at least stopped and asked, however badly worded. Fixing the copy would have been a one-line change; removing the guard traded a wording defect for a data-integrity one.
+| Check after clicking **Cancel** | Value |
+|---|---|
+| Program field displayed text / `value` / `title` | **Cytology** |
+| `aria-selected=true` option in the reopened list | **Microbiology** |
+| Microbiology Program Details panel | Still rendered |
+| Urine Culture test | Still ticked |
 
-**Severity: High.** It silently attaches clinical routing context to the wrong program, and the §9.3 chip means the resulting case's workflow is already in question.
+Reproduced independently on two fresh tabs. The `aria-selected` state is the authoritative one, so **the underlying selection is correct** — Cancel did its job. What is wrong is only the field's displayed text.
 
-### 10.4 Also changed in this build (not defects)
+**Why it still matters.** The screen states the order is on Cytology while it is on Microbiology, and the micro panel sitting directly beneath contradicts the field above it. A user who cancels and then saves believes they are on a different program than they are; a user who notices the mismatch will most likely "fix" it by re-selecting, which fires the guard again. Not data corruption — the state is sound — but the display and the truth disagree at exactly the moment the user is being asked to make a careful choice.
+
+### 10.5 RETRACTED — "P-5: the discard guard was removed and micro details silently persist"
+
+Commit `8ead6ad` filed a **High** regression claiming the `Discard Microbiology details?` guard no longer fired on `39dccac` and that microbiology details silently persisted under the newly-chosen program. **That is false in every particular.** The guard fires, the copy is correct, the details are discarded when the user confirms, and the state is sound. The finding was withdrawn the same day, after the Director of Product said the modal was plainly on screen.
+
+**Two compounding method faults produced it, either of which alone was sufficient:**
+
+1. **Wrong open-state signal.** The detector tested for the class `cds--modal--open` on the modal element. This build does not mark the open modal that way — it sets **`cds--body--with-modal-open` on `<body>`**, and the modal element itself is distinguishable only by computed style (`visibility`, `display`, `opacity`, and a non-zero box). Every modal check in the run returned a false negative.
+2. **Checking synchronously.** The modal renders **asynchronously**, a beat after the click. Even a correct detector run in the same tick as the click reports nothing; the immediately following call catches it. Both faults were observed directly: one call returned `modals=0`, the next returned `modals=4, bodyCls=true, "Discard Microbiology details?"` with no further interaction.
+
+The "evidence" for P-5 was then the ordinary transient state *while the guard was open and waiting*: the combobox already displays the pending program and the panel is still on screen. Reading that mid-flight state as a settled one produced a confident, wrong, High-severity claim — and the "control run" appeared to corroborate it only because the control had no pending modal to miss.
+
+**This is the fourth fault of the same family in this engagement** — after `composed:false` events, screenshot scaling measured before a display change, and the raw DOM text walk of §9.5. The §9.5 rule (*filter for visibility before reading state*) was necessary but not sufficient. Two additions, both now applied above:
+
+- **Never identify UI state by a framework class name.** Use computed style and the framework's own document-level signal. Class names are implementation detail and change between builds; this one did.
+- **Never read state in the same tick as the action that changes it.** Re-read on a later call and confirm the value has settled before recording it.
+
+A stronger habit sits behind both: when a check reports *absence* — no modal, no request, no element — treat that as a claim about the detector until proven otherwise, especially when it is the basis of a finding. Every fault in this family has been a false negative read as a real one.
+
+### 10.6 Also changed in this build (not defects)
 
 - **Order entry is now split by domain.** `/order/enter` redirects to `/order/clinical/enter`; the form carries Clinical / Environmental-Other tabs and grew from 15 to 23 inputs.
 - **A new Vector Field Survey program** (id 13, code `VFS`) with a real 1,704-byte questionnaire.
-- **Cytology gained a real questionnaire** — 2,401 bytes, up from the 176-byte empty shell. So questionnaires are being filled in program by program, which makes the two empty Microbiology shells (§10.2) look more like an oversight than a deliberate blank.
+- **Cytology gained a real questionnaire** — 2,401 bytes, up from a 176-byte empty shell. Questionnaires are being filled in program by program, which makes the two empty Microbiology shells (§10.2) look more like an oversight than a deliberate blank.
 - **Test sections grew from 11 to 13**, and there is **still no mycobacteriology / TB section** — expected with the feature per the Director of Product, but M-14 still has nowhere to land.
 
-### 10.5 Still not settled
+### 10.7 Still not settled
 
-§9.3 remains **confirmed at the UI, unconfirmed at the server**. Settling it needs one order saved and its `workflow_type` read. It was not possible to drive Save, the patient search, or the Site Name typeahead through automation on this page — those controls register the click and produce no request, no error and no message, while the same actions work when performed by hand. That is an automation limitation, not a product finding, and is recorded here only to explain the gap.
+§9.3 remains **confirmed at the UI, unconfirmed at the server**. Settling it needs one order saved and its `workflow_type` read. Save, the patient search and the Site Name typeahead could not be driven through automation on this page — they register the click and produce no request, no error and no message, while working when performed by hand. Recorded only to explain the gap; it is an automation limitation, not a product finding.
