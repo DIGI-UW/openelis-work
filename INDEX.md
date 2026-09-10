@@ -156,6 +156,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Compliance Evaluation Engine | [compliance-evaluation-engine.jsx](designs/results-validation/compliance-evaluation-engine.jsx) | [compliance-evaluation-engine.md](designs/results-validation/compliance-evaluation-engine.md) |
 | HIL Specimen Quality | [hil-specimen-quality.jsx](designs/results-validation/hil-specimen-quality.jsx) · [preview](designs/results-validation/hil-specimen-quality-preview.html) | [hil-specimen-quality.md](designs/results-validation/hil-specimen-quality.md) |
 | Multi-Component Result Entry v1 | [results-entry-multicomponent-v1.jsx](designs/results-validation/results-entry-multicomponent-v1.jsx) · [preview](designs/results-validation/results-entry-multicomponent-v1-preview.html) | [results-entry-multicomponent-v1.md](designs/results-validation/results-entry-multicomponent-v1.md) |
+| Runs — QC, Reagent Lot & Result Review | [runs.jsx](designs/results-validation/runs.jsx) · [preview](designs/results-validation/runs-preview.html) | [runs.md](designs/results-validation/runs.md) |
 | Results Entry — Multi-Component (integrated) | — | [results-entry-multicomponent.md](designs/results-validation/results-entry-multicomponent.md) |
 | Validation Page — Multi-Component (integrated) | — | [validation-multicomponent.md](designs/results-validation/validation-multicomponent.md) |
 | Analyzer Ingestion — Multi-Component Results | — | [analyzer-multicomponent-ingestion.md](designs/results-validation/analyzer-multicomponent-ingestion.md) |

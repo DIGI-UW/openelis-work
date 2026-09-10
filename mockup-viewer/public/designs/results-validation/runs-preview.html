@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Runs on the Results worklist — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; }
+    .preview-banner { background: #0f62fe; color: #fff; padding: 6px 1rem; font-size: 12px; font-family: monospace; }
+    .preview-banner b { font-weight: 600; }
+    .preview-content { padding: 1rem 2rem 3rem; max-width: 1440px; margin: 0 auto; }
+    .crumbs { font-size: 12px; color: #525252; margin-bottom: 4px; }
+    .crumbs a { color: #0f62fe; text-decoration: none; }
+    h1.page-title { font-size: 28px; font-weight: 400; margin: 0 0 4px; }
+    .subtitle { color: #525252; font-size: 14px; margin-bottom: 1rem; }
+    .toolbar { display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 1rem; }
+    .toolbar .cds--select, .toolbar .cds--select-input { width: 240px; max-width: 240px; }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 1rem; }
+    .chip { border: 1px solid #8d8d8d; background: #fff; border-radius: 16px; padding: 4px 12px; font-size: 13px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+    .chip.on { background: #e0e0e0; border-color: #161616; font-weight: 600; }
+    .chip .count { background: #161616; color: #fff; border-radius: 10px; padding: 0 7px; font-size: 11px; }
+    .chip .count.red { background: #da1e28; }
+    .chip .count.blue { background: #0043ce; }
+    .runlist { background: #fff; border: 1px solid #e0e0e0; padding: 8px 0; margin-bottom: 1rem; }
+    .runlist-row { display: grid; grid-template-columns: 110px 90px 1fr 140px 110px 120px; gap: 8px; padding: 8px 16px; font-size: 13px; align-items: center; cursor: pointer; }
+    .runlist-row:hover { background: #f4f4f4; }
+    .runlist-head { font-weight: 600; color: #525252; font-size: 12px; cursor: default; }
+    .runlist-head:hover { background: transparent; }
+    .tile { background: #fff; padding: 1rem; border-bottom: 1px solid #e0e0e0; }
+    .header-stack { margin-bottom: 1rem; border: 1px solid #e0e0e0; }
+    .tile h4 { font-size: 14px; font-weight: 600; margin: 0 0 8px; letter-spacing: .16px; }
+    .kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px 24px; font-size: 13px; }
+    .kv .k { color: #525252; font-size: 12px; }
+    .verdict-row { display: grid; grid-template-columns: 24px 160px 110px 1fr auto; gap: 12px; align-items: center; padding: 8px 0; border-top: 1px solid #e0e0e0; font-size: 13px; }
+    .verdict-row:first-of-type { border-top: none; }
+    .ctl { margin-left: 36px; padding: 6px 0 6px 12px; border-left: 2px solid #e0e0e0; font-size: 12px; color: #393939; display: grid; grid-template-columns: 80px 1.2fr 1fr 190px 130px; gap: 8px; align-items: center; }
+    .icon-btn { background: none; border: none; cursor: pointer; font-size: 14px; color: #0f62fe; padding: 0; }
+    .tag-held { background: #ffd7d9; color: #a2191f; font-weight: 600; }
+    .tag-wait { background: #d0e2ff; color: #0043ce; }
+    .tag-batched { background: #e8daff; color: #6929c4; }
+    .tag-prov { background: #e0e0e0; color: #393939; }
+    .row-actions { display: flex; gap: 6px; }
+    .expand { background: #f4f4f4; padding: 1rem; border-top: 1px solid #e0e0e0; }
+    .expand .zone { background: #fff; padding: 12px; margin-bottom: 8px; border: 1px solid #e0e0e0; }
+    .zone-title { font-size: 12px; font-weight: 600; color: #525252; margin-bottom: 8px; }
+    .toast { position: fixed; right: 1.5rem; bottom: 1.5rem; z-index: 10; min-width: 320px; }
+    .mono { font-family: 'IBM Plex Mono', monospace; }
+    .progress { font-size: 13px; color: #525252; }
+    .inline-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 8px; }
+    .disabled-row td { color: #8d8d8d; }
+    .presence { font-size: 12px; color: #525252; font-style: italic; }
+    .sel { width: 16px; height: 16px; }
+    .dim { color: #8d8d8d; }
+    .legend { font-size: 12px; color: #525252; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e0e0e0; }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">
+    Visual Preview — Runs on the Results worklist &nbsp;|&nbsp; Route: <b>/Results</b> and <b>/Results?run=&lt;runId&gt;</b> &nbsp;|&nbsp; SideNav: Workplan → Results &nbsp;|&nbsp; OpenELIS Design Mockup, not a live application
+  </div>
+  <div class="preview-content" id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+    const t = (key, fallback) => fallback || key;
+
+    /* ---------------- realistic data ---------------- */
+    const RUNS = {
+      'RUN-2409-0142': {
+        id: 'RUN-2409-0142', source: 'ANALYZER', method: 'Cobas c311', analyzer: 'Donatello (c311 #2)',
+        labUnit: 'Chemistry', operator: 'Analyzer bridge', opened: '09 Sep 2026 09:14', lastActivity: '09 Sep 2026 09:14',
+        state: 'Held', lot: { name: 'Roche ISE Reagent 2419077', provenance: 'analyzer' },
+        instrumentQc: { status: 'Pass', when: '09 Sep 2026 07:02', by: 'A. Wanjiru' },
+        controls: [
+          { id: 'c1', level: 'Level 1', lot: 'PreciControl ClinChem Multi 1, lot 61342', covers: ['Glucose', 'Potassium', 'Sodium', 'Creatinine'],
+            results: { Glucose: { obs: '5.6', exp: '5.5 ± 0.4', v: 'Pass' }, Potassium: { obs: '5.9', exp: '4.2 ± 0.3', v: 'Fail' }, Sodium: { obs: '141', exp: '140 ± 4', v: 'Pass' }, Creatinine: { obs: '88', exp: '90 ± 8', v: 'Pass' } },
+            source: 'Analyzer verdict', by: 'Analyzer', when: '09:14' },
+          { id: 'c2', level: 'Level 2', lot: 'PreciControl ClinChem Multi 2, lot 61355', covers: ['Glucose', 'Potassium', 'Sodium', 'Creatinine'],
+            results: { Glucose: { obs: '13.9', exp: '14.0 ± 0.9', v: 'Pass' }, Potassium: { obs: '6.4', exp: '6.5 ± 0.4', v: 'Pass' }, Sodium: { obs: '156', exp: '155 ± 5', v: 'Pass' }, Creatinine: { obs: '365', exp: '360 ± 20', v: 'Pass' } },
+            source: 'Analyzer verdict', by: 'Analyzer', when: '09:14' },
+        ],
+        exceptions: [
+          { kind: 'Unmatched sample', detail: 'Lab number "24-0O819" not found (letter O for zero?)', test: 'Glucose, Potassium, Sodium, Creatinine' },
+          { kind: 'Unmapped target', detail: 'Analyzer code "TBIL" has no mapping on Cobas c311 profile', test: 'Sample 24-00821' },
+        ],
+      },
+      'RUN-2409-0141': {
+        id: 'RUN-2409-0141', source: 'ANALYZER', method: 'Xpert MTB/RIF Ultra', analyzer: 'GeneXpert IV (TB bench)',
+        labUnit: 'Chemistry', operator: 'Analyzer bridge', opened: '09 Sep 2026 08:40', lastActivity: '09 Sep 2026 08:40',
+        state: 'Open', lot: { name: 'Xpert MTB/RIF Ultra cartridge, lot 15024', provenance: 'analyzer' },
+        instrumentQc: null,
+        controls: [
+          { id: 'c0', level: 'Internal', lot: 'Cartridge SPC (sample processing control)', covers: ['Xpert MTB/RIF Ultra'],
+            results: { 'Xpert MTB/RIF Ultra': { obs: 'Valid', exp: 'Valid', v: 'Pass' } }, source: 'Analyzer verdict', by: 'Analyzer', when: '08:40' },
+        ],
+        exceptions: [],
+      },
+      'RUN-2409-0143': {
+        id: 'RUN-2409-0143', source: 'WORKPLAN', method: 'HemoCue Hb 301', analyzer: 'HemoCue bench unit 1',
+        labUnit: 'Hematology', operator: 'B. Okafor', opened: '09 Sep 2026 10:05', lastActivity: '09 Sep 2026 10:31',
+        state: 'Open', lot: { name: 'HemoCue Hb 301 microcuvettes, lot 2306411', provenance: 'selected' },
+        instrumentQc: null,
+        controls: [
+          { id: 'c3', level: 'Normal', lot: 'Eurotrol HemoTrol Normal, lot 4471', covers: ['Hemoglobin'],
+            results: { Hemoglobin: { obs: '12.4', exp: '12.3 ± 0.5', v: 'Pass' } },
+            source: 'Computed from QC Targets', by: 'B. Okafor', when: '10:05' },
+        ],
+        exceptions: [],
+      },
+    };
+
+    const ROWS = [
+      { id: 1, sample: '24-00817', patient: 'K. Mwangi', test: 'Glucose', unit: 'Chemistry', status: 'pending', run: 'RUN-2409-0142', value: '6.1 mmol/L', flag: null, dup: false },
+      { id: 2, sample: '24-00817', patient: 'K. Mwangi', test: 'Potassium', unit: 'Chemistry', status: 'pending', run: 'RUN-2409-0142', value: '5.7 mmol/L', flag: 'abnormal', dup: false },
+      { id: 3, sample: '24-00818', patient: 'F. Achieng', test: 'Glucose', unit: 'Chemistry', status: 'pending', run: 'RUN-2409-0142', value: '3.1 mmol/L', flag: 'critical', dup: false },
+      { id: 4, sample: '24-00818', patient: 'F. Achieng', test: 'Potassium', unit: 'Chemistry', status: 'pending', run: 'RUN-2409-0142', value: '4.0 mmol/L', flag: null, dup: false },
+      { id: 5, sample: '24-00820', patient: 'D. Otieno', test: 'Sodium', unit: 'Chemistry', status: 'pending', run: 'RUN-2409-0142', value: '138 mmol/L', flag: null, dup: true },
+      { id: 6, sample: '24-00820', patient: 'D. Otieno', test: 'Creatinine', unit: 'Chemistry', status: 'pending', run: 'RUN-2409-0142', value: '104 µmol/L', flag: 'abnormal', dup: false },
+      { id: 7, sample: '24-00822', patient: 'S. Njoroge', test: 'Hemoglobin', unit: 'Hematology', status: 'pending', run: 'RUN-2409-0143', value: '11.8 g/dL', flag: null, dup: false, entered: true },
+      { id: 8, sample: '24-00823', patient: 'M. Kamau', test: 'Hemoglobin', unit: 'Hematology', status: 'pending', run: 'RUN-2409-0143', value: null, flag: null, dup: false },
+      { id: 9, sample: '24-00824', patient: 'J. Wafula', test: 'Hemoglobin', unit: 'Hematology', status: 'pending', run: 'RUN-2409-0143', value: null, flag: null, dup: false },
+      { id: 10, sample: '24-00825', patient: 'A. Chebet', test: 'Malaria RDT (Pf/Pan)', unit: 'Hematology', status: 'pending', run: null, value: null, flag: null, dup: false },
+      { id: 11, sample: '24-00826', patient: 'P. Ndungu', test: 'Malaria RDT (Pf/Pan)', unit: 'Hematology', status: 'pending', run: null, value: null, flag: null, dup: false },
+      { id: 12, sample: '24-00827', patient: 'R. Auma', test: 'Malaria RDT (Pf/Pan)', unit: 'Hematology', status: 'pending', run: null, value: null, flag: null, dup: false },
+      { id: 14, sample: '24-00809', patient: 'E. Nyambura', test: 'Xpert MTB/RIF Ultra', unit: 'Chemistry', status: 'pending', run: 'RUN-2409-0141', value: 'MTB DETECTED, low · RIF resistance NOT DETECTED', flag: 'critical', dup: false,
+        components: [
+          { label: 'MTB result (call)', value: 'MTB DETECTED, low', unit: '', maps: 'Xpert MTB/RIF Ultra · primary', check: 'ok' },
+          { label: 'RIF resistance', value: 'NOT DETECTED', unit: '', maps: 'component RIF', check: 'ok' },
+          { label: 'rpoB probe A Ct', value: '22.4', unit: 'Ct', maps: 'component PROBE_A', check: 'ok' },
+          { label: 'rpoB probe B Ct', value: '23.1', unit: 'Ct', maps: 'component PROBE_B', check: 'ok' },
+          { label: 'rpoB probe C Ct', value: '', unit: 'Ct', maps: 'component PROBE_C', check: 'ok' },
+          { label: 'rpoB probe D Ct', value: '22.9', unit: 'Ct', maps: 'component PROBE_D', check: 'ok' },
+          { label: 'rpoB probe E Ct', value: '23.6', unit: 'Ct', maps: 'component PROBE_E', check: 'ok' },
+          { label: 'SPC Ct', value: '27.8', unit: 'Ct', maps: 'component SPC (internal control, not on report)', check: 'ok' },
+        ] },
+      { id: 13, sample: '24-00811', patient: 'T. Mutua', test: 'Creatinine', unit: 'Chemistry', status: 'accepted', run: 'RUN-2409-0139', value: '71 µmol/L', flag: null, dup: false },
+    ];
+
+    /* ---------------- helpers ---------------- */
+    const Tag = ({ kind, children, cls }) => <span className={`cds--tag cds--tag--${kind || 'gray'} ${cls || ''}`} style={{ marginRight: 4 }}>{children}</span>;
+    const Btn = ({ kind = 'ghost', size = 'sm', children, onClick, disabled, danger }) => (
+      <button className={`cds--btn cds--btn--${danger ? 'danger--ghost' : kind} cds--btn--${size}`} onClick={onClick} disabled={disabled}>{children}</button>
+    );
+    const Notification = ({ kind, title, children, action }) => (
+      <div className={`cds--inline-notification cds--inline-notification--${kind} cds--inline-notification--low-contrast`} role="status" style={{ maxWidth: '100%', marginBottom: 8 }}>
+        <div className="cds--inline-notification__details" style={{ paddingLeft: 12 }}>
+          <div className="cds--inline-notification__text-wrapper">
+            <div className="cds--inline-notification__title">{title}</div>
+            <div className="cds--inline-notification__subtitle">{children}</div>
+          </div>
+        </div>
+        {action}
+      </div>
+    );
+
+    function perTestVerdicts(run) {
+      const tests = {};
+      run.controls.forEach(c => c.covers.forEach(tst => {
+        const r = c.results[tst];
+        if (!r) return;
+        tests[tst] = tests[tst] || { verdict: 'Pass', controls: [] };
+        tests[tst].controls.push({ ...c, r });
+        if (r.v === 'Fail') tests[tst].verdict = 'Fail';
+      }));
+      return tests;
+    }
+    function heldTests(run) { const v = perTestVerdicts(run); return Object.keys(v).filter(k => v[k].verdict === 'Fail'); }
+
+    /* ---------------- components ---------------- */
+    function RunChip({ runs, open, onToggle }) {
+      const openCount = runs.filter(r => r.state === 'Open').length;
+      const heldCount = runs.filter(r => r.state === 'Held').length;
+      return (
+        <span className={`chip runs-chip ${open ? 'on' : ''}`} onClick={onToggle}>
+          {t('run.chip.label', 'Runs')}
+          <span className="count blue">{openCount} open</span>
+          <span className="count red">{heldCount} held</span>
+        </span>
+      );
+    }
+
+    function RunList({ runs, onPick, rows }) {
+      return (
+        <div className="runlist">
+          <div className="runlist-row runlist-head"><span>Run</span><span>Source</span><span>Method / analyzer</span><span>Opened</span><span>Progress</span><span>State</span></div>
+          {runs.map(r => {
+            const rr = rows.filter(x => x.run === r.id);
+            const done = rr.filter(x => x.status === 'accepted' || x.entered).length;
+            return (
+              <div className="runlist-row" key={r.id} onClick={() => onPick(r.id)}>
+                <span className="mono" style={{ color: '#0f62fe' }}>{r.id}</span>
+                <span>{r.source === 'ANALYZER' ? 'Analyzer' : 'Workplan'}</span>
+                <span>{r.method}{r.source === 'ANALYZER' ? ` · ${r.analyzer}` : ` · ${r.operator}`}</span>
+                <span>{r.opened.replace('09 Sep 2026 ', '')}</span>
+                <span className="progress">{done} of {rr.length} rows</span>
+                <span>{r.state === 'Held' ? <Tag kind="red">Held</Tag> : <Tag kind="blue">Open</Tag>}</span>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    function QcBlock({ run, onAction }) {
+      const verdicts = perTestVerdicts(run);
+      const [openTest, setOpenTest] = useState(null);
+      const held = heldTests(run);
+      const [recording, setRecording] = useState(false);
+      return (
+        <div className="tile">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h4>{t('run.header.qc', 'QC')} &nbsp;
+              {held.length ? <Tag kind="red">Held: {held.join(', ')}</Tag> : run.controls.length === 0 ? <Tag kind="gray">{t('run.verdict.noControl', 'No control')}</Tag> : <Tag kind="green">All covered tests pass</Tag>}
+            </h4>
+            <Btn kind="tertiary" onClick={() => setRecording(v => !v)}>{t('run.action.recordControl', 'Record control')}</Btn>
+          </div>
+          {held.length > 0 && (
+            <Notification kind="error" title={`Potassium control failed on this run`}>
+              Level 1 observed 5.9 against expected 4.2 ± 0.3. The {ROWS.filter(r => r.run === run.id && held.includes(r.test)).length} potassium results in this run are held; glucose, sodium and creatinine are not affected.
+            </Notification>
+          )}
+          {recording && (
+            <div className="expand" style={{ marginBottom: 12 }}>
+              <div className="zone-title">Record a control on {run.id}</div>
+              <div className="inline-form">
+                <div className="cds--text-input-wrapper"><label className="cds--label">Test covered</label><div className="cds--select"><select className="cds--select-input">{[...new Set(ROWS.filter(r => r.run === run.id).map(r => r.test))].map(x => <option key={x}>{x}</option>)}{run.controls.length === 0 && <option>Malaria RDT (Pf/Pan)</option>}</select></div></div>
+                <div className="cds--text-input-wrapper"><label className="cds--label">Control lot</label><input className="cds--text-input" placeholder="Search control lots…" /></div>
+                <div className="cds--text-input-wrapper"><label className="cds--label">Level</label><div className="cds--select"><select className="cds--select-input"><option>Level 1</option><option>Level 2</option></select></div></div>
+                <div className="cds--text-input-wrapper"><label className="cds--label">Observed</label><input className="cds--text-input" placeholder="mmol/L" /></div>
+                <div className="cds--text-input-wrapper"><label className="cds--label">Expected (from QC Targets)</label><input className="cds--text-input" value="4.2 ± 0.3" readOnly /></div>
+              </div>
+              <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                <Btn kind="primary" onClick={() => setRecording(false)}>{t('common.save', 'Save')}</Btn>
+                <Btn onClick={() => setRecording(false)}>{t('common.cancel', 'Cancel')}</Btn>
+                <span className="dim" style={{ fontSize: 12, alignSelf: 'center' }}>A new passing control does not clear an existing hold; use Retest for that.</span>
+              </div>
+            </div>
+          )}
+          {Object.keys(verdicts).map(tst => {
+            const v = verdicts[tst];
+            const isOpen = openTest === tst;
+            return (
+              <div key={tst}>
+                <div className="verdict-row">
+                  <button className="icon-btn" onClick={() => setOpenTest(isOpen ? null : tst)} aria-label="expand">{isOpen ? '▾' : '▸'}</button>
+                  <span style={{ fontWeight: 600 }}>{tst}</span>
+                  <span>{v.verdict === 'Fail' ? <Tag kind="red">{t('label.analyzerQc.fail', 'Fail')}</Tag> : <Tag kind="green">{t('label.analyzerQc.pass', 'Pass')}</Tag>}</span>
+                  <span className="dim">{v.controls.length} control{v.controls.length > 1 ? 's' : ''} · {v.controls[0].source}</span>
+                  <span className="row-actions">
+                    {v.verdict === 'Fail' && <>
+                      <Btn kind="primary" onClick={() => onAction('Retest requested for ' + tst + ' on ' + run.id + '. A later run covering these samples will suggest a "retest of" link.')}>Retest</Btn>
+                      <Btn kind="secondary" onClick={() => onAction(tst + ' rows marked Rejected: QC. Filing an NCE is optional.')}>{t('common.reject', 'Reject')}</Btn>
+                      <Btn danger onClick={() => onAction('Accept despite QC failure: an NCE was opened, pre-populated with ' + run.id + ', Level 1 potassium 5.9 vs 4.2 ± 0.3, and the 2 affected samples.')}>Accept despite QC failure</Btn>
+                    </>}
+                  </span>
+                </div>
+                {isOpen && v.controls.map(c => (
+                  <div className="ctl" key={c.id}>
+                    <span>{c.level}</span>
+                    <span>{c.lot}</span>
+                    <span>Observed <b>{c.r.obs}</b> · expected {c.r.exp}</span>
+                    <span>{c.r.v === 'Fail' ? <Tag kind="red">Fail</Tag> : <Tag kind="green">Pass</Tag>} <span className="dim">{c.source}</span></span>
+                    <span className="dim">{c.by}, {c.when}</span>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    function SettingsBlock({ run, rows }) {
+      const done = rows.filter(x => x.status === 'accepted' || x.entered).length;
+      return (
+        <div className="tile">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h4>{t('run.header.settings', 'Run settings')}</h4>
+            <span className="progress">{done} of {rows.length} rows dispositioned {run.source === 'WORKPLAN' && <Btn kind="tertiary">{t('run.action.markComplete', 'Mark complete')}</Btn>}</span>
+          </div>
+          <div className="kv">
+            <div><div className="k">Source</div>{run.source === 'ANALYZER' ? 'Analyzer message' : 'Workplan batch'}</div>
+            <div><div className="k">Method</div>{run.method}</div>
+            <div><div className="k">{t('common.analyzer', 'Analyzer')}</div>{run.analyzer}
+              {run.instrumentQc && <div className="dim" style={{ fontSize: 12 }}>Instrument Manual QC: <Tag kind="green">Pass</Tag>{run.instrumentQc.when}, {run.instrumentQc.by}</div>}
+            </div>
+            <div><div className="k">Lab unit</div>{run.labUnit}</div>
+            <div><div className="k">Operator</div>{run.operator}</div>
+            <div><div className="k">Opened · last activity</div>{run.opened.replace('09 Sep 2026 ', '')} · {run.lastActivity.replace('09 Sep 2026 ', '')}</div>
+            <div><div className="k">{t('common.status', 'Status')}</div>{run.state === 'Held' ? <Tag kind="red">Held</Tag> : <Tag kind="blue">Open</Tag>}</div>
+            <div style={{ gridColumn: 'span 2' }}><div className="k">Reagent lot</div>
+              {run.lot.provenance === 'analyzer'
+                ? <span>{run.lot.name} <Tag kind="gray" cls="tag-prov">{t('run.lot.analyzerReported', 'Analyzer-reported')}</Tag></span>
+                : <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>{run.lot.name} <Tag kind="gray" cls="tag-prov">Selected by operator</Tag> <Btn>Change lot</Btn> <Btn>Use last-used lot</Btn></span>}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function ExceptionsBlock({ run, onAction }) {
+      if (!run.exceptions.length) return null;
+      return (
+        <div className="tile">
+          <h4>{t('run.header.exceptions', 'Exceptions')} <Tag kind="magenta">{run.exceptions.length}</Tag></h4>
+          {run.exceptions.map((e, i) => (
+            <div className="verdict-row" key={i} style={{ gridTemplateColumns: '160px 1fr auto' }}>
+              <span style={{ fontWeight: 600 }}>{e.kind}</span>
+              <span>{e.detail} <span className="dim">· {e.test}</span></span>
+              <span className="row-actions">
+                {e.kind === 'Unmatched sample' && <><input className="cds--text-input" style={{ height: 32, width: 180 }} placeholder="Search accession…" /><Btn kind="primary" onClick={() => onAction('Record mapped to 24-00819. The run proceeds.')}>Match</Btn></>}
+                {e.kind === 'Unmapped target' && <Btn kind="primary" onClick={() => onAction('Opens Analyzer Types & Mapping for Cobas c311 with TBIL preselected; future runs auto-resolve.')}>Map now</Btn>}
+                <Btn onClick={() => onAction('Held with reason. Blocks only this record.')}>Hold</Btn>
+                <Btn onClick={() => onAction('Ignored with reason.')}>Ignore</Btn>
+              </span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    function RowExpansion({ row, run }) {
+      const rowRun = run || (row.run ? RUNS[row.run] : null);
+      const held = rowRun && heldTests(rowRun).includes(row.test);
+      return (
+        <div className="expand">
+          <div className="zone">
+            <div className="zone-title">Work zone</div>
+            <div className="inline-form">
+              <div className="cds--text-input-wrapper"><label className="cds--label">{t('common.result', 'Result')}</label>
+                <input className="cds--text-input" value={held ? '' : (row.value || '')} placeholder={held ? 'Held by QC' : (rowRun && rowRun.source === 'ANALYZER' ? '' : 'Enter value')} readOnly={!!(rowRun && rowRun.source === 'ANALYZER') || held} disabled={held} />
+              </div>
+              <div className="cds--text-input-wrapper"><label className="cds--label">Method</label><input className="cds--text-input" value={rowRun ? rowRun.method : 'Malaria RDT (manual)'} readOnly /></div>
+              <div className="cds--text-input-wrapper"><label className="cds--label">{t('common.analyzer', 'Analyzer')}</label><input className="cds--text-input" value={rowRun ? rowRun.analyzer : '—'} readOnly /></div>
+              <div className="cds--text-input-wrapper"><label className="cds--label">{t('common.notes', 'Notes')}</label><input className="cds--text-input" placeholder="" /></div>
+            </div>
+          </div>
+          <div className="zone">
+            <div className="zone-title">Reagents, QC and controls — {rowRun ? <span>this row's run <span className="mono">{rowRun.id}</span> ({rowRun.state}) · <a href="#" onClick={e => e.preventDefault()}>open run</a></span> : 'a run of one will be created when you save'}</div>
+            {rowRun ? (
+              <div className="kv">
+                <div><div className="k">Reagent lot</div>{rowRun.lot.name} <Tag kind="gray" cls="tag-prov">{rowRun.lot.provenance === 'analyzer' ? 'Analyzer-reported' : 'Selected'}</Tag></div>
+                <div><div className="k">Control for {row.test}</div>{perTestVerdicts(rowRun)[row.test]?.verdict === 'Fail' ? <Tag kind="red">Fail</Tag> : <Tag kind="green">Pass</Tag>} <span className="dim">{perTestVerdicts(rowRun)[row.test]?.controls.length} control(s), edited on the run</span></div>
+              </div>
+            ) : (
+              <div className="inline-form">
+                <div className="cds--text-input-wrapper"><label className="cds--label">Kit lot</label><input className="cds--text-input" defaultValue="SD Bioline Malaria Ag Pf/Pan, lot 05DDG012A" /> <span className="dim" style={{ fontSize: 12 }}>Last-used lot applied</span></div>
+                <div className="cds--text-input-wrapper"><label className="cds--label">Control line</label>
+                  <div className="cds--radio-button-group" style={{ display: 'flex', gap: 16 }}>
+                    <label><input type="radio" name={`ctl-${row.id}`} defaultChecked /> Valid</label>
+                    <label><input type="radio" name={`ctl-${row.id}`} /> Invalid (blocks reporting, prompts repeat)</label>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          {rowRun && rowRun.source === 'ANALYZER' && !held && (
+            <div className="zone">
+              <div className="zone-title">{t('run.row.writes', 'What this accept writes')}</div>
+              <table className="cds--data-table cds--data-table--xs" style={{ width: '100%' }}>
+                <thead><tr><th>Component</th><th>Value</th><th>Maps to</th><th>Unit check</th><th>Flags</th></tr></thead>
+                <tbody>
+                  {(row.components || [{ label: row.test + ' (primary)', value: row.value, unit: '', maps: row.test + ' · primary', check: 'ok' }]).map((c, i) => (
+                    <tr key={i}><td>{c.label}</td><td>{c.value === '' ? <span className="dim">— (no amplification)</span> : <b>{c.value}</b>}</td><td className="dim">{c.maps}</td><td>{c.check === 'ok' ? <Tag kind="green">OK</Tag> : <Tag kind="red">Mismatch</Tag>}</td><td>{i === 0 && row.flag === 'critical' && <Tag kind="red">▲ Critical → ack task</Tag>}{i === 0 && row.flag === 'abnormal' && <Tag kind="warm-gray">Abnormal</Tag>}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="dim" style={{ fontSize: 12, marginTop: 6 }}>Also written: reagent lot {rowRun.lot.name} · run reference {rowRun.id} · {row.dup ? 'replaces the result accepted on 08 Sep (audited)' : 'no existing result to replace'}</div>
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 8 }}>
+            {rowRun && rowRun.source === 'ANALYZER' ? <>
+              <Btn kind="primary" disabled={held}>{t('common.accept', 'Accept')}</Btn>
+              <Btn kind="secondary" disabled={held}>Retest</Btn>
+              <Btn disabled={held}>Ignore</Btn>
+              {row.dup && !held && <span className="dim" style={{ alignSelf: 'center', fontSize: 12 }}>Already resulted on 08 Sep: <Btn>Keep</Btn><Btn>Replace</Btn></span>}
+              <Btn>View raw</Btn>
+              {held && <span className="dim" style={{ alignSelf: 'center', fontSize: 12 }}>Disposition the hold on the run's QC block (Retest, Reject or Accept despite QC failure).</span>}
+            </> : <>
+              <Btn kind="primary" disabled={held}>{t('common.save', 'Save')}</Btn>
+              <Btn>{t('common.cancel', 'Cancel')}</Btn>
+            </>}
+          </div>
+        </div>
+      );
+    }
+
+    function RowTag({ row }) {
+      if (!row.run) return null;
+      const run = RUNS[row.run];
+      if (!run) return <span className="dim" style={{ fontSize: 12 }}>{row.run}</span>;
+      if (heldTests(run).includes(row.test)) return <Tag kind="red" cls="tag-held">⚠ {t('run.tag.held', `Held: QC failed in ${run.id}`)}</Tag>;
+      if (run.source === 'ANALYZER') return <Tag kind="blue" cls="tag-wait">{t('run.tag.waiting', `Waiting in ${run.id}`)} · 09:14</Tag>;
+      return <Tag kind="purple" cls="tag-batched">{t('run.tag.batched', `Batched in ${run.id}`)}</Tag>;
+    }
+
+    function Worklist({ rows, runFilter, selected, onSelect, expanded, onExpand, showHeld }) {
+      const run = runFilter ? RUNS[runFilter] : null;
+      const visible = rows.filter(r => (runFilter ? r.run === runFilter : true))
+        .filter(r => showHeld || !(r.run && RUNS[r.run] && heldTests(RUNS[r.run]).includes(r.test)));
+      const order = r => {
+        const held = r.run && RUNS[r.run] && heldTests(RUNS[r.run]).includes(r.test);
+        return held ? 0 : r.dup ? 1 : r.flag === 'critical' ? 2 : r.flag === 'abnormal' ? 3 : 4;
+      };
+      const sorted = runFilter ? [...visible].sort((a, b) => order(a) - order(b)) : visible;
+      return (
+        <div className="cds--data-table-container">
+          <table className="cds--data-table cds--data-table--sm">
+            <thead><tr>
+              <th style={{ width: 32 }}></th>
+              <th style={{ width: 32 }}></th>
+              <th>{t('common.sampleId', 'Sample ID')}</th>
+              <th>{t('common.test', 'Test')}</th>
+              <th>{t('common.result', 'Result')}</th>
+              <th>Method / {t('common.analyzer', 'Analyzer')}</th>
+              <th>{t('common.status', 'Status')}</th>
+              <th>Flags</th>
+            </tr></thead>
+            <tbody>
+              {sorted.map(row => {
+                const rr = row.run ? RUNS[row.run] : null;
+                const held = rr && heldTests(rr).includes(row.test);
+                const waitingElsewhere = !runFilter && rr && rr.source === 'ANALYZER';
+                const showValue = row.status === 'accepted' || row.entered || (runFilter && rr && rr.source === 'ANALYZER' && !held);
+                return (
+                  <React.Fragment key={row.id}>
+                    <tr className={held ? 'disabled-row' : ''}>
+                      <td><input type="checkbox" className="sel" disabled={row.status === 'accepted' || (!runFilter && !!row.run) || (runFilter && held)} checked={selected.includes(row.id)} onChange={() => onSelect(row.id)} title={runFilter ? (held ? 'Held: disposition on the QC block' : 'Select for bulk action') : (row.run ? 'Already in a run' : 'Select for Batch these')} /></td>
+                      <td><button className="icon-btn" onClick={() => onExpand(row.id)}>{expanded === row.id ? '▾' : '▸'}</button></td>
+                      <td><span className="mono">{row.sample}</span> <span className="dim" style={{ fontSize: 12 }}>{row.patient}</span></td>
+                      <td>{row.test}</td>
+                      <td>{showValue ? <span>{row.value}{row.components && runFilter && <div className="dim" style={{ fontSize: 12 }}>{row.components.length} components: call + {row.components.length - 3} probe Cts + SPC</div>}</span> : <span className="dim">—</span>}</td>
+                      <td>{rr ? <span>{rr.method} <span className="dim" style={{ fontSize: 12 }}>{rr.source === 'ANALYZER' ? rr.analyzer : rr.operator}</span></span> : <span className="dim">Manual</span>}
+                        {rr && rr.source === 'ANALYZER' && runFilter && <Tag kind="gray" cls="tag-prov">Analyzer-reported</Tag>}</td>
+                      <td>
+                        {row.status === 'accepted' ? <Tag kind="green">Accepted</Tag> : row.entered ? <Tag kind="teal">Entered</Tag> : <Tag kind="gray">{t('common.pending', 'Pending')}</Tag>}
+                        {!runFilter && <RowTag row={row} />}
+                        {runFilter && held && <Tag kind="red" cls="tag-held">Held</Tag>}
+                        {row.id === 3 && runFilter && <span className="presence">in review by A. Wanjiru</span>}
+                      </td>
+                      <td>
+                        {row.flag === 'critical' && showValue && <Tag kind="red">▲ Critical</Tag>}
+                        {row.flag === 'abnormal' && showValue && <Tag kind="warm-gray">Abnormal</Tag>}
+                        {row.dup && runFilter && <Tag kind="magenta">Already resulted</Tag>}
+                      </td>
+                    </tr>
+                    {expanded === row.id && (
+                      <tr><td colSpan={8} style={{ padding: 0 }}><RowExpansion row={row} run={run} /></td></tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+              {waitingNote(runFilter, sorted)}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+    function waitingNote(runFilter, sorted) {
+      if (runFilter || sorted.length) return null;
+      return <tr><td colSpan={8} className="dim" style={{ textAlign: 'center', padding: 24 }}>No pending results for this lab unit.</td></tr>;
+    }
+
+    function BulkBar({ run, rows, selected, onSelectNormal, onClear, onAccept }) {
+      const sel = rows.filter(r => selected.includes(r.id));
+      const held = heldTests(run);
+      const skipped = sel.filter(r => r.dup || held.includes(r.test));
+      const accept = sel.filter(r => !skipped.includes(r));
+      const crit = accept.filter(r => r.flag === 'critical').length;
+      const abn = accept.filter(r => r.flag === 'abnormal').length;
+      const normal = accept.length - crit - abn;
+      return (
+        <div className="tile" style={{ border: '1px solid #e0e0e0', marginBottom: 8, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+          <Btn kind="tertiary" onClick={onSelectNormal}>Select all normal</Btn>
+          {sel.length === 0 ? <span className="dim" style={{ fontSize: 13 }}>Select rows to see exactly what Accept will write. Held rows are dispositioned on the QC block, not here.</span> : (
+            <>
+              <span style={{ fontSize: 13 }}><b>{t('run.bulk.accept', `Accept ${accept.length} selected`)}</b>: {normal} normal, {abn} abnormal, {crit} critical{crit ? ' (creates ' + crit + ' acknowledgment task' + (crit > 1 ? 's' : '') + ')' : ''}.
+                {skipped.length > 0 && <span> {t('run.bulk.skipped', `${skipped.length} will be skipped`)}: {skipped.map(r => r.dup ? `${r.sample} ${r.test} already resulted (Keep/Replace on the row)` : `${r.sample} ${r.test} held`).join('; ')}.</span>}
+                <span className="dim"> {t('run.bulk.lotAttached', 'Lot attached to all accepted results')}: {run.lot.name}.</span></span>
+              <span style={{ flex: 1 }}></span>
+              <Btn kind="primary" disabled={!accept.length} onClick={() => onAccept(accept.length)}>Accept {accept.length}</Btn>
+              <Btn kind="secondary">Retest {accept.length}</Btn>
+              <Btn>Ignore {accept.length}</Btn>
+              <Btn onClick={onClear}>Clear</Btn>
+            </>
+          )}
+        </div>
+      );
+    }
+
+    function App() {
+      const [labUnit, setLabUnit] = useState('All my lab units');
+      const [runFilter, setRunFilter] = useState(null);
+      const [runsOpen, setRunsOpen] = useState(false);
+      const [showHeld, setShowHeld] = useState(true);
+      const [selected, setSelected] = useState([]);
+      const [expanded, setExpanded] = useState(null);
+      const [toast, setToast] = useState(null);
+      const [rows, setRows] = useState(ROWS);
+      const [runs, setRuns] = useState(RUNS);
+
+      const unitRows = rows.filter(r => labUnit === 'All my lab units' || r.unit === labUnit);
+      const unitRuns = Object.values(runs).filter(r => (labUnit === 'All my lab units' || r.labUnit === labUnit) && r.state !== 'Complete');
+      const heldCount = unitRows.filter(r => r.run && runs[r.run] && heldTests(runs[r.run]).includes(r.test)).length;
+      const run = runFilter ? runs[runFilter] : null;
+      const selectedRows = rows.filter(r => selected.includes(r.id));
+      const sameTest = selectedRows.length >= 2 && new Set(selectedRows.map(r => r.test)).size === 1;
+
+      const say = msg => { setToast(msg); setTimeout(() => setToast(null), 4500); };
+      const batchThese = () => {
+        const id = 'RUN-2409-0144';
+        const newRun = { id, source: 'WORKPLAN', method: 'Malaria RDT (manual)', analyzer: '—', labUnit: 'Hematology', operator: 'You', opened: '09 Sep 2026 11:02', lastActivity: '09 Sep 2026 11:02', state: 'Open', lot: { name: 'SD Bioline Malaria Ag Pf/Pan, lot 05DDG012A', provenance: 'selected' }, instrumentQc: null, controls: [], exceptions: [] };
+        setRuns({ ...runs, [id]: newRun });
+        setRows(rows.map(r => selected.includes(r.id) ? { ...r, run: id } : r));
+        setSelected([]);
+        setRunFilter(id);
+        say(`${selected.length} Malaria RDT rows batched into ${id}. Record the kit control once on the run.`);
+      };
+
+      return (
+        <div>
+          <div className="crumbs"><a href="#">Home</a> / <a href="#">Workplan</a> / Results</div>
+          <h1 className="page-title">{t('common.results', 'Results')}</h1>
+          <div className="subtitle">{run ? <span>Run <span className="mono">{run.id}</span> · {run.source === 'ANALYZER' ? 'Analyzer message' : 'Workplan batch'} · {run.labUnit} &nbsp; <Btn onClick={() => { setRunFilter(null); setExpanded(null); setSelected([]); }}>← All pending results</Btn></span> : 'Pending results for your lab units. Rows waiting in or held by a run say so; open the run to review it.'}</div>
+
+          {!run && (
+            <div className="toolbar">
+              <div className="cds--select" style={{ minWidth: 220 }}>
+                <label className="cds--label">Lab unit</label>
+                <select className="cds--select-input" value={labUnit} onChange={e => { setLabUnit(e.target.value); setRunsOpen(false); }}>
+                  <option>All my lab units</option><option>Chemistry</option><option>Hematology</option>
+                </select>
+              </div>
+              <div className="cds--text-input-wrapper" style={{ minWidth: 260 }}>
+                <label className="cds--label">{t('common.search', 'Search')}</label>
+                <input className="cds--text-input" placeholder="Sample ID, patient, test" />
+              </div>
+            </div>
+          )}
+
+          {!run && (
+            <div className="chips">
+              <span className="chip on">All <span className="count">{unitRows.filter(r => r.status !== 'accepted').length}</span></span>
+              <span className="chip">Needs review</span>
+              <span className="chip">Critical <span className="count red">1</span></span>
+              <span className="chip">Abnormal</span>
+              <span className={`chip ${showHeld ? 'on' : ''}`} onClick={() => setShowHeld(v => !v)}>{t('run.filter.held', 'Held')} <span className="count red">{heldCount}</span></span>
+              <RunChip runs={unitRuns} open={runsOpen} onToggle={() => setRunsOpen(v => !v)} />
+              <span style={{ flex: 1 }}></span>
+              <Btn kind="tertiary" disabled={!sameTest} onClick={batchThese}>{t('run.action.batchThese', 'Batch these')}{selectedRows.length ? ` (${selectedRows.length})` : ''}</Btn>
+              {selectedRows.length >= 2 && !sameTest && <span className="dim" style={{ fontSize: 12 }}>Select rows of one test to batch</span>}
+            </div>
+          )}
+
+          {!run && runsOpen && <RunList runs={unitRuns} rows={rows} onPick={id => { setRunFilter(id); setRunsOpen(false); setExpanded(null); setSelected([]); }} />}
+
+          {run && (
+            <div className="header-stack">
+              <QcBlock run={run} onAction={say} />
+              <SettingsBlock run={run} rows={rows.filter(r => r.run === run.id)} />
+              <ExceptionsBlock run={run} onAction={say} />
+              {run.controls.length === 0 && (
+                <div className="tile"><Notification kind="warning" title="No control recorded yet on this run">Malaria RDT requires a control per run (Hold when missing). Record the kit control line above before results in this run can be saved.</Notification></div>
+              )}
+            </div>
+          )}
+
+          {run && run.source === 'ANALYZER' && (
+            <BulkBar run={run} rows={rows.filter(r => r.run === run.id)} selected={selected} onSelectNormal={() => setSelected(rows.filter(r => r.run === run.id && !r.flag && !r.dup && !heldTests(run).includes(r.test) && r.status === 'pending').map(r => r.id))} onClear={() => setSelected([])} onAccept={n => { say(`${n} results accepted into the system with lot ${run.lot.name}. Undo available for 30 seconds.`); setSelected([]); }} />
+          )}
+          <Worklist rows={unitRows} runFilter={runFilter} selected={selected} onSelect={id => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id])} expanded={expanded} onExpand={id => setExpanded(expanded === id ? null : id)} showHeld={showHeld} />
+
+          <div className="legend">
+            Try: open the <b>Runs</b> chip and pick RUN-2409-0142 (analyzer run, potassium held) or RUN-2409-0143 (HemoCue workplan batch); expand a row to see its Reagents, QC and controls described as the row's run; tick the three Malaria RDT rows and choose <b>Batch these</b>; toggle <b>Held</b> to hide held rows (the count stays); in RUN-2409-0141 expand the Xpert row to see every component it writes, and tick rows in an analyzer run to see the bulk summary bar.
+          </div>
+
+          {toast && <div className="toast"><Notification kind="success" title="Done">{toast}</Notification></div>}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
