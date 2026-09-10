@@ -3233,6 +3233,20 @@
   added: "2026-07-09"
   status: draft
 
+- id: runs-qc-reagent-lot-result-review
+  type: jsx
+  path: designs/results-validation/runs.jsx
+  spec: designs/results-validation/runs.md
+  category: results-validation
+  description: "Runs — the shared unit of QC, reagent-lot provenance and result review across analyzer messages, workplan batches, and single manual entries. Every result belongs to a run; controls, reagent lot and a per-test QC verdict live on the run. Converges Analyzer Results Import onto the Results worklist as a run-filtered view (/Results?run=<id>) with a run header; run-aware worklist row states (waiting/held); per-test QC gate (a failed control holds only that test's rows). Consumption contracts for QC persistence (OGC-1147), Batch Workplan (OGC-427), QC dashboard and Validation. FRS v0.2, approved for handoff."
+  paired_with: designs/results-validation/runs-preview.html
+  links:
+    github: null
+    jira: null
+    gallery: "https://digi-uw.github.io/openelis-work/#/results-validation/runs-qc-reagent-lot-result-review"
+  added: "2026-09-09"
+  status: draft
+
 - id: results-entry-multicomponent-v1
   type: jsx
   path: designs/results-validation/results-entry-multicomponent-v1.jsx
