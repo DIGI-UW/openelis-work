@@ -2,7 +2,7 @@
 
 **Purpose.** The order-entry build drifted from the spec and accumulated unintended gates and bugs. This is the **one document to anchor on** when working on order entry — for Reagan, anyone helping, or a coding agent. If a change to order entry isn't consistent with this doc, don't make it. Epic: **OGC-1066** (stories OGC-1067–1073).
 
-**How to use.** Sections 1–3 are the north star (what it must be). Section 4 is the current-vs-required delta with exact evidence. Section 5 is the anti-drift guardrails. Section 6 maps everything to the stories. Source docs (in `OpenELIS Feature Design/`): `order-entry-FRS-v3-three-workflows.md`, `clinical-order-entry-GATES.md` (gate register + spec crosswalk + live captures), `order-entry-three-domain-crosswalk.md`, `order-entry-mockup-vs-delivered-UX-drift.md`. Original spec/mockup in the gallery `designs/sample-collection/` (`sample-collection-redesign.md`, `sample-collection-redesign-mockup.html`).
+**How to use.** Sections 1–3 are the north star (what it must be). Section 4 is the current-vs-required delta with exact evidence. Section 5 is the anti-drift guardrails. Section 6 maps everything to the stories. Source docs (in `OpenELIS Feature Design/`): `order-entry-FRS-three-workflows.md`, `clinical-order-entry-GATES.md` (gate register + spec crosswalk + live captures), `order-entry-three-domain-crosswalk.md`, `order-entry-mockup-vs-delivered-UX-drift.md`. Original spec/mockup in the gallery `designs/sample-collection/` (`sample-collection-redesign.md`, `sample-collection-redesign-mockup.html`).
 
 ---
 

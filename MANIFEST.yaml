@@ -3938,17 +3938,28 @@
 - id: clinical-order-entry-v2
   type: mockup
   path: designs/sample-collection/clinical-order-entry-v2.html
-  spec: designs/sample-collection/order-entry-frs-v3-three-workflows.md
+  spec: designs/sample-collection/order-entry-three-workflows.md
   category: vector-surveillance
   description: v2 clinical order-entry wizard realigned to the three-workflow spec — "Assign to" sample/test menu at Collect, Ward/Unit/Department facility sub-unit, requester with phone/fax/email + admin-gated add-new + edit-lock, test search by name or code, blank quantity, de-gated print/storage, Sample Acceptance Checklist (S-09/OGC-580) on QA Review
   links:
     jira: [OGC-1066, OGC-1067, OGC-1069]
     gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/clinical-order-entry-v2
   added: "2026-06-25"
+- id: clinical-order-entry-v4
+  type: mockup
+  path: designs/sample-collection/clinical-order-entry-v4.html
+  spec: designs/sample-collection/order-entry-three-workflows.md
+  category: vector-surveillance
+  description: Clinical Enter Order stage under Order Entry FRS v4 — explicit save model (Save & Next / Save & Exit / Discard, no autosave), lab number reserved on form load, restored Ward/Unit/Department typeahead, restored Order Date + new Order Time alongside Required By, corrected saved-state indicator
+  links:
+    jira: [OGC-1146, OGC-1066]
+    github: https://github.com/DIGI-UW/openelis-work/issues/311
+    gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/clinical-order-entry-v4
+  added: "2026-09-10"
 - id: environmental-order-entry-v2
   type: mockup
   path: designs/sample-collection/environmental-order-entry-v2.html
-  spec: designs/sample-collection/order-entry-frs-v3-three-workflows.md
+  spec: designs/sample-collection/order-entry-three-workflows.md
   category: vector-surveillance
   description: v2 environmental order-entry — requester = Requesting Organization + Requestor contact, searched/stored like the clinical provider, full phone/fax/email, admin-gated add-new, edit-lock; collection method optional; CSV bulk intake (Env/Vector only)
   links:
@@ -3958,7 +3969,7 @@
 - id: vector-collection-workflow-v2
   type: mockup
   path: designs/vector-surveillance/vector-collection-workflow-v2.html
-  spec: designs/sample-collection/order-entry-frs-v3-three-workflows.md
+  spec: designs/sample-collection/order-entry-three-workflows.md
   category: vector-surveillance
   description: v2 vector collection workflow — requester relabeled to the shared Requesting Organization + Requestor element (identical to Environmental), full phone/fax/email, admin-gated add-new, edit-lock
   links:
@@ -3974,11 +3985,11 @@
     jira: [OGC-1066]
     gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/order-entry-developer-reference
   added: "2026-06-25"
-- id: order-entry-frs-v3-three-workflows
+- id: order-entry-three-workflows
   type: spec
-  path: designs/sample-collection/order-entry-frs-v3-three-workflows.md
+  path: designs/sample-collection/order-entry-three-workflows.md
   category: vector-surveillance
-  description: Order Entry FRS v3 — three domain-scoped workflows (Clinical/Environmental/Vector) on a shared wizard; navigation/visibility, Option-C linkage, field behavior, required-field matrix
+  description: Order Entry FRS v4 (supersedes v3 in place) — three domain-scoped workflows (Clinical/Environmental/Vector) on a shared wizard. Adds the order state lifecycle (reset + lab-number reservation on entry), the explicit save model (Save & Next / Save & Exit / Discard, no autosave), restored Ward/Unit/Department and Order Date, and a new Order Time. Navigation/visibility, Option-C linkage, field behaviour and the required-field matrix carried forward.
   links:
     jira: [OGC-1066]
   added: "2026-06-25"

@@ -1,7 +1,7 @@
 {
-  "generated": "2026-09-09T01:06:39.039Z",
+  "generated": "2026-09-10T16:48:30.719Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
-  "totalDesigns": 230,
+  "totalDesigns": 232,
   "categories": [
     "admin-config",
     "analyzer-integration",
@@ -4619,6 +4619,46 @@
       }
     },
     {
+      "name": "Runs — QC, Reagent Lot & Result Review",
+      "slug": "runs-qc-reagent-lot-result-review",
+      "category": "results-validation",
+      "description": "The run as the shared unit of QC, reagent-lot provenance and result review across all three ways results enter OpenELIS: analyzer messages, workplan batches, and single manual entries. Every result belongs to a run; controls, the reagent lot and a per-test QC verdict live on the run. Converges the Analyzer Results Import review onto the Results worklist as a run-filtered view (/Results?run=<id>) with a run header, defines run-aware worklist row states (waiting/held), and a per-test QC gate (a failed potassium control holds only that test’s rows). States the consumption contracts for QC persistence (OGC-1147), Batch Workplan (OGC-427), the QC dashboard, and Validation. FRS v0.2, approved for handoff; supersedes-in-part Analyzer Import v2 (OGC-288), Batch Workplan reagent QC (OGC-427), and Manual/RDT QC persistence (OGC-1147) FR-C1.",
+      "type": "jsx",
+      "added": "2026-09-09",
+      "status": "draft",
+      "tags": [
+        "runs",
+        "qc",
+        "quality-control",
+        "reagent-lot",
+        "analyzer",
+        "workplan",
+        "rdt",
+        "results-worklist",
+        "holds",
+        "westgard",
+        "accreditation"
+      ],
+      "jira": [
+        "OGC-288",
+        "OGC-427",
+        "OGC-1147",
+        "OGC-1178",
+        "OGC-811",
+        "OGC-1131"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/results-validation/runs.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/results-validation/runs-qc-reagent-lot-result-review",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/results-validation/runs-qc-reagent-lot-result-review",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/results-validation/runs-qc-reagent-lot-result-review",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/runs.md",
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/runs.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/runs-preview.html"
+      }
+    },
+    {
       "name": "Reagent Usage on Result Entry v1",
       "slug": "reagent-usage-on-result-entry-v1",
       "category": "results-validation",
@@ -5839,13 +5879,45 @@
         "OGC-1069"
       ],
       "githubIssue": null,
-      "specPath": "designs/sample-collection/order-entry-frs-v3-three-workflows.md",
+      "specPath": "designs/sample-collection/order-entry-three-workflows.md",
       "urls": {
         "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/clinical-order-entry-v2",
         "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/clinical-order-entry-v2",
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/clinical-order-entry-v2",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-frs-v3-three-workflows.md",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-three-workflows.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/clinical-order-entry-v2.html"
+      }
+    },
+    {
+      "name": "Clinical Order Entry (v4)",
+      "slug": "clinical-order-entry-v4",
+      "category": "vector-surveillance",
+      "description": "Clinical Enter Order stage under Order Entry FRS v4. Explicit save model (Save & Next / Save & Exit / Discard, no autosave), lab number reserved on form load, restored Ward / Unit / Department typeahead disabled until a facility is chosen, restored Order Date plus the new Order Time alongside Required By with distinguishing helper text, and the corrected saved-state indicator which reads \\u201cNo changes yet\\u201d on an untouched form rather than \\u201cSaved\\u201d. Interactive: edit a field to move the state chip, clear the facility to disable the ward field, press Discard for the confirmation naming the spent lab number.",
+      "type": "html",
+      "added": "2026-09-10",
+      "status": "draft",
+      "tags": [
+        "clinical",
+        "order-entry",
+        "sample-collection",
+        "save-model",
+        "lab-number",
+        "requester",
+        "ward",
+        "order-date"
+      ],
+      "jira": [
+        "OGC-1146",
+        "OGC-1066"
+      ],
+      "githubIssue": 311,
+      "specPath": "designs/sample-collection/order-entry-three-workflows.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/clinical-order-entry-v4",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/clinical-order-entry-v4",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/clinical-order-entry-v4",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-three-workflows.md",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/clinical-order-entry-v4.html"
       }
     },
     {
@@ -5869,12 +5941,12 @@
         "OGC-1068"
       ],
       "githubIssue": null,
-      "specPath": "designs/sample-collection/order-entry-frs-v3-three-workflows.md",
+      "specPath": "designs/sample-collection/order-entry-three-workflows.md",
       "urls": {
         "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/environmental-order-entry-v2",
         "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/environmental-order-entry-v2",
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/environmental-order-entry-v2",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-frs-v3-three-workflows.md",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-three-workflows.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/environmental-order-entry-v2.html"
       }
     },
@@ -5897,12 +5969,12 @@
         "OGC-1068"
       ],
       "githubIssue": null,
-      "specPath": "designs/sample-collection/order-entry-frs-v3-three-workflows.md",
+      "specPath": "designs/sample-collection/order-entry-three-workflows.md",
       "urls": {
         "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/vector-collection-workflow-v2",
         "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/vector-collection-workflow-v2",
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/vector-collection-workflow-v2",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-frs-v3-three-workflows.md",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-three-workflows.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/vector-surveillance/vector-collection-workflow-v2.html"
       }
     },

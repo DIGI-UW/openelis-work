@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OpenELIS Design Gallery — Catalog</title>
-  <meta name="description" content="Searchable catalog of 230 design mockups and specifications for OpenELIS Global">
+  <meta name="description" content="Searchable catalog of 232 design mockups and specifications for OpenELIS Global">
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 960px; margin: 0 auto; padding: 2rem 1rem; color: #161616; line-height: 1.5; }
     h1 { border-bottom: 2px solid #0f62fe; padding-bottom: 0.5rem; }
@@ -22,13 +22,13 @@
 </head>
 <body>
   <h1>OpenELIS Design Gallery — Catalog</h1>
-  <p>230 designs across 17 categories.
+  <p>232 designs across 17 categories.
     <a href="./">Interactive Gallery</a> |
     <a href="catalog.json">JSON Catalog</a> |
     <a href="llms.txt">LLM Index</a> |
     <a href="sitemap.xml">Sitemap</a>
   </p>
-  <nav><a href="#cat-admin-config">Admin & Config (52)</a> <a href="#cat-analyzer-integration">Analyzer Integration (26)</a> <a href="#cat-blood-bank">Blood Bank (5)</a> <a href="#cat-inventory">Inventory & Supply (4)</a> <a href="#cat-microbiology">Microbiology (32)</a> <a href="#cat-nce">NCE (4)</a> <a href="#cat-notifications">Notifications (2)</a> <a href="#cat-other">Other (4)</a> <a href="#cat-pathology">Pathology (7)</a> <a href="#cat-patient">Patient (2)</a> <a href="#cat-portal">Results Portal (3)</a> <a href="#cat-quality">Quality & EQA (16)</a> <a href="#cat-reports">Reports (8)</a> <a href="#cat-results-validation">Results & Validation (19)</a> <a href="#cat-sample-collection">Sample Collection (10)</a> <a href="#cat-system">System (10)</a> <a href="#cat-vector-surveillance">Vector Surveillance (26)</a> </nav>
+  <nav><a href="#cat-admin-config">Admin & Config (52)</a> <a href="#cat-analyzer-integration">Analyzer Integration (26)</a> <a href="#cat-blood-bank">Blood Bank (5)</a> <a href="#cat-inventory">Inventory & Supply (4)</a> <a href="#cat-microbiology">Microbiology (32)</a> <a href="#cat-nce">NCE (4)</a> <a href="#cat-notifications">Notifications (2)</a> <a href="#cat-other">Other (4)</a> <a href="#cat-pathology">Pathology (7)</a> <a href="#cat-patient">Patient (2)</a> <a href="#cat-portal">Results Portal (3)</a> <a href="#cat-quality">Quality & EQA (16)</a> <a href="#cat-reports">Reports (8)</a> <a href="#cat-results-validation">Results & Validation (20)</a> <a href="#cat-sample-collection">Sample Collection (10)</a> <a href="#cat-system">System (10)</a> <a href="#cat-vector-surveillance">Vector Surveillance (27)</a> </nav>
 
   <h2 id="cat-admin-config">Admin & Config (52)</h2>
   <div class="design">
@@ -2132,7 +2132,7 @@
     <div class="tags"><span class="tag">TAT</span> <span class="tag">turnaround-time</span> <span class="tag">report</span> <span class="tag">analytics</span> <span class="tag">performance</span></div>
   </div>
 
-  <h2 id="cat-results-validation">Results & Validation (19)</h2>
+  <h2 id="cat-results-validation">Results & Validation (20)</h2>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/results-validation/results-entry-v4-superseded">Results Entry v4 [Superseded]</a></h3>
     <p>⚠️ SUPERSEDED by the Multi-Component (integrated) FRS (results-entry-multicomponent.md). Results Entry consolidated redesign (v4) — per-row edit-state lock, Method + Analyzer split columns, inline NCE (real InlineNceForm field set), inline remaining-volume / disposal trigger, dual-axis notes, contrast-ratio critical flags, bulk-release action, cross-domain (Clinical/Environmental/Vector via Lab Unit). Supersedes v3 Results Page. Companion: Validation Page v4 and Result & Validation Configuration v4 (admin).</p>
@@ -2335,6 +2335,24 @@
       <a href="https://uwdigi.atlassian.net/browse/OGC-949">OGC-949</a>
     </div>
     <div class="tags"><span class="tag">results-entry</span> <span class="tag">results</span> <span class="tag">validation</span> <span class="tag">multi-component</span> <span class="tag">result-component</span> <span class="tag">molecular</span> <span class="tag">ct</span> <span class="tag">pcr</span></div>
+  </div>
+  <div class="design">
+    <h3><a href="https://digi-uw.github.io/openelis-work/#/results-validation/runs-qc-reagent-lot-result-review">Runs — QC, Reagent Lot & Result Review</a></h3>
+    <p>The run as the shared unit of QC, reagent-lot provenance and result review across all three ways results enter OpenELIS: analyzer messages, workplan batches, and single manual entries. Every result belongs to a run; controls, the reagent lot and a per-test QC verdict live on the run. Converges the Analyzer Results Import review onto the Results worklist as a run-filtered view (/Results?run=<id>) with a run header, defines run-aware worklist row states (waiting/held), and a per-test QC gate (a failed potassium control holds only that test’s rows). States the consumption contracts for QC persistence (OGC-1147), Batch Workplan (OGC-427), the QC dashboard, and Validation. FRS v0.2, approved for handoff; supersedes-in-part Analyzer Import v2 (OGC-288), Batch Workplan reagent QC (OGC-427), and Manual/RDT QC persistence (OGC-1147) FR-C1.</p>
+    <div class="links">
+      <a href="https://digi-uw.github.io/openelis-work/#/preview/results-validation/runs-qc-reagent-lot-result-review">Preview</a>
+      <a href="https://digi-uw.github.io/openelis-work/#/spec/results-validation/runs-qc-reagent-lot-result-review">Spec</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/results-validation/runs.md">Raw Spec (MD)</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/results-validation/runs.jsx">Source (JSX)</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/results-validation/runs-preview.html">HTML Mockup</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-288">OGC-288</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-427">OGC-427</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-1147">OGC-1147</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-1178">OGC-1178</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-811">OGC-811</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-1131">OGC-1131</a>
+    </div>
+    <div class="tags"><span class="tag">runs</span> <span class="tag">qc</span> <span class="tag">quality-control</span> <span class="tag">reagent-lot</span> <span class="tag">analyzer</span> <span class="tag">workplan</span> <span class="tag">rdt</span> <span class="tag">results-worklist</span> <span class="tag">holds</span> <span class="tag">westgard</span> <span class="tag">accreditation</span></div>
   </div>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/results-validation/reagent-usage-on-result-entry-v1">Reagent Usage on Result Entry v1</a></h3>
@@ -2632,7 +2650,7 @@
     <div class="tags"><span class="tag">AI</span> <span class="tag">assistant</span> <span class="tag">natural-language</span> <span class="tag">reporting</span> <span class="tag">chatbot</span></div>
   </div>
 
-  <h2 id="cat-vector-surveillance">Vector Surveillance (26)</h2>
+  <h2 id="cat-vector-surveillance">Vector Surveillance (27)</h2>
   <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/vector-surveillance/compliance-standards-administration-completed">Compliance Standards Administration [Completed]</a></h3>
     <p>Admin configuration for compliance standards (ISO 15189, WHO, CLSI) — link standards to test catalog entries, QC rules, and sampling protocols. Part of the Vector/Environmental LIMS epic.</p>
@@ -2902,7 +2920,7 @@
     <div class="links">
       <a href="https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/clinical-order-entry-v2">Preview</a>
       <a href="https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/clinical-order-entry-v2">Spec</a>
-      <a href="https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-frs-v3-three-workflows.md">Raw Spec (MD)</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-three-workflows.md">Raw Spec (MD)</a>
       <a href="https://digi-uw.github.io/openelis-work/designs/sample-collection/clinical-order-entry-v2.html">HTML Mockup</a>
       <a href="https://uwdigi.atlassian.net/browse/OGC-1066">OGC-1066</a>
       <a href="https://uwdigi.atlassian.net/browse/OGC-1067">OGC-1067</a>
@@ -2911,12 +2929,26 @@
     <div class="tags"><span class="tag">clinical</span> <span class="tag">order-entry</span> <span class="tag">sample-collection</span> <span class="tag">collect</span> <span class="tag">qa</span> <span class="tag">requester</span></div>
   </div>
   <div class="design">
+    <h3><a href="https://digi-uw.github.io/openelis-work/#/vector-surveillance/clinical-order-entry-v4">Clinical Order Entry (v4)</a></h3>
+    <p>Clinical Enter Order stage under Order Entry FRS v4. Explicit save model (Save & Next / Save & Exit / Discard, no autosave), lab number reserved on form load, restored Ward / Unit / Department typeahead disabled until a facility is chosen, restored Order Date plus the new Order Time alongside Required By with distinguishing helper text, and the corrected saved-state indicator which reads \u201cNo changes yet\u201d on an untouched form rather than \u201cSaved\u201d. Interactive: edit a field to move the state chip, clear the facility to disable the ward field, press Discard for the confirmation naming the spent lab number.</p>
+    <div class="links">
+      <a href="https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/clinical-order-entry-v4">Preview</a>
+      <a href="https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/clinical-order-entry-v4">Spec</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-three-workflows.md">Raw Spec (MD)</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/sample-collection/clinical-order-entry-v4.html">HTML Mockup</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-1146">OGC-1146</a>
+      <a href="https://uwdigi.atlassian.net/browse/OGC-1066">OGC-1066</a>
+      <a href="https://github.com/DIGI-UW/openelis-work/issues/311">#311</a>
+    </div>
+    <div class="tags"><span class="tag">clinical</span> <span class="tag">order-entry</span> <span class="tag">sample-collection</span> <span class="tag">save-model</span> <span class="tag">lab-number</span> <span class="tag">requester</span> <span class="tag">ward</span> <span class="tag">order-date</span></div>
+  </div>
+  <div class="design">
     <h3><a href="https://digi-uw.github.io/openelis-work/#/vector-surveillance/environmental-order-entry-v2">Environmental Order Entry (v2)</a></h3>
     <p>v2 environmental order-entry. Requester = Requesting Organization + Requestor contact, both searched & stored like the clinical provider, with full Phone/Fax/Email, admin-gated add-new, and edit-lock on records pulled from search. Collection method optional; CSV bulk intake retained (Env/Vector only).</p>
     <div class="links">
       <a href="https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/environmental-order-entry-v2">Preview</a>
       <a href="https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/environmental-order-entry-v2">Spec</a>
-      <a href="https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-frs-v3-three-workflows.md">Raw Spec (MD)</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-three-workflows.md">Raw Spec (MD)</a>
       <a href="https://digi-uw.github.io/openelis-work/designs/sample-collection/environmental-order-entry-v2.html">HTML Mockup</a>
       <a href="https://uwdigi.atlassian.net/browse/OGC-1066">OGC-1066</a>
       <a href="https://uwdigi.atlassian.net/browse/OGC-1068">OGC-1068</a>
@@ -2929,7 +2961,7 @@
     <div class="links">
       <a href="https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/vector-collection-workflow-v2">Preview</a>
       <a href="https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/vector-collection-workflow-v2">Spec</a>
-      <a href="https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-frs-v3-three-workflows.md">Raw Spec (MD)</a>
+      <a href="https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-three-workflows.md">Raw Spec (MD)</a>
       <a href="https://digi-uw.github.io/openelis-work/designs/vector-surveillance/vector-collection-workflow-v2.html">HTML Mockup</a>
       <a href="https://uwdigi.atlassian.net/browse/OGC-1066">OGC-1066</a>
       <a href="https://uwdigi.atlassian.net/browse/OGC-1068">OGC-1068</a>
