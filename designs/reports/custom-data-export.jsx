@@ -1,3 +1,4 @@
+// Carbon component layout reference. Current interactive paths: custom-data-export.html and its paired specification.
 import React, { useState, useCallback, useMemo } from 'react';
 import {
   Grid,
@@ -249,6 +250,7 @@ const USER_LAB_SECTIONS = [
   { id: '3', label: 'Clinical Chemistry' },
   { id: '4', label: 'Immunology' },
   { id: '5', label: 'Serology' },
+  { id: '6', label: 'Virology' },
 ];
 
 // Status filter values mapped to OpenELIS StatusService (FRS v1.1 §4.2)
@@ -591,6 +593,8 @@ function FilterStep({ filters, onChange }) {
           onChange={({ selectedItems }) => update('labSections', selectedItems)}
         />
       </div>
+
+      {hasTestResults && <ComboBox id="test-filter" titleText="Test" placeholder="All eligible tests" items={['HIV viral load']} selectedItem={filters.test || null} onChange={({selectedItem}) => update('test', selectedItem)} />}
 
       {/* Optional Filters */}
       <div>
