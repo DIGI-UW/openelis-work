@@ -1,12 +1,21 @@
 # Positivity Rate Report & Dashboard Widget
-## Functional Requirements Specification — v1.1
 
-**Version:** 1.1
+## Functional Requirements Specification — v1.2
+
+**Version:** 1.2
 **Date:** 2026-09-10
 **Status:** Reviewed — Ready for Development
 **Jira:** OGC-433
 **Technology:** Java Spring Framework, Carbon React
 **Related Modules:** Test Catalog, Results Entry, Reports, Dashboard
+
+### Revision Notes (v1.2 — 2026-09-10)
+
+Follows up on two gaps identified in design review of v1.1:
+
+- **Numeric-result tests.** v1.1 had no way to define positivity for a test whose result is a number (viral load, CD4 count, any quantitative assay) rather than a coded value — the inline config form only offered a checkbox list of discrete result codes. Resolved by restricting Numeric (and free-text) result types to the existing "All Non-Normal Results" match mode: OpenELIS already computes an abnormal flag (H/L/Critical) for numeric results against the test's reference range — the same derivation Custom Data Export documents for its `abnormalFlag` variable (see `designs/reports/custom-data-export.md`, Domain: TEST_RESULTS). "Specific Result Codes" remains available only for Dictionary-result tests, since those are the only ones with a discrete code list to choose from. New FR-4.1-002a, BR-002a.
+- **Lab Management Dashboard integration.** v1.1's FR-4.3-002 said each widget instance is "pre-configured by a system administrator" without describing any actual mechanism, because none exists anywhere in OpenELIS. Resolved by adding a new `PositivityDashboardTile` entity (§5), seeded via migration and updated per-deployment through the same CSV-based admin import already planned for `TestSurveillanceMapping` in `designs/system/lab-management-dashboard.md` — no new admin UI in v1, consistent with that FRS's own decision to defer all other dashboard-content customization (Quick Actions, My Queue row pinning) past v1. The dashboard's Positivity Rate section links out to the full Positivity Rate Report for any test that isn't preconfigured with a tile. New §4.4, new entity in §5, new endpoint in §6. The widget's host page is now specifically the Lab Management Dashboard (`/dashboards/management`), not the generic unnamed "Dashboard" v1.1 referred to.
+- **Related, not merged.** Confirmed Positivity Rate stays its own surface, separate from both Custom Data Export (a raw row-level export tool, not an aggregation tool — see the standing recommendation in that FRS's cross-reference below) and the FHIR-based Disease Surveillance Dashboard (`designs/reports/disease-surveillance-dashboard.md`, a national/ministry reporting feature built on GeneXpert FHIR data, out of scope here). Cross-referenced Custom Data Export's `abnormalFlag` variable as the raw-row equivalent of this feature's `ALL_ABNORMAL` definition, for power users who want per-result rows instead of an aggregate rate. Ad hoc "Specific Result Codes" definitions remain unavailable as a static export column, since they're chosen per report run, not a stored property of the result — that ad hoc-ness is exactly why this report exists as its own surface.
 
 ### Revision Notes (v1.1 — 2026-09-10)
 
@@ -46,6 +55,8 @@ This revision resolves the conflict in favor of the inline model, consistent wit
 
 This feature introduces two surfaces for tracking test positivity rates in OpenELIS Global: a full-page **Positivity Rate Report** and a reusable **Dashboard Widget (PositivityRateTile)**. Labs running HIV, malaria, TB, or other disease programs need real-time visibility into what proportion of tests are returning positive results — a key metric for program monitoring and funder reporting. Currently, this requires manual extraction and spreadsheet calculation. These features compute positivity directly from OpenELIS result data, allow date range filtering with persisted selections, and support CSV export. Positivity definitions are configured at the point of use, not stored server-side: an ad hoc definition per report run for the report page, and a fixed definition per instance for each dashboard widget (set when the widget is placed).
 
+The report supports any test regardless of result type. Coded (dictionary) tests can define positivity by specific result codes or by OpenELIS's existing abnormal-result flag; numeric and free-text tests are limited to the abnormal-result flag, since there is no discrete code list to define against (§4.1). The dashboard widget is hosted specifically on the Lab Management Dashboard (`designs/system/lab-management-dashboard.md`), where a small set of tiles is preconfigured per deployment rather than placed through an in-app admin UI (§4.4).
+
 ---
 
 ## 2. Problem Statement
@@ -54,7 +65,7 @@ This feature introduces two surfaces for tracking test positivity rates in OpenE
 
 **Impact:** Manual calculation is error-prone, time-consuming, and prevents timely program monitoring. Funder reporting requirements (e.g., PEPFAR, GFATM) often mandate periodic positivity rate data; delays or errors in this data risk compliance and funding.
 
-**Proposed solution:** A full-page report where the user configures, per report run, which tests to include and what counts as "positive" for each (specific result codes or all non-normal results); CSV export; and a reusable dashboard widget that displays single-test positivity stats at a glance using a positivity definition fixed at widget-placement time. Both surfaces persist the user's last filter selection client-side for fast regeneration.
+**Proposed solution:** A full-page report where the user configures, per report run, which tests to include and what counts as "positive" for each (specific result codes, where the test's result type supports them, or all non-normal results); CSV export; and a reusable dashboard widget that displays single-test positivity stats at a glance using a positivity definition fixed at widget-placement time. Both surfaces persist the user's last filter selection client-side for fast regeneration.
 
 ---
 
@@ -62,18 +73,17 @@ This feature introduces two surfaces for tracking test positivity rates in OpenE
 
 | Role | Report Access | Widget Access | Notes |
 |---|---|---|---|
-| Lab Technician | None | View only (if a role-gated tile is on the dashboard) | Cannot access report page |
+| Lab Technician | None | View only (if a positivity tile is on the Lab Management Dashboard and the user holds `MANAGEMENT_DASHBOARD`) | Cannot access report page |
 | Lab Supervisor | View + Export | View only | Can generate and export reports |
 | Program Manager | View + Export | View only | Primary user of the report |
-| System Administrator | Full | Full | Places/configures dashboard widget instances |
+| System Administrator | Full | Full | Provisions dashboard tiles via seed migration / CSV import (§4.4) — not an in-app action |
 
 **Required permission keys:**
-
 - `positivityReport.view` — Access the Positivity Rate Report page and generate reports
 - `positivityReport.export` — Export CSV from the report
-- `positivityWidget.view` — View a positivity rate dashboard widget tile
+- `positivityWidget.view` — View a positivity rate dashboard widget tile, wherever it is hosted
 
-There is no separate positivity-configuration permission set: a widget's positivity definition is set when the widget instance is placed on the dashboard (a system-administration task using existing dashboard-layout permissions), not through a dedicated config page.
+There is no separate positivity-configuration permission set. The report's per-run positivity definition isn't stored, so there's nothing to gate access to beyond the report itself. The dashboard widget's positivity definition is set per tile instance by provisioning a `PositivityDashboardTile` record (§4.4, §5) — a deploy-time / CSV-import action, not a runtime admin-UI action, so no dedicated in-app permission governs it. Visibility of the Positivity Rate section on the Lab Management Dashboard itself follows that dashboard's own `MANAGEMENT_DASHBOARD` grant (see `designs/system/lab-management-dashboard.md`, FR-MGMT-009).
 
 ---
 
@@ -88,6 +98,8 @@ There is no admin configuration page for positivity definitions, and nothing abo
 **FR-4.1-002:** For each test added to the report, the system SHALL display an inline positivity definition form with:
 - Match mode selector (radio): **Specific Result Codes** or **All Non-Normal Results**
 - When "Specific Result Codes" is selected: a checkbox list of all valid coded result values for that test
+
+**FR-4.1-002a:** When the added test's result type is Numeric or free-text rather than Dictionary (coded), the inline positivity definition form SHALL display only the "All Non-Normal Results" option; the "Specific Result Codes" radio and its checkbox list SHALL NOT be rendered for that test, since there is no discrete code list to select from. See BR-002a for the underlying rule.
 
 **FR-4.1-003:** Users SHALL be able to remove a previously added test from the filter panel before generating.
 
@@ -134,10 +146,12 @@ There is no admin configuration page for positivity definitions, and nothing abo
 
 **FR-4.3-001:** The system SHALL provide a reusable React component `PositivityRateTile` that can be placed on a dashboard page.
 
-**FR-4.3-002:** In v1, each `PositivityRateTile` instance SHALL be pre-configured by a system administrator, specifying:
+**FR-4.3-002:** Each `PositivityRateTile` instance is provisioned from a `PositivityDashboardTile` record (§5) — not placed through an in-app admin UI. Every instance carries a complete positivity definition, since nothing is persisted server-side beyond the tile record itself:
 - The test to display (`testId`, `testName`)
 - The default preset date range (one of: LAST_7_DAYS, MONTH_TO_DATE, LAST_MONTH, QUARTER_TO_DATE)
-- The positivity definition for that instance (`matchMode`, and `positiveResultCodes` when `matchMode` is SPECIFIC_CODES) — since nothing is persisted server-side, each widget instance must carry its own complete positivity definition rather than referencing a saved configuration
+- The positivity definition for that instance (`matchMode`, and `positiveResultCodes` when `matchMode` is SPECIFIC_CODES)
+
+See §4.4 for how tiles are provisioned and hosted on the Lab Management Dashboard specifically.
 
 **FR-4.3-003:** The widget SHALL display the following metrics for the configured test and selected date range:
 - Positivity rate (%) — displayed prominently
@@ -162,15 +176,45 @@ Selecting a preset SHALL immediately fetch and display updated data without requ
 
 **FR-4.3-008:** The widget SHALL display "No data available" when Total Tested = 0 for the selected date range.
 
-**FR-4.3-009:** The widget tile SHALL be accessible to roles holding the `positivityWidget.view` permission. The dashboard page SHALL not render the tile for users lacking this permission.
+**FR-4.3-009:** The widget tile SHALL be accessible to roles holding the `positivityWidget.view` permission, in addition to whatever the hosting page requires (for the Lab Management Dashboard, `MANAGEMENT_DASHBOARD` — see §4.4, §11).
 
 **FR-4.3-010:** The widget component SHALL accept a `config` prop of shape `{ testId, testName, defaultPreset, matchMode, positiveResultCodes }` to enable reuse across multiple dashboard configurations. `positiveResultCodes` is required when `matchMode` is `SPECIFIC_CODES` and omitted otherwise.
+
+### 4.4 Dashboard Integration — Lab Management Dashboard
+
+**FR-4.4-001:** The Lab Management Dashboard (`/dashboards/management`, see `designs/system/lab-management-dashboard.md`) SHALL include a Positivity Rate section rendering one `PositivityRateTile` per active `PositivityDashboardTile` record (§5), ordered by `displayOrder`.
+
+**FR-4.4-002:** Tile instances are NOT configurable at runtime through the UI in v1. They are provisioned via a seed migration and updated per-deployment through the same CSV-based admin import mechanism already planned for `TestSurveillanceMapping` (see `designs/system/lab-management-dashboard.md` §5.2). No new admin page ships in v1.
+
+**FR-4.4-003:** The Positivity Rate section SHALL include a "View full report" link to the standalone Positivity Rate Report page, so any test not covered by a preconfigured tile remains reachable through ad hoc report generation.
+
+**FR-4.4-004:** If zero active `PositivityDashboardTile` records exist for a deployment, the entire Positivity Rate section SHALL be hidden from the Management Dashboard (Adaptive Rendering Rule 1, per `designs/system/lab-management-dashboard.md` FR-X-006), rather than rendering an empty section.
+
+**FR-4.4-005:** Each rendered tile behaves exactly as specified in §4.3 (preset selector, metrics, loading/error states). The Management Dashboard hosting context only determines how the tile's config is sourced (§5) — it does not change the tile's own behavior.
 
 ---
 
 ## 5. Data Model
 
-No new entities are required. The feature reads from existing `Analysis` and `TestResult` entities to compute positivity counts; positivity definitions (report: per test per run, widget: per widget instance) travel with the request rather than being stored.
+No entities are required for the report itself. The report reads from existing `Analysis` and `TestResult` entities to compute positivity counts; positivity definitions (report: per test per run, widget: per widget instance) travel with the request rather than being stored, except for the tile-provisioning entity below.
+
+### New Entity — Dashboard Widget Provisioning
+
+**`PositivityDashboardTile`** — small configuration entity, `@Audited` (Envers), following the same seed-migration + CSV-import pattern already used for `SurveillanceProgram` and `TestSurveillanceMapping` in `designs/system/lab-management-dashboard.md` §5.2.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `testId` | UUID | FK → `Test.id` |
+| `matchMode` | varchar(20) | `SPECIFIC_CODES` or `ALL_ABNORMAL` |
+| `positiveResultCodes` | text | Comma-separated result codes; required when `matchMode` = `SPECIFIC_CODES`, null otherwise. Only valid for Dictionary-result tests (BR-002a). |
+| `defaultPreset` | varchar(20) | One of `LAST_7_DAYS` / `MONTH_TO_DATE` / `LAST_MONTH` / `QUARTER_TO_DATE` |
+| `displayOrder` | int | Tile ordering within the dashboard's Positivity Rate section |
+| `isActive` | boolean | Soft-disable without deleting (same pattern as `SurveillanceProgram.isActive`) |
+| `modifiedAt` | timestamp | |
+| `modifiedBy` | varchar | |
+
+v1 ships with an empty default seed — unlike `TestSurveillanceMapping`'s WHO-recommended defaults, there's no universal "right" set of tests to feature on every deployment's dashboard. Each deployment provisions its own tiles at setup time via the shared CSV-import tooling. An interactive add/edit admin page is a future enhancement, consistent with the same deferral already made for `TestSurveillanceMapping` and `SurveillanceProgram`.
 
 ### Client-Side State
 
@@ -183,7 +227,7 @@ Filter/preset persistence (FR-4.2-003, FR-4.3-005) is implemented in browser `se
 
 ### Modified Entities
 
-None. No existing entities are modified.
+None.
 
 ---
 
@@ -193,8 +237,9 @@ None. No existing entities are modified.
 |---|---|---|---|
 | POST | `/api/v1/reports/positivity-rate` | Compute positivity stats for given tests, date range, and per-test positivity definitions | `positivityReport.view` |
 | POST | `/api/v1/reports/positivity-rate/export` | Download CSV of positivity stats for the same request shape | `positivityReport.export` |
+| GET | `/api/v1/reports/positivity-rate/dashboard-tiles` | Return the ordered list of active `PositivityDashboardTile` records (testId, resolved testName, matchMode, positiveResultCodes, defaultPreset, displayOrder), for the Lab Management Dashboard to render (§4.4) | `MANAGEMENT_DASHBOARD` |
 
-POST is used (rather than GET with query params) because each request carries a structured, per-test positivity definition (FR-4.1-004) that a flat query string can't cleanly represent for multiple tests.
+POST is used for the report/export endpoints (rather than GET with query params) because each request carries a structured, per-test positivity definition (FR-4.1-004) that a flat query string can't cleanly represent for multiple tests. The dashboard-tiles endpoint is a simple GET since it takes no request-specific parameters; the Management Dashboard calls it once on load, then requests each tile's data from the report endpoint using the same shape the report page uses (a single-entry `tests` array).
 
 ### Request Body — `/api/v1/reports/positivity-rate` and `/export`
 
@@ -247,6 +292,23 @@ The widget submits the same shape with a single entry in `tests`, built from its
 
 > `nonNormalRate` = (totalTested − count of normalResultCode results) ÷ totalTested × 100. Null if normalResultCode is not configured for the test.
 
+### Response Shape — `/api/v1/reports/positivity-rate/dashboard-tiles`
+
+```json
+{
+  "tiles": [
+    {
+      "testId": 1,
+      "testName": "HIV Rapid Test",
+      "matchMode": "SPECIFIC_CODES",
+      "positiveResultCodes": ["Positive"],
+      "defaultPreset": "MONTH_TO_DATE",
+      "displayOrder": 1
+    }
+  ]
+}
+```
+
 ---
 
 ## 7. UI Design
@@ -256,22 +318,25 @@ See companion React mockup: `positivity-rate.jsx`
 ### Navigation Paths
 
 - **Report:** Reports → Positivity Rate Report
-- **Widget:** Dashboard (pre-configured placement, role-gated)
+- **Widget:** Lab Management Dashboard (`/dashboards/management`) → Positivity Rate section, preconfigured tiles only (§4.4) — plus a "View full report" link back to the standalone report for anything not preconfigured
 
 ### Key Screens
 
 1. **Positivity Rate Report Page** — Filter panel (Tile) + results DataTable with CSV export toolbar
-2. **PositivityRateTile Widget** — Compact dashboard tile with preset date range selector and metric display
+2. **PositivityRateTile Widget** — Compact tile with preset date range selector and metric display
+3. **Lab Management Dashboard — Positivity Rate section** — one or more PositivityRateTile widgets in a row, sourced from `PositivityDashboardTile` records, with a "View full report" link
 
 ### Interaction Patterns
 
 - **Typeahead-add** for tests in the report filter panel, each with its own inline positivity definition (not a pre-populated multi-select)
+- **Result-type-aware config form** — Dictionary-result tests offer both match modes; Numeric/free-text tests offer only "All Non-Normal Results" (FR-4.1-002a)
 - **Inline row expansion** for the report's result code breakdown (not a modal)
 - **Persisted filter state** restored on page load with visible `InlineNotification` (kind="info")
 - **Generate button** disabled while loading; `InlineLoading` replaces spinner
 - **CSV export** via browser download (Content-Disposition: attachment)
 - **Empty state** rendered inside DataTable when no data is available
 - Widget presets auto-fetch on selection; there is no separate "Generate" affordance on the widget
+- Dashboard-hosted tiles are read-only from the UI's perspective — no add/edit/remove controls; provisioning happens outside the app (§4.4)
 
 ---
 
@@ -281,7 +346,9 @@ See companion React mockup: `positivity-rate.jsx`
 
 **BR-002:** When matchMode is `SPECIFIC_CODES`, a result is counted as positive if and only if its coded result value exactly matches one of the values in `positiveResultCodes` (case-insensitive comparison).
 
-**BR-003:** When matchMode is `ALL_ABNORMAL`, a result is counted as positive if and only if the OpenELIS abnormal flag is set on that result record.
+**BR-002a:** The `SPECIFIC_CODES` match mode SHALL only be offered for tests whose result type is Dictionary (coded). Tests with a Numeric or free-text result type SHALL only offer `ALL_ABNORMAL`, since there is no discrete code list to define against. This applies identically to the report's inline config (FR-4.1-002a) and to `PositivityDashboardTile` provisioning (§5) — a numeric test cannot be assigned `positiveResultCodes`.
+
+**BR-003:** When matchMode is `ALL_ABNORMAL`, a result is counted as positive if and only if the OpenELIS abnormal flag is set on that result record. For numeric results, this is the same H/L/Critical flag computed from the test's `ResultLimit` bounds documented in `designs/reports/custom-data-export.md` (Domain: TEST_RESULTS, `abnormalFlag`); for coded results, it is the existing abnormal designation on the result's dictionary entry.
 
 **BR-003a:** The **Non-Normal Rate** is computed as: (count of results where resultCode ≠ normalResultCode) ÷ Total Tested × 100. The normal result code defaults to "Negative" for qualitative tests and is determined by the test's reference range configuration in OpenELIS. The non-normal rate includes all result values that are not normal — this will typically be a superset of the positivity rate (e.g., it includes "Invalid" and "Indeterminate" results in addition to "Positive").
 
@@ -303,6 +370,8 @@ The resolved date range SHALL be displayed to the user as a subtitle beneath the
 
 **BR-009:** CSV export SHALL reflect exactly the data currently displayed on screen — the same date range, test selection, and positivity definitions as the last "Generate" run.
 
+**BR-010:** A `PositivityDashboardTile` record with `isActive = false` SHALL be excluded from the `dashboard-tiles` response and SHALL NOT render on the Lab Management Dashboard, without being deleted.
+
 ---
 
 ## 9. Localization
@@ -320,8 +389,9 @@ All UI text is externalized. The following i18n keys must be added to the messag
 | `label.positivityConfig.status` | Type |
 | `button.positivityConfig.cancel` | Remove |
 | `error.positivityConfig.codesRequired` | At least one positive result code is required for this match mode. |
+| `message.positivityConfig.numericRestricted` | This test's result is numeric, so positivity is defined using "All Non-Normal Results." |
 
-> `label.positivityConfig.status` labels the Type column (Normal/Positive/Other) in the result code breakdown, not an admin config's active/inactive state — there is no admin config. `button.positivityConfig.cancel` labels the "×" remove-test control on a test's inline config card.
+> `label.positivityConfig.status` labels the Type column (Normal/Positive/Other) in the result code breakdown, not an admin config's active/inactive state — there is no admin config. `button.positivityConfig.cancel` labels the "×" remove-test control on a test's inline config card. `message.positivityConfig.numericRestricted` is the helper caption shown in place of the Specific Result Codes option for Numeric/free-text tests (FR-4.1-002a).
 
 ### Positivity Rate Report
 
@@ -381,6 +451,14 @@ All UI text is externalized. The following i18n keys must be added to the messag
 | `message.positivityWidget.loading` | Loading... |
 | `error.positivityWidget.fetchFailed` | Failed to load data. |
 
+### Lab Management Dashboard Integration
+
+| i18n Key | Default English Text |
+|---|---|
+| `heading.positivityDashboard.sectionTitle` | Positivity Rate |
+| `link.positivityDashboard.viewFullReport` | View full report |
+| `message.positivityDashboard.noTiles` | (Section hidden — see FR-4.4-004; no key needed if never rendered) |
+
 ---
 
 ## 10. Validation Rules
@@ -388,6 +466,7 @@ All UI text is externalized. The following i18n keys must be added to the messag
 | Field | Rule | Error Key |
 |---|---|---|
 | Positive Result Codes | Required when matchMode = SPECIFIC_CODES; min 1 code | `error.positivityConfig.codesRequired` |
+| Match Mode (numeric/free-text test) | SPECIFIC_CODES not selectable; UI does not render the option (FR-4.1-002a) | n/a — no error state, option simply absent |
 | Start Date (report) | Required | `error.positivityReport.startDateRequired` |
 | End Date (report) | Required; must be ≥ start date | `error.positivityReport.endBeforeStart` |
 | Tests (report) | Min 1 test selected | `error.positivityReport.testsRequired` |
@@ -403,7 +482,9 @@ All UI text is externalized. The following i18n keys must be added to the messag
 | View Positivity Rate Report page | `positivityReport.view` | Page not shown in Reports menu |
 | Generate report data | `positivityReport.view` | Generate button hidden; API returns 403 |
 | Export CSV | `positivityReport.export` | Export CSV button hidden; API returns 403 |
-| View dashboard widget tile | `positivityWidget.view` | Widget tile not rendered on dashboard |
+| View dashboard widget tile | `positivityWidget.view` | Widget tile not rendered |
+| View Positivity Rate section on Lab Management Dashboard | `MANAGEMENT_DASHBOARD` (dashboard-level grant, see `designs/system/lab-management-dashboard.md` FR-MGMT-009) | Section (and the rest of the dashboard) returns 403 / "Access denied," consistent with the rest of that page |
+| Provision or edit a `PositivityDashboardTile` | None (deploy-time seed migration / CSV import, not a runtime action) | N/A — there is no in-app control to deny |
 
 ---
 
@@ -413,10 +494,11 @@ All UI text is externalized. The following i18n keys must be added to the messag
 
 - [ ] User with `positivityReport.view` can access Reports → Positivity Rate Report
 - [ ] The typeahead test search allows adding any test; there is no pre-populated "configured tests" list — each test's positivity definition (match mode + codes) is set inline when it's added (§4.1)
+- [ ] Adding a test whose result type is Numeric or free-text shows only "All Non-Normal Results" — the "Specific Result Codes" option and its checkbox list are not rendered (FR-4.1-002a)
 - [ ] Generating a report with valid inputs returns correct Total Tested, Total Positive, and Positivity Rate per test
 - [ ] A test with zero results in the date range appears in results with "N/A" positivity rate
 - [ ] Results matching `SPECIFIC_CODES` mode count only exact code matches (case-insensitive)
-- [ ] Results matching `ALL_ABNORMAL` mode count only results with abnormal flag set
+- [ ] Results matching `ALL_ABNORMAL` mode count only results with abnormal flag set, using the same abnormal-flag computation as Custom Data Export's `abnormalFlag` variable for numeric results
 - [ ] Only results in COMPLETED status are included in calculations
 - [ ] Last filter selection (date range, tests, and their positivity definitions) is restored on page reload with `message.positivityReport.filtersRestored` notice
 - [ ] "Reset" clears all filters and removes persisted selection
@@ -444,6 +526,16 @@ All UI text is externalized. The following i18n keys must be added to the messag
 - [ ] Last selected preset for the widget instance is restored on page reload (sessionStorage, keyed by testId)
 - [ ] Users without `positivityWidget.view` permission do not see the widget tile rendered
 
+### Functional — Lab Management Dashboard Integration
+
+- [ ] The Management Dashboard renders one PositivityRateTile per active `PositivityDashboardTile` record, ordered by `displayOrder`
+- [ ] A tile provisioned with `matchMode = ALL_ABNORMAL` for a numeric test renders and computes correctly (no `positiveResultCodes` present)
+- [ ] The Positivity Rate section includes a working "View full report" link to the standalone report page
+- [ ] With zero active `PositivityDashboardTile` records, the entire Positivity Rate section is hidden, not shown empty
+- [ ] Deactivating a tile (`isActive = false`) removes it from the dashboard without deleting the record
+- [ ] `GET /api/v1/reports/positivity-rate/dashboard-tiles` returns 403 for a user lacking `MANAGEMENT_DASHBOARD`
+- [ ] No in-app UI exists for adding, editing, or reordering tiles in v1; provisioning is via seed migration / CSV import only
+
 ### Non-Functional
 
 - [ ] All UI strings use i18n keys — zero hardcoded English text in JSX
@@ -457,4 +549,5 @@ All UI text is externalized. The following i18n keys must be added to the messag
 
 - [ ] Positivity computation reads from existing Analysis/TestResult entities — no new result storage required
 - [ ] CSV export is generated server-side and streamed with `Content-Disposition: attachment`
-- [ ] No new database schema — positivity definitions travel with the request (report) or live in each widget instance's own configuration (dashboard), never in a shared server-side config table
+- [ ] No new database schema for the report itself — positivity definitions travel with the request (report) or live in each widget instance's own configuration (dashboard)
+- [ ] `PositivityDashboardTile` is the only new schema addition, scoped to dashboard tile provisioning, and reuses the CSV-import tooling built for `TestSurveillanceMapping` rather than introducing a new import mechanism

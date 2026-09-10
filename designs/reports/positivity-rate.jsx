@@ -15,6 +15,10 @@
  *
  * v1.1 (2026-09-10): promoted to the canonical registered mockup at this path, replacing the
  * earlier admin-CRUD version (archived at designs/_archive/2026-09-10/positivity-rate-admin-crud-v1.0.jsx).
+ *
+ * v1.2 (2026-09-10): numeric-result tests (e.g. HIV Viral Load) are now restricted to the
+ * "All Non-Normal Results" match mode — there is no discrete code list to check for a numeric
+ * result, so "Specific Result Codes" is not offered (FR-4.1-002a). See TestPositivityConfig.
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -112,11 +116,12 @@ const t = (key, fallback) => fallback || key;
 // Mock data
 // ---------------------------------------------------------------------------
 const MOCK_TESTS = [
-  { id: 1, name: 'HIV Rapid Test' },
-  { id: 2, name: 'Malaria RDT' },
-  { id: 3, name: 'Syphilis RPR' },
-  { id: 4, name: 'HBsAg' },
-  { id: 5, name: 'COVID-19 Antigen' },
+  { id: 1, name: 'HIV Rapid Test', resultType: 'DICTIONARY' },
+  { id: 2, name: 'Malaria RDT', resultType: 'DICTIONARY' },
+  { id: 3, name: 'Syphilis RPR', resultType: 'DICTIONARY' },
+  { id: 4, name: 'HBsAg', resultType: 'DICTIONARY' },
+  { id: 5, name: 'COVID-19 Antigen', resultType: 'DICTIONARY' },
+  { id: 6, name: 'HIV Viral Load', resultType: 'NUMERIC' },
 ];
 
 const MOCK_RESULT_CODES = {
@@ -173,49 +178,76 @@ const MOCK_REPORT_DATA = [
       { resultCode: 'Non-Reactive',   count: 518, rate: 91.36, isPositive: false, isNormal: true  },
     ],
   },
+  {
+    testId: 6,
+    testName: 'HIV Viral Load',
+    totalTested: 412,
+    totalPositive: 58,
+    positivityRate: 14.08,
+    normalResultCode: null,
+    nonNormalRate: 14.08,
+    resultBreakdown: [
+      { resultCode: 'Above reference range (abnormal)', count: 58,  rate: 14.08, isPositive: true,  isNormal: false },
+      { resultCode: 'Within reference range (normal)',  count: 354, rate: 85.92, isPositive: false, isNormal: true  },
+    ],
+  },
 ];
 
 // ---------------------------------------------------------------------------
 // 1. TestPositivityConfig — inline per-test positivity definition form
 // ---------------------------------------------------------------------------
 function TestPositivityConfig({ test, config, onChange }) {
+  const isNumeric = test.resultType === 'NUMERIC' || test.resultType === 'FREE_TEXT';
   const codes = MOCK_RESULT_CODES[test.id] || [];
   return (
     <Tile style={{ background: '#f4f4f4' }}>
       <Stack gap={3}>
         <p style={{ fontWeight: 600, fontSize: '0.875rem' }}>{test.testName || test.name}</p>
-        <RadioButtonGroup
-          legendText={t('label.positivityConfig.matchMode', 'Match Mode')}
-          name={`mode-${test.id}`}
-          valueSelected={config.matchMode}
-          onChange={(val) => onChange({ ...config, matchMode: val, positiveResultCodes: [] })}
-          orientation="horizontal"
-        >
-          <RadioButton labelText={t('label.positivityConfig.matchMode.specificCodes', 'Specific Result Codes')} value="SPECIFIC_CODES" id={`specific-${test.id}`} />
-          <RadioButton labelText={t('label.positivityConfig.matchMode.allAbnormal', 'All Non-Normal Results')} value="ALL_ABNORMAL" id={`abnormal-${test.id}`} />
-        </RadioButtonGroup>
-        {config.matchMode === 'SPECIFIC_CODES' && codes.length > 0 && (
+        {isNumeric ? (
           <Stack gap={2}>
-            <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#525252' }}>
-              {t('label.positivityConfig.positiveResultCodes', 'Positive Result Code(s)')}
+            <p style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+              {t('label.positivityConfig.matchMode.allAbnormal', 'All Non-Normal Results')}
             </p>
-            <Stack orientation="horizontal" gap={4}>
-              {codes.map((code) => (
-                <Checkbox
-                  key={code}
-                  id={`code-${test.id}-${code}`}
-                  labelText={code}
-                  checked={config.positiveResultCodes.includes(code)}
-                  onChange={(_, { checked }) => {
-                    const next = checked
-                      ? [...config.positiveResultCodes, code]
-                      : config.positiveResultCodes.filter((c) => c !== code);
-                    onChange({ ...config, positiveResultCodes: next });
-                  }}
-                />
-              ))}
-            </Stack>
+            <p style={{ fontSize: '0.75rem', color: '#525252' }}>
+              {t('message.positivityConfig.numericRestricted', 'This test\'s result is numeric, so positivity is defined using "All Non-Normal Results."')}
+            </p>
           </Stack>
+        ) : (
+          <>
+            <RadioButtonGroup
+              legendText={t('label.positivityConfig.matchMode', 'Match Mode')}
+              name={`mode-${test.id}`}
+              valueSelected={config.matchMode}
+              onChange={(val) => onChange({ ...config, matchMode: val, positiveResultCodes: [] })}
+              orientation="horizontal"
+            >
+              <RadioButton labelText={t('label.positivityConfig.matchMode.specificCodes', 'Specific Result Codes')} value="SPECIFIC_CODES" id={`specific-${test.id}`} />
+              <RadioButton labelText={t('label.positivityConfig.matchMode.allAbnormal', 'All Non-Normal Results')} value="ALL_ABNORMAL" id={`abnormal-${test.id}`} />
+            </RadioButtonGroup>
+            {config.matchMode === 'SPECIFIC_CODES' && codes.length > 0 && (
+              <Stack gap={2}>
+                <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#525252' }}>
+                  {t('label.positivityConfig.positiveResultCodes', 'Positive Result Code(s)')}
+                </p>
+                <Stack orientation="horizontal" gap={4}>
+                  {codes.map((code) => (
+                    <Checkbox
+                      key={code}
+                      id={`code-${test.id}-${code}`}
+                      labelText={code}
+                      checked={config.positiveResultCodes.includes(code)}
+                      onChange={(_, { checked }) => {
+                        const next = checked
+                          ? [...config.positiveResultCodes, code]
+                          : config.positiveResultCodes.filter((c) => c !== code);
+                        onChange({ ...config, positiveResultCodes: next });
+                      }}
+                    />
+                  ))}
+                </Stack>
+              </Stack>
+            )}
+          </>
         )}
       </Stack>
     </Tile>
@@ -245,10 +277,13 @@ function PositivityRateReport() {
   );
 
   const addTest = (test) => {
+    const isNumeric = test.resultType === 'NUMERIC' || test.resultType === 'FREE_TEXT';
     setSelectedTests((prev) => [...prev, test]);
     setTestConfigs((prev) => ({
       ...prev,
-      [test.id]: { matchMode: 'SPECIFIC_CODES', positiveResultCodes: [] },
+      [test.id]: isNumeric
+        ? { matchMode: 'ALL_ABNORMAL', positiveResultCodes: [] }
+        : { matchMode: 'SPECIFIC_CODES', positiveResultCodes: [] },
     }));
     setSearchText('');
   };

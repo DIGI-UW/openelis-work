@@ -2195,7 +2195,7 @@ export const MOCKUP_REGISTRY = [
     name: 'Positivity Rate Report',
     category: 'reports',
     component: React.lazy(() => import('@designs/reports/positivity-rate.jsx')),
-    description: 'Positivity rate report and dashboard widget (Carbon, inline-only positivity definition) — per-test result-code-based positivity definitions, date-range filtering, DataTable with CSV export, and reusable tile for the home dashboard. Swapped in 2026-09-10 from the earlier admin-CRUD mockup, archived under designs/_archive/2026-09-10/.',
+    description: 'Positivity rate report and dashboard widget (Carbon, inline-only positivity definition) — per-test result-code-based positivity definitions for coded tests, all-non-normal-only for numeric tests, date-range filtering, DataTable with CSV export, and a tile hosted on the Lab Management Dashboard (v1.2). Swapped in 2026-09-10 from the earlier admin-CRUD mockup, archived under designs/_archive/2026-09-10/.',
     specPath: 'designs/reports/positivity-rate.md',
     added: '2026-03-19',
     updated: '2026-09-10',

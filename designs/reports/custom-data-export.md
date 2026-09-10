@@ -384,6 +384,8 @@ The following variable keys are valid values in the `selectedVariables` JSON arr
 > **`resultValue` resolution rule:** Result is type-polymorphic. Dictionary results MUST be resolved to their dictionary display text (not the stored ID); multiselect dictionary results MUST be joined into one cell with `; ` separators; numeric results MUST apply the test's significant-digit rules; free-text results are exported verbatim. One output cell per result row in all cases.
 >
 > **`referenceRange` / `abnormalFlag` computation:** neither is a stored Result column. Both MUST be computed from the applicable `ResultLimit` for the patient's age and sex **at the time of the test**, matching the logic used by results entry/validation screens. `abnormalFlag` values: `H`, `L`, `Critical`, blank.
+>
+> **Cross-reference:** this is the same abnormal-flag signal `designs/reports/positivity-rate.md`'s `ALL_ABNORMAL` match mode uses to define positivity for numeric-result tests (BR-003 in that FRS). A raw per-result export using this column agrees with that report's aggregate rate for any test using `ALL_ABNORMAL`. Ad hoc `SPECIFIC_CODES` positivity definitions aren't exportable as a static column here, since they're chosen per report run rather than being a property of the result.
 
 **Domain: PATIENT_DEMOGRAPHICS** *(🔒 Requires `DATA_EXPORT_PII_DEMOGRAPHICS`)*
 
