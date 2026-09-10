@@ -299,6 +299,9 @@
   <url><loc>https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-multicomponent-v1.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-multicomponent-v1.jsx</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-multicomponent-v1-preview.html</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/results-validation/runs.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/results-validation/runs.jsx</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/results-validation/runs-preview.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/results-validation/results-page-reagent-usage-v1.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/results-validation/results-page-reagent-usage-v1.jsx</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/results-validation/results-page-reagent-usage-v1-preview.html</loc></url>
@@ -398,11 +401,13 @@
   <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/environmental-order-entry.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/sampling-uncertainty.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/sampling-uncertainty.jsx</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-frs-v3-three-workflows.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-three-workflows.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/clinical-order-entry-v2.html</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-frs-v3-three-workflows.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-three-workflows.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/clinical-order-entry-v4.html</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-three-workflows.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/environmental-order-entry-v2.html</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-frs-v3-three-workflows.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-three-workflows.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/vector-surveillance/vector-collection-workflow-v2.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-developer-reference.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/notifications/referral-out-notification.md</loc></url>
