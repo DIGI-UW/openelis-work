@@ -269,17 +269,25 @@
     .family-legend-item .family-desc { font-size: 11px; color: #525252; }
     .locked-banner { display: flex; align-items: center; gap: 0.75rem; }
     .locked-banner .btn-ghost-sm { flex-shrink: 0; }
+    .product-view { flex:1; min-width:0; }
+    .review-controls { display:flex; flex-wrap:wrap; gap:12px; align-items:center; padding:8px 16px; background:#e0e0e0; color:#161616; font-size:12px; }
+    .review-controls label { display:flex; gap:8px; align-items:center; }
+    .review-controls select { padding:6px; }
+    button:focus-visible, input:focus-visible, select:focus-visible { outline:2px solid #0f62fe; outline-offset:2px; }
+    @media(max-width:700px) { .sidebar { display:none; } .page-header,.page-body { padding:16px; } .page-header { flex-wrap:wrap; gap:12px; } .var-grid,.filter-grid { grid-template-columns:1fr; } .queue-table { min-width:650px; } .product-view .card:has(.queue-table) { overflow:auto !important; } .preview-banner { flex-wrap:wrap; } .stepper { margin-top:16px; } }
   </style>
 </head>
 <body>
 <div class="preview-banner">
-  🔬 OpenELIS Design Preview v1.1 — Custom Data Export &amp; My Report Queue &nbsp;|&nbsp; Grain families enforced · QC domain removed · Tag-based selection (labels, not counts) &nbsp;|&nbsp; FRS: custom-data-export-frs-v1.1.md
+  OpenELIS reporting design — fictional examples only · no clinical-data, AI or sign-in requests
 </div>
 
 <div id="root"></div>
 
+<script src="custom-data-export-example.js"></script>
 <script type="text/babel">
-const { useState } = React;
+const { useState, useEffect } = React;
+const Example = OpenElisExportExample;
 
 // ─── Data catalog (FRS v1.1 — Section 5) ────────────────────────────────────
 const FAMILY_LABELS = {
@@ -380,12 +388,15 @@ const SAVED_CONFIGS = [
 ];
 
 const QUEUE_ROWS = [
-  { id:'JOB-1018', name:'HIV Program Monthly — Feb 2026',     status:'ready',      rows:12847, created:'Jul 14, 2026 09:12', size:'2.1 MB', expires:'Jul 21, 2026' },
-  { id:'JOB-1017', name:'Hematology TAT — Q2 2026',           status:'generating', rows:null,  created:'Jul 14, 2026 11:45', size:'—',      expires:'—' },
-  { id:'JOB-1016', name:'All Results Export — Jun 2026',      status:'queued',     rows:null,  created:'Jul 14, 2026 11:50', size:'~2 min wait', expires:'—' },
-  { id:'JOB-1015', name:'Rejections Extract — May 2026',      status:'expired',    rows:4201,  created:'Jun 30, 2026 14:30', size:'0.8 MB', expires:'Jul 7, 2026' },
-  { id:'JOB-1014', name:'Referrals Extract — May 2026',       status:'failed',     rows:null,  created:'Jun 29, 2026 08:05', size:'—',      expires:'—' },
+  { id:'DEMO-READY', name:'August virology example', status:'ready', rows:5, created:'Example', size:'CSV', expires:'7 days after generation', request:structuredClone(Example.august) },
+  { id:'DEMO-FAILED', name:'August virology — interrupted', status:'failed', rows:null, created:'Example', size:'—', expires:'—', request:structuredClone(Example.august) },
+  { id:'DEMO-EXPIRED', name:'July virology — expired', status:'expired', rows:0, created:'Example', size:'CSV', expires:'Expired', request:{...structuredClone(Example.august), startDate:'2026-07-01', endDate:'2026-07-31'} },
 ];
+function downloadExample(request) {
+  const href = URL.createObjectURL(new Blob([Example.csv(request)], {type:'text/csv;charset=utf-8'}));
+  const link = document.createElement('a'); link.href=href; link.download='openelis-virology-example.csv'; link.click();
+  setTimeout(() => URL.revokeObjectURL(href), 1000);
+}
 
 // ─── Components ──────────────────────────────────────────────────────────────
 
@@ -407,7 +418,7 @@ function TopHeader() {
           <option>EN</option><option>FR</option>
         </select>
         <button className="header-icon-btn" title="Notifications">🔔</button>
-        <div className="user-avatar" title="Lab Manager">LM</div>
+        <div className="user-avatar" title="Maya Chen · Virology staff">MC</div>
       </div>
     </header>
   );
@@ -483,18 +494,33 @@ function StatusTag({ status }) {
 }
 
 // ─── Report Builder ───────────────────────────────────────────────────────────
-function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
+function ReportBuilder({ onGoToQueue, onSubmit, configs, setConfigs, restoreRequest, piiAccess, setPiiAccess }) {
   const [step, setStep] = useState(1);
   const [openDomains, setOpenDomains] = useState(new Set(DOMAINS.map(d => d.id))); // all expanded by default (FR-1-002)
   const [selected, setSelected] = useState(new Set());
-  const [startDate, setStartDate] = useState('2026-06-01');
-  const [endDate, setEndDate] = useState('2026-06-30');
-  const [labSection, setLabSection] = useState('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [labSection, setLabSection] = useState('Virology');
   const [savedConfigId, setSavedConfigId] = useState('');
   const [configName, setConfigName] = useState('');
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
   const [showOverwriteModal, setShowOverwriteModal] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [test, setTest] = useState('HIV viral load');
+  const [resultStatus, setResultStatus] = useState('Validated (finalized)');
+  const [sampleStatus, setSampleStatus] = useState('All statuses');
+  const [priority, setPriority] = useState('All priorities');
+  const [referringSite, setReferringSite] = useState('');
+  const [exportName, setExportName] = useState('');
+  const [message, setMessage] = useState('');
+  const request = { vars:[...selected], startDate, endDate, labSection, test, resultStatus, sampleStatus, priority, referringSite };
+  const applyRequest = choices => {
+    setSelected(new Set(choices.vars)); setStartDate(choices.startDate || ''); setEndDate(choices.endDate || '');
+    setLabSection(choices.labSection || 'Virology'); setTest(choices.test || ''); setResultStatus(choices.resultStatus || 'All statuses');
+    setSampleStatus(choices.sampleStatus || 'All statuses'); setPriority(choices.priority || 'All priorities'); setReferringSite(choices.referringSite || '');
+    setMessage('');
+  };
+  useEffect(() => { if (restoreRequest) { applyRequest(Example.restore(restoreRequest)); setStep(2); setMessage('Selections restored. Choose a new reporting period.'); } }, [restoreRequest]);
+
 
   // ── Grain family lock (FR-1-008): first selection locks the family ──
   const activeFamily = selected.size > 0 ? VAR_LOOKUP[selected.values().next().value].family : null;
@@ -529,11 +555,11 @@ function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
   };
 
   const loadConfig = () => {
-    const cfg = SAVED_CONFIGS.find(c => c.id === savedConfigId);
-    if (cfg) setSelected(new Set(cfg.vars)); // locks family implicitly (FR-7-001)
+    const cfg = configs.find(c => c.id === savedConfigId);
+    if (cfg) { applyRequest(Example.restore(cfg)); setMessage('Configuration loaded. Choose a fresh reporting period.'); }
   };
 
-  const configNameExists = SAVED_CONFIGS.some(c => c.name.trim().toLowerCase() === configName.trim().toLowerCase());
+  const configNameExists = configs.some(c => c.name.trim().toLowerCase() === configName.trim().toLowerCase());
 
   const handleSaveConfig = () => {
     if (!configName.trim()) return;
@@ -541,12 +567,19 @@ function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
     doSave();
   };
   const doSave = () => {
+    const saved = {...Example.configuration(request), id:Date.now().toString(), name:configName.trim()};
+    setConfigs(previous => [...previous.filter(c => c.name.trim().toLowerCase() !== saved.name.toLowerCase()), saved]);
     setShowOverwriteModal(false);
     setShowSaveSuccess(true);
-    setTimeout(() => setShowSaveSuccess(false), 3000);
+
   };
 
-  const handleSubmit = () => setSubmitted(true);
+  const handleSubmit = () => {
+    const error = Example.dateError(request) || Example.limitation(request);
+    if (error) { setMessage(error); return; }
+    onSubmit(request, exportName.trim() || 'Virology export');
+    setMessage('Export submitted. Open My Report Queue to follow its progress.');
+  };
 
   // ── Date range calc (FR-2-007 / FR-2-010) ──
   const msPerDay = 86400000;
@@ -555,7 +588,7 @@ function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
   const rangeTooLarge = dayDiff > MAX_RANGE_DAYS;
 
   // Simulated estimate
-  const rowEst = 12847;
+  const rowEst = Example.select(request).length;
   const isAsync = dayDiff > 7 || rowEst > 5000;
 
   const hasTestResultVars = [...selected].some(k => VAR_LOOKUP[k].domain === 'Test Results');
@@ -563,30 +596,6 @@ function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
   const steps = ['Select Variables', 'Set Filters', 'Review & Submit'];
   const selectedVarList = DOMAINS.flatMap(d => d.vars.filter(v => selected.has(v.key)).map(v => ({ ...v, domain: d.label })));
 
-  if (submitted) {
-    return (
-      <div className="main-content">
-        <div className="page-header">
-          <div>
-            <div className="breadcrumb">Reports <span onClick={() => setSubmitted(false)}>/ Custom Data Export</span> / Submitted</div>
-            <h1 className="page-title">Report Submitted</h1>
-          </div>
-        </div>
-        <div className="page-body">
-          <div className="inline-notification success">
-            <span>✅</span>
-            <div>
-              <strong>Your export has been queued.</strong> It will appear in <strong>My Report Queue</strong> when ready. Large reports may take a few minutes.
-            </div>
-          </div>
-          <div style={{display:'flex',gap:'0.75rem',marginTop:'1rem'}}>
-            <button className="btn-primary" onClick={onGoToQueue}>Go to My Report Queue</button>
-            <button className="btn-secondary" onClick={() => { setSubmitted(false); setStep(1); setSelected(new Set()); }}>Start New Export</button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="main-content">
@@ -606,6 +615,9 @@ function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
       </div>
 
       <div className="page-body">
+        <div className="inline-notification info" role="status">Fictional preview. The complete downloadable example uses August 2026 Virology results. No live source is connected.</div>
+        {message && <div className="inline-notification info" role="status">{message}</div>}
+        <button className="btn-secondary" onClick={() => {applyRequest(Example.august); setStep(1); setPiiAccess(false);}}>Use fictional virology example</button>
         {/* Stepper */}
         <div className="stepper">
           {steps.map((s, i) => {
@@ -629,9 +641,9 @@ function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
             {/* Saved config bar */}
             <div className="saved-config-bar">
               <label>📂 Load saved configuration:</label>
-              <select className="saved-config-select" value={savedConfigId} onChange={e => setSavedConfigId(e.target.value)}>
+              <select className="saved-config-select" aria-label="Saved configuration" value={savedConfigId} onChange={e => setSavedConfigId(e.target.value)}>
                 <option value="">— Select a saved configuration —</option>
-                {SAVED_CONFIGS.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                {configs.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
               <button className="btn-ghost-sm" disabled={!savedConfigId} onClick={loadConfig}>Load</button>
             </div>
@@ -746,12 +758,12 @@ function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
                 </div>
                 <div className="filter-grid">
                   <div className="form-group">
-                    <label>Date From *</label>
-                    <input className="form-input" type="date" value={startDate} onChange={e => setStartDate(e.target.value)}/>
+                    <label htmlFor="date-from">Date From *</label>
+                    <input className="form-input" id="date-from" type="date" value={startDate} onChange={e => setStartDate(e.target.value)}/>
                   </div>
                   <div className="form-group">
-                    <label>Date To *</label>
-                    <input className="form-input" type="date" value={endDate} onChange={e => setEndDate(e.target.value)}/>
+                    <label htmlFor="date-to">Date To *</label>
+                    <input className="form-input" id="date-to" type="date" value={endDate} onChange={e => setEndDate(e.target.value)}/>
                     {rangeInvalid && <div className="invalid-note">Date To must be on or after Date From.</div>}
                     {!rangeInvalid && rangeTooLarge && <div className="invalid-note">Date range cannot exceed {MAX_RANGE_DAYS} days.</div>}
                   </div>
@@ -769,19 +781,16 @@ function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
               <div className="card-body">
                 <div className="filter-grid">
                   <div className="form-group">
-                    <label>Lab Sections</label>
-                    <select className="form-input form-select" value={labSection} onChange={e => setLabSection(e.target.value)}>
-                      <option value="all">All accessible sections</option>
-                      <option value="Hematology">Hematology</option>
-                      <option value="Microbiology">Microbiology</option>
-                      <option value="Chemistry">Chemistry</option>
-                      <option value="Serology / Immunology">Serology / Immunology</option>
+                    <label htmlFor="lab-section">Lab Sections</label>
+                    <select id="lab-section" className="form-input form-select" disabled value={labSection} onChange={e => setLabSection(e.target.value)}>
+                      <option value="Virology">Virology</option>
                     </select>
                   </div>
+                  {hasTestResultVars && <div className="form-group"><label htmlFor="test-filter">Test</label><select id="test-filter" className="form-input form-select" value={test} onChange={e=>setTest(e.target.value)}><option value="">All tests</option><option>HIV viral load</option></select></div>}
                   {activeFamily === 'SAMPLE_TESTING' && (
                     <div className="form-group">
-                      <label>Sample Status</label>
-                      <select className="form-input form-select">
+                      <label htmlFor="sample-status">Sample Status</label>
+                      <select id="sample-status" className="form-input form-select" value={sampleStatus} onChange={e=>setSampleStatus(e.target.value)}>
                         <option>All statuses</option>
                         <option>Received</option>
                         <option>In Progress</option>
@@ -792,7 +801,7 @@ function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
                   )}
                   <div className="form-group" title={!hasTestResultVars ? 'Available when Test Results variables are selected' : undefined}>
                     <label style={{color: hasTestResultVars ? undefined : '#c6c6c6'}}>Result Status</label>
-                    <select className="form-input form-select" disabled={!hasTestResultVars}>
+                    <select aria-label="Result Status" className="form-input form-select" disabled={!hasTestResultVars} value={resultStatus} onChange={e=>setResultStatus(e.target.value)}>
                       <option>All statuses</option>
                       <option>Preliminary (technically accepted)</option>
                       <option>Validated (finalized)</option>
@@ -801,8 +810,8 @@ function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
                     {!hasTestResultVars && <div style={{fontSize:'10px',color:'#8d8d8d',marginTop:'2px'}}>Available when Test Results variables are selected</div>}
                   </div>
                   <div className="form-group">
-                    <label>Priority</label>
-                    <select className="form-input form-select">
+                    <label htmlFor="priority">Priority</label>
+                    <select id="priority" className="form-input form-select" value={priority} onChange={e=>setPriority(e.target.value)}>
                       <option>All priorities</option>
                       <option>Routine</option>
                       <option>Urgent</option>
@@ -811,7 +820,7 @@ function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
                   </div>
                   <div className="form-group">
                     <label>Referring Site</label>
-                    <input className="form-input" type="text" placeholder="Search referring sites…"/>
+                    <input aria-label="Referring Site" className="form-input" type="text" placeholder="Search referring sites…" value={referringSite} onChange={e=>setReferringSite(e.target.value)}/>
                   </div>
                 </div>
               </div>
@@ -852,7 +861,7 @@ function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
                   <span className="var-pill">📅 {startDate} → {endDate} ({dayDiff} days, {FAMILY_DATE_ANCHOR[activeFamily]})</span>
                 </div>
                 <div className="review-section">
-                  <h4>Lab Scope</h4>
+                  <h4>Test and status</h4><p>{test || 'All tests'} · {resultStatus} · {sampleStatus} · {priority} {referringSite && '· ' + referringSite}</p><h4>Lab Scope</h4>
                   <span className="var-pill">🔬 {labSection === 'all' ? 'All accessible sections' : labSection}</span>
                 </div>
                 <div className="review-section">
@@ -877,14 +886,14 @@ function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
                 <div className="card-title">Export Name <span style={{color:'#8d8d8d',fontSize:'0.75rem',fontWeight:'400'}}>(Optional — auto-generated if blank)</span></div>
               </div>
               <div className="card-body">
-                <input className="form-input" type="text" placeholder="e.g. Hematology TAT Q2 2026" style={{maxWidth:'420px'}}/>
+                <input className="form-input" type="text" aria-label="Export Name" value={exportName} onChange={e=>setExportName(e.target.value)} placeholder="e.g. Monthly virology" style={{maxWidth:'420px'}}/>
               </div>
             </div>
 
             {/* Save configuration panel */}
             <div className="save-config-panel">
               <h4>💾 Save this configuration for later</h4>
-              <p>Save your variable selection to quickly reload it next time. Date range is not saved.</p>
+              <p>Save your selected variables and filters to reload next time. Date range is not saved.</p>
               {showSaveSuccess && (
                 <div className="inline-notification success" style={{marginBottom:'0.75rem'}}>
                   ✅ Configuration "<strong>{configName || 'My Config'}</strong>" saved.
@@ -892,8 +901,8 @@ function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
               )}
               <div className="save-config-row">
                 <div className="form-group">
-                  <label>Configuration Name</label>
-                  <input className="form-input" type="text" placeholder="e.g. Hematology Monthly TAT"
+                  <label htmlFor="configuration-name">Configuration Name</label>
+                  <input className="form-input" type="text" id="configuration-name" placeholder="e.g. Monthly virology"
                     value={configName} onChange={e => setConfigName(e.target.value)}/>
                 </div>
                 <button className="btn-ghost-sm" disabled={!configName.trim()} onClick={handleSaveConfig} style={{marginBottom:'1px'}}>Save Configuration</button>
@@ -931,8 +940,7 @@ function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
 }
 
 // ─── Report Queue ─────────────────────────────────────────────────────────────
-function ReportQueue({ onGoToBuilder }) {
-  const [rows, setRows] = useState(QUEUE_ROWS);
+function ReportQueue({ onGoToBuilder, rows, setRows, onRetry, onRerun }) {
 
   const cancel = (id) => setRows(r => r.map(row => row.id === id ? {...row, status:'cancelled'} : row));
   const deleteRow = (id) => setRows(r => r.filter(row => row.id !== id));
@@ -975,27 +983,27 @@ function ReportQueue({ onGoToBuilder }) {
                       <div style={{fontSize:'11px',color:'#8d8d8d'}}>{row.id}</div>
                     </td>
                     <td><StatusTag status={row.status}/></td>
-                    <td>{row.rows ? `${row.rows.toLocaleString()} · ${row.size}` : row.size}</td>
+                    <td>{row.rows !== null ? `${row.rows.toLocaleString()} · ${row.size}` : row.size}</td>
                     <td>{row.created}</td>
                     <td style={{color: row.status==='expired' ? '#da1e28' : '#161616'}}>{row.expires}</td>
                     <td>
                       <div style={{display:'flex',gap:'4px'}}>
                         {row.status === 'ready' && (
-                          <button className="btn-icon" title="Download CSV">⬇</button>
+                          <button className="btn-icon" title="Download CSV" aria-label={'Download CSV: ' + row.name} onClick={()=>downloadExample(row.request)}>⬇</button>
                         )}
                         {row.status === 'queued' && (
                           <button className="btn-icon" title="Cancel Job" onClick={() => cancel(row.id)}>✕</button>
                         )}
                         {row.status === 'failed' && (
-                          <button className="btn-icon" title="Retry">↺</button>
+                          <button className="btn-icon" title="Retry" aria-label={'Retry: ' + row.name} onClick={()=>onRetry(row.request,row.name + ' · retry')}>↺</button>
                         )}
                         {row.status === 'expired' && (
-                          <button className="btn-icon" title="Re-run (date range not pre-filled)">▷</button>
+                          <button className="btn-icon" title="Re-run (date range not pre-filled)" aria-label={'Re-run: ' + row.name} onClick={()=>onRerun(row.request)}>▷</button>
                         )}
                         {row.status !== 'generating' && (
-                          <button className="btn-icon" title="Delete" onClick={() => deleteRow(row.id)}>🗑</button>
+                          <button className="btn-icon" title="Delete" aria-label={'Delete: ' + row.name} onClick={() => deleteRow(row.id)}>🗑</button>
                         )}
-                        <button className="btn-icon" title="View details">👁</button>
+                        <button className="btn-icon" title="View details" aria-label={'View details: ' + row.name} onClick={()=>alert(row.request.startDate + ' – ' + row.request.endDate + ' · ' + row.request.test + ' · One row per result.')}>👁</button>
                       </div>
                     </td>
                   </tr>
@@ -1024,7 +1032,24 @@ function ReportQueue({ onGoToBuilder }) {
 // ─── Root App ─────────────────────────────────────────────────────────────────
 function App() {
   const [page, setPage] = useState('builder');
-  const [piiAccess, setPiiAccess] = useState(true);
+  const [piiAccess, setPiiAccess] = useState(false);
+  const [rows, setRows] = useState(QUEUE_ROWS);
+  const [configs, setConfigs] = useState(SAVED_CONFIGS);
+  const [restoreRequest, setRestoreRequest] = useState(null);
+  const [outcome, setOutcome] = useState('success');
+  const [access, setAccess] = useState('signed-in');
+  const [jobMessage, setJobMessage] = useState('');
+  const submit = (request, name) => {
+    const copy = structuredClone(request), fail = outcome === 'failure'; setOutcome('success');
+    const count = Example.select(copy).length, days=(Date.parse(copy.endDate)-Date.parse(copy.startDate))/86400000+1;
+    const sync = !fail && count<=5000 && days<=7;
+    const id=Date.now().toString();
+    setRows(previous=>[{id,name,status:sync?'ready':'generating',rows:sync?count:null,size:'CSV',created:'Just now',expires:'7 days after generation',request:copy},...previous]);
+    if(sync) { downloadExample(copy); setJobMessage('Your fictional CSV is downloading.'); }
+    else setTimeout(()=>{setRows(previous=>previous.map(row=>row.id===id?{...row,status:fail?'failed':'ready',rows:fail?null:count}:row)); setJobMessage(fail?'Export failed. Your choices are retained; retry from My Report Queue.':'Your export is ready in My Report Queue.');},1800);
+  };
+  const rerun = request => { setRestoreRequest({...request}); setPage('builder'); };
+
 
   const handleNav = (dest) => {
     if (dest === 'builder' || dest === 'queue') setPage(dest);
@@ -1033,13 +1058,13 @@ function App() {
 
   return (
     <div className="app-shell">
-      <TopHeader/>
+      <div className="review-controls"><strong>Preview controls</strong><label>User state <select aria-label="User state" value={access} onChange={e=>setAccess(e.target.value)}><option value="signed-in">Maya Chen · Virology</option><option value="signed-out">Sign-in required</option><option value="restricted">No reporting access</option></select></label><label>Next export <select aria-label="Next export" value={outcome} onChange={e=>setOutcome(e.target.value)}><option value="success">Succeeds</option><option value="failure">Fails once</option></select></label></div><TopHeader/>
+      {jobMessage && <div className="inline-notification info" role="status">{jobMessage}</div>}
       <div className="app-body">
         <Sidebar activePage={page} onNav={handleNav}/>
-        {page === 'builder'
-          ? <ReportBuilder onGoToQueue={() => setPage('queue')} piiAccess={piiAccess} setPiiAccess={setPiiAccess}/>
-          : <ReportQueue onGoToBuilder={() => setPage('builder')}/>
-        }
+        {access !== 'signed-in' && <main className="page-body"><h1>{access==='signed-out'?'Sign in to continue':'Reporting access is unavailable'}</h1><p>{access==='signed-out'?'Use your organization account. Your draft is retained.':'Contact your administrator to review your laboratory permissions.'}</p>{access==='signed-out'&&<button className="btn-primary" onClick={()=>setAccess('signed-in')}>Continue with organization account</button>}</main>}
+        <div className="product-view" style={{display:page==='builder'&&access==='signed-in'?'flex':'none'}}><ReportBuilder onGoToQueue={() => setPage('queue')} piiAccess={piiAccess} setPiiAccess={setPiiAccess} onSubmit={submit} configs={configs} setConfigs={setConfigs} restoreRequest={restoreRequest}/></div>
+        <div className="product-view" style={{display:page==='queue'&&access==='signed-in'?'flex':'none'}}><ReportQueue onGoToBuilder={() => setPage('builder')} rows={rows} setRows={setRows} onRetry={submit} onRerun={rerun}/></div>
       </div>
     </div>
   );

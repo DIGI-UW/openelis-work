@@ -1,8 +1,8 @@
 # Custom Data Export & My Report Queue
-## Functional Requirements Specification — v1.1
+## Functional Requirements Specification — v1.2
 
-**Version:** 1.1
-**Date:** 2026-07-15
+**Version:** 1.2
+**Date:** 2026-09-10
 **Status:** Draft for Review
 **Jira Stories:**
 - [OGC-479](https://uwdigi.atlassian.net/browse/OGC-479) — Custom Data Export: 3-step report builder wizard
@@ -13,6 +13,34 @@
 **Related Modules:** Patient Report Print Queue, Catalyst (OGC-70), Reports, User Preferences, Printed Reports Configuration
 
 > **Companion release requirement:** OGC-479 and OGC-481 MUST ship in the same release. The primary use cases (TAT monitoring, quarterly extracts) exceed the sync thresholds by definition and are only retrievable via the queue. Async job submission MUST NOT be enabled in a build that does not include the My Report Queue page.
+
+### MVP review update — v1.2
+
+The OpenELIS screens, styling and reporting requirements stay in this repository.
+[The interactive HTML mock](custom-data-export.html) is the current workflow
+review surface; the JSX file remains the Carbon component layout reference.
+[The Catalyst-side draft](https://pmanko.github.io/clinical-ai-validation-harness/catalyst-design/?view=integration&app=catalyst)
+and [cross-project roadmap](https://github.com/pmanko/clinical-ai-validation-harness/blob/main/specs/openelis-reporting-catalyst-integration.md)
+link here instead of reproducing OpenELIS screens.
+
+This update retains the seven domains and three row families below. The initial
+complete downloadable **fictional review example** is August 2026 Virology:
+HIV viral load, validated results, collection-date filtering, one row per result,
+and accession number / collection date / lab section / test / result / unit /
+result status. The five rows include two distinct results for one accession and
+one blank result value. The example does not prove live exports or parity.
+Broader fields remain required for application delivery; the mock explains its
+fixture limitation rather than inventing values for them.
+
+The prototype connects generation to the queue, produces an actual fictional
+CSV, saves reusable choices without dates, and preserves drafts while switching
+views or recovering from access changes. Reviewer controls simulate failure and
+access. No application, authentication, clinical-data or AI requests are added.
+
+Patient printing, Jasper replacement, automatic scheduling and dashboards are
+outside this export MVP. OpenELIS keeps its own Carbon styling; Catalyst keeps
+its approved Workbench styling. Owner design approval, application implementation,
+real-source parity and deployment remain separately recorded milestones.
 
 ### Changelog — v1.0 → v1.1
 
@@ -52,7 +80,7 @@
 
 ## 1. Executive Summary
 
-The Custom Data Export feature gives authorized laboratory staff a self-service tool to extract structured CSV data from OpenELIS Global without requiring LLM configuration or DBA intervention. Users select from a curated catalog of variables within one of three **grain families** — Sample & Testing, Referrals, or Non-Conformance — apply date range and lab section filters, and receive an estimated row count before submission. Small reports download immediately; large reports are processed asynchronously via a personal report queue with download notification. This feature is the no-LLM foundational layer that Catalyst's Wizard Mode (OGC-70) will build upon in a later phase, sharing the same `filterSpec` schema, `selectedVariables` catalog, and queue infrastructure.
+The Custom Data Export feature gives authorized laboratory staff a self-service tool to extract structured CSV data from OpenELIS Global without requiring LLM configuration or DBA intervention. Users select from a curated catalog of variables within one of three **grain families** — Sample & Testing, Referrals, or Non-Conformance — apply date range and lab section filters, and receive an estimated row count before submission. Small reports download immediately; large reports are processed asynchronously via a personal report queue with download notification. OpenELIS reporting is delivered independently of Catalyst and AI. Catalyst independently queries its configured OpenELIS source; reuse of this export schema, variable catalog or queue is not an integration prerequisite. Shared organizational sign-in and equivalent lab-unit/identifying-field authorization require separate implementation; there is no application link, embedded Catalyst UI or report-criteria transfer in the agreed integration design.
 
 **Out of scope (v1.1):** A Quality Control export domain was removed from this specification because OpenELIS Global does not currently have a structured QC data model to back it. It will be specified in a follow-up story once a QC data model exists.
 
@@ -160,6 +188,13 @@ Each grain family has an assigned color from the Carbon `Tag` palette, applied c
 
 **FR-2-010 (Maximum date range):** The date range MUST NOT exceed the configured maximum (`dataExport.maxDateRangeDays`, default 90). If exceeded, the Date To field MUST display `invalidText`: "Date range cannot exceed {max} days." The "Next" button MUST be disabled while this error is active. The limit is also enforced server-side (Section 10).
 
+**FR-2-011 (Test filter):** When Test Results variables are selected, provide an
+optional test selector using the existing Carbon `ComboBox`/filter conventions.
+Show the selected test by name in Step 3 and saved configurations. An empty
+selection means all eligible tests; one selected test restricts the result rows
+to that test. Backend IDs, catalog lookup and enforcement are verified during
+implementation. It must not replace the authorized lab-section restriction.
+
 ### 4.3 Report Builder — Step 3: Review & Submit
 
 **FR-3-001:** Step 3 MUST display a read-only summary panel showing: (a) the grain family and the selected variables' display names grouped by domain (full labels, with count shown alongside), (b) applied date range, (c) selected lab sections by name (or "All accessible sections" if none specified), and (d) any optional filters applied, showing selected values by name.
@@ -176,7 +211,7 @@ Each grain family has an assigned color from the Carbon `Tag` palette, applied c
 - Sync (200): Browser initiates file download immediately; `InlineNotification` kind `success` confirms: "Your export is downloading."
 - Async (202): `InlineNotification` kind `success` confirms queuing and includes a "View My Report Queue" link.
 
-**FR-3-006:** After successful submission (sync or async), the wizard MUST reset to Step 1 with all variable selections and filters cleared, allowing the user to build a new export.
+**FR-3-006:** Submitting an export MUST retain the current variables and filters while the job generates and after failure or retry. Users can return from My Report Queue to review or adjust those choices without rebuilding the request. Loading a saved configuration or re-running an expired job still requires fresh dates (FR-7-001).
 
 ### 4.4 Row Estimation
 
@@ -289,7 +324,7 @@ All user-facing messages referencing these limits MUST interpolate the configure
 | routingType | Enum | Yes | SYNC, ASYNC |
 | grainFamily | Enum | Yes | SAMPLE_TESTING, REFERRAL, NON_CONFORMANCE |
 | selectedVariables | JSON | Yes | Ordered list of variable keys; all keys MUST belong to `grainFamily` (BR-015) |
-| filterSpec | JSON | Yes | Serialized filter state (dateFrom, dateTo, labSectionIds, sampleStatuses, resultStatuses, priorities, referringSiteId) |
+| filterSpec | JSON | Yes | Serialized filter state (dateFrom, dateTo, labSectionIds, testIds, sampleStatuses, resultStatuses, priorities, referringSiteId) |
 | estimatedRowCount | Integer | No | From pre-flight estimate; null if estimate timed out |
 | actualRowCount | Integer | No | Set on successful completion |
 | outputFileKey | String | No | Storage key for generated CSV; null until READY. Files stored on the server filesystem under a configured export directory (`dataExport.storagePath`); object storage out of scope this phase |
@@ -479,6 +514,7 @@ All endpoints are **scoped to the authenticated user** (BR-016): job and saved-c
     "dateFrom": "2026-01-01",
     "dateTo": "2026-03-31",
     "labSectionIds": ["12", "15"],
+    "testIds": [],
     "sampleStatuses": ["FINISHED"],
     "resultStatuses": ["FINALIZED"],
     "priorities": [],
@@ -765,7 +801,7 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 - [ ] **[FR-3-003]** Row estimate is fetched automatically on reaching Step 3; loading skeleton shown while pending; warning shown if estimate fails; user can still submit
 - [ ] **[FR-3-004]** `InlineNotification` shows sync vs async routing based on threshold evaluation; estimated row count and wait time displayed
 - [ ] **[FR-3-005, BR-001]** Sync jobs (within configured thresholds) download immediately; async jobs return 202 and appear in queue with QUEUED status
-- [ ] **[FR-3-006]** Wizard resets to Step 1 with cleared selections after successful submission
+- [ ] **[FR-3-006]** Variables and filters survive submission, queue navigation, generation failure and retry
 - [ ] **[FR-6-001 – FR-6-012]** My Report Queue shows all user jobs; correct status `Tag` kinds per status; Download/Cancel/Retry/Re-run actions available per status; queue auto-polls every 15 seconds while active jobs exist; polling stops when no active jobs
 - [ ] **[FR-6-004]** Download does not change job status; repeat downloads permitted until expiry
 - [ ] **[FR-6-012]** READY/FAILED transition triggers an in-app banner even on other pages (app-shell poller); READY banner includes a download link
@@ -787,7 +823,7 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 
 ### Integration
 
-- [ ] **[OGC-70]** The `filterSpec` JSON schema and `selectedVariables` variable catalog are documented and stable — Catalyst Wizard Mode can consume these without breaking changes in a future phase
+- [ ] **[Integration boundary]** OpenELIS exports work with Catalyst and AI unavailable. Shared export APIs or a Catalyst wizard are not required for this release. Real cross-application sign-in and equivalent authorization are verified separately under the integration roadmap.
 - [ ] **[Patient Report Print Queue]** My Report Queue page follows identical `DataTable` architecture, controller path conventions, server-side preference persistence pattern, and status `Tag` kind conventions as Patient Report Print Queue
 - [ ] **[BR-008, Section 11]** `PiiAccessLog` entries created at job submission time for all jobs including PII variables; verified in database after test submission
 - [ ] **[Companion release]** Build containing OGC-479 without OGC-481 has async submission disabled (over-threshold requests rejected with guidance to narrow the range) — enforced only if the stories ever ship separately, which is not planned
@@ -825,3 +861,17 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 
 **CI gates:** `mvn spotless:check`, `mvn clean install`, Playwright suite — all green before merge to `develop`.
 
+
+
+### MVP mock acceptance checkpoint
+
+- [ ] Owner reviews the existing OpenELIS-styled wizard, saved choices and queue.
+- [ ] The selected-test, collection-period and result-status meaning is accepted.
+- [ ] Generate/retry/download and expired re-run preserve the intended choices;
+      loading configurations and expired jobs requires a fresh period.
+- [ ] Access examples and the fixture-only CSV limitation are understood.
+- [ ] Catalyst-side review and record-level parity remain outside the OpenELIS UI.
+
+Technical checks and a published mock are not owner acceptance or application
+implementation. The interactive HTML preview is the source for these mock paths;
+its in-memory timers represent queue behavior without implementing a worker.
