@@ -4,6 +4,7 @@
 **Version:** 1.2
 **Date:** 2026-09-10
 **Status:** Draft for Review
+**Next checkpoint:** [Design revision and implementation readiness](#14-design-revision-and-implementation-readiness) — plan recorded 2026-09-11; revised mock and owner acceptance pending.
 **Jira Stories:**
 - [OGC-479](https://uwdigi.atlassian.net/browse/OGC-479) — Custom Data Export: 3-step report builder wizard
 - [OGC-481](https://uwdigi.atlassian.net/browse/OGC-481) — My Report Queue: Async job queue
@@ -75,6 +76,7 @@ real-source parity and deployment remain separately recorded milestones.
 11. Security & Permissions
 12. Acceptance Criteria
 13. Testing Requirements
+14. Design Revision and Implementation Readiness
 
 ---
 
@@ -865,13 +867,139 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 
 ### MVP mock acceptance checkpoint
 
-- [ ] Owner reviews the existing OpenELIS-styled wizard, saved choices and queue.
-- [ ] The selected-test, collection-period and result-status meaning is accepted.
-- [ ] Generate/retry/download and expired re-run preserve the intended choices;
-      loading configurations and expired jobs requires a fresh period.
-- [ ] Access examples and the fixture-only CSV limitation are understood.
-- [ ] Catalyst-side review and record-level parity remain outside the OpenELIS UI.
+Continue with the [current design-readiness checkpoint](#14-design-revision-and-implementation-readiness).
+Its acceptance covers the wizard, saved choices, queue recovery, reporting meaning,
+access examples and fictional CSV limitation. Do not maintain a separate checklist here.
 
 Technical checks and a published mock are not owner acceptance or application
 implementation. The interactive HTML preview is the source for these mock paths;
 its in-memory timers represent queue behavior without implementing a worker.
+
+## 14. Design revision and implementation readiness
+
+**Goal:** Deliver a reviewed, implementation-ready OpenELIS reporting MVP design
+that supports an equal mix of new exports and rerunning familiar reports, while
+retaining configurable fields, OpenELIS styling and reliable recovery.
+
+**Status (2026-09-11):** The v1.2 mock/spec baseline is published. UX inspection
+identified the changes below; this section records the next work and its exit
+criteria. The interactive mock has not yet received those changes. Sections 1–13
+remain the baseline draft: revise their affected requirements, acceptance cases
+and localization entries together with the mock in checkpoint R2. A passing
+baseline test or this planning update does not approve the revised design.
+
+### Artifact ownership
+
+| Artifact | Responsibility |
+| --- | --- |
+| This specification, including section 14 | OpenELIS product requirements, this checkpoint's sequence, decisions and acceptance. Keep one progress register here. |
+| [Interactive mock](custom-data-export.html) and [fictional example helper](custom-data-export-example.js) | Current OpenELIS review experience and downloadable fictional CSV. |
+| [Carbon layout reference](custom-data-export.jsx) | Component reference, not a second accepted workflow. Align useful portions during R2; retire conflicting material with a successor pointer rather than leaving competing behavior. |
+| [Integration roadmap](https://github.com/pmanko/clinical-ai-validation-harness/blob/main/specs/openelis-reporting-catalyst-integration.md) | Cross-project milestones, source parity and shared-access decisions; links here for OpenELIS progress. |
+| [Catalyst integration design](https://github.com/DIGI-UW/catalyst-ai/blob/main/docs/specs/openelis-reporting-integration/spec.md) | Catalyst's independent connected-source workflow. OpenELIS screens stay in this repository. |
+
+### Delivery checkpoints
+
+| ID | Work and acceptance | Status |
+| --- | --- | --- |
+| R1 — Establish the implementation baseline | Inspect current OpenELIS code and relevant open/merged work for OGC-479, OGC-481 and OGC-483. Identify reusable components, duplicate efforts and missing behavior. Resolve product decisions that block the first implementation slice; record evidence and any owner decision here. | Pending |
+| R2 — Revise mock and specification together | Implement the UX changes below in the existing review surface and reconcile every affected requirement, acceptance case and localization entry. Both new and repeat-report journeys remain complete. Every old requirement is retained, amended with rationale or explicitly deferred. | Pending |
+| R3 — Validate and publish for review | Run focused browser journeys and existing repository tests/build. Inspect desktop and narrow screenshots, keyboard/focus, recovery and downloaded CSV. Publish through the existing gallery, verify the actual live source revision/assets, and provide usable review links. | Pending |
+| R4 — Review and hand off | Record owner review and resolve blocking findings. Prepare small implementation slices linked to the existing stories, with code ownership, dependencies and behavioral acceptance. The first slice needs no unresolved product assumptions. | Pending |
+
+The next mock revision must:
+
+- Give new exports and saved reports clear entry points. New exports retain three
+  steps; a saved setup opens at a fresh reporting period, with field editing available.
+- Make report type explicit before field selection; provide searchable fields,
+  sensible grouping and selected labels without removing permitted coverage.
+  Amend the all-expanded and implicit family-lock rules in FR-1-002/008/009.
+  Preserve incompatible-family prevention and explain it separately from permissions.
+- Keep the period, date basis, lab scope and active filters visible. Reveal less
+  common filters on request; retain their values. Empty dates must not display a
+  reversed-range error. Update FR-2-007 and the matching tests.
+- Provide direct Change actions from review, preserving input and returning to
+  review. Make Create CSV the primary action and saving a reusable setup optional;
+  distinguish its name from the generated file name. Reconcile FR-7 and its acceptance.
+- Clarify starting a new export versus continuing the retained draft. Keep Download,
+  Retry and Re-run understandable and reachable on narrow screens; preserve failure,
+  expiry and fresh-period behavior. Reconcile queue requirements and acceptance.
+- Use existing Carbon components/patterns, including keyboard-operable accordions,
+  visible focus and clear error associations. Keep preview-only controls separate
+  from the staff workflow. Reuse existing localization keys where appropriate.
+
+The rationale is to reveal relevant choices without reducing capability, following
+[Carbon form guidance](https://carbondesignsystem.com/patterns/forms-pattern/) and
+[progressive disclosure](https://www.nngroup.com/articles/progressive-disclosure/).
+Review editing follows the [check-answers pattern](https://design-system.service.gov.uk/patterns/check-answers/);
+accordion behavior follows [W3C guidance](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
+These guides inform the design; they do not establish usability with lab staff.
+
+### Decisions and implementation handoff
+
+Before declaring readiness, settle output row meaning (including BR-012's
+selection-dependent grain), date boundaries/timezone, status/correction handling,
+duplicates and missing values for the first complete export. Decide whether the
+Routine CSV entry point is replaced or retained. Resolve what the user sees when
+permissions change before execution or download, including BR-004's silent column
+omission. Validate proposed reuse and backend assumptions against actual OpenELIS
+code; do not infer implementation from this mock or invent a replacement data platform.
+
+Start implementation with one complete, bounded export journey that includes
+retrieval and failure recovery, then expand required coverage and saved-report
+capabilities in manageable slices. The seven-domain product scope remains required
+unless explicitly amended; the seven-column fictional example is not the whole MVP.
+Preserve the companion-release requirement for export generation and its queue.
+
+Each slice must name its existing story/owner or unassigned ownership, dependency,
+affected component, completion behavior and relevant tests. Record actual
+implementation, merge, deployment and acceptance separately when those stages begin.
+Detailed application tasks should live with their owning OpenELIS work, linked here.
+
+### Validation and completion
+
+Exercise new export creation, saved-setup reruns with fresh dates, review edits,
+empty/invalid periods, duplicate setup names, navigation with drafts, failed jobs,
+retries, expiry, restricted access and actual fictional CSV download. Check column
+values, row meaning and exclusions, not only counts. Recheck manual date entry;
+the prior browser inspection used the example shortcut after unreliable automated
+native-date input. Inspect desktop/narrow screenshots and keyboard interaction.
+Use the existing OpenELIS theme; this checkpoint does not add a dark theme.
+
+| Acceptance record | Current state |
+| --- | --- |
+| Revised mock/spec agreement and focused behavior checks | Pending R2/R3 |
+| Repository tests/build and verified live gallery revision | Pending R3 for the revised design |
+| Owner design review, including report meaning, access and fixture limitations | Pending R4 |
+| Implementation backlog and first-slice readiness | Pending R1/R4 |
+| Representative staff usability sessions | Not performed; arrange a small round if participants are available, otherwise record it as pending with the remaining usability uncertainty |
+| Application implementation, deployment and real-source parity | Outside this design-readiness goal; tracked separately |
+
+Completion requires R1–R4, a synchronized mock/spec, verified live preview, recorded
+owner acceptance and an actionable first implementation slice. Do not claim staff
+validation from automated checks. Keep raw screenshots, traces and session evidence
+outside Git; retain concise requirement rationale and validation outcomes here.
+
+OpenELIS continues to work without AI. Patient printing, Jasper replacement,
+scheduling and dashboards remain outside this goal. Catalyst's approved upgrade
+continues independently; shared sign-in, equivalent authorization and real-source
+CSV/Dataset parity remain requirements of the separate integration milestones.
+
+### Copyable goal
+
+```text
+Complete the OpenELIS reporting MVP design-revision and implementation-readiness
+checkpoint in DIGI-UW/openelis-work, designs/reports/custom-data-export.md section 14.
+Refresh current code, stories and PRs; then execute R1–R4. Update the existing
+interactive mock and spec together for equally usable new-export and saved-report
+paths, preserving OpenELIS/Carbon styling, full required field coverage, drafts,
+permissions and queue recovery. Resolve blocking product decisions, reconcile
+conflicting references, run the documented checks, publish and inspect the live
+gallery, and present it for owner review. Prepare small implementation slices
+against the existing stories, starting with a complete export/retrieval journey.
+Track progress in section 14 and link it from the harness integration roadmap.
+Finish with verified mock/spec agreement, recorded owner acceptance and a ready
+first implementation slice. Keep staff testing, production implementation and
+real-source integration acceptance separate; do not implement production APIs,
+authentication or data queries as part of this goal.
+```
