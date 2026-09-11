@@ -931,8 +931,9 @@ that supports an equal mix of new exports and rerunning familiar reports, while
 retaining configurable fields, OpenELIS styling and reliable recovery.
 
 **Status (2026-09-11):** The v1.3 mock and Sections 1–13 have been revised together
-on design PR #315. Browser validation, live gallery publication and owner acceptance
-remain pending. A passing automated check does not approve the revised design.
+on design PR #315, and local browser validation is complete. Live gallery
+publication and owner acceptance remain pending. Passing checks do not approve
+the revised design.
 
 ### Artifact ownership
 
@@ -1073,7 +1074,7 @@ still reports pre-existing duplicate-key warnings in unrelated designs.
 | Revised mock/spec agreement and focused behavior checks | Complete locally: landing, new/saved paths, field search, required dates, draft/sign-in recovery, queue actions and keyboard accordion checked |
 | Repository tests/build and verified live gallery revision | 268 gallery tests and production build pass; live revised gallery pending merge/deploy verification |
 | Owner design review, including report meaning, access and fixture limitations | Pending R4 |
-| Implementation backlog and first-slice readiness | Pending R1/R4 |
+| Implementation backlog and first-slice readiness | Slices A–E recorded; Slice A becomes implementation-ready after owner acceptance of the six decisions above |
 | Representative staff usability sessions | Not performed; arrange a small round if participants are available, otherwise record it as pending with the remaining usability uncertainty |
 | Application implementation, deployment and real-source parity | Outside this design-readiness goal; tracked separately |
 
