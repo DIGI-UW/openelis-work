@@ -326,6 +326,14 @@ labels: Download, Cancel, Retry or Re-run. Details and Delete remain secondary.
 builder state. New export starts a clean builder only after the user chooses that
 action; it MUST NOT silently reopen or silently discard the previous draft.
 
+**FR-6-014 (Return to export overview):** The sidebar's **Custom Data Export**
+item and a visible **Export overview** control in both the builder and queue MUST
+return to the reporting landing page. Returning preserves the current draft,
+including fields, filters, dates and step. **Continue current export** on the
+landing page resumes that draft; only **Start a new export** deliberately resets
+it. The return control MUST remain available when the sidebar is hidden, and
+keyboard users MUST be able to return and resume without losing focus.
+
 ### 4.7 Saved Report Configurations
 
 **FR-7-001:** The reporting landing page MUST show the current user's saved report settings by name, sorted most-recently-used first, beside the new-export entry point. Choosing **Use report** loads its report type, fields and non-date filters and opens Step 2 for a fresh reporting period. The user can return to Step 1 to edit fields. Dates are never saved or pre-populated.
@@ -867,6 +875,7 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 - [ ] **[FR-6-004]** Download does not change job status; repeat downloads permitted until expiry
 - [ ] **[FR-6-012]** READY/FAILED transition triggers an in-app banner even on other pages (app-shell poller); READY banner includes a download link
 - [ ] **[FR-6-013]** Continue current export restores the retained draft; New export deliberately starts clean
+- [ ] **[FR-6-014]** Return from the builder or queue to the export overview, including with a hidden sidebar; resume the same fields, dates and step, or load a saved report with fresh dates required
 - [ ] **[BR-006]** Jobs expire per configured retention days after completion; status transitions to EXPIRED; file no longer downloadable; Re-run option available
 - [ ] **[BR-010]** Submitting a job beyond the configured active-job limit returns HTTP 429 with `error.dataExport.jobLimitExceeded` displayed as `InlineNotification` kind `error`
 - [ ] **[BR-012]** SAMPLE_TESTING jobs with Test Results/TAT variables produce one row per test result per accession; Sample/Order-only jobs produce one row per accession; REFERRAL jobs one row per referred analysis; NON_CONFORMANCE jobs one row per NCE event

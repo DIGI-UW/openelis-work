@@ -61,6 +61,7 @@
       border-left: 3px solid transparent; transition: background 0.1s;
       text-decoration: none; position: relative;
     }
+    button.nav-item { width:100%; background:transparent; border-top:0; border-right:0; border-bottom:0; font-family:inherit; text-align:left; }
     .nav-item:hover { background: #353535; color: #fff; }
     .nav-item.active { background: #393939; color: #fff; border-left-color: #0f62fe; }
     .nav-item.section-header { font-weight: 600; color: #e0e0e0; }
@@ -488,14 +489,14 @@ function Sidebar({ activePage, onNav }) {
         <div className="nav-item" onClick={() => onNav('print-queue')}>
           Patient Report Print Queue
         </div>
-        <div className={`nav-item ${activePage === 'builder' ? 'active' : ''}`} onClick={() => onNav('builder')}>
+        <button type="button" className={`nav-item ${activePage === 'builder' ? 'active' : ''}`} onClick={() => onNav('builder')}>
           Custom Data Export
-          {activePage !== 'builder' && <span className="new-badge">NEW</span>}
-        </div>
-        <div className={`nav-item ${activePage === 'queue' ? 'active' : ''}`} onClick={() => onNav('queue')}>
+          {activePage !== 'builder' && <span className="new-badge" aria-hidden="true">NEW</span>}
+        </button>
+        <button type="button" className={`nav-item ${activePage === 'queue' ? 'active' : ''}`} onClick={() => onNav('queue')}>
           My Report Queue
-          {activePage !== 'queue' && <span className="new-badge">NEW</span>}
-        </div>
+          {activePage !== 'queue' && <span className="new-badge" aria-hidden="true">NEW</span>}
+        </button>
       </div>
 
       <hr className="sidebar-divider"/>
@@ -518,8 +519,8 @@ function StatusTag({ status }) {
 }
 
 // ─── Report Builder ───────────────────────────────────────────────────────────
-function ReportBuilder({ onGoToQueue, onSubmit, configs, setConfigs, restoreRequest, piiAccess, newExportToken }) {
-  const [mode, setMode] = useState('start');
+function ReportBuilder({ mode, setMode, onOverview, onGoToQueue, onSubmit, configs, setConfigs, restoreRequest, piiAccess, newExportToken }) {
+  const [draftStarted, setDraftStarted] = useState(false);
   const [step, setStep] = useState(1);
   const [reportType, setReportType] = useState(null);
   const [openDomains, setOpenDomains] = useState(new Set());
@@ -543,6 +544,7 @@ function ReportBuilder({ onGoToQueue, onSubmit, configs, setConfigs, restoreRequ
   const [message, setMessage] = useState('');
   const request = { vars:[...selected], startDate, endDate, labSection, test, resultStatus, sampleStatus, priority, referringSite };
   const applyRequest = choices => {
+    setDraftStarted(true);
     setSelected(new Set(choices.vars)); setStartDate(choices.startDate || ''); setEndDate(choices.endDate || '');
     const first = choices.vars && choices.vars.length ? VAR_LOOKUP[choices.vars[0]] : null;
     setReportType(first ? first.family : null);
@@ -551,6 +553,7 @@ function ReportBuilder({ onGoToQueue, onSubmit, configs, setConfigs, restoreRequ
     setMessage(''); setDateAttempted(false);
   };
   const startFresh = () => {
+    setDraftStarted(true);
     setMode('builder'); setStep(1); setReportType(null); setOpenDomains(new Set()); setSelected(new Set()); setFieldSearch('');
     setStartDate(''); setEndDate(''); setDateAttempted(false); setLabSection('Virology'); setTest(''); setResultStatus('All statuses');
     setSampleStatus('All statuses'); setPriority('All priorities'); setReferringSite(''); setExportName(''); setConfigName('');
@@ -657,7 +660,10 @@ function ReportBuilder({ onGoToQueue, onSubmit, configs, setConfigs, restoreRequ
           <h1 className="page-title">Custom Data Export</h1>
           <p className="page-subtitle">Create a CSV for a new question or rerun a familiar report for a new period.</p>
         </div>
-        <button className="btn-secondary" onClick={onGoToQueue}>My Report Queue →</button>
+        <div className="queue-actions">
+          {mode === 'builder' && <button className="btn-secondary" onClick={onOverview}>← Export overview</button>}
+          <button className="btn-secondary" onClick={onGoToQueue}>My Report Queue →</button>
+        </div>
       </div>
 
       <div className="page-body">
@@ -669,7 +675,10 @@ function ReportBuilder({ onGoToQueue, onSubmit, configs, setConfigs, restoreRequ
             <section className="start-card" aria-labelledby="new-export-title">
               <h2 id="new-export-title">Create a new export</h2>
               <p>Choose the kind of report, the fields you need, and a reporting period. Your work remains available if you visit the queue or need to sign in again.</p>
-              <button className="btn-primary" onClick={startFresh}>Start a new export</button>
+              <div className="queue-actions">
+                <button className="btn-primary" onClick={startFresh}>Start a new export</button>
+                {draftStarted && <button className="btn-secondary" autoFocus onClick={() => setMode('builder')}>Continue current export</button>}
+              </div>
             </section>
             <section className="start-card" aria-labelledby="saved-reports-title">
               <h2 id="saved-reports-title">Use a saved report</h2>
@@ -1013,7 +1022,7 @@ function ReportBuilder({ onGoToQueue, onSubmit, configs, setConfigs, restoreRequ
 }
 
 // ─── Report Queue ─────────────────────────────────────────────────────────────
-function ReportQueue({ onContinueDraft, onStartNew, rows, setRows, onRetry, onRerun }) {
+function ReportQueue({ onOverview, onContinueDraft, onStartNew, rows, setRows, onRetry, onRerun }) {
   const [expandedJob, setExpandedJob] = useState(null);
 
   const cancel = (id) => setRows(r => r.map(row => row.id === id ? {...row, status:'cancelled'} : row));
@@ -1028,6 +1037,7 @@ function ReportQueue({ onContinueDraft, onStartNew, rows, setRows, onRetry, onRe
           <p className="page-subtitle">View and download your queued CSV exports. Ready files are kept for 7 days (configurable).</p>
         </div>
         <div className="queue-actions">
+          <button className="btn-secondary" onClick={onOverview}>← Export overview</button>
           <button className="btn-secondary" onClick={onContinueDraft}>Continue current export</button>
           <button className="btn-primary" onClick={onStartNew}>New export</button>
         </div>
@@ -1114,6 +1124,7 @@ function ReportQueue({ onContinueDraft, onStartNew, rows, setRows, onRetry, onRe
 // ─── Root App ─────────────────────────────────────────────────────────────────
 function App() {
   const [page, setPage] = useState('builder');
+  const [builderMode, setBuilderMode] = useState('start');
   const [piiAccess, setPiiAccess] = useState(false);
   const [rows, setRows] = useState(QUEUE_ROWS);
   const [configs, setConfigs] = useState(SAVED_CONFIGS);
@@ -1135,8 +1146,11 @@ function App() {
   const startNew = () => { setRestoreRequest(null); setNewExportToken(value => value + 1); setPage('builder'); };
 
 
+  const showOverview = () => { setBuilderMode('start'); setPage('builder'); };
+  const continueDraft = () => { setBuilderMode('builder'); setPage('builder'); };
   const handleNav = (dest) => {
-    if (dest === 'builder' || dest === 'queue') setPage(dest);
+    if (dest === 'builder') showOverview();
+    else if (dest === 'queue') setPage('queue');
     // Other nav items are decorative in this preview
   };
 
@@ -1147,8 +1161,8 @@ function App() {
       <div className="app-body">
         <Sidebar activePage={page} onNav={handleNav}/>
         {access !== 'signed-in' && <main className="page-body"><h1>{access==='signed-out'?'Sign in to continue':'Reporting access is unavailable'}</h1><p>{access==='signed-out'?'Use your organization account. Your draft is retained.':'Contact your administrator to review your laboratory permissions.'}</p>{access==='signed-out'&&<button className="btn-primary" onClick={()=>setAccess('signed-in')}>Continue with organization account</button>}</main>}
-        <div className="product-view" style={{display:page==='builder'&&access==='signed-in'?'flex':'none'}}><ReportBuilder onGoToQueue={() => setPage('queue')} piiAccess={piiAccess} onSubmit={submit} configs={configs} setConfigs={setConfigs} restoreRequest={restoreRequest} newExportToken={newExportToken}/></div>
-        <div className="product-view" style={{display:page==='queue'&&access==='signed-in'?'flex':'none'}}><ReportQueue onContinueDraft={() => setPage('builder')} onStartNew={startNew} rows={rows} setRows={setRows} onRetry={submit} onRerun={rerun}/></div>
+        <div className="product-view" style={{display:page==='builder'&&access==='signed-in'?'flex':'none'}}><ReportBuilder mode={builderMode} setMode={setBuilderMode} onOverview={showOverview} onGoToQueue={() => setPage('queue')} piiAccess={piiAccess} onSubmit={submit} configs={configs} setConfigs={setConfigs} restoreRequest={restoreRequest} newExportToken={newExportToken}/></div>
+        <div className="product-view" style={{display:page==='queue'&&access==='signed-in'?'flex':'none'}}><ReportQueue onOverview={showOverview} onContinueDraft={continueDraft} onStartNew={startNew} rows={rows} setRows={setRows} onRetry={submit} onRerun={rerun}/></div>
       </div>
     </div>
   );
