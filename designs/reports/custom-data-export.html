@@ -136,8 +136,6 @@
     .type-card.selected { outline:2px solid #0f62fe; outline-offset:-2px; background:#edf5ff; }
     .type-card strong { display:block; font-size:0.875rem; margin-bottom:0.375rem; }
     .type-card span { display:block; font-size:0.75rem; color:#525252; line-height:1.45; }
-    .field-tools { display:flex; gap:0.75rem; align-items:end; margin-bottom:1rem; flex-wrap:wrap; }
-    .field-tools .form-group { flex:1; min-width:220px; }
     .more-filters { margin-top:1rem; border-top:1px solid #e0e0e0; padding-top:1rem; }
     .filter-summary { font-size:0.75rem; color:#525252; margin-left:0.5rem; }
     .review-heading { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:0.5rem; }
@@ -149,21 +147,52 @@
     .btn-table:hover { filter:brightness(0.96); }
     .queue-detail td { background:#f4f4f4 !important; color:#525252; }
 
-    /* ── PII badge ── */
-    .pii-badge {
-      font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 8px;
-      letter-spacing: 0.05em; text-transform: uppercase;
-      background: #fff0f0; color: #da1e28; border: 1px solid #ffb3b8;
-      cursor: help;
+    /* Column builder: the selected list is also the CSV output order. */
+    .column-builder { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:24px; align-items:start; background:#fff; padding:24px; border:1px solid #e0e0e0; }
+    .column-builder h2,.column-preview h2 { font-size:1rem; margin:0 0 8px; font-weight:600; }
+    .field-browser,.columns-pane { min-width:0; }
+    .columns-pane { padding-left:24px; border-left:1px solid #e0e0e0; position:sticky; top:16px; max-height:calc(100dvh - 160px); overflow:auto; }
+    .field-search { margin:16px 0 12px; }
+    .field-search .form-input { font-size:16px; }
+    .field-groups { display:flex; gap:2px; flex-wrap:wrap; margin-bottom:16px; }
+    .field-groups button,.column-mobile-nav button { font:inherit; background:transparent; border:0; border-bottom:2px solid transparent; padding:8px; cursor:pointer; font-size:0.75rem; color:#525252; }
+    .field-groups button[aria-pressed=true],.column-mobile-nav button[aria-pressed=true] { border-bottom-color:#0f62fe; color:#161616; font-weight:600; }
+    .field-groups button:hover,.column-actions button:hover,.field-add:hover { background:#f4f4f4; }
+    .field-domain { margin-top:20px; }
+    .field-domain-heading { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    .field-domain-heading h3 { font-size:0.8125rem; font-weight:600; margin:0; }
+    .field-domain-heading button { font-size:0.75rem; }
+    .column-hint { font-size:0.75rem; color:#525252; line-height:1.5; margin:6px 0 12px; }
+    .available-field-list,.selected-columns { list-style:none; padding:0; margin:8px 0 0; }
+    .available-field-list li { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:56px; border-bottom:1px solid #e0e0e0; font-size:0.875rem; }
+    .field-add { color:#0f62fe; background:transparent; border:0; padding:10px 8px; font:inherit; font-size:0.8125rem; cursor:pointer; white-space:nowrap; }
+    .field-add[aria-disabled=true] { color:#6f6f6f; cursor:default; }
+    .selected-columns li { display:grid; grid-template-columns:18px minmax(0,1fr) auto; gap:8px; align-items:center; min-height:56px; padding:8px 0; border-bottom:1px solid #e0e0e0; }
+    .column-number { color:#6f6f6f; font-size:0.75rem; }
+    .column-name { font-size:0.875rem; overflow-wrap:anywhere; }
+    .column-actions { display:flex; }
+    .column-actions button { border:0; background:transparent; color:#161616; font:inherit; padding:4px; width:28px; min-height:36px; cursor:pointer; }
+    .column-actions button[aria-disabled=true] { color:#8d8d8d; cursor:default; }
+    .column-empty { color:#525252; font-size:0.875rem; padding:20px 0; }
+    .column-feedback { min-height:20px; margin:8px 0 16px; color:#525252; font-size:0.75rem; }
+    .column-preview { background:#fff; border:1px solid #e0e0e0; padding:20px; }
+    .column-preview-scroll { overflow-x:auto; }
+    .column-preview table { width:100%; border-collapse:collapse; text-align:left; font-size:0.8125rem; }
+    .column-preview th,.column-preview td { min-width:130px; padding:12px; border-bottom:1px solid #e0e0e0; }
+    .column-preview th { background:#f4f4f4; font-weight:600; }
+    .review-columns { padding-left:24px; font-size:0.875rem; }
+    .review-columns li { padding:4px 0; }
+    .column-mobile-nav { display:none; }
+    @media(max-width:1050px) { .column-builder { padding:16px; gap:16px; } .columns-pane { padding-left:16px; } }
+    @media(max-width:700px) {
+      .column-mobile-nav { display:flex; border-bottom:1px solid #c6c6c6; margin-bottom:12px; }
+      .column-mobile-nav button { flex:1; font-size:0.875rem; min-height:44px; }
+      .column-builder { display:block; }
+      .columns-pane { padding:0; border:0; position:static; max-height:none; overflow:visible; }
+      .column-builder[data-view=browse] .columns-pane,.column-builder[data-view=columns] .field-browser { display:none; }
+      .column-actions button { min-width:40px; min-height:44px; }
+      .column-preview { padding:16px; }
     }
-    .var-count-badge { font-size: 10px; background: #dde1e7; color: #697077; padding: 2px 7px; border-radius: 8px; font-weight: 600; }
-    .var-count-badge.has-sel { background: #0f62fe; color: #fff; }
-
-    /* ── Variable grid ── */
-    .var-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.5rem; }
-    .var-check { display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.25rem; }
-    .var-check input[type=checkbox] { margin-top: 2px; cursor: pointer; flex-shrink: 0; accent-color: #0f62fe; }
-    .var-check label { font-size: 0.8125rem; color: #161616; cursor: pointer; line-height: 1.4; }
 
     /* ── Filter panel ── */
     .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
@@ -277,6 +306,7 @@
 
     .locked-banner { display: flex; align-items: center; gap: 0.75rem; }
     .locked-banner .btn-ghost-sm { flex-shrink: 0; }
+    @media(max-width:700px) { .locked-banner { flex-wrap:wrap; } .locked-banner > div { min-width:240px; } .locked-banner .btn-ghost-sm { margin-left:24px; } }
     .product-view { flex:1; min-width:0; }
     .review-controls { display:flex; flex-wrap:wrap; gap:12px; align-items:center; padding:8px 16px; background:#e0e0e0; color:#161616; font-size:12px; }
     .review-controls label { display:flex; gap:8px; align-items:center; }
@@ -522,7 +552,10 @@ function StatusTag({ status }) {
 function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOverview, onGoToQueue, onSubmit, configs, setConfigs, restoreRequest, piiAccess, newExportToken }) {
   const [step, setStep] = useState(1);
   const [reportType, setReportType] = useState(null);
-  const [openDomains, setOpenDomains] = useState(new Set());
+  const [activeDomain, setActiveDomain] = useState('all');
+  const [columnView, setColumnView] = useState('browse');
+  const [columnMessage, setColumnMessage] = useState('');
+  const columnFocus = React.useRef(null);
   const [selected, setSelected] = useState(new Set());
   const [fieldSearch, setFieldSearch] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -549,14 +582,14 @@ function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOvervie
     setReportType(first ? first.family : null);
     setLabSection(choices.labSection || 'Virology'); setTest(choices.test || ''); setResultStatus(choices.resultStatus || 'All statuses');
     setSampleStatus(choices.sampleStatus || 'All statuses'); setPriority(choices.priority || 'All priorities'); setReferringSite(choices.referringSite || '');
-    setMessage(''); setDateAttempted(false);
+    setMessage(''); setDateAttempted(false); setColumnMessage(''); setColumnView('browse'); setFieldSearch(''); setActiveDomain('all');
   };
   const startFresh = () => {
     setDraftStarted(true);
-    setMode('builder'); setStep(1); setReportType(null); setOpenDomains(new Set()); setSelected(new Set()); setFieldSearch('');
+    setMode('builder'); setStep(1); setReportType(null); setActiveDomain('all'); setSelected(new Set()); setFieldSearch('');
     setStartDate(''); setEndDate(''); setDateAttempted(false); setLabSection('Virology'); setTest(''); setResultStatus('All statuses');
     setSampleStatus('All statuses'); setPriority('All priorities'); setReferringSite(''); setExportName(''); setConfigName('');
-    setSaveForLater(false); setShowSaveSuccess(false); setMoreFiltersOpen(false); setMessage('');
+    setSaveForLater(false); setShowSaveSuccess(false); setMoreFiltersOpen(false); setMessage(''); setColumnMessage(''); setColumnView('browse');
   };
   useEffect(() => { if (newExportToken > 0) startFresh(); }, [newExportToken]);
   useEffect(() => { if (restoreRequest) { applyRequest(Example.restore(restoreRequest)); setMode('builder'); setStep(2); setMessage('Selections restored. Choose a new reporting period.'); } }, [restoreRequest]);
@@ -569,37 +602,49 @@ function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOvervie
     if (selected.size > 0 && family !== reportType) return;
     setReportType(family);
     const firstDomain = DOMAINS.find(d => d.family === family);
-    setOpenDomains(new Set(firstDomain ? [firstDomain.id] : []));
+    setActiveDomain(firstDomain ? firstDomain.id : 'all');
     setFieldSearch('');
   };
 
-  const toggleDomain = (id) => {
-    const next = new Set(openDomains);
-    next.has(id) ? next.delete(id) : next.add(id);
-    setOpenDomains(next);
+  const isDomainPiiLocked = domain => domain.pii && !piiAccess;
+  const isDomainLocked = domain => domain.family !== activeFamily || isDomainPiiLocked(domain);
+  useEffect(() => {
+    if (columnFocus.current) {
+      document.getElementById(columnFocus.current)?.focus();
+      columnFocus.current = null;
+    }
+  }, [selected, columnView]);
+
+  const addField = key => {
+    const domain = DOMAINS.find(d => d.vars.some(v => v.key === key));
+    if (selected.has(key) || isDomainLocked(domain)) return;
+    const next = new Set(selected); next.add(key); setSelected(next);
+    setColumnMessage(`${VAR_LOOKUP[key].label} added. ${next.size} columns.`);
   };
-
-  const isDomainFamilyLocked = (d) => activeFamily !== null && d.family !== activeFamily;
-  const isDomainPiiLocked = (d) => d.pii && !piiAccess;
-  const isDomainLocked = (d) => isDomainFamilyLocked(d) || isDomainPiiLocked(d);
-
-  const toggleVar = (key) => {
-    const meta = VAR_LOOKUP[key];
-    const domain = DOMAINS.find(d => d.id && d.vars.some(v => v.key === key));
-    if (!selected.has(key) && isDomainLocked(domain)) return; // guarded (checkbox also disabled)
-    const next = new Set(selected);
-    next.has(key) ? next.delete(key) : next.add(key);
-    setSelected(next);
+  const removeField = key => {
+    const keys = [...selected], index = keys.indexOf(key);
+    const next = new Set(selected); next.delete(key); setSelected(next);
+    const nextKey = [...next][Math.min(index, next.size - 1)];
+    columnFocus.current = nextKey ? `remove-column-${nextKey}` : 'field-search';
+    if (!next.size) setColumnView('browse');
+    setColumnMessage(`${VAR_LOOKUP[key].label} removed. ${next.size} columns.`);
   };
-
-  const toggleAllDomain = (domain) => {
-    if (isDomainLocked(domain)) return;
-    const keys = domain.vars.map(v => v.key);
-    const allSel = keys.every(k => selected.has(k));
+  const moveField = (key, direction) => {
+    const keys = [...selected], from = keys.indexOf(key), to = from + direction;
+    if (to < 0 || to >= keys.length) return;
+    [keys[from], keys[to]] = [keys[to], keys[from]];
+    setSelected(new Set(keys));
+    columnFocus.current = `move-${direction < 0 ? 'up' : 'down'}-${key}`;
+    setColumnMessage(`${VAR_LOOKUP[key].label} moved to column ${to + 1}.`);
+  };
+  const changeShownFields = domain => {
+    const allAdded = domain.vars.every(v => selected.has(v.key));
+    if (!allAdded && isDomainLocked(domain)) return;
     const next = new Set(selected);
-    if (allSel) keys.forEach(k => next.delete(k));
-    else keys.forEach(k => next.add(k));
+    const changedCount = domain.vars.filter(v => allAdded || !selected.has(v.key)).length;
+    domain.vars.forEach(v => allAdded ? next.delete(v.key) : next.add(v.key));
     setSelected(next);
+    setColumnMessage(`${changedCount} shown fields ${allAdded ? 'removed' : 'added'}. ${next.size} columns.`);
   };
 
   const loadConfig = (id) => {
@@ -642,12 +687,13 @@ function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOvervie
 
   const hasTestResultVars = [...selected].some(k => VAR_LOOKUP[k].domain === 'Test Results');
 
-  const steps = ['Select Variables', 'Set Filters', 'Review & Submit'];
-  const selectedVarList = DOMAINS.flatMap(d => d.vars.filter(v => selected.has(v.key)).map(v => ({ ...v, domain: d.label })));
-  const visibleDomains = DOMAINS.filter(d => d.family === reportType).map(d => ({
+  const steps = ['Choose columns', 'Set Filters', 'Review & Submit'];
+  const selectedVarList = [...selected].map(key => VAR_LOOKUP[key]);
+  const visibleDomains = DOMAINS.filter(d => d.family === reportType && (fieldSearch.trim() || activeDomain === 'all' || activeDomain === d.id)).map(d => ({
     ...d,
     vars: d.vars.filter(v => !fieldSearch.trim() || v.label.toLowerCase().includes(fieldSearch.trim().toLowerCase()))
   })).filter(d => d.vars.length > 0);
+  const previewRows = selected.size > 0 && [...selected].every(key => Example.fields.includes(key)) ? Example.select(Example.august).slice(0, 2) : [];
   const activeExtraFilters = [sampleStatus !== 'All statuses' ? sampleStatus : '', priority !== 'All priorities' ? priority : '', referringSite].filter(Boolean);
 
 
@@ -716,7 +762,7 @@ function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOvervie
         {/* ── Step 1: Variable Selection ── */}
         {step === 1 && (
           <>
-            <h2 style={{fontSize:'1rem',margin:'1.25rem 0 0.5rem'}}>What kind of information do you need?</h2>
+            {selected.size === 0 && <><h2 style={{fontSize:'1rem',margin:'1.25rem 0 0.5rem'}}>What kind of information do you need?</h2>
             <p style={{fontSize:'0.8125rem',color:'#525252',margin:'0 0 1rem'}}>Choose one report type so every CSV row has a clear meaning. You can change the type until you select fields.</p>
             <div className="type-grid" role="radiogroup" aria-label="Report type">
                 {Object.keys(FAMILY_META).map(fid => (
@@ -727,6 +773,7 @@ function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOvervie
                 ))}
             </div>
 
+            </>}
             {!reportType ? (
               <div className="inline-notification info">
                 <span>ℹ️</span>
@@ -736,71 +783,66 @@ function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOvervie
               <div className="inline-notification info locked-banner">
                 <span>ℹ️</span>
                 <div style={{flex:1}}>You're building a <strong>{FAMILY_LABELS[reportType]}</strong> report. Fields with identifying data require additional permission.</div>
-                {selected.size > 0 && <button className="btn-ghost-sm" onClick={() => {setSelected(new Set()); setReportType(null); setOpenDomains(new Set());}}>Change type and clear fields</button>}
+                {selected.size > 0 && <button className="btn-ghost-sm" onClick={() => {setSelected(new Set()); setReportType(null); setActiveDomain('all');}}>Change type and clear fields</button>}
               </div>
             )}
 
-            {reportType && <div className="field-tools">
-              <div className="form-group"><label htmlFor="field-search">Find a field</label><input id="field-search" className="form-input" type="search" placeholder="Search fields…" value={fieldSearch} onChange={e=>setFieldSearch(e.target.value)}/></div>
-              <span style={{fontSize:'0.75rem',color:'#525252'}}>{visibleDomains.reduce((sum,d)=>sum+d.vars.length,0)} matching fields</span>
-            </div>}
-
-            {/* Selection summary — labels + count (Constitution II) */}
-            {selected.size > 0 && (
-              <div className="sel-summary">
-                <span className={`family-chip ${FAMILY_META[activeFamily].chipClass}`}>{FAMILY_LABELS[activeFamily]} export</span>
-                <span className="sel-count">{selected.size} variable{selected.size !== 1 ? 's' : ''} selected:</span>
-                {selectedVarList.map(v => (
-                  <span className="sel-tag" key={v.key}>
-                    {v.label}
-                    <button title={`Remove ${v.label}`} onClick={() => toggleVar(v.key)}>✕</button>
-                  </span>
-                ))}
+            {reportType && <>
+              <div className="column-mobile-nav" role="group" aria-label="Column builder views">
+                <button type="button" aria-pressed={columnView === 'browse'} onClick={() => setColumnView('browse')}>Available fields</button>
+                <button type="button" aria-pressed={columnView === 'columns'} onClick={() => setColumnView('columns')}>Your columns ({selected.size})</button>
               </div>
-            )}
-
-            {visibleDomains.map(domain => {
-              const fullDomain = DOMAINS.find(d => d.id === domain.id);
-              const domainSelCount = fullDomain.vars.filter(v => selected.has(v.key)).length;
-              const familyLocked = isDomainFamilyLocked(domain);
-              const piiLocked = isDomainPiiLocked(domain);
-              const locked = familyLocked || piiLocked;
-              const isOpen = (!!fieldSearch.trim() || openDomains.has(domain.id)) && !locked;
-              return (
-                <div className={`card family-${domain.family} ${locked ? 'locked' : ''}`} key={domain.id}>
-                  <button type="button" className="card-header" aria-expanded={isOpen} aria-controls={`domain-${domain.id}`}
-                    disabled={locked} onClick={() => !locked && toggleDomain(domain.id)}>
-                    <div className="card-title">
-                      {locked && <span title={familyLocked
-                        ? `Not available with ${FAMILY_LABELS[activeFamily]} variables — an export draws from one data family at a time`
-                        : `Requires Data Export PII ${domain.pii === 'DEMOGRAPHICS' ? 'Demographics' : 'Identifiers'} permission`}>🔒</span>}
-                      {domain.label}
-                      <span className={`family-chip ${FAMILY_META[domain.family].chipClass}`}>{FAMILY_LABELS[domain.family]}</span>
-                      {domain.pii && <span className="pii-badge" title="Contains patient-identifying data. Additional access is required and exports are audited.">Identifying data</span>}
-                      <span className={`var-count-badge ${domainSelCount > 0 ? 'has-sel' : ''}`}>{domainSelCount}/{fullDomain.vars.length}</span>
-                      {familyLocked && <span className="lock-note">Not available with {FAMILY_LABELS[activeFamily]} variables</span>}
-                      {!familyLocked && piiLocked && <span className="lock-note">Requires additional identifying-data access</span>}
-                    </div>
-                    <span style={{color:'#8d8d8d',fontSize:'12px'}}>{isOpen ? '▲' : '▼'}</span>
-                  </button>
-                  {isOpen && (
-                    <div className="card-body" id={`domain-${domain.id}`}>
-                      <button className="btn-ghost-sm" style={{fontSize:'11px',padding:'2px 8px',marginBottom:'0.75rem'}} onClick={() => toggleAllDomain(domain)}>
-                        {domain.vars.every(v => selected.has(v.key)) ? 'Deselect all shown' : 'Select all shown'}
-                      </button>
-                      <div className="var-grid">
-                        {domain.vars.map(v => (
-                          <div key={v.key} className="var-check">
-                            <input type="checkbox" id={v.key} checked={selected.has(v.key)} disabled={locked} onChange={() => toggleVar(v.key)}/>
-                            <label htmlFor={v.key}>{v.label}</label>
-                          </div>
-                        ))}
+              <div className="column-builder" data-view={columnView}>
+                <section className="field-browser" aria-labelledby="available-fields-title">
+                  <h2 id="available-fields-title">Available fields</h2>
+                  <div className="form-group field-search"><label htmlFor="field-search">Find a field</label><input id="field-search" className="form-input" type="search" placeholder="Search fields…" value={fieldSearch} onChange={e => setFieldSearch(e.target.value)}/></div>
+                  <div className="field-groups" role="group" aria-label="Field groups">
+                    <button type="button" aria-pressed={activeDomain === 'all'} onClick={() => {setActiveDomain('all'); setFieldSearch('');}}>All fields</button>
+                    {DOMAINS.filter(d => d.family === reportType).map(d => <button type="button" key={d.id} aria-pressed={activeDomain === d.id} onClick={() => {setActiveDomain(d.id); setFieldSearch('');}}>{d.label}</button>)}
+                  </div>
+                  {fieldSearch.trim() && <p className="column-hint">{visibleDomains.reduce((sum,d) => sum+d.vars.length,0)} matching fields across this report type</p>}
+                  {visibleDomains.map(domain => {
+                    const locked = isDomainLocked(domain);
+                    const allAdded = domain.vars.every(v => selected.has(v.key));
+                    return <section className="field-domain" key={domain.id} aria-labelledby={`domain-title-${domain.id}`}>
+                      <div className="field-domain-heading"><h3 id={`domain-title-${domain.id}`}>{domain.label}</h3>
+                        {(!locked || allAdded) && <button className="btn-link" type="button" aria-label={`${allAdded ? 'Remove' : 'Add'} all shown ${domain.label} fields`} onClick={() => changeShownFields(domain)}>{allAdded ? 'Remove shown' : 'Add all shown'}</button>}
                       </div>
-                    </div>
-                  )}
+                      {domain.pii && <p className="column-hint">Identifying data{locked ? ' · Additional access required. Contact your administrator.' : ' · Exports are audited.'}</p>}
+                      <ul className="available-field-list">
+                        {domain.vars.map(v => <li key={v.key}><span>{v.label}</span><button type="button" className="field-add" aria-label={`${selected.has(v.key) ? 'Added' : 'Add'} ${v.label}`} aria-disabled={locked || selected.has(v.key)} onClick={() => addField(v.key)}>{selected.has(v.key) ? 'Added' : locked ? 'Restricted' : '+ Add'}</button></li>)}
+                      </ul>
+                    </section>;
+                  })}
+                  {!visibleDomains.length && <p className="column-empty">No fields match your search.</p>}
+                </section>
+                <section className="columns-pane" aria-labelledby="your-columns-title">
+                  <h2 id="your-columns-title">Your CSV columns ({selected.size})</h2>
+                  <p className="column-hint">Columns appear in this order. Use the arrows to rearrange them.</p>
+                  <ol className="selected-columns" aria-label="CSV columns in order">
+                    {selectedVarList.map((v,index) => <li key={v.key}>
+                      <span className="column-number" aria-hidden="true">{index + 1}</span><span className="column-name">{v.label}</span>
+                      <div className="column-actions">
+                        <button type="button" id={`move-up-${v.key}`} aria-label={`Move ${v.label} up`} aria-disabled={index === 0} onClick={() => moveField(v.key,-1)}>↑</button>
+                        <button type="button" id={`move-down-${v.key}`} aria-label={`Move ${v.label} down`} aria-disabled={index === selectedVarList.length-1} onClick={() => moveField(v.key,1)}>↓</button>
+                        <button type="button" id={`remove-column-${v.key}`} aria-label={`Remove ${v.label}`} onClick={() => removeField(v.key)}>×</button>
+                      </div>
+                    </li>)}
+                  </ol>
+                  {!selected.size && <p className="column-empty">Add fields to build your CSV.</p>}
+                </section>
+              </div>
+              <p className="column-feedback" role="status" aria-live="polite">{columnMessage}</p>
+              {selected.size > 0 && <section className="column-preview" aria-labelledby="column-preview-title">
+                <h2 id="column-preview-title">CSV preview</h2>
+                <p className="column-hint">{previewRows.length ? 'Fictional August virology examples. Choose your reporting period and filters next.' : 'Column layout only. Fictional sample rows are available for the seven virology example fields.'}</p>
+                <div className="column-preview-scroll" tabIndex="0" role="region" aria-label="Scrollable CSV preview">
+                  <table aria-label="CSV column preview"><thead><tr>{selectedVarList.map(v => <th scope="col" key={v.key}>{v.label}</th>)}</tr></thead>
+                    <tbody>{previewRows.map((row,index) => <tr key={index}>{selectedVarList.map(v => <td key={v.key}>{row[v.key]}</td>)}</tr>)}</tbody>
+                  </table>
                 </div>
-              );
-            })}
+              </section>}
+            </>}
 
             <div className="action-bar">
               <button className="btn-primary" disabled={selected.size === 0}
@@ -943,16 +985,7 @@ function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOvervie
                 </div>
                 <div className="review-section">
                   <div className="review-heading"><h4>Selected Fields ({selectedVarList.length})</h4><button className="btn-link" onClick={() => setStep(1)}>Change</button></div>
-                  {DOMAINS.map(d => {
-                    const dVars = selectedVarList.filter(v => v.domain === d.label);
-                    if (dVars.length === 0) return null;
-                    return (
-                      <div key={d.id} style={{marginBottom:'0.5rem'}}>
-                        <div style={{fontSize:'0.75rem',color:'#525252',marginBottom:'3px',fontWeight:'600'}}>{d.label}</div>
-                        {dVars.map(v => <span key={v.key} className="var-pill">{v.label}</span>)}
-                      </div>
-                    );
-                  })}
+                  <ol className="review-columns" aria-label="CSV columns in order">{selectedVarList.map(v => <li key={v.key}>{v.label}</li>)}</ol>
                 </div>
               </div>
             </div>
@@ -973,7 +1006,7 @@ function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOvervie
                 <input type="checkbox" checked={saveForLater} onChange={e=>setSaveForLater(e.target.checked)}/>
                 Save these report settings for later
               </label>
-              <p style={{marginTop:'0.5rem'}}>Saved report settings include fields and filters. You choose a fresh reporting period each time.</p>
+              <p style={{marginTop:'0.5rem'}}>Saved report settings include fields, column order and filters. You choose a fresh reporting period each time.</p>
               {showSaveSuccess && (
                 <div className="inline-notification success" style={{marginBottom:'0.75rem'}}>
                   ✅ Configuration "<strong>{configName || 'My Config'}</strong>" saved.

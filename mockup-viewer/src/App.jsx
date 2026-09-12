@@ -2243,7 +2243,7 @@ export const MOCKUP_REGISTRY = [
     name: 'Custom Data Export',
     category: 'reports',
     component: React.lazy(() => import('@designs/reports/custom-data-export.jsx')),
-    description: 'OpenELIS CSV reporting design with equal new-export and saved-report entry paths, an explicit report type, searchable fields, progressive filters, review changes, responsive queue recovery and a fictional virology CSV. v1.3 design-readiness review; independent of Catalyst and AI.',
+    description: 'OpenELIS CSV reporting design with equal new-export and saved-report entry paths, an explicit report type, paired field browser and ordered CSV columns, progressive filters, review changes, responsive queue recovery and a fictional virology CSV. v1.4 design-readiness review; independent of Catalyst and AI.',
     specPath: 'designs/reports/custom-data-export.md',
     htmlUrl: 'designs/reports/custom-data-export.html',
     added: '2026-03-25',

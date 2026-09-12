@@ -16,17 +16,19 @@ describe('fictional OpenELIS export example', () => {
     const config=example.configuration(example.august);
     expect(config).not.toHaveProperty('startDate');
     expect(example.restore(config)).toMatchObject({startDate:'',endDate:'',test:'HIV viral load'});
+    const reordered = {...example.august,vars:['resultValue','accessionNumber']};
+    expect(example.restore(example.configuration(reordered)).vars).toEqual(reordered.vars);
     config.vars.pop();
     expect(example.august.vars).toHaveLength(7);
     expect(example.dateError(example.restore(config))).toContain('both');
     expect(example.dateError({...example.august,endDate:'2026-07-31'})).toContain('on or after');
     expect(example.dateError({...example.august,endDate:'2026-12-31'})).toContain('90 days');
   });
-  it('exports canonical column order, an Excel BOM, quoted text and blank cells without pretending unsupported fields exist', () => {
+  it('exports requested column order, an Excel BOM, quoted text and blank cells without pretending unsupported fields exist', () => {
     const csv=example.csv({...example.august,vars:['resultValue','accessionNumber']});
     expect(csv.split('\r\n')).toHaveLength(7);
-    expect(csv.startsWith('\uFEFF"Accession Number","Result Value"\r\n')).toBe(true);
-    expect(csv).toContain('"DEMO-0824",""');
+    expect(csv.startsWith('\uFEFF"Result Value","Accession Number"\r\n')).toBe(true);
+    expect(csv).toContain('"","DEMO-0824"');
     expect(example.limitation({...example.august,vars:['patientName']})).toContain('seven monthly');
     expect(example.limitation({...example.august,priority:'Urgent'})).toContain('no sample-status');
     expect(example.limitation(example.august)).toBe('');
