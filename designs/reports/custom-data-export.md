@@ -79,7 +79,7 @@ and the full field/permission coverage remain required.
 | # | Change | Sections |
 |---|---|---|
 | 1 | **Grain families introduced.** Variable domains are grouped into three mutually exclusive grain families (Sample & Testing, Referrals, Non-Conformance). An export draws from exactly one family; the wizard locks the others once a selection is made. Replaces the v1.0 free-mix model and BR-012's partial join rules. | 4.1, 5, 8 (BR-012, BR-015), 10, 12 |
-| 2 | **Quality Control domain removed.** OpenELIS Global has no structured QC data model to back it. Deferred to a follow-up story dependent on a QC data model. | 4.1, 5, 9 |
+| 2 | **Quality Control domain removed.** Deferred from the seven-domain MVP. The original no-model rationale is superseded by the 2026-09-12 code audit below; export mapping and its separate review remain outstanding. | 4.1, 5, 9 |
 | 3 | **Selections show labels, never just a count** (Constitution II amendment, 2026-07-09). Step 1 originally used dismissible tags (replaced by the labeled, ordered column list in v1.4); all filter MultiSelects retain selected-value tags. | 4.1, 4.2, 12 |
 | 4 | **Duplicate saved-config name = confirm & overwrite** (resolves v1.0 FR/AC contradiction in favor of FR-7-002). | 4.7, 9, 12 |
 | 5 | **Thresholds live in the existing General Configuration → Printed Reports Configuration admin page.** No new admin page. All limits (sync row/date thresholds, max date range, active job limit, saved-config limit, retention days) are named configuration properties. | 4.5, 8 |
@@ -115,7 +115,7 @@ and the full field/permission coverage remain required.
 
 The Custom Data Export feature gives authorized laboratory staff a self-service tool to extract structured CSV data from OpenELIS Global without requiring LLM configuration or DBA intervention. Users select from a curated catalog of variables within one of three **grain families** — Sample & Testing, Referrals, or Non-Conformance — apply date range and lab section filters, and receive an estimated row count before submission. Small reports download immediately; large reports are processed asynchronously via a personal report queue with download notification. OpenELIS reporting is delivered independently of Catalyst and AI. Catalyst independently queries its configured OpenELIS source; reuse of this export schema, variable catalog or queue is not an integration prerequisite. Shared organizational sign-in and equivalent lab-unit/identifying-field authorization require separate implementation; there is no application link, embedded Catalyst UI or report-criteria transfer in the agreed integration design.
 
-**Out of scope (v1.1):** A Quality Control export domain was removed from this specification because OpenELIS Global does not currently have a structured QC data model to back it. It will be specified in a follow-up story once a QC data model exists.
+**Out of scope:** Quality Control export remains a separate follow-on to the approved seven-domain MVP. Current OpenELIS code now includes a QC model; the earlier claim that none exists is superseded. Its export fields, row meaning and access mapping still require a separate design review before adding a QC grain family.
 
 ---
 
@@ -551,7 +551,7 @@ The following variable keys are valid values in the `selectedVariables` JSON arr
 | rejectionStage | Rejection Stage | Pre-analytical / Analytical / Post-analytical |
 | rejectedBy | Rejected By | Display name |
 
-> **Removed in v1.1:** the QUALITY_CONTROL domain (qcLotNumber, qcTestName, qcResultValue, qcPassFail, qcDate, analyzerInstrument, qcTechnician). OpenELIS Global has no structured QC entity model to back these variables. A follow-up story will reintroduce a QC grain family when a QC data model exists.
+> **Deferred from this MVP:** the QUALITY_CONTROL domain (qcLotNumber, qcTestName, qcResultValue, qcPassFail, qcDate, analyzerInstrument, qcTechnician). Current OpenELIS has `QCResult` and `QCControlLot` entities; the old no-model rationale is retired. Mapping these proposed export fields, their row meaning and access rules belongs to a separately reviewed QC export follow-on. No QC field is silently added to this approved catalog.
 
 ---
 
@@ -1054,6 +1054,10 @@ unchanged cannot satisfy Slice A. A code search found no `DataExportJob`,
 `DATA_EXPORT` or new job/saved-config/estimate endpoints. A fresh GitHub search
 found no corresponding implementation PR; an unrelated merged catalog PR was
 excluded. This establishes a baseline, not proof of every unmerged branch.
+The same revision contains the persisted `qc_result` model in
+`src/main/java/org/openelisglobal/qc/valueholder/QCResult.java` and a control-lot
+model. The old no-QC-model claim is therefore corrected above; the approved MVP
+catalog stays at seven domains while the separate QC export design remains open.
 
 Jira was re-read and reconciled on 2026-09-12. OGC-479 remains assigned to
 mozzy mutesa (Selected for Development); OGC-481 and OGC-483 remain unassigned
