@@ -4,7 +4,7 @@
 **Version:** 1.4
 **Date:** 2026-09-12
 **Status:** Draft for Review
-**Next checkpoint:** [Design revision and implementation readiness](#14-design-revision-and-implementation-readiness) — reporting defaults and editable column builder approved; validate and publish v1.4 for final visual review.
+**Next checkpoint:** [Design revision and implementation readiness](#14-design-revision-and-implementation-readiness) — v1.4 published and verified; final owner visual acceptance remains open.
 **Jira Stories:**
 - [OGC-479](https://uwdigi.atlassian.net/browse/OGC-479) — Custom Data Export: 3-step report builder wizard
 - [OGC-481](https://uwdigi.atlassian.net/browse/OGC-481) — My Report Queue: Async job queue
@@ -79,7 +79,7 @@ and the full field/permission coverage remain required.
 | # | Change | Sections |
 |---|---|---|
 | 1 | **Grain families introduced.** Variable domains are grouped into three mutually exclusive grain families (Sample & Testing, Referrals, Non-Conformance). An export draws from exactly one family; the wizard locks the others once a selection is made. Replaces the v1.0 free-mix model and BR-012's partial join rules. | 4.1, 5, 8 (BR-012, BR-015), 10, 12 |
-| 2 | **Quality Control domain removed.** OpenELIS Global has no structured QC data model to back it. Deferred to a follow-up story dependent on a QC data model. | 4.1, 5, 9 |
+| 2 | **Quality Control domain removed.** Deferred from the seven-domain MVP. The original no-model rationale is superseded by the 2026-09-12 code audit below; export mapping and its separate review remain outstanding. | 4.1, 5, 9 |
 | 3 | **Selections show labels, never just a count** (Constitution II amendment, 2026-07-09). Step 1 originally used dismissible tags (replaced by the labeled, ordered column list in v1.4); all filter MultiSelects retain selected-value tags. | 4.1, 4.2, 12 |
 | 4 | **Duplicate saved-config name = confirm & overwrite** (resolves v1.0 FR/AC contradiction in favor of FR-7-002). | 4.7, 9, 12 |
 | 5 | **Thresholds live in the existing General Configuration → Printed Reports Configuration admin page.** No new admin page. All limits (sync row/date thresholds, max date range, active job limit, saved-config limit, retention days) are named configuration properties. | 4.5, 8 |
@@ -115,7 +115,7 @@ and the full field/permission coverage remain required.
 
 The Custom Data Export feature gives authorized laboratory staff a self-service tool to extract structured CSV data from OpenELIS Global without requiring LLM configuration or DBA intervention. Users select from a curated catalog of variables within one of three **grain families** — Sample & Testing, Referrals, or Non-Conformance — apply date range and lab section filters, and receive an estimated row count before submission. Small reports download immediately; large reports are processed asynchronously via a personal report queue with download notification. OpenELIS reporting is delivered independently of Catalyst and AI. Catalyst independently queries its configured OpenELIS source; reuse of this export schema, variable catalog or queue is not an integration prerequisite. Shared organizational sign-in and equivalent lab-unit/identifying-field authorization require separate implementation; there is no application link, embedded Catalyst UI or report-criteria transfer in the agreed integration design.
 
-**Out of scope (v1.1):** A Quality Control export domain was removed from this specification because OpenELIS Global does not currently have a structured QC data model to back it. It will be specified in a follow-up story once a QC data model exists.
+**Out of scope:** Quality Control export remains a separate follow-on to the approved seven-domain MVP. Current OpenELIS code now includes a QC model; the earlier claim that none exists is superseded. Its export fields, row meaning and access mapping still require a separate design review before adding a QC grain family.
 
 ---
 
@@ -551,7 +551,7 @@ The following variable keys are valid values in the `selectedVariables` JSON arr
 | rejectionStage | Rejection Stage | Pre-analytical / Analytical / Post-analytical |
 | rejectedBy | Rejected By | Display name |
 
-> **Removed in v1.1:** the QUALITY_CONTROL domain (qcLotNumber, qcTestName, qcResultValue, qcPassFail, qcDate, analyzerInstrument, qcTechnician). OpenELIS Global has no structured QC entity model to back these variables. A follow-up story will reintroduce a QC grain family when a QC data model exists.
+> **Deferred from this MVP:** the QUALITY_CONTROL domain (qcLotNumber, qcTestName, qcResultValue, qcPassFail, qcDate, analyzerInstrument, qcTechnician). Current OpenELIS has `QCResult` and `QCControlLot` entities; the old no-model rationale is retired. Mapping these proposed export fields, their row meaning and access rules belongs to a separately reviewed QC export follow-on. No QC field is silently added to this approved catalog.
 
 ---
 
@@ -929,6 +929,7 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 
 - [ ] **[Constitution VII]** All UI strings use i18n keys — zero hardcoded English text in JSX; new keys added to `en.json` only
 - [ ] **[FR-4-002]** Row estimate endpoint responds within 5 seconds under normal conditions
+- [ ] **[OGC-483]** Saved report operations (save, load and delete) complete within one second under normal conditions; retain the existing story performance requirement
 - [ ] **[Section 11]** All permissions enforced at both UI layer (hidden/disabled controls) and API layer (HTTP 403 for unauthorized requests)
 - [ ] **[Constitution II]** All components use Carbon Design System from `@carbon/react`; no Bootstrap, Tailwind, or custom component libraries
 - [ ] **[FR-8-001]** User preferences (items per page) persisted server-side; browser local storage not used
@@ -997,6 +998,10 @@ field-browser/ordered-column revision. v1.4 replaces the fixed-order rule and
 checkbox selection in the same mock/spec; final owner review remains R4. The
 revision starts from `cb4f82c` (PR #319), preserving the return-to-overview and
 resume-draft fixes. A fresh open-PR check found no competing reporting change.
+PR #320 is merged as `6028d4df603b3a482179b96148de4eeb30dd2394` and
+[gallery deployment](https://github.com/DIGI-UW/openelis-work/actions/runs/34718413037)
+passed. Its live HTML, specification and CSV helper were verified against source,
+and the published column-builder and export-to-queue path were exercised.
 The earlier v1.3 publication remains a dated baseline, not acceptance of v1.4.
 
 ### Artifact ownership
@@ -1014,9 +1019,9 @@ The earlier v1.3 publication remains a dated baseline, not acceptance of v1.4.
 | ID | Work and acceptance | Status |
 | --- | --- | --- |
 | R1 — Establish the implementation baseline | Inspect current OpenELIS code and relevant open/merged work for OGC-479, OGC-481 and OGC-483. Identify reusable components, duplicate efforts and missing behavior. Resolve product decisions that block the first implementation slice; record evidence and any owner decision here. | Baseline and reporting defaults approved; production mapping verification belongs to Slice A |
-| R2 — Revise mock and specification together | Implement the UX changes below in the existing review surface and reconcile every affected requirement, acceptance case and localization entry. Both new and repeat-report journeys remain complete. Every old requirement is retained, amended with rationale or explicitly deferred. | v1.4 mock/spec revision complete locally; supersedes PR #315 field selection; final review remains R4 |
-| R3 — Validate and publish for review | Run focused browser journeys and existing repository tests/build. Inspect desktop and narrow screenshots, keyboard/focus, recovery and downloaded CSV. Publish through the existing gallery, verify the actual live source revision/assets, and provide usable review links. | 273 tests and gallery build pass; desktop/narrow browser checks complete; publication and live verification pending |
-| R4 — Review and hand off | Record owner review and resolve blocking findings. Prepare small implementation slices linked to the existing stories, with code ownership, dependencies and behavioral acceptance. The first slice needs no unresolved product assumptions. | Pending |
+| R2 — Revise mock and specification together | Implement the UX changes below in the existing review surface and reconcile every affected requirement, acceptance case and localization entry. Both new and repeat-report journeys remain complete. Every old requirement is retained, amended with rationale or explicitly deferred. | v1.4 merged and published in PR #320; supersedes PR #315 field selection; final review remains R4 |
+| R3 — Validate and publish for review | Run focused browser journeys and existing repository tests/build. Inspect desktop and narrow screenshots, keyboard/focus, recovery and downloaded CSV. Publish through the existing gallery, verify the actual live source revision/assets, and provide usable review links. | Complete: 273 tests, local/CI build and gallery deployment pass; desktop/narrow browser checks and exact live assets verified at `6028d4d` |
+| R4 — Review and hand off | Record owner review and resolve blocking findings. Prepare small implementation slices linked to the existing stories, with code ownership, dependencies and behavioral acceptance. The first slice needs no unresolved product assumptions. | Handoff prepared below; final owner visual acceptance pending |
 
 ### Baseline evidence — 2026-09-11
 
@@ -1030,7 +1035,7 @@ The earlier v1.3 publication remains a dated baseline, not acceptance of v1.4.
   the staff report queue without a deliberate design change.
 - No open GitHub pull request or issue matching OGC-479, OGC-481, OGC-483,
   Custom Data Export or My Report Queue was found in `DIGI-UW/OpenELIS-Global-2`.
-- Jira currently records OGC-479 as **Selected for Development**, assigned to
+- At that inspection, Jira recorded OGC-479 as **Selected for Development**, assigned to
   mozzy mutesa; OGC-481 and OGC-483 are **Backlog** and unassigned. The three
   stories therefore describe the intended split but do not show an active
   implementation for the queue or saved reports.
@@ -1038,6 +1043,38 @@ The earlier v1.3 publication remains a dated baseline, not acceptance of v1.4.
   localization pipeline, role-module permissions, Printed Reports Configuration
   area and Patient Report Print Queue conventions. Reuse must be confirmed in
   the implementation checkout rather than inferred from this mock.
+
+Baseline refreshed on 2026-09-12 at OpenELIS `develop`
+`5ef1a5a31f9b59840fab1d8a508652acadc4ccc3`. Changes since `672c92a6` concern
+order entry and translations; the inspected Routine CSV path is unchanged.
+`Routine.jsx` still routes `CISampleRoutineExport`; its report class writes the
+existing column-builder output synchronously using Windows-1252. The new contract
+requires UTF-8 with BOM and explicit column order, so reusing that generator
+unchanged cannot satisfy Slice A. A code search found no `DataExportJob`,
+`DATA_EXPORT` or new job/saved-config/estimate endpoints. A fresh GitHub search
+found no corresponding implementation PR; an unrelated merged catalog PR was
+excluded. This establishes a baseline, not proof of every unmerged branch.
+The same revision contains the persisted `qc_result` model in
+`src/main/java/org/openelisglobal/qc/valueholder/QCResult.java` and a control-lot
+model. The old no-QC-model claim is therefore corrected above; the approved MVP
+catalog stays at seven domains while the separate QC export design remains open.
+
+Jira was re-read and reconciled on 2026-09-12. OGC-479 remains assigned to
+mozzy mutesa (Selected for Development); OGC-481 and OGC-483 remain unassigned
+(Backlog). Description updates point to this specification and the live mock;
+no assignment, priority or workflow status was changed.
+
+| Retired story instruction | Current authority/disposition |
+| --- | --- |
+| v1.0 filenames and `/api/v1/reports/...` examples | Current mock/spec links and Section 6 `/rest/reports/...` contracts |
+| Eight domains, checkbox grid, technical annotations, 1280px-only review | Seven domains/three report types; FR-1 field browser, ordered columns, plain labels and narrow-screen interaction |
+| Silently exclude unauthorized columns; Catalyst must share export infrastructure | Explicit denial with retained choices (BR-003/004); independent Catalyst connection and separate integration milestones |
+| Load saved settings in Step 1; management competing with Create CSV | FR-7 landing-page reruns, fresh period in Step 2, optional saving and separate management |
+| Queue must copy the printing queue exactly | Reuse compatible components; export-specific ownership, responsive actions and FR-6 lifecycle remain authoritative |
+
+Existing story requirements for persistence, limits, audit retention, failure
+recovery, localization and saved-operation response time are retained. The mock
+illustrates these flows; it does not implement server persistence or security.
 
 The current mock/spec revision (v1.3 retained behavior plus v1.4 column selection):
 
@@ -1105,16 +1142,30 @@ Detailed application tasks should live with their owning OpenELIS work, linked h
 
 | Slice | Owning story | Concrete result | Dependencies and acceptance |
 | --- | --- | --- | --- |
-| A — one virology CSV path | OGC-479 + OGC-481 | Authorized user selects and orders the seven fictional-example fields, chooses an inclusive collection period, creates a job and retrieves a UTF-8 CSV through the real queue path | Approved rules above; verify lab scope, result identity and corrected-result mapping in production code; focused service/API tests and one browser download path verify ordered headers/values, immutable job choices and retry; tests pass |
-| B — reporting shell and field catalog | OGC-479 | Landing page, explicit report type, complete authorized catalog, field browser and ordered-column list, required/common/more filters, review Change actions and retained draft use Carbon/OpenELIS components | Slice A contracts exist; keyboard, validation and permission states pass component/browser tests |
-| C — queue resilience | OGC-481 | Personal queue covers generating, ready, failed/retry and expired/re-run states with named responsive actions and notification behavior | Ships in the same release as OGC-479; restart, ownership, polling and file-retention tests pass |
-| D — saved report settings | OGC-483 | Save, list, load ordered columns with fresh dates, replace, rename/delete and stale-field handling | Builder contracts stable; personal ownership and limit tests pass |
-| E — full required coverage | OGC-479 | All seven domains, three row grains, optional filters, identifying-data audit and correction/status rules are implemented | Production model verification and representative-data acceptance pass; does not rely on the seven-column fixture alone |
+| A — one virology CSV path | OGC-479: mozzy mutesa; OGC-481: unassigned | Authorized user selects and orders the seven fictional-example fields, chooses an inclusive collection period, creates a job and retrieves a UTF-8 CSV through the real queue path | Approved rules above; verify lab scope, result identity and corrected-result mapping in production code; focused service/API tests and one browser download path verify ordered headers/values, immutable job choices and retry; tests pass |
+| B — reporting shell and field catalog | OGC-479: mozzy mutesa | Landing page, explicit report type, complete authorized catalog, field browser and ordered-column list, required/common/more filters, review Change actions and retained draft use Carbon/OpenELIS components | Slice A contracts exist; keyboard, validation and permission states pass component/browser tests |
+| C — queue resilience | OGC-481: unassigned | Personal queue covers generating, ready, failed/retry and expired/re-run states with named responsive actions and notification behavior | Ships in the same release as OGC-479; restart, ownership, polling and file-retention tests pass |
+| D — saved report settings | OGC-483: unassigned | Save, list, load ordered columns with fresh dates, replace, rename/delete and stale-field handling | Builder contracts stable; personal ownership and limit tests pass |
+| E — full required coverage | OGC-479: mozzy mutesa | All seven domains, three row grains, optional filters, identifying-data audit and correction/status rules are implemented | Production model verification and representative-data acceptance pass; does not rely on the seven-column fixture alone |
 
 Slice A is the first implementation checkpoint. It crosses submission, generation,
 queue retrieval and CSV verification so the project tests the risky path early.
 Slices B–E may use separate reviewable pull requests, but OGC-479 and OGC-481 remain
 a single release boundary.
+
+**Slice A entry and completion:** use the existing Reports React area
+(`frontend/src/components/reports/`) and report controller/service packages
+(`src/main/java/org/openelisglobal/reports/`), with the existing roles,
+localization and Liquibase conventions. Verify the seven fields against `Result`,
+`Analysis`, `SampleItem` and `Test` plus the existing lab-section/source relationships;
+record corrected-result representation before accepting generated rows. A queue
+implementer is still unassigned; the story provides the ownership boundary,
+not a new assignment or delivery commitment. The first implementation PR must
+include an authorized collection-period request, immutable ordered job choices,
+CSV retrieval, a recoverable failure/retry, and assertions for header/value
+alignment, distinct result identity, blank values and inclusive date boundaries.
+Service/API tests and one browser download journey prove that complete path.
+The existing Routine CSV remains available until separate comparison and approval.
 
 ### Validation and completion
 
@@ -1157,9 +1208,9 @@ deprecations; no new dependency or application backend was introduced.
 | Acceptance record | Current state |
 | --- | --- |
 | Revised mock/spec agreement and focused behavior checks | v1.4 complete locally: full catalog coverage, search/add/remove/order, preview/review, save with fresh dates, immutable retry CSV, permissions and retained navigation |
-| Repository tests/build and verified live gallery revision | 273 tests and production gallery build pass; exact live verification follows publication of this PR |
+| Repository tests/build and verified live gallery revision | 273 tests, local/CI build and [gallery deployment](https://github.com/DIGI-UW/openelis-work/actions/runs/34718413037) pass; live HTML/spec/CSV helper at `6028d4d` matched source; published ordered export verified |
 | Owner design review, including report meaning, access and fixture limitations | Reporting defaults and column-builder direction approved 2026-09-12; final review of the published v1.4 revision remains R4 |
-| Implementation backlog and first-slice readiness | Slices A–E recorded and product rules approved; verify production mappings in Slice A after the design checkpoint |
+| Implementation backlog and first-slice readiness | Slices A–E, story ownership and first-path acceptance recorded; Jira references reconciled; technical field/status mapping belongs to Slice A; queue/saved-report implementers remain unassigned |
 | Representative staff usability sessions | Not performed; arrange a small round if participants are available, otherwise record it as pending with the remaining usability uncertainty |
 | Application implementation, deployment and real-source parity | Outside this design-readiness goal; tracked separately |
 
@@ -1182,9 +1233,9 @@ the progress register, custom-data-export.html as the authoritative workflow,
 and custom-data-export-example.js as the fictional CSV fixture. The owner
 approved the reporting defaults and a grouped Available fields browser beside
 an editable Your CSV columns list on 2026-09-12. Save and export that exact order;
-keep full catalog coverage, permissions, drafts and queue recovery. Complete R2/R3
-with synchronized requirements, behavioral tests, gallery build, desktop/narrow
-visual checks and verified live publication. Complete R4 with explicit owner
+keep full catalog coverage, permissions, drafts and queue recovery. R2/R3 are
+complete at published design revision 6028d4d with passing tests/build and verified
+live assets. Jira descriptions now reference this specification. Complete R4 with explicit owner
 review and an actionable Slice A across OGC-479/481: authorized virology export,
 immutable ordered job, queue recovery and CSV retrieval. Keep the harness roadmap
 synchronized by link and milestone only. Preserve OpenELIS/Carbon styling.

@@ -427,8 +427,8 @@ const DOMAINS = [
     { key:'rejectedBy', label:'Rejected By' },
   ]},
 ];
-// NOTE (v1.1): Quality Control domain removed — no structured QC data model in
-// OpenELIS Global. Reintroduced via follow-up story when a QC model exists.
+// Quality Control export remains outside this approved MVP. OpenELIS now has
+// QC entities; a separate follow-on must define export mapping and row meaning.
 
 const VAR_LOOKUP = {};
 DOMAINS.forEach(d => d.vars.forEach(v => { VAR_LOOKUP[v.key] = { ...v, domain: d.label, family: d.family }; }));
