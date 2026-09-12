@@ -30,7 +30,7 @@
   function restore(config) { return { ...defaults, ...config, vars: [...config.vars], startDate: '', endDate: '' }; }
   function csv(request) {
     const quote = value => '"' + String(value ?? '').replaceAll('"', '""') + '"';
-    const selected = fields.filter(key => request.vars.includes(key));
+    const selected = request.vars.filter(key => fields.includes(key));
     return '\uFEFF' + [selected.map(key => quote(labels[fields.indexOf(key)])).join(','), ...select(request).map(row => selected.map(key => quote(row[key])).join(','))].join('\r\n') + '\r\n';
   }
   globalThis.OpenElisExportExample = { fields, defaults, august, dateError, limitation, select, configuration, restore, csv };

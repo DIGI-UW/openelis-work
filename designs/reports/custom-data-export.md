@@ -1,10 +1,10 @@
 # Custom Data Export & My Report Queue
-## Functional Requirements Specification — v1.3
+## Functional Requirements Specification — v1.4
 
-**Version:** 1.3
+**Version:** 1.4
 **Date:** 2026-09-12
 **Status:** Draft for Review
-**Next checkpoint:** [Design revision and implementation readiness](#14-design-revision-and-implementation-readiness) — reporting defaults approved; publish the revised mock for final visual review.
+**Next checkpoint:** [Design revision and implementation readiness](#14-design-revision-and-implementation-readiness) — reporting defaults and editable column builder approved; validate and publish v1.4 for final visual review.
 **Jira Stories:**
 - [OGC-479](https://uwdigi.atlassian.net/browse/OGC-479) — Custom Data Export: 3-step report builder wizard
 - [OGC-481](https://uwdigi.atlassian.net/browse/OGC-481) — My Report Queue: Async job queue
@@ -59,13 +59,28 @@ failure controls remain outside the staff workflow. These changes preserve the
 three row families, full field catalog, permission rules, retained input, queue
 recovery and companion-release requirement.
 
+### Column-builder update — v1.4
+
+Step 1 now pairs a searchable, grouped **Available fields** browser with a numbered
+**Your CSV columns** list. Add and Remove replace the checkbox grid; Move up and
+Move down let users build the actual export order. The preview, review, saved
+settings, submitted job, retry and download all preserve that order. Narrow
+screens offer one-tap switching between the two lists without losing choices.
+
+The owner approved this direction on 2026-09-12. BR-009's fixed catalog ordering
+was an unnecessary restriction: deterministic output requires an explicit order,
+not one mandatory order for everyone. The catalog still supplies sensible defaults
+and stable header labels. FR-1 and the related tests below supersede the old
+checkbox, accordion and selected-tag requirements for columns only; filter tags
+and the full field/permission coverage remain required.
+
 ### Changelog — v1.0 → v1.1
 
 | # | Change | Sections |
 |---|---|---|
 | 1 | **Grain families introduced.** Variable domains are grouped into three mutually exclusive grain families (Sample & Testing, Referrals, Non-Conformance). An export draws from exactly one family; the wizard locks the others once a selection is made. Replaces the v1.0 free-mix model and BR-012's partial join rules. | 4.1, 5, 8 (BR-012, BR-015), 10, 12 |
 | 2 | **Quality Control domain removed.** OpenELIS Global has no structured QC data model to back it. Deferred to a follow-up story dependent on a QC data model. | 4.1, 5, 9 |
-| 3 | **Selections show labels, never just a count** (Constitution II amendment, 2026-07-09). Step 1 shows selected variables as dismissible tags; all MultiSelects render selected values as tags. | 4.1, 4.2, 12 |
+| 3 | **Selections show labels, never just a count** (Constitution II amendment, 2026-07-09). Step 1 originally used dismissible tags (replaced by the labeled, ordered column list in v1.4); all filter MultiSelects retain selected-value tags. | 4.1, 4.2, 12 |
 | 4 | **Duplicate saved-config name = confirm & overwrite** (resolves v1.0 FR/AC contradiction in favor of FR-7-002). | 4.7, 9, 12 |
 | 5 | **Thresholds live in the existing General Configuration → Printed Reports Configuration admin page.** No new admin page. All limits (sync row/date thresholds, max date range, active job limit, saved-config limit, retention days) are named configuration properties. | 4.5, 8 |
 | 6 | **Maximum date range cap added** (default 90 days, configurable) — was previously only a risk-mitigation note on OGC-479. | 4.2, 8 (BR-002), 10 |
@@ -138,9 +153,9 @@ The Custom Data Export feature gives authorized laboratory staff a self-service 
 
 ### 4.1 Report Builder — Step 1: Variable Selection
 
-**FR-1-001:** The report builder MUST be a 3-step wizard rendered with a Carbon `ProgressIndicator` showing three steps: (1) Select Variables, (2) Set Filters, (3) Review & Submit. Users may navigate backwards freely at any time; forward navigation from Step 1 to Step 2 requires at least one variable selected.
+**FR-1-001:** The report builder MUST be a 3-step wizard rendered with a Carbon `ProgressIndicator`: (1) Choose columns, (2) Set Filters, (3) Review & Submit. Users may navigate backwards freely; forward navigation from Step 1 requires at least one column.
 
-**FR-1-002:** Before showing fields, Step 1 MUST ask the user to choose one of three plain-language **report types**. Each report type maps to one grain family. After selection, Step 1 shows only that family's domain groups as Carbon `Accordion` items; the complete permitted field catalog remains available through those groups.
+**FR-1-002:** Step 1 MUST ask the user to choose a plain-language report type before choosing fields. Each type maps to one grain family. A searchable **Available fields** browser shows that family's domain groups alongside **Your CSV columns**. The complete catalog, including clearly restricted groups, remains browsable. Once columns exist, show the chosen type compactly with an explicit change-and-clear action.
 
 | Grain Family | Domain Groups | Output Row Grain |
 |---|---|---|
@@ -148,26 +163,30 @@ The Custom Data Export feature gives authorized laboratory staff a self-service 
 | **REFERRAL** | Referrals | One row per referred analysis |
 | **NON_CONFORMANCE** | Non-Conformance / Rejections | One row per non-conforming event |
 
-The first relevant domain group is expanded after report-type selection; the
-remaining groups start collapsed. A field search filters labels within the chosen
-type and temporarily exposes matching groups. Search does not reduce server-side
-coverage or hide fields from an authorized user who clears the search.
+The first relevant domain group is initially selected. Group buttons include
+**All fields**. Searching scans the whole chosen report type and groups matches
+by domain; clearing search restores the selected group. Search never changes
+selected columns or reduces catalog coverage.
 
-**FR-1-003:** Each domain group MUST display its full variable list as individual `Checkbox` items showing **only the variable's display name** — no technical annotations (e.g., "computed", "from ObservationHistory", "blank when unmapped") appear in the UI. Derivation and sourcing details are implementation notes in this spec (Section 5), not user-facing content. The complete variable catalog is defined in Section 5.
+**FR-1-003:** Available fields MUST show the display name and an explicit **Add** action, changing to **Added** when selected. Adding appends a field once; duplicate additions are prevented. Do not show technical sourcing annotations in staff-facing labels; Section 5 retains those implementation details and the complete catalog.
 
-**FR-1-004:** Permission-gated groups (Patient Demographics, Patient Identifiers) MUST display one plain-language **"Identifying data"** `Tag` in the group header with a tooltip: "Contains patient-identifying data. Additional access is required and exports are audited." For users without the corresponding permission key, the group additionally shows a lock icon and disabled `Checkbox` items with guidance to request identifying-data access. The technical permission key may appear in administrative help, not as the primary staff-facing label. The groups remain visible so users understand what data exists and can request access.
+**FR-1-004:** Patient Demographics and Patient Identifiers groups MUST remain visible, labeled **Identifying data**, with an explanation of required access and audited exports. Without the corresponding permission, Add is unavailable and visibly **Restricted**, with guidance to contact an administrator. Previously selected fields remain visible after access loss; they are not silently removed (BR-004). The technical permission key belongs in administrative help.
 
-**FR-1-005:** A "Select All" checkbox MUST appear at the top of each domain group's variable list. Checking it selects all variables in that group; unchecking it clears all. "Select All" MUST be indeterminate when some but not all variables are selected.
+**FR-1-005:** Each eligible domain offers **Add all shown**, appending missing visible matches in catalog order without moving existing columns. When every shown field is selected, **Remove shown** removes only those visible matches. Searching limits these actions to the shown matches. Locked fields cannot be added; selected restricted fields can still be deliberately removed.
 
-**FR-1-006:** A selection summary MUST be displayed in the step header area showing **both** a running count (e.g., "12 variables selected") **and** the selected variables' display names as dismissible Carbon `Tag` components (clicking a tag's close icon deselects that variable). Per Constitution Principle II ("Selections show their labels, never just a count"), the count MUST NOT appear without the labels. The "Next" button to proceed to Step 2 MUST be disabled and display a tooltip ("Select at least one variable to continue") when zero variables are selected.
+**FR-1-006:** **Your CSV columns** MUST show a count, full labels, numbered positions and a Remove action for each column. Labels remain visible while browsing/searching on desktop. At narrow widths, **Available fields** and **Your columns** switch between panels in one action and retain all choices; do not squeeze both lists into unreadable columns. The Next button is disabled when no columns remain. This satisfies Constitution II's labels requirement without selected-variable tags.
 
-**FR-1-007:** Variable selection state MUST persist when the user navigates backwards to Step 1 from Steps 2 or 3. Navigating back does not reset selections.
+**FR-1-007:** Column selection and its exact order MUST survive backward navigation, overview/queue visits and access recovery. Navigation does not reset or re-sort choices.
 
 **FR-1-008 (Report-type integrity):** The report-type choice MUST occur before field selection and determine the submitted grain family. After any field is selected, switching type requires the explicit **Change type and clear fields** action. The client MUST never submit mixed-family keys, and the server MUST continue to enforce BR-015.
 
 **FR-1-009 (Report-type guidance):** Each report-type choice MUST name the type, describe its purpose in plain language and state its output row meaning. Color MAY reinforce the choice but MUST NOT be the only distinction. The chosen type remains visible in the selection summary and review step.
 
-**FR-1-010 (Field search and disclosure):** Step 1 MUST provide a field-label search after report-type selection. Search results remain organized by domain; accordion headers use semantic buttons with `aria-expanded` and visible focus. Clearing search restores the complete chosen-type catalog and prior selections.
+**FR-1-010:** Search and group navigation MUST use labeled inputs and semantic buttons with visible keyboard focus. Search does not hide the selected-column list on desktop or clear its state on narrow screens. Clearing a search restores the chosen group's complete catalog; All fields reveals the entire report type.
+
+**FR-1-011 (Column order):** Users MUST be able to move a column up or down using keyboard-operable buttons; dragging is not required. Keep focus on the moved control, announce its new position, and make boundary actions unavailable. Removing a column moves focus to a surviving adjacent control, or the field search when empty. New selections append; existing choices retain relative order. The displayed order is the authoritative `selectedVariables` sequence (BR-009).
+
+**FR-1-012 (Layout preview):** Show CSV headers in the chosen order, with a keyboard-scrollable table on small screens. The design mock may show explicitly fictional sample rows for supported fields; other choices show a clearly labeled header-only layout. This is a column-layout preview, not a query or filtered-data preview: browsing fields must not retrieve clinical rows. Final review shows the same ordered labels.
 
 ### 4.2 Report Builder — Step 2: Filters
 
@@ -232,7 +251,7 @@ all values and displays a plain-language summary of any active filters.
 
 ### 4.3 Report Builder — Step 3: Review & Submit
 
-**FR-3-001:** Step 3 MUST display a read-only summary panel showing: (a) the grain family and the selected variables' display names grouped by domain (full labels, with count shown alongside), (b) applied date range, (c) selected lab sections by name (or "All accessible sections" if none specified), and (d) any optional filters applied, showing selected values by name.
+**FR-3-001:** Step 3 MUST show the report type and selected columns' full labels in their actual CSV order, with a count and numbered positions; also show the reporting period, lab sections by name (or All accessible sections), and selected optional filters by name. Direct Change actions preserve the current order and filters.
 
 **FR-3-002:** Step 3 MUST include an optional **File name** `TextInput`. If left blank on submission, the system auto-generates `[Domains]_[DateFrom]_to_[DateTo]` (for example, `Test_Results_2026-01-01_to_2026-03-31`). Maximum 100 characters. This name is distinct from the saved report-settings name in FR-7-002.
 
@@ -307,9 +326,9 @@ labels: Download, Cancel, Retry or Re-run. Details and Delete remain secondary.
 
 **FR-6-005:** QUEUED jobs MUST display a ghost "Cancel Job" button. Confirming cancellation transitions the job to CANCELLED and removes it from the processing queue. A destructive confirmation `Modal` MUST be shown before cancellation executes.
 
-**FR-6-006:** FAILED jobs MUST display a secondary "Retry" button. Clicking Retry re-submits an identical job (new job record, same `selectedVariables` and `filterSpec`) and routes it through the standard sync/async evaluation. The original failed job remains in the queue.
+**FR-6-006:** FAILED jobs MUST display a secondary "Retry" button. Clicking Retry re-submits an identical job (new job record, same ordered `selectedVariables` and `filterSpec`) and routes it through the standard sync/async evaluation. The original failed job remains in the queue.
 
-**FR-6-007:** EXPIRED jobs MUST display a ghost "Re-run" button. Clicking Re-run navigates the user to the Report Builder with all variable selections and optional filters pre-populated from the expired job's parameters. The date range is NOT pre-populated — the user must set a new date range before submitting.
+**FR-6-007:** EXPIRED jobs MUST display a ghost "Re-run" button. Clicking Re-run navigates the user to the Report Builder with all variable selections in their saved order and optional filters pre-populated from the expired job's parameters. The date range is NOT pre-populated — the user must set a new date range before submitting.
 
 **FR-6-008:** READY and EXPIRED jobs MUST display the row count and file size (e.g., "4,312 rows · 847 KB") in the Rows / File Size column.
 
@@ -336,9 +355,9 @@ keyboard users MUST be able to return and resume without losing focus.
 
 ### 4.7 Saved Report Configurations
 
-**FR-7-001:** The reporting landing page MUST show the current user's saved report settings by name, sorted most-recently-used first, beside the new-export entry point. Choosing **Use report** loads its report type, fields and non-date filters and opens Step 2 for a fresh reporting period. The user can return to Step 1 to edit fields. Dates are never saved or pre-populated.
+**FR-7-001:** The reporting landing page MUST show the current user's saved report settings by name, sorted most-recently-used first, beside the new-export entry point. Choosing **Use report** loads its report type, ordered columns and non-date filters and opens Step 2 for a fresh reporting period. The user can return to Step 1 to edit fields. Dates are never saved or pre-populated.
 
-**FR-7-002:** On Step 3, saving report settings MUST be optional and collapsed by default behind **Save these report settings for later**. Opting in reveals a distinct **Saved report name** input and Save action. Clicking Save creates a `DataExportSavedConfig`. If the name already exists for the user, an accessible confirmation modal asks whether to replace it. Confirming updates the existing record in place; cancelling makes no change.
+**FR-7-002:** On Step 3, saving report settings MUST be optional and collapsed by default behind **Save these report settings for later**. Opting in reveals a distinct **Saved report name** input and Save action. Clicking Save creates a `DataExportSavedConfig`. If the name already exists for the user, an accessible confirmation modal asks whether to replace it. Confirming updates the existing record in place, including the chosen column order; cancelling makes no change.
 
 **FR-7-003:** Saved report settings are accessible from the reporting landing page and the Step 3 save section only. Managing names and deletion is done from the landing page or a linked management dialog; management MUST NOT compete with Create CSV on the review step.
 
@@ -375,7 +394,7 @@ keyboard users MUST be able to return and resume without losing focus.
 | jobStatus | Enum | Yes | QUEUED, GENERATING, READY, FAILED, CANCELLED, EXPIRED |
 | routingType | Enum | Yes | SYNC, ASYNC |
 | grainFamily | Enum | Yes | SAMPLE_TESTING, REFERRAL, NON_CONFORMANCE |
-| selectedVariables | JSON | Yes | Ordered list of variable keys; all keys MUST belong to `grainFamily` (BR-015) |
+| selectedVariables | JSON | Yes | Authoritative CSV column order as a list of unique variable keys; all keys MUST belong to `grainFamily` (BR-009/015) |
 | filterSpec | JSON | Yes | Serialized filter state (dateFrom, dateTo, labSectionIds, testIds, sampleStatuses, resultStatuses, priorities, referringSiteId) |
 | estimatedRowCount | Integer | No | From pre-flight estimate; null if estimate timed out |
 | actualRowCount | Integer | No | Set on successful completion |
@@ -412,7 +431,7 @@ keyboard users MUST be able to return and resume without losing focus.
 | userId | String | Yes | FK to SystemUser |
 | configName | String | Yes | User-provided name; max 100 chars; unique per user (overwrite-with-confirmation updates in place) |
 | grainFamily | Enum | Yes | SAMPLE_TESTING, REFERRAL, NON_CONFORMANCE |
-| selectedVariables | JSON | Yes | Same structure as `DataExportJob.selectedVariables` |
+| selectedVariables | JSON | Yes | Same ordered structure as `DataExportJob.selectedVariables`; restore without re-sorting |
 | filterSpec | JSON | Yes | Same structure as `DataExportJob.filterSpec` — date range is excluded (never saved) |
 | createdAt | Timestamp | Yes | — |
 | updatedAt | Timestamp | Yes | Updated on overwrite/rename |
@@ -616,7 +635,7 @@ Two new menu items are added to the Reports section of the left navigation sideb
 ### Key Screens
 
 1. **Reporting landing page** — equally clear Start a new export and Use a saved report paths
-2. **Report Builder — Step 1 (Field selection)** — explicit report type, searchable matching accordions, permission-aware identifying fields and a selected-field summary
+2. **Report Builder — Step 1 (Field selection)** — explicit report type, grouped available-field browser, permission-aware Add actions, ordered selected columns and a CSV layout preview
 3. **Report Builder — Step 2 (Filters)** — required reporting period and lab scope; common filters visible; less common filters under More filters with retained values
 4. **Report Builder — Step 3 (Review & Submit)** — direct Change actions, row estimate, optional file name, optional saved report settings and Create CSV
 5. **My Report Queue** — responsive job list with named Download / Cancel / Retry / Re-run actions, draft-aware navigation and 15-second polling
@@ -625,9 +644,10 @@ Two new menu items are added to the Reports section of the left navigation sideb
 
 - **`ProgressIndicator`** for wizard step tracking; back navigation free; forward requires validation
 - **Plain-language report-type choices** before field selection; color may reinforce but never carries meaning alone
-- **`Accordion` + `Checkbox`** with semantic headers, field-label search and per-group "Select all shown"
-- **Dismissible `Tag`s** for selected variables and filter values — labels always visible, never a bare count (Constitution II)
-- **Variable checkboxes show display names only** — no technical annotations in the UI (FR-1-003)
+- **Searchable field browser + ordered native list** composed with Carbon search, buttons and layout primitives; semantic group buttons and per-group Add all shown / Remove shown
+- **Full column labels with Add, Remove, Move up/down**, not interactive controls inside ARIA listbox options; no drag-only interaction
+- **Dismissible `Tag`s** remain for filter values; the column list itself displays selection labels (Constitution II)
+- **Field labels show display names only** — no technical sourcing annotations (FR-1-003)
 - **`DatePicker`** with Carbon built-in `invalidText` for date validation
 - **`MultiSelect`** for lab sections (pre-scoped to user's authorized sections)
 - **`InlineNotification`** for row estimate, routing preview (sync/async), and job submission feedback
@@ -653,7 +673,7 @@ Two new menu items are added to the Reports section of the left navigation sideb
 
 **BR-008:** A `PiiAccessLog` entry MUST be created at job submission time (not at download time) for each PII tier included in the job's `selectedVariables`. If both DEMOGRAPHICS and IDENTIFIERS variables are selected, two separate log entries are created.
 
-**BR-009:** CSV column order MUST follow the canonical order of the variable catalog (domain group order, then variable order within each group), NOT the order in which the user checked individual boxes. Column order is determined server-side and is consistent across identical `selectedVariables` sets.
+**BR-009:** CSV columns MUST follow the explicit order of the unique keys in `selectedVariables`, as arranged by the user. The same ordered sequence drives header labels and row values. Preserve it in preview, review, saved configurations, immutable submitted jobs, retry, expired-job restoration and downloads. Catalog order is a default for examples/bulk addition, never a server-side override of the user's order. Existing configurations retain their stored sequence; identical ordered requests remain deterministic. This replaces the former mandatory catalog-order rule.
 
 **BR-010:** A maximum of `dataExport.maxActiveJobs` (default 5) concurrent active jobs (QUEUED + GENERATING combined) are permitted per user at any time. Submitting a job that would exceed this limit MUST return HTTP 429 with error key `error.dataExport.jobLimitExceeded` (message interpolates the configured limit).
 
@@ -676,7 +696,7 @@ omit corrected records or an assertion that the fictional fixture proves it.
 
 **BR-016 (Ownership):** All job, download, and saved-config resources are scoped to their owning user. A request for another user's resource MUST return HTTP 404 (not 403, to avoid resource-existence disclosure). Administrator cross-user queue visibility is out of scope for this phase.
 
-**BR-017 (CSV format):** Exports are RFC 4180 CSV: UTF-8 with BOM (for Excel compatibility), comma delimiter, double-quote escaping. Dates use ISO 8601 (`yyyy-MM-dd`; timestamps `yyyy-MM-dd HH:mm`) in the laboratory server's timezone. Null values are empty cells. The header row uses the catalog's canonical English display names (fixed, not localized) so column headers are stable for downstream tooling regardless of the submitting user's locale.
+**BR-017 (CSV format):** Exports are RFC 4180 CSV: UTF-8 with BOM (for Excel compatibility), comma delimiter, double-quote escaping. Dates use ISO 8601 (`yyyy-MM-dd`; timestamps `yyyy-MM-dd HH:mm`) in the laboratory server's timezone. Null values are empty cells. The header row uses the catalog's canonical English display names (fixed, not localized) so column headers are stable for downstream tooling regardless of the submitting user's locale. Stable header labels do not imply a fixed column order; BR-009 governs ordering.
 
 **BR-018 (Async worker & recovery):** Async jobs are processed by a single background executor (Spring `TaskExecutor`/`@Scheduled` polling loop), FIFO by `createdAt`, one job at a time per application instance. On application startup, any job found in GENERATING status MUST be transitioned to FAILED with `errorMessage` "Interrupted by system restart" (retryable via the standard Retry action); QUEUED jobs survive restarts untouched. `estimatedWaitSeconds` = queue position × rolling average generation time of the last 20 completed jobs (fallback 60s when no history exists).
 
@@ -690,7 +710,7 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 |---|---|
 | `heading.dataExport.builderTitle` | Custom Data Export |
 | `heading.dataExport.queueTitle` | My Report Queue |
-| `heading.dataExport.step1` | Select Variables |
+| `heading.dataExport.step1` | Choose columns |
 | `heading.dataExport.step2` | Set Filters |
 | `heading.dataExport.step3` | Review & Submit |
 | `heading.dataExport.queueTable` | Export Jobs |
@@ -713,7 +733,28 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 | `message.dataExport.reportTypeBanner` | You're building a {family} report. |
 | `button.dataExport.changeReportType` | Change type and clear fields |
 | `label.dataExport.variablesSelected` | {count} fields selected |
-| `label.dataExport.selectAll` | Select all shown |
+| `label.dataExport.selectAll` | Add all shown |
+| `button.dataExport.removeShown` | Remove shown |
+| `heading.dataExport.availableFields` | Available fields |
+| `heading.dataExport.yourColumns` | Your CSV columns ({count}) |
+| `label.dataExport.allFields` | All fields |
+| `button.dataExport.addField` | Add {field} |
+| `label.dataExport.addedField` | Added {field} |
+| `button.dataExport.removeField` | Remove {field} |
+| `button.dataExport.moveFieldUp` | Move {field} up |
+| `button.dataExport.moveFieldDown` | Move {field} down |
+| `label.dataExport.columnOrderHelp` | Columns appear in this order. Use the arrows to rearrange them. |
+| `message.dataExport.columnMoved` | {field} moved to column {position}. |
+| `message.dataExport.columnAdded` | {field} added. {count} columns. |
+| `message.dataExport.columnRemoved` | {field} removed. {count} columns. |
+| `message.dataExport.shownFieldsChanged` | {count} shown fields {action}. {total} columns. |
+| `message.dataExport.matchingFields` | {count} matching fields across this report type |
+| `message.dataExport.noFieldMatches` | No fields match your search. |
+| `message.dataExport.noColumns` | Add fields to build your CSV. |
+| `label.dataExport.restrictedField` | Restricted |
+| `heading.dataExport.csvPreview` | CSV preview |
+| `label.dataExport.csvPreviewRegion` | Scrollable CSV preview |
+| `label.dataExport.previewLayoutOnly` | Column layout only; no clinical rows are retrieved. |
 | `label.dataExport.fieldSearch` | Find a field |
 | `placeholder.dataExport.fieldSearch` | Search fields... |
 | `label.dataExport.piiLocked` | Requires additional identifying-data access |
@@ -788,7 +829,7 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 | `label.dataExport.savedConfig.loadHeading` | Use a saved report |
 | `label.dataExport.savedConfig.selectPlaceholder` | — Select saved report settings — |
 | `label.dataExport.savedConfig.saveHeading` | Save these report settings for later |
-| `label.dataExport.savedConfig.saveSubtext` | Save fields and filters to reuse. The reporting period is not saved. |
+| `label.dataExport.savedConfig.saveSubtext` | Save fields, column order and filters to reuse. The reporting period is not saved. |
 | `label.dataExport.savedConfig.nameLabel` | Saved report name |
 | `label.dataExport.savedConfig.namePlaceholder` | e.g. Hematology Monthly TAT |
 | `button.dataExport.loadConfig` | Use report |
@@ -811,7 +852,7 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 
 | Field | Rule | Error Key |
 |---|---|---|
-| selectedVariables | Must contain at least one key | `error.dataExport.noVariables` |
+| selectedVariables | Must contain at least one unique key; preserve submitted order | `error.dataExport.noVariables` |
 | selectedVariables | All keys must belong to one grain family (server-derived; HTTP 422 on violation) | `error.dataExport.mixedGrainFamilies` |
 | selectedVariables (PII keys) | Must match user's current PII permission tier at generation and download | Explained access denial; retain draft and release no unauthorized CSV (BR-004) |
 | filterSpec.dateFrom | Required | `error.dataExport.noDateFrom` |
@@ -834,8 +875,8 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 | Submit an export job | `DATA_EXPORT` | Submit button hidden; API returns HTTP 403 |
 | Download a completed export | `DATA_EXPORT` + resource ownership | Download button hidden; API returns HTTP 403 (no permission) / 404 (not owner) |
 | Access another user's job or saved config | — (never permitted) | API returns HTTP 404 (BR-016) |
-| Select Patient Demographics variables | `DATA_EXPORT_PII_DEMOGRAPHICS` | Group visible but locked; checkboxes disabled; API denies unauthorized requests explicitly (BR-004) |
-| Select Patient Identifier variables | `DATA_EXPORT_PII_IDENTIFIERS` | Group visible but locked; checkboxes disabled; API denies unauthorized requests explicitly (BR-004) |
+| Select Patient Demographics variables | `DATA_EXPORT_PII_DEMOGRAPHICS` | Group visible with restricted Add actions; API denies unauthorized requests explicitly (BR-004) |
+| Select Patient Identifier variables | `DATA_EXPORT_PII_IDENTIFIERS` | Group visible with restricted Add actions; API denies unauthorized requests explicitly (BR-004) |
 
 **Ownership (BR-016):** every job, download, and saved-config endpoint verifies the resource belongs to the authenticated user; non-owned resources return HTTP 404 to avoid disclosing resource existence. Administrator cross-user visibility is out of scope this phase.
 
@@ -853,12 +894,13 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 
 - [ ] **[FR-1-001, FR-7-001, Section 3]** User with `DATA_EXPORT` permission reaches a reporting landing page with equally clear new-export and saved-report paths; starting new opens the three-step builder
 - [ ] **[FR-1-002, FR-1-003, FR-1-010]** Explicit report-type selection shows the matching domain groups and complete permitted field catalog; field search filters labels without losing selections or coverage
-- [ ] **[FR-1-004]** Patient Demographics and Patient Identifiers groups are visible but locked (disabled checkboxes + lock icon + tooltip) for users without respective `DATA_EXPORT_PII_DEMOGRAPHICS` / `DATA_EXPORT_PII_IDENTIFIERS` permissions
-- [ ] **[FR-1-005]** "Select All" per group toggles all variables in that group; shows indeterminate state when partially selected
-- [ ] **[FR-1-006]** Selection summary shows selected variables as dismissible tags AND a count; dismissing a tag deselects the variable; "Next" disabled with tooltip when zero variables selected
+- [ ] **[FR-1-004]** Patient Demographics and Patient Identifiers groups are visible with restricted Add actions and identifying-data access guidance for users without respective `DATA_EXPORT_PII_DEMOGRAPHICS` / `DATA_EXPORT_PII_IDENTIFIERS` permissions
+- [ ] **[FR-1-005]** Add all shown appends missing matches once, retaining existing order; Remove shown removes only visible matches; restricted fields cannot be added
+- [ ] **[FR-1-006]** Numbered CSV-column list shows full labels and count, with Remove for each; desktop search retains visible selected columns, narrow layout offers one-tap switching; Next is disabled when empty
 - [ ] **[FR-1-007]** Navigating back from Step 2 or 3 to Step 1 preserves variable selections
 - [ ] **[FR-1-008, BR-015]** Report type determines the grain family before field selection; switching after selection uses the explicit clear-and-change action; server rejects mixed-family submissions with HTTP 422
-- [ ] **[FR-1-010]** Domain accordions are keyboard operable semantic buttons with `aria-expanded`, visible focus and stable selected-field state
+- [ ] **[FR-1-010]** Field search and group buttons are keyboard operable, visibly focused and preserve columns
+- [ ] **[FR-1-011/012, BR-009]** Add/remove/reorder preserves focus, prevents duplicates and updates header/value alignment; preview, review, saved/reloaded configurations, immutable jobs, retries, expired re-runs and downloaded CSV retain the requested order
 - [ ] **[FR-2-001, FR-2-007]** Empty dates show no reversed-range error; Continue reveals field-specific required errors; a complete reversed or over-limit period blocks progression
 - [ ] **[FR-2-002]** Lab Sections `MultiSelect` shows only user's authorized sections; single-section users see it pre-selected and read-only
 - [ ] **[FR-2-004]** Result Status filter is disabled when no Test Results domain variables are selected
@@ -950,12 +992,12 @@ its in-memory timers represent queue behavior without implementing a worker.
 that supports an equal mix of new exports and rerunning familiar reports, while
 retaining configurable fields, OpenELIS styling and reliable recovery.
 
-**Status (2026-09-12):** The owner approved the six reporting defaults below and
-publication for review, subject to checking parallel work. The current GitHub
-branches and related Catalyst tasks were inspected: no competing OpenELIS export
-design change was found. Local checks passed on the v1.3 revision. Publication
-from `cb1ff0c` and exact live HTML/fixture verification completed on 12 September.
-Final visual acceptance remains separate from this approval.
+**Status (2026-09-12):** The owner approved the reporting defaults and then the
+field-browser/ordered-column revision. v1.4 replaces the fixed-order rule and
+checkbox selection in the same mock/spec; final owner review remains R4. The
+revision starts from `cb4f82c` (PR #319), preserving the return-to-overview and
+resume-draft fixes. A fresh open-PR check found no competing reporting change.
+The earlier v1.3 publication remains a dated baseline, not acceptance of v1.4.
 
 ### Artifact ownership
 
@@ -972,8 +1014,8 @@ Final visual acceptance remains separate from this approval.
 | ID | Work and acceptance | Status |
 | --- | --- | --- |
 | R1 — Establish the implementation baseline | Inspect current OpenELIS code and relevant open/merged work for OGC-479, OGC-481 and OGC-483. Identify reusable components, duplicate efforts and missing behavior. Resolve product decisions that block the first implementation slice; record evidence and any owner decision here. | Baseline and reporting defaults approved; production mapping verification belongs to Slice A |
-| R2 — Revise mock and specification together | Implement the UX changes below in the existing review surface and reconcile every affected requirement, acceptance case and localization entry. Both new and repeat-report journeys remain complete. Every old requirement is retained, amended with rationale or explicitly deferred. | Complete in PR #315; owner acceptance remains R4 |
-| R3 — Validate and publish for review | Run focused browser journeys and existing repository tests/build. Inspect desktop and narrow screenshots, keyboard/focus, recovery and downloaded CSV. Publish through the existing gallery, verify the actual live source revision/assets, and provide usable review links. | Local checks complete; v1.3 published from `cb1ff0c`, live HTML and CSV helper match the source byte for byte on 2026-09-12. Final visual acceptance remains R4. |
+| R2 — Revise mock and specification together | Implement the UX changes below in the existing review surface and reconcile every affected requirement, acceptance case and localization entry. Both new and repeat-report journeys remain complete. Every old requirement is retained, amended with rationale or explicitly deferred. | v1.4 mock/spec revision complete locally; supersedes PR #315 field selection; final review remains R4 |
+| R3 — Validate and publish for review | Run focused browser journeys and existing repository tests/build. Inspect desktop and narrow screenshots, keyboard/focus, recovery and downloaded CSV. Publish through the existing gallery, verify the actual live source revision/assets, and provide usable review links. | 273 tests and gallery build pass; desktop/narrow browser checks complete; publication and live verification pending |
 | R4 — Review and hand off | Record owner review and resolve blocking findings. Prepare small implementation slices linked to the existing stories, with code ownership, dependencies and behavioral acceptance. The first slice needs no unresolved product assumptions. | Pending |
 
 ### Baseline evidence — 2026-09-11
@@ -997,7 +1039,7 @@ Final visual acceptance remains separate from this approval.
   area and Patient Report Print Queue conventions. Reuse must be confirmed in
   the implementation checkout rather than inferred from this mock.
 
-The v1.3 mock/spec revision:
+The current mock/spec revision (v1.3 retained behavior plus v1.4 column selection):
 
 - Give new exports and saved reports clear entry points. New exports retain three
   steps; a saved setup opens at a fresh reporting period, with field editing available.
@@ -1014,7 +1056,7 @@ The v1.3 mock/spec revision:
 - Clarify starting a new export versus continuing the retained draft. Keep Download,
   Retry and Re-run understandable and reachable on narrow screens; preserve failure,
   expiry and fresh-period behavior. Reconcile queue requirements and acceptance.
-- Use existing Carbon components/patterns, including keyboard-operable accordions,
+- Use existing Carbon components/patterns, including semantic field/group buttons,
   visible focus and clear error associations. Keep preview-only controls separate
   from the staff workflow. Reuse existing localization keys where appropriate.
 
@@ -1022,7 +1064,11 @@ The rationale is to reveal relevant choices without reducing capability, followi
 [Carbon form guidance](https://carbondesignsystem.com/patterns/forms-pattern/) and
 [progressive disclosure](https://www.nngroup.com/articles/progressive-disclosure/).
 Review editing follows the [check-answers pattern](https://design-system.service.gov.uk/patterns/check-answers/);
-accordion behavior follows [W3C guidance](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
+the paired lists follow [PatternFly dual-list guidance](https://www.patternfly.org/components/dual-list-selector/design-guidelines/).
+Visible selected labels support [recognition rather than recall](https://www.nngroup.com/articles/ten-usability-heuristics/).
+Move buttons avoid a [drag-only requirement](https://www.w3.org/WAI/WCAG22/Understanding/dragging-movements.html).
+Use native lists with buttons: [ARIA listbox guidance](https://www.w3.org/WAI/ARIA/apg/patterns/listbox/)
+does not support interactive buttons inside an option.
 These guides inform the design; they do not establish usability with lab staff.
 
 ### Decisions and implementation handoff
@@ -1034,6 +1080,7 @@ These guides inform the design; they do not establish usability with lab staff.
 | Result state | Validated results for the first virology path; corrected-result representation must be verified against the production model | Approved direction; mapping verification in Slice A |
 | Duplicates and missing values | Preserve distinct result records; write missing values as blank CSV cells; never deduplicate by matching display values alone | Approved 2026-09-12 |
 | Existing Routine CSV | Coexist during development; decide replacement only after CSV comparison and owner acceptance | Approved 2026-09-12 |
+| Column selection and ordering | Available fields alongside Your CSV columns; explicit Add/Remove/Move controls; save and export the selected order instead of forcing catalog order | Approved 2026-09-12 |
 | Permission loss | Recheck access before generation and download, retain the draft, and explain denial. BR-003/004 and their acceptance/tests now reflect this. | Approved 2026-09-12 |
 
 These are approved rules for the first complete export, not a reduction of the
@@ -1058,10 +1105,10 @@ Detailed application tasks should live with their owning OpenELIS work, linked h
 
 | Slice | Owning story | Concrete result | Dependencies and acceptance |
 | --- | --- | --- | --- |
-| A — one virology CSV path | OGC-479 + OGC-481 | Authorized user selects the seven fictional-example fields, chooses an inclusive collection period, creates a job and retrieves a UTF-8 CSV through the real queue path | Approved rules above; verify lab scope, result identity and corrected-result mapping in production code; focused service/API tests and one browser download path pass |
-| B — reporting shell and field catalog | OGC-479 | Landing page, explicit report type, complete authorized catalog, field search, required/common/more filters, review Change actions and retained draft use Carbon/OpenELIS components | Slice A contracts exist; keyboard, validation and permission states pass component/browser tests |
+| A — one virology CSV path | OGC-479 + OGC-481 | Authorized user selects and orders the seven fictional-example fields, chooses an inclusive collection period, creates a job and retrieves a UTF-8 CSV through the real queue path | Approved rules above; verify lab scope, result identity and corrected-result mapping in production code; focused service/API tests and one browser download path verify ordered headers/values, immutable job choices and retry; tests pass |
+| B — reporting shell and field catalog | OGC-479 | Landing page, explicit report type, complete authorized catalog, field browser and ordered-column list, required/common/more filters, review Change actions and retained draft use Carbon/OpenELIS components | Slice A contracts exist; keyboard, validation and permission states pass component/browser tests |
 | C — queue resilience | OGC-481 | Personal queue covers generating, ready, failed/retry and expired/re-run states with named responsive actions and notification behavior | Ships in the same release as OGC-479; restart, ownership, polling and file-retention tests pass |
-| D — saved report settings | OGC-483 | Save, list, load with fresh dates, replace, rename/delete and stale-field handling | Builder contracts stable; personal ownership and limit tests pass |
+| D — saved report settings | OGC-483 | Save, list, load ordered columns with fresh dates, replace, rename/delete and stale-field handling | Builder contracts stable; personal ownership and limit tests pass |
 | E — full required coverage | OGC-479 | All seven domains, three row grains, optional filters, identifying-data audit and correction/status rules are implemented | Production model verification and representative-data acceptance pass; does not rely on the seven-column fixture alone |
 
 Slice A is the first implementation checkpoint. It crosses submission, generation,
@@ -1071,7 +1118,9 @@ a single release boundary.
 
 ### Validation and completion
 
-Exercise new export creation, saved-setup reruns with fresh dates, review edits,
+Exercise field search/add/remove/reorder and matching header/value order through
+preview, review, save/restore and queue retry, plus new export creation, saved-setup
+reruns with fresh dates, review edits,
 empty/invalid periods, duplicate setup names, navigation with drafts, failed jobs,
 retries, expiry, restricted access and actual fictional CSV download. Check column
 values, row meaning and exclusions, not only counts. Recheck manual date entry;
@@ -1079,22 +1128,37 @@ the prior browser inspection used the example shortcut after unreliable automate
 native-date input. Inspect desktop/narrow screenshots and keyboard interaction.
 Use the existing OpenELIS theme; this checkpoint does not add a dark theme.
 
-Local validation on 2026-09-11 exercised both landing paths, explicit report
+Historical v1.3 validation on 2026-09-11 exercised both landing paths, explicit report
 type, field-label search, empty-date validation, the 31-day queued path, review
 Change actions, sign-in recovery, deliberate new-versus-continue behavior and
 the ready/failed/expired queue actions. Keyboard Enter toggled the Test Results
 accordion. At 390 × 844 the queue reflowed without page-level horizontal overflow.
 The ready-job download link contains the expected BOM-prefixed seven-column,
-five-row fictional CSV; the fixture tests independently check canonical order,
+five-row fictional CSV; the then-current fixture tests checked the former catalog order,
 quoting, repeated accessions and blank cells. The browser logged no application
 errors. The repository's 268 tests and production gallery build passed; the build
 still reports pre-existing duplicate-key warnings in unrelated designs.
 
+v1.4 validation on 2026-09-12: all 273 gallery tests and the production build
+pass. Focused tests cover all 38 Sample & Testing, seven Referral and five
+Non-Conformance fields, restricted additions, retained identifying-field choices,
+column-order preview/review, saved configurations with fresh dates, focus after
+movement/removal, and failed-job retry with an immutable order after draft edits.
+CSV assertions verify both ordered headers and corresponding values, repeated
+accessions, blank cells and date boundaries. Desktop and 390-pixel screenshots
+were inspected; the narrow column view and banner spacing were checked, along
+with keyboard reordering, search-scoped bulk removal/addition, saving, queue
+submission, sign-in recovery and expired-job restoration. Native date-fill
+automation did not commit a changed value; keyboard date adjustment did trigger
+validation. Representative manual date entry remains part of owner/staff review.
+Existing build warnings concern unrelated design duplicate keys and tooling
+deprecations; no new dependency or application backend was introduced.
+
 | Acceptance record | Current state |
 | --- | --- |
-| Revised mock/spec agreement and focused behavior checks | Complete locally: landing, new/saved paths, field search, required dates, draft/sign-in recovery, queue actions and keyboard accordion checked |
-| Repository tests/build and verified live gallery revision | 268 gallery tests and production build pass; [gallery deployment at cb1ff0c](https://github.com/DIGI-UW/openelis-work/actions/runs/34710334884) passed and live HTML/CSV helper match source on 2026-09-12 |
-| Owner design review, including report meaning, access and fixture limitations | Reporting defaults approved 2026-09-12; final visual review of the published revision remains R4 |
+| Revised mock/spec agreement and focused behavior checks | v1.4 complete locally: full catalog coverage, search/add/remove/order, preview/review, save with fresh dates, immutable retry CSV, permissions and retained navigation |
+| Repository tests/build and verified live gallery revision | 273 tests and production gallery build pass; exact live verification follows publication of this PR |
+| Owner design review, including report meaning, access and fixture limitations | Reporting defaults and column-builder direction approved 2026-09-12; final review of the published v1.4 revision remains R4 |
 | Implementation backlog and first-slice readiness | Slices A–E recorded and product rules approved; verify production mappings in Slice A after the design checkpoint |
 | Representative staff usability sessions | Not performed; arrange a small round if participants are available, otherwise record it as pending with the remaining usability uncertainty |
 | Application implementation, deployment and real-source parity | Outside this design-readiness goal; tracked separately |
@@ -1112,18 +1176,18 @@ CSV/Dataset parity remain requirements of the separate integration milestones.
 ### Copyable goal
 
 ```text
-Finish the OpenELIS reporting MVP v1.3 design-readiness checkpoint in
-the merged DIGI-UW/openelis-work PR #315. Treat designs/reports/custom-data-export.md
-Section 14 as the progress register, custom-data-export.html as the authoritative
-interactive workflow, and custom-data-export-example.js as the fictional CSV
-fixture. The owner approved the six reporting defaults on 2026-09-12; R3 now has
-passing tests/build and verified live publication at cb1ff0c. Complete R4 by
-reviewing that published design with the owner and recording visual acceptance.
-Keep the harness roadmap PR #134 synchronized by link and milestone
-state only. Finish with one accepted mock/spec, a verified public review URL, and
-Slice A ready to implement across OGC-479 and OGC-481 as a complete authorized
-virology export, queue and CSV-retrieval journey. Preserve OpenELIS/Carbon styling,
-the full required field catalog, retained drafts, permissions and failure recovery.
-Keep staff usability testing, production APIs/authentication/database work and
-real-source Catalyst parity as separately tracked milestones.
+Finish the OpenELIS reporting MVP v1.4 design-readiness checkpoint in
+DIGI-UW/openelis-work. Treat designs/reports/custom-data-export.md Section 14 as
+the progress register, custom-data-export.html as the authoritative workflow,
+and custom-data-export-example.js as the fictional CSV fixture. The owner
+approved the reporting defaults and a grouped Available fields browser beside
+an editable Your CSV columns list on 2026-09-12. Save and export that exact order;
+keep full catalog coverage, permissions, drafts and queue recovery. Complete R2/R3
+with synchronized requirements, behavioral tests, gallery build, desktop/narrow
+visual checks and verified live publication. Complete R4 with explicit owner
+review and an actionable Slice A across OGC-479/481: authorized virology export,
+immutable ordered job, queue recovery and CSV retrieval. Keep the harness roadmap
+synchronized by link and milestone only. Preserve OpenELIS/Carbon styling.
+Staff usability, production implementation/authentication and real-source Catalyst
+parity remain separately tracked milestones; do not infer them from the mock.
 ```
