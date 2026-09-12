@@ -2,9 +2,9 @@
 ## Functional Requirements Specification — v1.3
 
 **Version:** 1.3
-**Date:** 2026-09-11
+**Date:** 2026-09-12
 **Status:** Draft for Review
-**Next checkpoint:** [Design revision and implementation readiness](#14-design-revision-and-implementation-readiness) — revised mock/spec in review; validation, publication and owner acceptance pending.
+**Next checkpoint:** [Design revision and implementation readiness](#14-design-revision-and-implementation-readiness) — reporting defaults approved; publish the revised mock for final visual review.
 **Jira Stories:**
 - [OGC-479](https://uwdigi.atlassian.net/browse/OGC-479) — Custom Data Export: 3-step report builder wizard
 - [OGC-481](https://uwdigi.atlassian.net/browse/OGC-481) — My Report Queue: Async job queue
@@ -175,6 +175,10 @@ coverage or hide fields from an authorized user who clears the search.
 - **SAMPLE_TESTING** — sample collection date
 - **REFERRAL** — referral sent date
 - **NON_CONFORMANCE** — rejection/NCE date
+
+Date From and Date To are inclusive calendar dates in the laboratory server's
+configured timezone. Include the whole final day; do not interpret it as midnight
+at the start of that day. The first virology slice uses collection dates.
 
 **FR-2-002:** Step 2 MUST include a Lab Section `MultiSelect` populated with the lab sections the current user has access to. If the user has access to exactly one section, it MUST be pre-selected and the control MUST be read-only. If the user has access to multiple sections, no sections are pre-selected by default (selecting none is equivalent to selecting all accessible sections).
 
@@ -629,9 +633,9 @@ Two new menu items are added to the Reports section of the left navigation sideb
 
 **BR-002:** A job MUST have at least one variable selected (enforced UI and API) and a date range applied (both Date From and Date To required). The date range MUST NOT exceed `dataExport.maxDateRangeDays` (default 90), enforced server-side with error key `error.dataExport.dateRangeTooLarge`. Unbounded full-table exports are not permitted.
 
-**BR-003:** All export queries MUST be scoped to lab sections the requesting user is authorized to access, enforced server-side. If a user's API request includes unauthorized `labSectionIds`, those IDs MUST be silently excluded — no error is returned and no unauthorized data is returned.
+**BR-003:** All export queries MUST be scoped to lab sections the requesting user is currently authorized to access, enforced server-side. An explicitly requested unauthorized lab section MUST result in a clear access-denied response, not a silently narrowed export. Recheck the requested scope before generation and access to the generated file before download. A denied request returns no clinical data and preserves the builder's choices for review.
 
-**BR-004:** PII variable keys (`patientName`, `dateOfBirth`, `sex`, `nationalId`, `programPatientCode`, `programEnrollment`, `phoneNumber`, `address`) MUST be excluded from the CSV output if the user does not hold the corresponding `DATA_EXPORT_PII_DEMOGRAPHICS` or `DATA_EXPORT_PII_IDENTIFIERS` permission at job execution time. No error is returned — the column simply does not appear in the output. This rule is enforced server-side as defense-in-depth regardless of what the UI submitted.
+**BR-004:** PII variable keys (`patientName`, `dateOfBirth`, `sex`, `nationalId`, `programPatientCode`, `programEnrollment`, `phoneNumber`, `address`) require the corresponding current `DATA_EXPORT_PII_DEMOGRAPHICS` or `DATA_EXPORT_PII_IDENTIFIERS` permission. Recheck before generation and download. If requested identifying fields are no longer authorized, deny the operation with an explanation and retain the draft; do not silently remove columns or release a previously generated file containing unauthorized data. This rule supersedes the earlier silent-column-omission behavior and is enforced server-side regardless of what the UI submitted.
 
 **BR-005:** A sync job that exceeds 30 seconds of server-side generation MUST be automatically promoted to ASYNC status. The HTTP response transitions to 202 with the job ID. The UI MUST handle a delayed 202 gracefully by displaying a notification and linking to the queue.
 
@@ -648,6 +652,13 @@ Two new menu items are added to the Reports section of the left navigation sideb
 **BR-011:** The "Re-run" action on an EXPIRED job pre-populates the Report Builder with the expired job's `selectedVariables` and optional filter fields (statuses, priority, site). The date range MUST NOT be pre-populated — the user must set a new date range before submitting. This prevents accidental resubmission of stale date ranges.
 
 **BR-012 (Row grain per family):** Output row grain is determined by the job's grain family (see FR-1-002): SAMPLE_TESTING exports are one row per test result per accession when Test Results or TAT variables are selected, otherwise one row per accession; REFERRAL exports are one row per referred analysis; NON_CONFORMANCE exports are one row per non-conforming event. *(Replaces the v1.0 cross-domain join rules, which are superseded by BR-015.)*
+
+The first virology slice selects result fields and therefore emits one row per
+individual result. Preserve distinct result records even when accession or display
+values repeat; deduplication by display values is not permitted. It initially
+includes validated results. Verify corrected-result representation against the
+production model before accepting that slice; this is not permission to silently
+omit corrected records or an assertion that the fictional fixture proves it.
 
 **BR-013:** CANCELLED jobs are retained in the queue view for 24 hours after cancellation, then automatically deleted. Their `PiiAccessLog` entries (if any) are retained.
 
@@ -859,7 +870,7 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 - [ ] **[BR-006]** Jobs expire per configured retention days after completion; status transitions to EXPIRED; file no longer downloadable; Re-run option available
 - [ ] **[BR-010]** Submitting a job beyond the configured active-job limit returns HTTP 429 with `error.dataExport.jobLimitExceeded` displayed as `InlineNotification` kind `error`
 - [ ] **[BR-012]** SAMPLE_TESTING jobs with Test Results/TAT variables produce one row per test result per accession; Sample/Order-only jobs produce one row per accession; REFERRAL jobs one row per referred analysis; NON_CONFORMANCE jobs one row per NCE event
-- [ ] **[BR-003, BR-004]** Server enforces section scoping and PII exclusion regardless of what the client submits; unauthorized columns not present in CSV output; no error returned
+- [ ] **[BR-003, BR-004]** Server rechecks lab scope and identifying-field access before generation and download; revoked access gives an explained denial, releases no unauthorized CSV and retains the draft without silently changing its fields or explicit lab selection
 - [ ] **[BR-016]** Requesting another user's job, download, or saved config returns HTTP 404
 - [ ] **[BR-017]** Output CSV is UTF-8 with BOM, RFC 4180, ISO 8601 dates, canonical English headers
 
@@ -893,7 +904,7 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 ## 13. Testing Requirements (Constitution V)
 
 **Backend (JUnit 4 + Mockito; >80% line coverage on new code via JaCoCo):**
-- Unit tests for the query-builder service: variable→column mapping per grain family, filter predicate composition, PII exclusion (BR-004), section scoping (BR-003), grain family rejection (BR-015). Every test MUST satisfy the Inversion Test (V.6).
+- Unit tests for the query-builder service: variable→column mapping per grain family, inclusive lab-timezone date boundaries, filter predicate composition, revoked identifying-field access (BR-004), section scoping and access loss before generation/download (BR-003), grain family rejection (BR-015). Every test MUST satisfy the Inversion Test (V.6).
 - Unit tests for routing logic (BR-001, BR-005) including threshold boundary cases and configuration overrides.
 - ORM validation tests (V.4) for all five new entities — mapping correctness without a database connection.
 - Integration test: `PiiAccessLog` row created on submission with PII variables; absent without (AC requirement).
@@ -930,10 +941,11 @@ its in-memory timers represent queue behavior without implementing a worker.
 that supports an equal mix of new exports and rerunning familiar reports, while
 retaining configurable fields, OpenELIS styling and reliable recovery.
 
-**Status (2026-09-11):** The v1.3 mock and Sections 1–13 have been revised together
-on design PR #315, and local browser validation is complete. Live gallery
-publication and owner acceptance remain pending. Passing checks do not approve
-the revised design.
+**Status (2026-09-12):** The owner approved the six reporting defaults below and
+publication for review, subject to checking parallel work. The current GitHub
+branches and related Catalyst tasks were inspected: no competing OpenELIS export
+design change was found. Local checks passed on the v1.3 revision. Live publication
+and final visual acceptance remain separate from this approval.
 
 ### Artifact ownership
 
@@ -949,7 +961,7 @@ the revised design.
 
 | ID | Work and acceptance | Status |
 | --- | --- | --- |
-| R1 — Establish the implementation baseline | Inspect current OpenELIS code and relevant open/merged work for OGC-479, OGC-481 and OGC-483. Identify reusable components, duplicate efforts and missing behavior. Resolve product decisions that block the first implementation slice; record evidence and any owner decision here. | Baseline complete; owner decisions below remain the implementation gate |
+| R1 — Establish the implementation baseline | Inspect current OpenELIS code and relevant open/merged work for OGC-479, OGC-481 and OGC-483. Identify reusable components, duplicate efforts and missing behavior. Resolve product decisions that block the first implementation slice; record evidence and any owner decision here. | Baseline and reporting defaults approved; production mapping verification belongs to Slice A |
 | R2 — Revise mock and specification together | Implement the UX changes below in the existing review surface and reconcile every affected requirement, acceptance case and localization entry. Both new and repeat-report journeys remain complete. Every old requirement is retained, amended with rationale or explicitly deferred. | Complete in PR #315; owner acceptance remains R4 |
 | R3 — Validate and publish for review | Run focused browser journeys and existing repository tests/build. Inspect desktop and narrow screenshots, keyboard/focus, recovery and downloaded CSV. Publish through the existing gallery, verify the actual live source revision/assets, and provide usable review links. | Local checks complete; live publication pending merge |
 | R4 — Review and hand off | Record owner review and resolve blocking findings. Prepare small implementation slices linked to the existing stories, with code ownership, dependencies and behavioral acceptance. The first slice needs no unresolved product assumptions. | Pending |
@@ -1007,20 +1019,19 @@ These guides inform the design; they do not establish usability with lab staff.
 
 | Decision for the first complete path | Proposed review default | State |
 | --- | --- | --- |
-| Output rows | Sample & Testing, one row per individual result; repeated accessions are expected when an accession has multiple results | Owner review pending |
-| Reporting period | Inclusive collection dates in the laboratory server timezone | Owner review pending |
-| Result state | Validated results for the first virology path; corrected-result representation must be verified against the production model | Owner review pending |
-| Duplicates and missing values | Preserve distinct result records; write missing values as blank CSV cells; never deduplicate by matching display values alone | Owner review pending |
-| Existing Routine CSV | Coexist during development; decide replacement only after CSV comparison and owner acceptance | Owner review pending |
-| Permission loss | Recheck access before generation and download, retain the draft, and explain denial. Reconcile this with BR-004 before implementation. | Owner review pending |
+| Output rows | Sample & Testing, one row per individual result; repeated accessions are expected when an accession has multiple results | Approved 2026-09-12 |
+| Reporting period | Inclusive collection dates in the laboratory server timezone | Approved 2026-09-12 |
+| Result state | Validated results for the first virology path; corrected-result representation must be verified against the production model | Approved direction; mapping verification in Slice A |
+| Duplicates and missing values | Preserve distinct result records; write missing values as blank CSV cells; never deduplicate by matching display values alone | Approved 2026-09-12 |
+| Existing Routine CSV | Coexist during development; decide replacement only after CSV comparison and owner acceptance | Approved 2026-09-12 |
+| Permission loss | Recheck access before generation and download, retain the draft, and explain denial. BR-003/004 and their acceptance/tests now reflect this. | Approved 2026-09-12 |
 
-Before declaring readiness, settle output row meaning (including BR-012's
-selection-dependent grain), date boundaries/timezone, status/correction handling,
-duplicates and missing values for the first complete export. Decide whether the
-Routine CSV entry point is replaced or retained. Resolve what the user sees when
-permissions change before execution or download, including BR-004's silent column
-omission. Validate proposed reuse and backend assumptions against actual OpenELIS
-code; do not infer implementation from this mock or invent a replacement data platform.
+These are approved rules for the first complete export, not a reduction of the
+full reporting scope. BR-012 retains other families' row meanings. Routine CSV
+coexists while the new export is developed. BR-003/004 now reject unauthorized
+requests explicitly instead of silently changing their scope or columns. Validate
+reuse, result identity and corrected-result mapping against actual OpenELIS code
+in Slice A; do not infer implementation from this mock.
 
 Start implementation with one complete, bounded export journey that includes
 retrieval and failure recovery, then expand required coverage and saved-report
@@ -1037,7 +1048,7 @@ Detailed application tasks should live with their owning OpenELIS work, linked h
 
 | Slice | Owning story | Concrete result | Dependencies and acceptance |
 | --- | --- | --- | --- |
-| A — one virology CSV path | OGC-479 + OGC-481 | Authorized user selects the seven fictional-example fields, chooses an inclusive collection period, creates a job and retrieves a UTF-8 CSV through the real queue path | Owner accepts the six decisions above; backend verifies lab scope and row identity; focused service/API tests and one browser download path pass |
+| A — one virology CSV path | OGC-479 + OGC-481 | Authorized user selects the seven fictional-example fields, chooses an inclusive collection period, creates a job and retrieves a UTF-8 CSV through the real queue path | Approved rules above; verify lab scope, result identity and corrected-result mapping in production code; focused service/API tests and one browser download path pass |
 | B — reporting shell and field catalog | OGC-479 | Landing page, explicit report type, complete authorized catalog, field search, required/common/more filters, review Change actions and retained draft use Carbon/OpenELIS components | Slice A contracts exist; keyboard, validation and permission states pass component/browser tests |
 | C — queue resilience | OGC-481 | Personal queue covers generating, ready, failed/retry and expired/re-run states with named responsive actions and notification behavior | Ships in the same release as OGC-479; restart, ownership, polling and file-retention tests pass |
 | D — saved report settings | OGC-483 | Save, list, load with fresh dates, replace, rename/delete and stale-field handling | Builder contracts stable; personal ownership and limit tests pass |
@@ -1073,8 +1084,8 @@ still reports pre-existing duplicate-key warnings in unrelated designs.
 | --- | --- |
 | Revised mock/spec agreement and focused behavior checks | Complete locally: landing, new/saved paths, field search, required dates, draft/sign-in recovery, queue actions and keyboard accordion checked |
 | Repository tests/build and verified live gallery revision | 268 gallery tests and production build pass; live revised gallery pending merge/deploy verification |
-| Owner design review, including report meaning, access and fixture limitations | Pending R4 |
-| Implementation backlog and first-slice readiness | Slices A–E recorded; Slice A becomes implementation-ready after owner acceptance of the six decisions above |
+| Owner design review, including report meaning, access and fixture limitations | Reporting defaults approved 2026-09-12; final visual review of the published revision remains R4 |
+| Implementation backlog and first-slice readiness | Slices A–E recorded and product rules approved; verify production mappings in Slice A after the design checkpoint |
 | Representative staff usability sessions | Not performed; arrange a small round if participants are available, otherwise record it as pending with the remaining usability uncertainty |
 | Application implementation, deployment and real-source parity | Outside this design-readiness goal; tracked separately |
 
@@ -1095,10 +1106,10 @@ Finish the OpenELIS reporting MVP v1.3 design-readiness checkpoint in
 DIGI-UW/openelis-work PR #315. Treat designs/reports/custom-data-export.md
 Section 14 as the progress register, custom-data-export.html as the authoritative
 interactive workflow, and custom-data-export-example.js as the fictional CSV
-fixture. Verify the completed R1 baseline and R2 mock/spec revision, then complete
-R3 and R4: resolve the six recorded owner decisions, rerun focused browser and
-repository checks, merge and verify the live gallery revision, and record owner
-acceptance. Keep the harness roadmap PR #134 synchronized by link and milestone
+fixture. The owner approved the six reporting defaults on 2026-09-12. Complete
+R3 and R4: verify current focused browser and repository checks, publish and
+verify the live gallery revision, and record final owner visual acceptance.
+Keep the harness roadmap PR #134 synchronized by link and milestone
 state only. Finish with one accepted mock/spec, a verified public review URL, and
 Slice A ready to implement across OGC-479 and OGC-481 as a complete authorized
 virology export, queue and CSV-retrieval journey. Preserve OpenELIS/Carbon styling,
