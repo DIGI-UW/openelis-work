@@ -101,17 +101,6 @@
     .step-line { flex: 1; height: 2px; background: #e0e0e0; margin-top: 0.875rem; }
     .step-line.done { background: #0f62fe; }
 
-    /* ── Saved config bar ── */
-    .saved-config-bar {
-      background: #e8f0fe; border: 1px solid #a8c4f0; border-radius: 4px;
-      padding: 0.75rem 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
-    }
-    .saved-config-bar label { font-size: 0.8125rem; font-weight: 600; color: #1d3461; white-space: nowrap; }
-    .saved-config-select {
-      flex: 1; min-width: 200px; max-width: 380px;
-      border: 1px solid #a8c4f0; border-radius: 2px; padding: 0.375rem 0.625rem;
-      font-size: 0.8125rem; background: #fff; color: #161616;
-    }
     .btn-ghost-sm {
       background: none; border: 1px solid #0f62fe; color: #0f62fe;
       padding: 0.375rem 0.875rem; font-size: 0.8125rem; border-radius: 2px; cursor: pointer; font-family: inherit;
@@ -123,11 +112,41 @@
     .card-header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 0.875rem 1rem; border-bottom: 1px solid #e0e0e0; cursor: pointer;
-      user-select: none;
+      user-select: none; width: 100%; background: #fff; color: inherit; border-top: 0; border-left: 0; border-right: 0;
+      text-align: left; font-family: inherit;
     }
     .card-header:hover { background: #f9f9f9; }
     .card-title { font-size: 0.875rem; font-weight: 600; color: #161616; display: flex; align-items: center; gap: 0.5rem; }
     .card-body { padding: 1rem; }
+
+    /* ── Start and report-type choices ── */
+    .start-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.35fr); gap:1rem; margin-bottom:1.5rem; }
+    .start-card { background:#fff; border:1px solid #c6c6c6; padding:1.25rem; min-height:180px; }
+    .start-card h2 { font-size:1rem; margin:0 0 0.5rem; }
+    .start-card p { color:#525252; font-size:0.8125rem; line-height:1.5; margin:0 0 1rem; }
+    .saved-report-list { display:flex; flex-direction:column; gap:0.5rem; }
+    .saved-report { display:flex; justify-content:space-between; gap:1rem; align-items:center; border-top:1px solid #e0e0e0; padding:0.75rem 0; }
+    .saved-report:first-child { border-top:0; padding-top:0; }
+    .saved-report strong { display:block; font-size:0.875rem; }
+    .saved-report span { display:block; color:#6f6f6f; font-size:0.75rem; margin-top:0.25rem; }
+    .type-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0.75rem; margin-bottom:1rem; }
+    .type-card { border:1px solid #8d8d8d; background:#fff; color:#161616; padding:1rem; text-align:left; cursor:pointer; font-family:inherit; min-height:120px; }
+    .type-card:hover { background:#f4f4f4; }
+    .type-card.selected { outline:2px solid #0f62fe; outline-offset:-2px; background:#edf5ff; }
+    .type-card strong { display:block; font-size:0.875rem; margin-bottom:0.375rem; }
+    .type-card span { display:block; font-size:0.75rem; color:#525252; line-height:1.45; }
+    .field-tools { display:flex; gap:0.75rem; align-items:end; margin-bottom:1rem; flex-wrap:wrap; }
+    .field-tools .form-group { flex:1; min-width:220px; }
+    .more-filters { margin-top:1rem; border-top:1px solid #e0e0e0; padding-top:1rem; }
+    .filter-summary { font-size:0.75rem; color:#525252; margin-left:0.5rem; }
+    .review-heading { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:0.5rem; }
+    .review-heading h4 { margin:0; }
+    .queue-actions { display:flex; flex-wrap:wrap; gap:0.375rem; }
+    .btn-table { border:0; background:#e8e8e8; color:#161616; padding:0.375rem 0.625rem; cursor:pointer; font-family:inherit; font-size:0.75rem; }
+    a.btn-table { text-decoration:none; display:inline-flex; align-items:center; }
+    .btn-table.primary { background:#0f62fe; color:#fff; }
+    .btn-table:hover { filter:brightness(0.96); }
+    .queue-detail td { background:#f4f4f4 !important; color:#525252; }
 
     /* ── PII badge ── */
     .pii-badge {
@@ -144,7 +163,6 @@
     .var-check { display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.25rem; }
     .var-check input[type=checkbox] { margin-top: 2px; cursor: pointer; flex-shrink: 0; accent-color: #0f62fe; }
     .var-check label { font-size: 0.8125rem; color: #161616; cursor: pointer; line-height: 1.4; }
-    .var-note { font-size: 10px; color: #8d8d8d; font-style: italic; margin-left: 1.375rem; }
 
     /* ── Filter panel ── */
     .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
@@ -233,7 +251,6 @@
     .sel-tag { display: inline-flex; align-items: center; gap: 4px; background: #e0e0e0; border-radius: 12px; font-size: 11px; padding: 2px 4px 2px 10px; color: #161616; }
     .sel-tag button { background: none; border: none; cursor: pointer; font-size: 11px; color: #525252; padding: 0 5px; border-radius: 50%; line-height: 1.4; }
     .sel-tag button:hover { background: #c6c6c6; color: #161616; }
-    .family-tag { background: #d0e2ff; color: #0043ce; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
 
     /* ── v1.1: grain-family / PII locking ── */
     .card.locked { opacity: 0.55; background: #fafafa; }
@@ -247,7 +264,6 @@
     .modal-box h4 { margin: 0 0 0.5rem; font-size: 0.95rem; color: #161616; }
     .modal-box p { margin: 0 0 1rem; font-size: 0.8125rem; color: #525252; }
     .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
-    .pii-sim-toggle { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #525252; white-space: nowrap; cursor: pointer; user-select: none; }
 
     /* ── v1.1: family color coding (Carbon tag palette) ── */
     .family-chip { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 12px; letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap; }
@@ -258,15 +274,6 @@
     .card.family-REFERRAL        { border-left: 4px solid #08bdba; }
     .card.family-NON_CONFORMANCE { border-left: 4px solid #ee5396; }
 
-    /* ── v1.1: family legend ── */
-    .family-legend { background: #fff; border: 1px solid #e0e0e0; padding: 0.75rem 1rem; margin-bottom: 1rem; }
-    .family-legend-title { font-size: 0.75rem; font-weight: 600; color: #161616; margin-bottom: 0.625rem; }
-    .family-legend-title span { font-weight: 400; color: #525252; }
-    .family-legend-chips { display: flex; flex-direction: column; gap: 7px; }
-    .family-legend-item { display: flex; align-items: center; gap: 10px; transition: opacity 0.15s; }
-    .family-legend-item.dimmed { opacity: 0.35; }
-    .family-legend-item.active .family-desc { font-weight: 600; color: #161616; }
-    .family-legend-item .family-desc { font-size: 11px; color: #525252; }
     .locked-banner { display: flex; align-items: center; gap: 0.75rem; }
     .locked-banner .btn-ghost-sm { flex-shrink: 0; }
     .product-view { flex:1; min-width:0; }
@@ -274,7 +281,21 @@
     .review-controls label { display:flex; gap:8px; align-items:center; }
     .review-controls select { padding:6px; }
     button:focus-visible, input:focus-visible, select:focus-visible { outline:2px solid #0f62fe; outline-offset:2px; }
-    @media(max-width:700px) { .sidebar { display:none; } .page-header,.page-body { padding:16px; } .page-header { flex-wrap:wrap; gap:12px; } .var-grid,.filter-grid { grid-template-columns:1fr; } .queue-table { min-width:650px; } .product-view .card:has(.queue-table) { overflow:auto !important; } .preview-banner { flex-wrap:wrap; } .stepper { margin-top:16px; } }
+    @media(max-width:700px) {
+      .sidebar { display:none; } .page-header,.page-body { padding:16px; } .page-header { flex-wrap:wrap; gap:12px; }
+      .var-grid,.filter-grid,.start-grid,.type-grid { grid-template-columns:1fr; }
+      .saved-report { align-items:flex-start; flex-direction:column; }
+      .preview-banner { flex-wrap:wrap; } .stepper { margin-top:16px; }
+      .queue-table,.queue-table tbody,.queue-table tr,.queue-table td { display:block; width:100%; }
+      .queue-table thead { display:none; }
+      .queue-table tr { border-bottom:8px solid #f4f4f4; padding:0.5rem 0; }
+      .queue-table td { border:0; display:grid; grid-template-columns:8rem minmax(0,1fr); gap:0.5rem; padding:0.5rem 1rem; }
+      .queue-table td::before { content:attr(data-label); font-size:0.7rem; font-weight:600; color:#6f6f6f; text-transform:uppercase; }
+      .queue-table td[data-label="Actions"] { display:block; }
+      .queue-table td[data-label="Actions"]::before { display:block; margin-bottom:0.5rem; }
+      .queue-detail td { display:block; }
+      .queue-detail td::before { display:none; }
+    }
   </style>
 </head>
 <body>
@@ -397,6 +418,9 @@ function downloadExample(request) {
   const link = document.createElement('a'); link.href=href; link.download='openelis-virology-example.csv'; link.click();
   setTimeout(() => URL.revokeObjectURL(href), 1000);
 }
+function exampleDownloadHref(request) {
+  return `data:text/csv;charset=utf-8,${encodeURIComponent(Example.csv(request))}`;
+}
 
 // ─── Components ──────────────────────────────────────────────────────────────
 
@@ -494,17 +518,22 @@ function StatusTag({ status }) {
 }
 
 // ─── Report Builder ───────────────────────────────────────────────────────────
-function ReportBuilder({ onGoToQueue, onSubmit, configs, setConfigs, restoreRequest, piiAccess, setPiiAccess }) {
+function ReportBuilder({ onGoToQueue, onSubmit, configs, setConfigs, restoreRequest, piiAccess, newExportToken }) {
+  const [mode, setMode] = useState('start');
   const [step, setStep] = useState(1);
-  const [openDomains, setOpenDomains] = useState(new Set(DOMAINS.map(d => d.id))); // all expanded by default (FR-1-002)
+  const [reportType, setReportType] = useState(null);
+  const [openDomains, setOpenDomains] = useState(new Set());
   const [selected, setSelected] = useState(new Set());
+  const [fieldSearch, setFieldSearch] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [dateAttempted, setDateAttempted] = useState(false);
   const [labSection, setLabSection] = useState('Virology');
-  const [savedConfigId, setSavedConfigId] = useState('');
   const [configName, setConfigName] = useState('');
+  const [saveForLater, setSaveForLater] = useState(false);
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
   const [showOverwriteModal, setShowOverwriteModal] = useState(false);
+  const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
   const [test, setTest] = useState('HIV viral load');
   const [resultStatus, setResultStatus] = useState('Validated (finalized)');
   const [sampleStatus, setSampleStatus] = useState('All statuses');
@@ -515,15 +544,32 @@ function ReportBuilder({ onGoToQueue, onSubmit, configs, setConfigs, restoreRequ
   const request = { vars:[...selected], startDate, endDate, labSection, test, resultStatus, sampleStatus, priority, referringSite };
   const applyRequest = choices => {
     setSelected(new Set(choices.vars)); setStartDate(choices.startDate || ''); setEndDate(choices.endDate || '');
+    const first = choices.vars && choices.vars.length ? VAR_LOOKUP[choices.vars[0]] : null;
+    setReportType(first ? first.family : null);
     setLabSection(choices.labSection || 'Virology'); setTest(choices.test || ''); setResultStatus(choices.resultStatus || 'All statuses');
     setSampleStatus(choices.sampleStatus || 'All statuses'); setPriority(choices.priority || 'All priorities'); setReferringSite(choices.referringSite || '');
-    setMessage('');
+    setMessage(''); setDateAttempted(false);
   };
-  useEffect(() => { if (restoreRequest) { applyRequest(Example.restore(restoreRequest)); setStep(2); setMessage('Selections restored. Choose a new reporting period.'); } }, [restoreRequest]);
+  const startFresh = () => {
+    setMode('builder'); setStep(1); setReportType(null); setOpenDomains(new Set()); setSelected(new Set()); setFieldSearch('');
+    setStartDate(''); setEndDate(''); setDateAttempted(false); setLabSection('Virology'); setTest(''); setResultStatus('All statuses');
+    setSampleStatus('All statuses'); setPriority('All priorities'); setReferringSite(''); setExportName(''); setConfigName('');
+    setSaveForLater(false); setShowSaveSuccess(false); setMoreFiltersOpen(false); setMessage('');
+  };
+  useEffect(() => { if (newExportToken > 0) startFresh(); }, [newExportToken]);
+  useEffect(() => { if (restoreRequest) { applyRequest(Example.restore(restoreRequest)); setMode('builder'); setStep(2); setMessage('Selections restored. Choose a new reporting period.'); } }, [restoreRequest]);
 
 
-  // ── Grain family lock (FR-1-008): first selection locks the family ──
-  const activeFamily = selected.size > 0 ? VAR_LOOKUP[selected.values().next().value].family : null;
+  // The report type is chosen explicitly before field selection. Mixed row grains remain invalid.
+  const activeFamily = reportType || (selected.size > 0 ? VAR_LOOKUP[selected.values().next().value].family : null);
+
+  const chooseReportType = (family) => {
+    if (selected.size > 0 && family !== reportType) return;
+    setReportType(family);
+    const firstDomain = DOMAINS.find(d => d.family === family);
+    setOpenDomains(new Set(firstDomain ? [firstDomain.id] : []));
+    setFieldSearch('');
+  };
 
   const toggleDomain = (id) => {
     const next = new Set(openDomains);
@@ -554,9 +600,9 @@ function ReportBuilder({ onGoToQueue, onSubmit, configs, setConfigs, restoreRequ
     setSelected(next);
   };
 
-  const loadConfig = () => {
-    const cfg = configs.find(c => c.id === savedConfigId);
-    if (cfg) { applyRequest(Example.restore(cfg)); setMessage('Configuration loaded. Choose a fresh reporting period.'); }
+  const loadConfig = (id) => {
+    const cfg = configs.find(c => c.id === id);
+    if (cfg) { applyRequest(Example.restore(cfg)); setMode('builder'); setStep(2); setMessage('Saved report loaded. Choose a fresh reporting period.'); }
   };
 
   const configNameExists = configs.some(c => c.name.trim().toLowerCase() === configName.trim().toLowerCase());
@@ -584,7 +630,8 @@ function ReportBuilder({ onGoToQueue, onSubmit, configs, setConfigs, restoreRequ
   // ── Date range calc (FR-2-007 / FR-2-010) ──
   const msPerDay = 86400000;
   const dayDiff = startDate && endDate ? Math.round((new Date(endDate) - new Date(startDate)) / msPerDay) + 1 : 0;
-  const rangeInvalid = dayDiff <= 0;
+  const datesMissing = !startDate || !endDate;
+  const rangeInvalid = !datesMissing && dayDiff <= 0;
   const rangeTooLarge = dayDiff > MAX_RANGE_DAYS;
 
   // Simulated estimate
@@ -595,6 +642,11 @@ function ReportBuilder({ onGoToQueue, onSubmit, configs, setConfigs, restoreRequ
 
   const steps = ['Select Variables', 'Set Filters', 'Review & Submit'];
   const selectedVarList = DOMAINS.flatMap(d => d.vars.filter(v => selected.has(v.key)).map(v => ({ ...v, domain: d.label })));
+  const visibleDomains = DOMAINS.filter(d => d.family === reportType).map(d => ({
+    ...d,
+    vars: d.vars.filter(v => !fieldSearch.trim() || v.label.toLowerCase().includes(fieldSearch.trim().toLowerCase()))
+  })).filter(d => d.vars.length > 0);
+  const activeExtraFilters = [sampleStatus !== 'All statuses' ? sampleStatus : '', priority !== 'All priorities' ? priority : '', referringSite].filter(Boolean);
 
 
   return (
@@ -603,21 +655,39 @@ function ReportBuilder({ onGoToQueue, onSubmit, configs, setConfigs, restoreRequ
         <div>
           <div className="breadcrumb">Reports <span>/ Custom Data Export</span></div>
           <h1 className="page-title">Custom Data Export</h1>
-          <p className="page-subtitle">Select variables from one data family, set date filters, and download or queue your export.</p>
+          <p className="page-subtitle">Create a CSV for a new question or rerun a familiar report for a new period.</p>
         </div>
-        <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'0.5rem'}}>
-          <button className="btn-secondary" onClick={onGoToQueue}>My Report Queue →</button>
-          <label className="pii-sim-toggle" title="Preview only: simulate DATA_EXPORT_PII_* permissions">
-            <input type="checkbox" checked={piiAccess} onChange={e => setPiiAccess(e.target.checked)}/>
-            Simulate PII permissions
-          </label>
-        </div>
+        <button className="btn-secondary" onClick={onGoToQueue}>My Report Queue →</button>
       </div>
 
       <div className="page-body">
         <div className="inline-notification info" role="status">Fictional preview. The complete downloadable example uses August 2026 Virology results. No live source is connected.</div>
         {message && <div className="inline-notification info" role="status">{message}</div>}
-        <button className="btn-secondary" onClick={() => {applyRequest(Example.august); setStep(1); setPiiAccess(false);}}>Use fictional virology example</button>
+
+        {mode === 'start' && (
+          <div className="start-grid">
+            <section className="start-card" aria-labelledby="new-export-title">
+              <h2 id="new-export-title">Create a new export</h2>
+              <p>Choose the kind of report, the fields you need, and a reporting period. Your work remains available if you visit the queue or need to sign in again.</p>
+              <button className="btn-primary" onClick={startFresh}>Start a new export</button>
+            </section>
+            <section className="start-card" aria-labelledby="saved-reports-title">
+              <h2 id="saved-reports-title">Use a saved report</h2>
+              <p>Reuse saved fields and filters, then choose a fresh reporting period.</p>
+              <div className="saved-report-list">
+                {configs.map(c => (
+                  <div className="saved-report" key={c.id}>
+                    <div><strong>{c.name}</strong><span>{c.vars.length} saved fields · reporting period is never saved</span></div>
+                    <button className="btn-ghost-sm" onClick={() => loadConfig(c.id)}>Use report</button>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+        )}
+
+        {mode === 'builder' && (<>
+        <button className="btn-secondary" onClick={() => {applyRequest(Example.august); setMode('builder'); setStep(1);}}>Use fictional virology example</button>
         {/* Stepper */}
         <div className="stepper">
           {steps.map((s, i) => {
@@ -638,42 +708,34 @@ function ReportBuilder({ onGoToQueue, onSubmit, configs, setConfigs, restoreRequ
         {/* ── Step 1: Variable Selection ── */}
         {step === 1 && (
           <>
-            {/* Saved config bar */}
-            <div className="saved-config-bar">
-              <label>📂 Load saved configuration:</label>
-              <select className="saved-config-select" aria-label="Saved configuration" value={savedConfigId} onChange={e => setSavedConfigId(e.target.value)}>
-                <option value="">— Select a saved configuration —</option>
-                {configs.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-              <button className="btn-ghost-sm" disabled={!savedConfigId} onClick={loadConfig}>Load</button>
-            </div>
-
-            {/* Family legend (FR-1-009) — teaches the one-family rule before the lock */}
-            <div className="family-legend">
-              <div className="family-legend-title">Export families <span>— an export draws from one family; picking a variable locks the others</span></div>
-              <div className="family-legend-chips">
+            <h2 style={{fontSize:'1rem',margin:'1.25rem 0 0.5rem'}}>What kind of information do you need?</h2>
+            <p style={{fontSize:'0.8125rem',color:'#525252',margin:'0 0 1rem'}}>Choose one report type so every CSV row has a clear meaning. You can change the type until you select fields.</p>
+            <div className="type-grid" role="radiogroup" aria-label="Report type">
                 {Object.keys(FAMILY_META).map(fid => (
-                  <div key={fid} className={`family-legend-item ${activeFamily === fid ? 'active' : ''} ${activeFamily && activeFamily !== fid ? 'dimmed' : ''}`}>
-                    <span className={`family-chip ${FAMILY_META[fid].chipClass}`}>{FAMILY_LABELS[fid]}</span>
-                    <span className="family-desc">{FAMILY_META[fid].desc}</span>
-                  </div>
+                  <button key={fid} role="radio" aria-checked={reportType === fid} disabled={selected.size > 0 && reportType !== fid}
+                    className={`type-card ${reportType === fid ? 'selected' : ''}`} onClick={() => chooseReportType(fid)}>
+                    <strong>{FAMILY_LABELS[fid]}</strong><span>{FAMILY_META[fid].desc}</span>
+                  </button>
                 ))}
-              </div>
             </div>
 
-            {/* Helper banner (FR-1-008): intro before lock, escape hatch after */}
-            {!activeFamily ? (
+            {!reportType ? (
               <div className="inline-notification info">
                 <span>ℹ️</span>
-                <div>Select the variables you want in your export. <strong>PII fields</strong> require additional permissions.</div>
+                <div>Choose a report type to see its fields.</div>
               </div>
             ) : (
               <div className="inline-notification info locked-banner">
-                <span>🔒</span>
-                <div style={{flex:1}}>You're building a <strong>{FAMILY_LABELS[activeFamily]}</strong> export. The other families are locked — clear your selections to switch.</div>
-                <button className="btn-ghost-sm" onClick={() => setSelected(new Set())}>Clear all selections</button>
+                <span>ℹ️</span>
+                <div style={{flex:1}}>You're building a <strong>{FAMILY_LABELS[reportType]}</strong> report. Fields with identifying data require additional permission.</div>
+                {selected.size > 0 && <button className="btn-ghost-sm" onClick={() => {setSelected(new Set()); setReportType(null); setOpenDomains(new Set());}}>Change type and clear fields</button>}
               </div>
             )}
+
+            {reportType && <div className="field-tools">
+              <div className="form-group"><label htmlFor="field-search">Find a field</label><input id="field-search" className="form-input" type="search" placeholder="Search fields…" value={fieldSearch} onChange={e=>setFieldSearch(e.target.value)}/></div>
+              <span style={{fontSize:'0.75rem',color:'#525252'}}>{visibleDomains.reduce((sum,d)=>sum+d.vars.length,0)} matching fields</span>
+            </div>}
 
             {/* Selection summary — labels + count (Constitution II) */}
             {selected.size > 0 && (
@@ -689,38 +751,35 @@ function ReportBuilder({ onGoToQueue, onSubmit, configs, setConfigs, restoreRequ
               </div>
             )}
 
-            {DOMAINS.map(domain => {
-              const domainSelCount = domain.vars.filter(v => selected.has(v.key)).length;
+            {visibleDomains.map(domain => {
+              const fullDomain = DOMAINS.find(d => d.id === domain.id);
+              const domainSelCount = fullDomain.vars.filter(v => selected.has(v.key)).length;
               const familyLocked = isDomainFamilyLocked(domain);
               const piiLocked = isDomainPiiLocked(domain);
               const locked = familyLocked || piiLocked;
-              const isOpen = openDomains.has(domain.id) && !locked;
+              const isOpen = (!!fieldSearch.trim() || openDomains.has(domain.id)) && !locked;
               return (
                 <div className={`card family-${domain.family} ${locked ? 'locked' : ''}`} key={domain.id}>
-                  <div className="card-header" onClick={() => !locked && toggleDomain(domain.id)}>
+                  <button type="button" className="card-header" aria-expanded={isOpen} aria-controls={`domain-${domain.id}`}
+                    disabled={locked} onClick={() => !locked && toggleDomain(domain.id)}>
                     <div className="card-title">
                       {locked && <span title={familyLocked
                         ? `Not available with ${FAMILY_LABELS[activeFamily]} variables — an export draws from one data family at a time`
                         : `Requires Data Export PII ${domain.pii === 'DEMOGRAPHICS' ? 'Demographics' : 'Identifiers'} permission`}>🔒</span>}
                       {domain.label}
                       <span className={`family-chip ${FAMILY_META[domain.family].chipClass}`}>{FAMILY_LABELS[domain.family]}</span>
-                      {domain.pii && <span className="pii-badge" title="Contains patient-identifying data — requires additional permission; exports including these fields are audited">PII</span>}
-                      <span className={`var-count-badge ${domainSelCount > 0 ? 'has-sel' : ''}`}>{domainSelCount}/{domain.vars.length}</span>
+                      {domain.pii && <span className="pii-badge" title="Contains patient-identifying data. Additional access is required and exports are audited.">Identifying data</span>}
+                      <span className={`var-count-badge ${domainSelCount > 0 ? 'has-sel' : ''}`}>{domainSelCount}/{fullDomain.vars.length}</span>
                       {familyLocked && <span className="lock-note">Not available with {FAMILY_LABELS[activeFamily]} variables</span>}
-                      {!familyLocked && piiLocked && <span className="lock-note">Requires PII permission — visible but locked</span>}
+                      {!familyLocked && piiLocked && <span className="lock-note">Requires additional identifying-data access</span>}
                     </div>
-                    <div style={{display:'flex',gap:'0.5rem',alignItems:'center'}}>
-                      {isOpen && (
-                        <button className="btn-ghost-sm" style={{fontSize:'11px',padding:'2px 8px'}}
-                          onClick={e => { e.stopPropagation(); toggleAllDomain(domain); }}>
-                          {domain.vars.every(v => selected.has(v.key)) ? 'Deselect all' : 'Select all'}
-                        </button>
-                      )}
-                      <span style={{color:'#8d8d8d',fontSize:'12px'}}>{isOpen ? '▲' : '▼'}</span>
-                    </div>
-                  </div>
+                    <span style={{color:'#8d8d8d',fontSize:'12px'}}>{isOpen ? '▲' : '▼'}</span>
+                  </button>
                   {isOpen && (
-                    <div className="card-body">
+                    <div className="card-body" id={`domain-${domain.id}`}>
+                      <button className="btn-ghost-sm" style={{fontSize:'11px',padding:'2px 8px',marginBottom:'0.75rem'}} onClick={() => toggleAllDomain(domain)}>
+                        {domain.vars.every(v => selected.has(v.key)) ? 'Deselect all shown' : 'Select all shown'}
+                      </button>
                       <div className="var-grid">
                         {domain.vars.map(v => (
                           <div key={v.key} className="var-check">
@@ -759,17 +818,19 @@ function ReportBuilder({ onGoToQueue, onSubmit, configs, setConfigs, restoreRequ
                 <div className="filter-grid">
                   <div className="form-group">
                     <label htmlFor="date-from">Date From *</label>
-                    <input className="form-input" id="date-from" type="date" value={startDate} onChange={e => setStartDate(e.target.value)}/>
+                    <input className="form-input" id="date-from" type="date" aria-invalid={dateAttempted && !startDate} value={startDate} onChange={e => setStartDate(e.target.value)}/>
+                    {dateAttempted && !startDate && <div className="invalid-note" role="alert">Enter a start date.</div>}
                   </div>
                   <div className="form-group">
                     <label htmlFor="date-to">Date To *</label>
-                    <input className="form-input" id="date-to" type="date" value={endDate} onChange={e => setEndDate(e.target.value)}/>
+                    <input className="form-input" id="date-to" type="date" aria-invalid={(dateAttempted && !endDate) || rangeInvalid || rangeTooLarge} value={endDate} onChange={e => setEndDate(e.target.value)}/>
+                    {dateAttempted && !endDate && <div className="invalid-note" role="alert">Enter an end date.</div>}
                     {rangeInvalid && <div className="invalid-note">Date To must be on or after Date From.</div>}
                     {!rangeInvalid && rangeTooLarge && <div className="invalid-note">Date range cannot exceed {MAX_RANGE_DAYS} days.</div>}
                   </div>
                 </div>
                 <div style={{fontSize:'0.8125rem',color:'#6f6f6f'}}>
-                  📅 Range: <strong>{rangeInvalid ? '—' : `${dayDiff} days`}</strong> &nbsp;·&nbsp; Max {MAX_RANGE_DAYS} days. Exports &gt;7 days or &gt;5,000 estimated rows are queued for async generation.
+                  📅 Range: <strong>{datesMissing || rangeInvalid ? 'Choose both dates' : `${dayDiff} days`}</strong> &nbsp;·&nbsp; Max {MAX_RANGE_DAYS} days. Exports &gt;7 days or &gt;5,000 estimated rows are queued for generation.
                 </div>
               </div>
             </div>
@@ -787,6 +848,24 @@ function ReportBuilder({ onGoToQueue, onSubmit, configs, setConfigs, restoreRequ
                     </select>
                   </div>
                   {hasTestResultVars && <div className="form-group"><label htmlFor="test-filter">Test</label><select id="test-filter" className="form-input form-select" value={test} onChange={e=>setTest(e.target.value)}><option value="">All tests</option><option>HIV viral load</option></select></div>}
+                  <div className="form-group" title={!hasTestResultVars ? 'Available when Test Results variables are selected' : undefined}>
+                    <label style={{color: hasTestResultVars ? undefined : '#c6c6c6'}}>Result Status</label>
+                    <select aria-label="Result Status" className="form-input form-select" disabled={!hasTestResultVars} value={resultStatus} onChange={e=>setResultStatus(e.target.value)}>
+                      <option>All statuses</option>
+                      <option>Preliminary (technically accepted)</option>
+                      <option>Validated (finalized)</option>
+                      <option>Corrected</option>
+                    </select>
+                    {!hasTestResultVars && <div style={{fontSize:'10px',color:'#8d8d8d',marginTop:'2px'}}>Available when Test Results fields are selected</div>}
+                  </div>
+                </div>
+                <div className="more-filters">
+                  <button className="btn-link" aria-expanded={moreFiltersOpen} aria-controls="more-filter-fields" onClick={()=>setMoreFiltersOpen(v=>!v)}>
+                    {moreFiltersOpen ? 'Hide more filters' : 'Show more filters'}
+                  </button>
+                  {!moreFiltersOpen && activeExtraFilters.length > 0 && <span className="filter-summary">Active: {activeExtraFilters.join(' · ')}</span>}
+                </div>
+                {moreFiltersOpen && <div id="more-filter-fields" className="filter-grid" style={{marginTop:'1rem'}}>
                   {activeFamily === 'SAMPLE_TESTING' && (
                     <div className="form-group">
                       <label htmlFor="sample-status">Sample Status</label>
@@ -799,16 +878,6 @@ function ReportBuilder({ onGoToQueue, onSubmit, configs, setConfigs, restoreRequ
                       </select>
                     </div>
                   )}
-                  <div className="form-group" title={!hasTestResultVars ? 'Available when Test Results variables are selected' : undefined}>
-                    <label style={{color: hasTestResultVars ? undefined : '#c6c6c6'}}>Result Status</label>
-                    <select aria-label="Result Status" className="form-input form-select" disabled={!hasTestResultVars} value={resultStatus} onChange={e=>setResultStatus(e.target.value)}>
-                      <option>All statuses</option>
-                      <option>Preliminary (technically accepted)</option>
-                      <option>Validated (finalized)</option>
-                      <option>Corrected</option>
-                    </select>
-                    {!hasTestResultVars && <div style={{fontSize:'10px',color:'#8d8d8d',marginTop:'2px'}}>Available when Test Results variables are selected</div>}
-                  </div>
                   <div className="form-group">
                     <label htmlFor="priority">Priority</label>
                     <select id="priority" className="form-input form-select" value={priority} onChange={e=>setPriority(e.target.value)}>
@@ -822,13 +891,13 @@ function ReportBuilder({ onGoToQueue, onSubmit, configs, setConfigs, restoreRequ
                     <label>Referring Site</label>
                     <input aria-label="Referring Site" className="form-input" type="text" placeholder="Search referring sites…" value={referringSite} onChange={e=>setReferringSite(e.target.value)}/>
                   </div>
-                </div>
+                </div>}
               </div>
             </div>
 
             <div className="action-bar">
               <button className="btn-secondary" onClick={() => setStep(1)}>← Back</button>
-              <button className="btn-primary" disabled={rangeInvalid || rangeTooLarge} onClick={() => setStep(3)}>Next: Review &amp; Submit →</button>
+              <button className="btn-primary" disabled={rangeInvalid || rangeTooLarge} onClick={() => {setDateAttempted(true); if (!datesMissing && !rangeInvalid && !rangeTooLarge) setStep(3);}}>Next: Review &amp; Submit →</button>
             </div>
           </>
         )}
@@ -857,7 +926,7 @@ function ReportBuilder({ onGoToQueue, onSubmit, configs, setConfigs, restoreRequ
                   <span className={`family-chip ${FAMILY_META[activeFamily].chipClass}`}>{FAMILY_LABELS[activeFamily]} export</span>
                 </div>
                 <div className="review-section">
-                  <h4>Date Range</h4>
+                  <div className="review-heading"><h4>Date Range and filters</h4><button className="btn-link" onClick={() => setStep(2)}>Change</button></div>
                   <span className="var-pill">📅 {startDate} → {endDate} ({dayDiff} days, {FAMILY_DATE_ANCHOR[activeFamily]})</span>
                 </div>
                 <div className="review-section">
@@ -865,7 +934,7 @@ function ReportBuilder({ onGoToQueue, onSubmit, configs, setConfigs, restoreRequ
                   <span className="var-pill">🔬 {labSection === 'all' ? 'All accessible sections' : labSection}</span>
                 </div>
                 <div className="review-section">
-                  <h4>Selected Variables ({selectedVarList.length})</h4>
+                  <div className="review-heading"><h4>Selected Fields ({selectedVarList.length})</h4><button className="btn-link" onClick={() => setStep(1)}>Change</button></div>
                   {DOMAINS.map(d => {
                     const dVars = selectedVarList.filter(v => v.domain === d.label);
                     if (dVars.length === 0) return null;
@@ -880,67 +949,72 @@ function ReportBuilder({ onGoToQueue, onSubmit, configs, setConfigs, restoreRequ
               </div>
             </div>
 
-            {/* Export name */}
+            {/* File name */}
             <div className="card">
               <div className="card-header" style={{cursor:'default'}}>
-                <div className="card-title">Export Name <span style={{color:'#8d8d8d',fontSize:'0.75rem',fontWeight:'400'}}>(Optional — auto-generated if blank)</span></div>
+                <div className="card-title">File name <span style={{color:'#8d8d8d',fontSize:'0.75rem',fontWeight:'400'}}>(Optional — generated for you if blank)</span></div>
               </div>
               <div className="card-body">
-                <input className="form-input" type="text" aria-label="Export Name" value={exportName} onChange={e=>setExportName(e.target.value)} placeholder="e.g. Monthly virology" style={{maxWidth:'420px'}}/>
+                <input className="form-input" type="text" aria-label="File name" value={exportName} onChange={e=>setExportName(e.target.value)} placeholder="e.g. August virology results" style={{maxWidth:'420px'}}/>
               </div>
             </div>
 
             {/* Save configuration panel */}
             <div className="save-config-panel">
-              <h4>💾 Save this configuration for later</h4>
-              <p>Save your selected variables and filters to reload next time. Date range is not saved.</p>
+              <label style={{display:'flex',alignItems:'center',gap:'0.5rem',fontWeight:600,fontSize:'0.875rem'}}>
+                <input type="checkbox" checked={saveForLater} onChange={e=>setSaveForLater(e.target.checked)}/>
+                Save these report settings for later
+              </label>
+              <p style={{marginTop:'0.5rem'}}>Saved report settings include fields and filters. You choose a fresh reporting period each time.</p>
               {showSaveSuccess && (
                 <div className="inline-notification success" style={{marginBottom:'0.75rem'}}>
                   ✅ Configuration "<strong>{configName || 'My Config'}</strong>" saved.
                 </div>
               )}
-              <div className="save-config-row">
+              {saveForLater && <div className="save-config-row">
                 <div className="form-group">
-                  <label htmlFor="configuration-name">Configuration Name</label>
+                  <label htmlFor="configuration-name">Saved report name</label>
                   <input className="form-input" type="text" id="configuration-name" placeholder="e.g. Monthly virology"
                     value={configName} onChange={e => setConfigName(e.target.value)}/>
                 </div>
-                <button className="btn-ghost-sm" disabled={!configName.trim()} onClick={handleSaveConfig} style={{marginBottom:'1px'}}>Save Configuration</button>
-              </div>
-              <div style={{fontSize:'11px',color:'#8d8d8d',marginTop:'0.5rem'}}>
+                <button className="btn-ghost-sm" disabled={!configName.trim()} onClick={handleSaveConfig} style={{marginBottom:'1px'}}>Save report settings</button>
+              </div>}
+              {saveForLater && <div style={{fontSize:'11px',color:'#8d8d8d',marginTop:'0.5rem'}}>
                 Tip: try saving as "Hematology Monthly TAT" to preview the overwrite confirmation.
-              </div>
+              </div>}
             </div>
 
             <div className="action-bar">
               <button className="btn-secondary" onClick={() => setStep(2)}>← Back</button>
               <button className="btn-primary" onClick={handleSubmit}>
-                {isAsync ? '⏳ Generate Export (queued)' : '⬇ Generate Export (downloads now)'}
+                {isAsync ? 'Create CSV and add to queue' : 'Create CSV'}
               </button>
             </div>
 
             {/* Overwrite confirmation modal (FR-7-002) */}
             {showOverwriteModal && (
               <div className="modal-overlay" onClick={() => setShowOverwriteModal(false)}>
-                <div className="modal-box" onClick={e => e.stopPropagation()}>
-                  <h4>Overwrite saved configuration?</h4>
-                  <p>A configuration named "<strong>{configName}</strong>" already exists. Overwrite it?</p>
+                <div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="overwrite-title" onClick={e => e.stopPropagation()}>
+                  <h4 id="overwrite-title">Replace saved report settings?</h4>
+                  <p>Saved report settings named "<strong>{configName}</strong>" already exist. Replace them?</p>
                   <div className="modal-actions">
                     <button className="btn-secondary" onClick={() => setShowOverwriteModal(false)}>Cancel</button>
-                    <button className="btn-danger" onClick={doSave}>Overwrite</button>
+                    <button className="btn-danger" onClick={doSave}>Replace</button>
                   </div>
                 </div>
               </div>
             )}
           </>
         )}
+        </>)}
       </div>
     </div>
   );
 }
 
 // ─── Report Queue ─────────────────────────────────────────────────────────────
-function ReportQueue({ onGoToBuilder, rows, setRows, onRetry, onRerun }) {
+function ReportQueue({ onContinueDraft, onStartNew, rows, setRows, onRetry, onRerun }) {
+  const [expandedJob, setExpandedJob] = useState(null);
 
   const cancel = (id) => setRows(r => r.map(row => row.id === id ? {...row, status:'cancelled'} : row));
   const deleteRow = (id) => setRows(r => r.filter(row => row.id !== id));
@@ -953,14 +1027,17 @@ function ReportQueue({ onGoToBuilder, rows, setRows, onRetry, onRerun }) {
           <h1 className="page-title">My Report Queue</h1>
           <p className="page-subtitle">View and download your queued CSV exports. Ready files are kept for 7 days (configurable).</p>
         </div>
-        <button className="btn-primary" onClick={onGoToBuilder}>+ New Export</button>
+        <div className="queue-actions">
+          <button className="btn-secondary" onClick={onContinueDraft}>Continue current export</button>
+          <button className="btn-primary" onClick={onStartNew}>New export</button>
+        </div>
       </div>
 
       <div className="page-body">
         {rows.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">📭</div>
-            <p>No export jobs found. <button className="btn-link" onClick={onGoToBuilder}>Create your first export.</button></p>
+            <p>No export jobs found. <button className="btn-link" onClick={onStartNew}>Create your first export.</button></p>
           </div>
         ) : (
           <div className="card" style={{padding:0,overflow:'hidden'}}>
@@ -968,45 +1045,50 @@ function ReportQueue({ onGoToBuilder, rows, setRows, onRetry, onRerun }) {
               <thead>
                 <tr>
                   <th>Job Name</th>
+                  <th>Report</th>
+                  <th>Date Range</th>
                   <th>Status</th>
                   <th>Rows / File Size</th>
                   <th>Submitted At</th>
-                  <th>Expires</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map(row => (
-                  <tr key={row.id}>
-                    <td>
+                  <React.Fragment key={row.id}>
+                  <tr>
+                    <td data-label="Job Name">
                       <div style={{fontWeight:500}}>{row.name}</div>
                       <div style={{fontSize:'11px',color:'#8d8d8d'}}>{row.id}</div>
                     </td>
-                    <td><StatusTag status={row.status}/></td>
-                    <td>{row.rows !== null ? `${row.rows.toLocaleString()} · ${row.size}` : row.size}</td>
-                    <td>{row.created}</td>
-                    <td style={{color: row.status==='expired' ? '#da1e28' : '#161616'}}>{row.expires}</td>
-                    <td>
-                      <div style={{display:'flex',gap:'4px'}}>
+                    <td data-label="Report">{FAMILY_LABELS[VAR_LOOKUP[row.request.vars[0]]?.family] || 'Report'}</td>
+                    <td data-label="Date Range">{row.request.startDate} – {row.request.endDate}</td>
+                    <td data-label="Status"><StatusTag status={row.status}/></td>
+                    <td data-label="Rows / File Size">{row.rows !== null ? `${row.rows.toLocaleString()} · ${row.size}` : row.size}</td>
+                    <td data-label="Submitted At">{row.created}</td>
+                    <td data-label="Actions">
+                      <div className="queue-actions">
                         {row.status === 'ready' && (
-                          <button className="btn-icon" title="Download CSV" aria-label={'Download CSV: ' + row.name} onClick={()=>downloadExample(row.request)}>⬇</button>
+                          <a className="btn-table primary" href={exampleDownloadHref(row.request)} download="openelis-virology-example.csv">Download</a>
                         )}
                         {row.status === 'queued' && (
-                          <button className="btn-icon" title="Cancel Job" onClick={() => cancel(row.id)}>✕</button>
+                          <button className="btn-table" onClick={() => cancel(row.id)}>Cancel</button>
                         )}
                         {row.status === 'failed' && (
-                          <button className="btn-icon" title="Retry" aria-label={'Retry: ' + row.name} onClick={()=>onRetry(row.request,row.name + ' · retry')}>↺</button>
+                          <button className="btn-table primary" onClick={()=>onRetry(row.request,row.name + ' · retry')}>Retry</button>
                         )}
                         {row.status === 'expired' && (
-                          <button className="btn-icon" title="Re-run (date range not pre-filled)" aria-label={'Re-run: ' + row.name} onClick={()=>onRerun(row.request)}>▷</button>
+                          <button className="btn-table primary" title="Reporting period will be cleared" onClick={()=>onRerun(row.request)}>Re-run</button>
                         )}
                         {row.status !== 'generating' && (
-                          <button className="btn-icon" title="Delete" aria-label={'Delete: ' + row.name} onClick={() => deleteRow(row.id)}>🗑</button>
+                          <button className="btn-table" onClick={() => deleteRow(row.id)}>Delete</button>
                         )}
-                        <button className="btn-icon" title="View details" aria-label={'View details: ' + row.name} onClick={()=>alert(row.request.startDate + ' – ' + row.request.endDate + ' · ' + row.request.test + ' · One row per result.')}>👁</button>
+                        <button className="btn-table" aria-expanded={expandedJob===row.id} onClick={()=>setExpandedJob(expandedJob===row.id?null:row.id)}>Details</button>
                       </div>
                     </td>
                   </tr>
+                  {expandedJob === row.id && <tr className="queue-detail"><td colSpan="7"><strong>{row.request.test || 'All tests'}</strong> · {row.request.labSection || 'All accessible lab sections'} · one row per result · {row.expires}</td></tr>}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>
@@ -1036,6 +1118,7 @@ function App() {
   const [rows, setRows] = useState(QUEUE_ROWS);
   const [configs, setConfigs] = useState(SAVED_CONFIGS);
   const [restoreRequest, setRestoreRequest] = useState(null);
+  const [newExportToken, setNewExportToken] = useState(0);
   const [outcome, setOutcome] = useState('success');
   const [access, setAccess] = useState('signed-in');
   const [jobMessage, setJobMessage] = useState('');
@@ -1049,6 +1132,7 @@ function App() {
     else setTimeout(()=>{setRows(previous=>previous.map(row=>row.id===id?{...row,status:fail?'failed':'ready',rows:fail?null:count}:row)); setJobMessage(fail?'Export failed. Your choices are retained; retry from My Report Queue.':'Your export is ready in My Report Queue.');},1800);
   };
   const rerun = request => { setRestoreRequest({...request}); setPage('builder'); };
+  const startNew = () => { setRestoreRequest(null); setNewExportToken(value => value + 1); setPage('builder'); };
 
 
   const handleNav = (dest) => {
@@ -1058,13 +1142,13 @@ function App() {
 
   return (
     <div className="app-shell">
-      <div className="review-controls"><strong>Preview controls</strong><label>User state <select aria-label="User state" value={access} onChange={e=>setAccess(e.target.value)}><option value="signed-in">Maya Chen · Virology</option><option value="signed-out">Sign-in required</option><option value="restricted">No reporting access</option></select></label><label>Next export <select aria-label="Next export" value={outcome} onChange={e=>setOutcome(e.target.value)}><option value="success">Succeeds</option><option value="failure">Fails once</option></select></label></div><TopHeader/>
+      <div className="review-controls"><strong>Preview controls</strong><label>User state <select aria-label="User state" value={access} onChange={e=>setAccess(e.target.value)}><option value="signed-in">Maya Chen · Virology</option><option value="signed-out">Sign-in required</option><option value="restricted">No reporting access</option></select></label><label>Next export <select aria-label="Next export" value={outcome} onChange={e=>setOutcome(e.target.value)}><option value="success">Succeeds</option><option value="failure">Fails once</option></select></label><label title="Preview only: simulate identifying-data permissions"><input type="checkbox" checked={piiAccess} onChange={e=>setPiiAccess(e.target.checked)}/> Identifying-data access</label></div><TopHeader/>
       {jobMessage && <div className="inline-notification info" role="status">{jobMessage}</div>}
       <div className="app-body">
         <Sidebar activePage={page} onNav={handleNav}/>
         {access !== 'signed-in' && <main className="page-body"><h1>{access==='signed-out'?'Sign in to continue':'Reporting access is unavailable'}</h1><p>{access==='signed-out'?'Use your organization account. Your draft is retained.':'Contact your administrator to review your laboratory permissions.'}</p>{access==='signed-out'&&<button className="btn-primary" onClick={()=>setAccess('signed-in')}>Continue with organization account</button>}</main>}
-        <div className="product-view" style={{display:page==='builder'&&access==='signed-in'?'flex':'none'}}><ReportBuilder onGoToQueue={() => setPage('queue')} piiAccess={piiAccess} setPiiAccess={setPiiAccess} onSubmit={submit} configs={configs} setConfigs={setConfigs} restoreRequest={restoreRequest}/></div>
-        <div className="product-view" style={{display:page==='queue'&&access==='signed-in'?'flex':'none'}}><ReportQueue onGoToBuilder={() => setPage('builder')} rows={rows} setRows={setRows} onRetry={submit} onRerun={rerun}/></div>
+        <div className="product-view" style={{display:page==='builder'&&access==='signed-in'?'flex':'none'}}><ReportBuilder onGoToQueue={() => setPage('queue')} piiAccess={piiAccess} onSubmit={submit} configs={configs} setConfigs={setConfigs} restoreRequest={restoreRequest} newExportToken={newExportToken}/></div>
+        <div className="product-view" style={{display:page==='queue'&&access==='signed-in'?'flex':'none'}}><ReportQueue onContinueDraft={() => setPage('builder')} onStartNew={startNew} rows={rows} setRows={setRows} onRetry={submit} onRerun={rerun}/></div>
       </div>
     </div>
   );
