@@ -519,8 +519,7 @@ function StatusTag({ status }) {
 }
 
 // ─── Report Builder ───────────────────────────────────────────────────────────
-function ReportBuilder({ mode, setMode, onOverview, onGoToQueue, onSubmit, configs, setConfigs, restoreRequest, piiAccess, newExportToken }) {
-  const [draftStarted, setDraftStarted] = useState(false);
+function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOverview, onGoToQueue, onSubmit, configs, setConfigs, restoreRequest, piiAccess, newExportToken }) {
   const [step, setStep] = useState(1);
   const [reportType, setReportType] = useState(null);
   const [openDomains, setOpenDomains] = useState(new Set());
@@ -1022,7 +1021,7 @@ function ReportBuilder({ mode, setMode, onOverview, onGoToQueue, onSubmit, confi
 }
 
 // ─── Report Queue ─────────────────────────────────────────────────────────────
-function ReportQueue({ onOverview, onContinueDraft, onStartNew, rows, setRows, onRetry, onRerun }) {
+function ReportQueue({ draftStarted, onOverview, onContinueDraft, onStartNew, rows, setRows, onRetry, onRerun }) {
   const [expandedJob, setExpandedJob] = useState(null);
 
   const cancel = (id) => setRows(r => r.map(row => row.id === id ? {...row, status:'cancelled'} : row));
@@ -1038,7 +1037,7 @@ function ReportQueue({ onOverview, onContinueDraft, onStartNew, rows, setRows, o
         </div>
         <div className="queue-actions">
           <button className="btn-secondary" onClick={onOverview}>← Export overview</button>
-          <button className="btn-secondary" onClick={onContinueDraft}>Continue current export</button>
+          {draftStarted && <button className="btn-secondary" onClick={onContinueDraft}>Continue current export</button>}
           <button className="btn-primary" onClick={onStartNew}>New export</button>
         </div>
       </div>
@@ -1125,6 +1124,7 @@ function ReportQueue({ onOverview, onContinueDraft, onStartNew, rows, setRows, o
 function App() {
   const [page, setPage] = useState('builder');
   const [builderMode, setBuilderMode] = useState('start');
+  const [draftStarted, setDraftStarted] = useState(false);
   const [piiAccess, setPiiAccess] = useState(false);
   const [rows, setRows] = useState(QUEUE_ROWS);
   const [configs, setConfigs] = useState(SAVED_CONFIGS);
@@ -1161,8 +1161,8 @@ function App() {
       <div className="app-body">
         <Sidebar activePage={page} onNav={handleNav}/>
         {access !== 'signed-in' && <main className="page-body"><h1>{access==='signed-out'?'Sign in to continue':'Reporting access is unavailable'}</h1><p>{access==='signed-out'?'Use your organization account. Your draft is retained.':'Contact your administrator to review your laboratory permissions.'}</p>{access==='signed-out'&&<button className="btn-primary" onClick={()=>setAccess('signed-in')}>Continue with organization account</button>}</main>}
-        <div className="product-view" style={{display:page==='builder'&&access==='signed-in'?'flex':'none'}}><ReportBuilder mode={builderMode} setMode={setBuilderMode} onOverview={showOverview} onGoToQueue={() => setPage('queue')} piiAccess={piiAccess} onSubmit={submit} configs={configs} setConfigs={setConfigs} restoreRequest={restoreRequest} newExportToken={newExportToken}/></div>
-        <div className="product-view" style={{display:page==='queue'&&access==='signed-in'?'flex':'none'}}><ReportQueue onOverview={showOverview} onContinueDraft={continueDraft} onStartNew={startNew} rows={rows} setRows={setRows} onRetry={submit} onRerun={rerun}/></div>
+        <div className="product-view" style={{display:page==='builder'&&access==='signed-in'?'flex':'none'}}><ReportBuilder draftStarted={draftStarted} setDraftStarted={setDraftStarted} mode={builderMode} setMode={setBuilderMode} onOverview={showOverview} onGoToQueue={() => setPage('queue')} piiAccess={piiAccess} onSubmit={submit} configs={configs} setConfigs={setConfigs} restoreRequest={restoreRequest} newExportToken={newExportToken}/></div>
+        <div className="product-view" style={{display:page==='queue'&&access==='signed-in'?'flex':'none'}}><ReportQueue draftStarted={draftStarted} onOverview={showOverview} onContinueDraft={continueDraft} onStartNew={startNew} rows={rows} setRows={setRows} onRetry={submit} onRerun={rerun}/></div>
       </div>
     </div>
   );

@@ -39,6 +39,7 @@ describe('reporting overview navigation', () => {
     expect(screen.getByLabelText('Date To *')).toHaveValue('2026-08-31');
 
     await user.click(screen.getByRole('button', { name: 'My Report Queue →' }));
+    expect(screen.getByRole('button', { name: 'Continue current export' })).toBeVisible();
     const home = within(screen.getByRole('navigation')).getByRole('button', { name: 'Custom Data Export' });
     home.focus();
     await user.keyboard('{Enter}');
@@ -53,6 +54,7 @@ describe('reporting overview navigation', () => {
     const user = userEvent.setup();
     render(<ReportingMock />);
     await user.click(screen.getByRole('button', { name: 'My Report Queue →' }));
+    expect(screen.queryByRole('button', { name: 'Continue current export' })).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: '← Export overview' }));
     const saved = screen.getByRole('region', { name: 'Use a saved report' });
     await user.click(within(saved).getAllByRole('button', { name: 'Use report' })[0]);
