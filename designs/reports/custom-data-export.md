@@ -805,7 +805,7 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 |---|---|---|
 | selectedVariables | Must contain at least one key | `error.dataExport.noVariables` |
 | selectedVariables | All keys must belong to one grain family (server-derived; HTTP 422 on violation) | `error.dataExport.mixedGrainFamilies` |
-| selectedVariables (PII keys) | Must match user's PII permission tier | Server silently excludes unauthorized keys from CSV output |
+| selectedVariables (PII keys) | Must match user's current PII permission tier at generation and download | Explained access denial; retain draft and release no unauthorized CSV (BR-004) |
 | filterSpec.dateFrom | Required | `error.dataExport.noDateFrom` |
 | filterSpec.dateTo | Required; must be ≥ dateFrom | `error.dataExport.noDateTo` / `error.dataExport.invalidDateRange` |
 | filterSpec date range | Must not exceed `dataExport.maxDateRangeDays` (server + client) | `error.dataExport.dateRangeTooLarge` |
@@ -813,7 +813,7 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 | configName | Required on save; max 100 characters | `error.dataExport.configNameRequired` |
 | Active concurrent jobs | Max `dataExport.maxActiveJobs` per user (QUEUED + GENERATING); HTTP 429 | `error.dataExport.jobLimitExceeded` |
 | Saved configs | Max `dataExport.maxSavedConfigs` per user; HTTP 422 | `error.dataExport.configLimitExceeded` |
-| labSectionIds | All IDs must be in user's authorized sections | Server silently excludes unauthorized IDs |
+| labSectionIds | All explicitly requested IDs must be in the user's currently authorized sections | Explained access denial; retain draft rather than silently narrowing scope (BR-003) |
 
 ---
 
@@ -826,8 +826,8 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 | Submit an export job | `DATA_EXPORT` | Submit button hidden; API returns HTTP 403 |
 | Download a completed export | `DATA_EXPORT` + resource ownership | Download button hidden; API returns HTTP 403 (no permission) / 404 (not owner) |
 | Access another user's job or saved config | — (never permitted) | API returns HTTP 404 (BR-016) |
-| Select Patient Demographics variables | `DATA_EXPORT_PII_DEMOGRAPHICS` | Group visible but locked; checkboxes disabled; API excludes keys silently |
-| Select Patient Identifier variables | `DATA_EXPORT_PII_IDENTIFIERS` | Group visible but locked; checkboxes disabled; API excludes keys silently |
+| Select Patient Demographics variables | `DATA_EXPORT_PII_DEMOGRAPHICS` | Group visible but locked; checkboxes disabled; API denies unauthorized requests explicitly (BR-004) |
+| Select Patient Identifier variables | `DATA_EXPORT_PII_IDENTIFIERS` | Group visible but locked; checkboxes disabled; API denies unauthorized requests explicitly (BR-004) |
 
 **Ownership (BR-016):** every job, download, and saved-config endpoint verifies the resource belongs to the authenticated user; non-owned resources return HTTP 404 to avoid disclosing resource existence. Administrator cross-user visibility is out of scope this phase.
 
@@ -835,7 +835,7 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 
 **PII audit logging:** All jobs that include Patient Demographics or Patient Identifier variable keys MUST create a `PiiAccessLog` entry at job submission time. The log is immutable and cannot be deleted via any API endpoint.
 
-**Mid-session permission loss:** If `DATA_EXPORT` is removed from the user's role while they have the page open, the next API call MUST return HTTP 403. The frontend MUST redirect to the home page and display a session permission error `InlineNotification`.
+**Mid-session permission loss:** If `DATA_EXPORT` is removed from the user's role while they have the page open, the next API call MUST return HTTP 403. Explain the denial, block generation/download, and retain the unsubmitted report choices through access recovery. Do not discard the draft through an unconditional redirect. Previously generated output must also be checked against current lab-section and identifying-field access before download (BR-003/004).
 
 ---
 
@@ -944,8 +944,9 @@ retaining configurable fields, OpenELIS styling and reliable recovery.
 **Status (2026-09-12):** The owner approved the six reporting defaults below and
 publication for review, subject to checking parallel work. The current GitHub
 branches and related Catalyst tasks were inspected: no competing OpenELIS export
-design change was found. Local checks passed on the v1.3 revision. Live publication
-and final visual acceptance remain separate from this approval.
+design change was found. Local checks passed on the v1.3 revision. Publication
+from `cb1ff0c` and exact live HTML/fixture verification completed on 12 September.
+Final visual acceptance remains separate from this approval.
 
 ### Artifact ownership
 
@@ -963,7 +964,7 @@ and final visual acceptance remain separate from this approval.
 | --- | --- | --- |
 | R1 — Establish the implementation baseline | Inspect current OpenELIS code and relevant open/merged work for OGC-479, OGC-481 and OGC-483. Identify reusable components, duplicate efforts and missing behavior. Resolve product decisions that block the first implementation slice; record evidence and any owner decision here. | Baseline and reporting defaults approved; production mapping verification belongs to Slice A |
 | R2 — Revise mock and specification together | Implement the UX changes below in the existing review surface and reconcile every affected requirement, acceptance case and localization entry. Both new and repeat-report journeys remain complete. Every old requirement is retained, amended with rationale or explicitly deferred. | Complete in PR #315; owner acceptance remains R4 |
-| R3 — Validate and publish for review | Run focused browser journeys and existing repository tests/build. Inspect desktop and narrow screenshots, keyboard/focus, recovery and downloaded CSV. Publish through the existing gallery, verify the actual live source revision/assets, and provide usable review links. | Local checks complete; live publication pending merge |
+| R3 — Validate and publish for review | Run focused browser journeys and existing repository tests/build. Inspect desktop and narrow screenshots, keyboard/focus, recovery and downloaded CSV. Publish through the existing gallery, verify the actual live source revision/assets, and provide usable review links. | Local checks complete; v1.3 published from `cb1ff0c`, live HTML and CSV helper match the source byte for byte on 2026-09-12. Final visual acceptance remains R4. |
 | R4 — Review and hand off | Record owner review and resolve blocking findings. Prepare small implementation slices linked to the existing stories, with code ownership, dependencies and behavioral acceptance. The first slice needs no unresolved product assumptions. | Pending |
 
 ### Baseline evidence — 2026-09-11
@@ -1083,7 +1084,7 @@ still reports pre-existing duplicate-key warnings in unrelated designs.
 | Acceptance record | Current state |
 | --- | --- |
 | Revised mock/spec agreement and focused behavior checks | Complete locally: landing, new/saved paths, field search, required dates, draft/sign-in recovery, queue actions and keyboard accordion checked |
-| Repository tests/build and verified live gallery revision | 268 gallery tests and production build pass; live revised gallery pending merge/deploy verification |
+| Repository tests/build and verified live gallery revision | 268 gallery tests and production build pass; [gallery deployment at cb1ff0c](https://github.com/DIGI-UW/openelis-work/actions/runs/34710334884) passed and live HTML/CSV helper match source on 2026-09-12 |
 | Owner design review, including report meaning, access and fixture limitations | Reporting defaults approved 2026-09-12; final visual review of the published revision remains R4 |
 | Implementation backlog and first-slice readiness | Slices A–E recorded and product rules approved; verify production mappings in Slice A after the design checkpoint |
 | Representative staff usability sessions | Not performed; arrange a small round if participants are available, otherwise record it as pending with the remaining usability uncertainty |
@@ -1103,12 +1104,12 @@ CSV/Dataset parity remain requirements of the separate integration milestones.
 
 ```text
 Finish the OpenELIS reporting MVP v1.3 design-readiness checkpoint in
-DIGI-UW/openelis-work PR #315. Treat designs/reports/custom-data-export.md
+the merged DIGI-UW/openelis-work PR #315. Treat designs/reports/custom-data-export.md
 Section 14 as the progress register, custom-data-export.html as the authoritative
 interactive workflow, and custom-data-export-example.js as the fictional CSV
-fixture. The owner approved the six reporting defaults on 2026-09-12. Complete
-R3 and R4: verify current focused browser and repository checks, publish and
-verify the live gallery revision, and record final owner visual acceptance.
+fixture. The owner approved the six reporting defaults on 2026-09-12; R3 now has
+passing tests/build and verified live publication at cb1ff0c. Complete R4 by
+reviewing that published design with the owner and recording visual acceptance.
 Keep the harness roadmap PR #134 synchronized by link and milestone
 state only. Finish with one accepted mock/spec, a verified public review URL, and
 Slice A ready to implement across OGC-479 and OGC-481 as a complete authorized
