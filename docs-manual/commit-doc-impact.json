@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-05T08:48:00Z",
+  "generatedAt": "2026-09-12T08:43:39Z",
   "repo": "DIGI-UW/OpenELIS-Global-2",
   "branchesWatched": [
     "develop",
@@ -7,9 +7,9 @@
   ],
   "windows": {
     "develop": {
-      "base": "07d0c767",
-      "head": "d6bab7a5",
-      "commitCount": 53,
+      "base": "f7d9c5a9",
+      "head": "5ef1a5a3",
+      "commitCount": 77,
       "windowDays": 30
     },
     "demo-silnas": {
@@ -21,178 +21,33 @@
   },
   "uncovered": [
     {
-      "componentDir": "frontend/src/components/common",
-      "branches": [
-        "develop"
-      ],
-      "fileCount": 6,
-      "files": [
-        "frontend/src/components/common/CustomSelect.jsx",
-        "frontend/src/components/common/PageBreadCrumb.jsx",
-        "frontend/src/components/common/PageBreadCrumb.test.jsx",
-        "frontend/src/components/common/useActiveLocales.js",
-        "frontend/src/components/common/useUrlFilters.js",
-        "frontend/src/components/common/useUrlFilters.test.jsx"
-      ]
-    },
-    {
-      "componentDir": "frontend/src/components/reports",
-      "branches": [
-        "develop"
-      ],
-      "fileCount": 6,
-      "files": [
-        "frontend/src/components/reports/Index.jsx",
-        "frontend/src/components/reports/Routine.jsx",
-        "frontend/src/components/reports/Study.jsx",
-        "frontend/src/components/reports/routine/Index.jsx",
-        "frontend/src/components/reports/study/index.jsx",
-        "frontend/src/components/reports/tat/TATReport.jsx"
-      ]
-    },
-    {
-      "componentDir": "frontend/src/components/formModel",
-      "branches": [
-        "develop"
-      ],
-      "fileCount": 5,
-      "files": [
-        "frontend/src/components/formModel/innitialValues/OrderEntryFormValues.js",
-        "frontend/src/components/formModel/innitialValues/ReferredOutTestsFormValues.js",
-        "frontend/src/components/formModel/innitialValues/SearchResultFormValues.js",
-        "frontend/src/components/formModel/validationSchema/OrderEntryValidationSchema.js",
-        "frontend/src/components/formModel/validationSchema/OrderEntryValidationSchema.test.js"
-      ]
-    },
-    {
-      "componentDir": "frontend/src/components/layout",
-      "branches": [
-        "develop"
-      ],
-      "fileCount": 4,
-      "files": [
-        "frontend/src/components/layout/Header.jsx",
-        "frontend/src/components/layout/Layout.jsx",
-        "frontend/src/components/layout/contexts.js",
-        "frontend/src/components/layout/search/searchOutput.tsx"
-      ]
-    },
-    {
-      "componentDir": "frontend/src/components/modifyOrder",
-      "branches": [
-        "develop"
-      ],
-      "fileCount": 3,
-      "files": [
-        "frontend/src/components/modifyOrder/Index.jsx",
-        "frontend/src/components/modifyOrder/ModifyOrder.jsx",
-        "frontend/src/components/modifyOrder/ModifyOrder.test.jsx"
-      ]
-    },
-    {
-      "componentDir": "frontend/src/components/alerts",
-      "branches": [
-        "develop"
-      ],
-      "fileCount": 2,
-      "files": [
-        "frontend/src/components/alerts/AlertsDashboard.jsx",
-        "frontend/src/components/alerts/__tests__/AlertsDashboard.test.jsx"
-      ]
-    },
-    {
-      "componentDir": "frontend/src/components/analyserResults",
-      "branches": [
-        "develop"
-      ],
-      "fileCount": 2,
-      "files": [
-        "frontend/src/components/analyserResults/Index.jsx",
-        "frontend/src/components/analyserResults/Index.test.js"
-      ]
-    },
-    {
-      "componentDir": "frontend/src/components/cytology",
-      "branches": [
-        "develop"
-      ],
-      "fileCount": 2,
-      "files": [
-        "frontend/src/components/cytology/CytologyCaseView.jsx",
-        "frontend/src/components/cytology/CytologyDashBoard.jsx"
-      ]
-    },
-    {
-      "componentDir": "frontend/src/components/immunohistochemistry",
-      "branches": [
-        "develop"
-      ],
-      "fileCount": 2,
-      "files": [
-        "frontend/src/components/immunohistochemistry/ImmunohistochemistryCaseView.jsx",
-        "frontend/src/components/immunohistochemistry/ImmunohistochemistryDashboard.jsx"
-      ]
-    },
-    {
-      "componentDir": "frontend/src/components/pathology",
-      "branches": [
-        "develop"
-      ],
-      "fileCount": 2,
-      "files": [
-        "frontend/src/components/pathology/PathologyCaseView.jsx",
-        "frontend/src/components/pathology/PathologyDashboard.jsx"
-      ]
-    },
-    {
-      "componentDir": "frontend/src/components/program",
-      "branches": [
-        "develop"
-      ],
-      "fileCount": 2,
-      "files": [
-        "frontend/src/components/program/programCaseView.jsx",
-        "frontend/src/components/program/programDashboard.jsx"
-      ]
-    },
-    {
-      "componentDir": "frontend/src/components/batchOrderEntry",
+      "componentDir": "frontend/src/components/Login.jsx",
       "branches": [
         "develop"
       ],
       "fileCount": 1,
       "files": [
-        "frontend/src/components/batchOrderEntry/SampleBatchEntrySetup.jsx"
+        "frontend/src/components/Login.jsx"
       ]
     },
     {
-      "componentDir": "frontend/src/components/eOrder",
+      "componentDir": "frontend/src/components/Login.test.jsx",
       "branches": [
         "develop"
       ],
       "fileCount": 1,
       "files": [
-        "frontend/src/components/eOrder/Index.jsx"
+        "frontend/src/components/Login.test.jsx"
       ]
     },
     {
-      "componentDir": "frontend/src/components/home",
+      "componentDir": "frontend/src/components/__tests__",
       "branches": [
         "develop"
       ],
       "fileCount": 1,
       "files": [
-        "frontend/src/components/home/Dashboard.tsx"
-      ]
-    },
-    {
-      "componentDir": "frontend/src/components/notifications",
-      "branches": [
-        "develop"
-      ],
-      "fileCount": 1,
-      "files": [
-        "frontend/src/components/notifications/SlideOverNotifications.jsx"
+        "frontend/src/components/__tests__/caseViewNavigation.test.jsx"
       ]
     }
   ]

@@ -13,19 +13,19 @@
       "routeErrors": [],
       "checkedAt": "2026-09-05T08:38:25.271Z",
       "codeChanged": {
-        "count": 8,
+        "count": 9,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/patient"
         ],
         "branches": {
-          "develop": 6,
+          "develop": 7,
           "demo-silnas": 2
         },
         "latest": {
-          "sha": "36efdd4",
-          "date": "2026-08-17",
-          "msg": "Do not write personal data to logs (#4045)",
+          "sha": "142b01b",
+          "date": "2026-09-10",
+          "msg": "OGC-782: Initial bacteriology MVP (#4136)",
           "branch": "develop"
         }
       }
@@ -41,20 +41,20 @@
       "routeErrors": [],
       "checkedAt": "2026-09-05T08:38:27.944Z",
       "codeChanged": {
-        "count": 4,
+        "count": 10,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/analyzers",
           "frontend/src/components/genericSample"
         ],
         "branches": {
-          "develop": 3,
+          "develop": 9,
           "demo-silnas": 1
         },
         "latest": {
-          "sha": "3561658",
-          "date": "2026-08-12",
-          "msg": "fix: report/analyzer breadcrumbs, the charted-report 500, and the panel Tests row (#4043)",
+          "sha": "66d8921",
+          "date": "2026-09-10",
+          "msg": "Fix analyzer draft cutover and gate deployments on existing-data upgrades (#4255)",
           "branch": "develop"
         }
       }
@@ -70,19 +70,19 @@
       "routeErrors": [],
       "checkedAt": "2026-09-05T08:38:30.637Z",
       "codeChanged": {
-        "count": 4,
+        "count": 10,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/analyzers"
         ],
         "branches": {
-          "develop": 3,
+          "develop": 9,
           "demo-silnas": 1
         },
         "latest": {
-          "sha": "3561658",
-          "date": "2026-08-12",
-          "msg": "fix: report/analyzer breadcrumbs, the charted-report 500, and the panel Tests row (#4043)",
+          "sha": "66d8921",
+          "date": "2026-09-10",
+          "msg": "Fix analyzer draft cutover and gate deployments on existing-data upgrades (#4255)",
           "branch": "develop"
         }
       }
@@ -203,20 +203,20 @@
       "routeErrors": [],
       "checkedAt": "2026-09-05T08:38:41.357Z",
       "codeChanged": {
-        "count": 19,
+        "count": 20,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/esignature",
           "frontend/src/components/validation"
         ],
         "branches": {
-          "develop": 15,
+          "develop": 16,
           "demo-silnas": 4
         },
         "latest": {
-          "sha": "f07ba07",
-          "date": "2026-09-04",
-          "msg": "feat(validation): triage queue \u2014 \"Check before release\" signals, filters and fail-safe lanes (OGC-1027) (#4172)",
+          "sha": "19676b1",
+          "date": "2026-09-09",
+          "msg": "feat(frontend): refetch screen data through a query cache instead of reloading the page (#4213)",
           "branch": "develop"
         }
       }
@@ -232,19 +232,19 @@
       "routeErrors": [],
       "checkedAt": "2026-09-05T08:38:49.393Z",
       "codeChanged": {
-        "count": 1,
+        "count": 2,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/eqa"
         ],
         "branches": {
-          "develop": 1,
+          "develop": 2,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "c6c6d61",
-          "date": "2026-08-03",
-          "msg": "chore(frontend): remove dead code (#3953)",
+          "sha": "b27664e",
+          "date": "2026-09-11",
+          "msg": "fix(OGC-1201): order entry \u2014 consolidated fix list (#4282)",
           "branch": "develop"
         }
       }
@@ -325,7 +325,7 @@
       "routeErrors": [],
       "checkedAt": "2026-09-05T08:39:00.145Z",
       "codeChanged": {
-        "count": 25,
+        "count": 33,
         "since": "2026-06-30",
         "paths": [
           "frontend/src/components/order",
@@ -333,13 +333,13 @@
           "frontend/src/components/sample"
         ],
         "branches": {
-          "develop": 13,
+          "develop": 21,
           "demo-silnas": 12
         },
         "latest": {
-          "sha": "d30dc5d",
-          "date": "2026-09-03",
-          "msg": "fix(order): stop panels leaking tests not configured for the sample type (OGC-1189) (#4159)",
+          "sha": "b27664e",
+          "date": "2026-09-11",
+          "msg": "fix(OGC-1201): order entry \u2014 consolidated fix list (#4282)",
           "branch": "develop"
         }
       }
@@ -379,19 +379,19 @@
       "routeErrors": [],
       "checkedAt": "2026-09-05T08:39:02.824Z",
       "codeChanged": {
-        "count": 45,
+        "count": 47,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/admin"
         ],
         "branches": {
-          "develop": 28,
+          "develop": 30,
           "demo-silnas": 17
         },
         "latest": {
-          "sha": "85b7f89",
-          "date": "2026-09-02",
-          "msg": "fix(edit-order): stop Edit Order silently reassigning the specimen's accession (OGC-1191) (#4156)",
+          "sha": "142b01b",
+          "date": "2026-09-10",
+          "msg": "OGC-782: Initial bacteriology MVP (#4136)",
           "branch": "develop"
         }
       }
@@ -407,19 +407,19 @@
       "routeErrors": [],
       "checkedAt": "2026-09-05T08:39:08.164Z",
       "codeChanged": {
-        "count": 8,
+        "count": 9,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/patient"
         ],
         "branches": {
-          "develop": 6,
+          "develop": 7,
           "demo-silnas": 2
         },
         "latest": {
-          "sha": "36efdd4",
-          "date": "2026-08-17",
-          "msg": "Do not write personal data to logs (#4045)",
+          "sha": "142b01b",
+          "date": "2026-09-10",
+          "msg": "OGC-782: Initial bacteriology MVP (#4136)",
           "branch": "develop"
         }
       }
@@ -496,16 +496,21 @@
       "routeErrors": [],
       "checkedAt": "2026-09-05T08:41:37.239Z",
       "codeChanged": {
-        "count": 0,
+        "count": 2,
         "since": "2026-09-02",
         "paths": [
           "frontend/src/components/qc"
         ],
         "branches": {
-          "develop": 0,
+          "develop": 2,
           "demo-silnas": 0
         },
-        "latest": null
+        "latest": {
+          "sha": "175aa00",
+          "date": "2026-09-09",
+          "msg": "feat(OGC-1054): complete guided analyzer setup and activation (#4125)",
+          "branch": "develop"
+        }
       }
     },
     {
@@ -520,16 +525,21 @@
       "routeErrors": [],
       "checkedAt": "2026-09-05T08:41:29.245Z",
       "codeChanged": {
-        "count": 0,
+        "count": 2,
         "since": "2026-09-02",
         "paths": [
           "frontend/src/components/qc/dashboard"
         ],
         "branches": {
-          "develop": 0,
+          "develop": 2,
           "demo-silnas": 0
         },
-        "latest": null
+        "latest": {
+          "sha": "175aa00",
+          "date": "2026-09-09",
+          "msg": "feat(OGC-1054): complete guided analyzer setup and activation (#4125)",
+          "branch": "develop"
+        }
       }
     },
     {
@@ -544,17 +554,22 @@
       "routeErrors": [],
       "checkedAt": "2026-09-05T08:41:20.809Z",
       "codeChanged": {
-        "count": 0,
+        "count": 6,
         "since": "2026-09-02",
         "paths": [
           "frontend/src/components/qc/ruleConfig",
           "frontend/src/components/analyzers"
         ],
         "branches": {
-          "develop": 0,
+          "develop": 6,
           "demo-silnas": 0
         },
-        "latest": null
+        "latest": {
+          "sha": "66d8921",
+          "date": "2026-09-10",
+          "msg": "Fix analyzer draft cutover and gate deployments on existing-data upgrades (#4255)",
+          "branch": "develop"
+        }
       }
     },
     {
@@ -592,19 +607,19 @@
       "routeErrors": [],
       "checkedAt": "2026-09-05T08:39:16.148Z",
       "codeChanged": {
-        "count": 16,
+        "count": 17,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/validation"
         ],
         "branches": {
-          "develop": 12,
+          "develop": 13,
           "demo-silnas": 4
         },
         "latest": {
-          "sha": "f07ba07",
-          "date": "2026-09-04",
-          "msg": "feat(validation): triage queue \u2014 \"Check before release\" signals, filters and fail-safe lanes (OGC-1027) (#4172)",
+          "sha": "19676b1",
+          "date": "2026-09-09",
+          "msg": "feat(frontend): refetch screen data through a query cache instead of reloading the page (#4213)",
           "branch": "develop"
         }
       }
@@ -648,20 +663,20 @@
       "routeErrors": [],
       "checkedAt": "2026-09-05T08:39:29.827Z",
       "codeChanged": {
-        "count": 5,
+        "count": 6,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/storage",
           "frontend/src/components/coldStorage"
         ],
         "branches": {
-          "develop": 4,
+          "develop": 5,
           "demo-silnas": 1
         },
         "latest": {
-          "sha": "be3cd7a",
-          "date": "2026-08-21",
-          "msg": "Sync/demo silnas into develop (#3946)",
+          "sha": "5c1c33d",
+          "date": "2026-09-10",
+          "msg": "Harden cold storage monitoring: dead-man's-switch alerting, RBAC, issue #3743/#3904 fixes, and config cleanup (#3828)",
           "branch": "develop"
         }
       }
@@ -826,7 +841,7 @@
       "routeErrors": [],
       "checkedAt": "2026-08-08T08:39:56.952Z",
       "codeChanged": {
-        "count": 29,
+        "count": 36,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/order",
@@ -834,13 +849,13 @@
           "frontend/src/components/compliance"
         ],
         "branches": {
-          "develop": 12,
+          "develop": 19,
           "demo-silnas": 17
         },
         "latest": {
-          "sha": "d30dc5d",
-          "date": "2026-09-03",
-          "msg": "fix(order): stop panels leaking tests not configured for the sample type (OGC-1189) (#4159)",
+          "sha": "b27664e",
+          "date": "2026-09-11",
+          "msg": "fix(OGC-1201): order entry \u2014 consolidated fix list (#4282)",
           "branch": "develop"
         }
       }
@@ -856,7 +871,7 @@
       "routeErrors": [],
       "checkedAt": "2026-08-08T08:40:19.471Z",
       "codeChanged": {
-        "count": 49,
+        "count": 58,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/order",
@@ -864,13 +879,13 @@
           "frontend/src/components/validation"
         ],
         "branches": {
-          "develop": 29,
+          "develop": 38,
           "demo-silnas": 20
         },
         "latest": {
-          "sha": "f07ba07",
-          "date": "2026-09-04",
-          "msg": "feat(validation): triage queue \u2014 \"Check before release\" signals, filters and fail-safe lanes (OGC-1027) (#4172)",
+          "sha": "b27664e",
+          "date": "2026-09-11",
+          "msg": "fix(OGC-1201): order entry \u2014 consolidated fix list (#4282)",
           "branch": "develop"
         }
       }
@@ -1075,20 +1090,20 @@
       "routeErrors": [],
       "checkedAt": "2026-08-08T08:40:05.802Z",
       "codeChanged": {
-        "count": 12,
+        "count": 16,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/vector",
           "frontend/src/components/order"
         ],
         "branches": {
-          "develop": 3,
+          "develop": 7,
           "demo-silnas": 9
         },
         "latest": {
-          "sha": "d30dc5d",
-          "date": "2026-09-03",
-          "msg": "fix(order): stop panels leaking tests not configured for the sample type (OGC-1189) (#4159)",
+          "sha": "b27664e",
+          "date": "2026-09-11",
+          "msg": "fix(OGC-1201): order entry \u2014 consolidated fix list (#4282)",
           "branch": "develop"
         }
       }
