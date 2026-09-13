@@ -178,12 +178,23 @@
     .available-field-list li { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:44px; padding-left:20px; border-bottom:1px solid #f4f4f4; font-size:0.875rem; }
     .field-add { color:#0f62fe; background:transparent; border:0; padding:10px 8px; font:inherit; font-size:0.8125rem; cursor:pointer; white-space:nowrap; }
     .field-add[aria-disabled=true] { color:#6f6f6f; cursor:default; }
-    .selected-columns li { display:grid; grid-template-columns:18px minmax(0,1fr) auto; gap:8px; align-items:center; min-height:56px; padding:8px 0; border-bottom:1px solid #e0e0e0; }
+    .selected-columns li { position:relative; display:grid; grid-template-columns:24px 18px minmax(0,1fr) auto; gap:6px; align-items:center; min-height:56px; padding:4px 0; border-bottom:1px solid #e0e0e0; }
+    .column-drag-handle { display:grid; place-items:center; align-self:stretch; min-height:36px; padding:0; border:0; background:transparent; color:#6f6f6f; cursor:grab; }
+    .column-drag-handle:active { cursor:grabbing; }
+    .column-drag-handle:hover { color:#161616; background:#f4f4f4; }
+    .selected-columns li.dragging { opacity:0.45; }
+    .selected-columns li.drop-before::before,.selected-columns li.drop-after::after { content:''; position:absolute; left:0; right:0; height:3px; background:#0f62fe; pointer-events:none; }
+    .selected-columns li.drop-before::before { top:-2px; }
+    .selected-columns li.drop-after::after { bottom:-2px; }
     .column-number { color:#6f6f6f; font-size:0.75rem; }
     .column-name { font-size:0.875rem; overflow-wrap:anywhere; }
-    .column-actions { display:flex; }
-    .column-actions button { border:0; background:transparent; color:#161616; font:inherit; padding:4px; width:28px; min-height:36px; cursor:pointer; }
-    .column-actions button[aria-disabled=true] { color:#8d8d8d; cursor:default; }
+    .column-actions { display:flex; align-items:center; gap:4px; }
+    .column-actions button { display:grid; place-items:center; border:0; background:transparent; color:#525252; font:inherit; padding:0; width:28px; min-height:32px; cursor:pointer; }
+    .column-order-buttons { display:flex; flex-direction:column; }
+    .column-actions .column-order-buttons button { width:28px; min-width:28px; min-height:24px; height:24px; }
+    .column-actions button[aria-disabled=true] { color:#c6c6c6; cursor:default; }
+    .column-actions button[aria-disabled=true]:hover { background:transparent; }
+    .column-remove:hover { color:#da1e28; }
     .column-empty { color:#525252; font-size:0.875rem; padding:20px 0; }
     .column-feedback { min-height:20px; margin:8px 0 16px; color:#525252; font-size:0.75rem; }
     .column-preview { background:#fff; border:1px solid #e0e0e0; padding:20px; }
@@ -568,6 +579,9 @@ function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOvervie
   const [columnView, setColumnView] = useState('browse');
   const [columnMessage, setColumnMessage] = useState('');
   const columnFocus = React.useRef(null);
+  const draggedColumn = React.useRef(null);
+  const [draggedKey, setDraggedKey] = useState(null);
+  const [columnDrop, setColumnDrop] = useState(null);
   const [selected, setSelected] = useState(new Set());
   const [fieldSearch, setFieldSearch] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -654,13 +668,43 @@ function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOvervie
     if (!next.size) setColumnView('browse');
     setColumnMessage(`${VAR_LOOKUP[key].label} removed. ${next.size} columns.`);
   };
-  const moveField = (key, direction) => {
-    const keys = [...selected], from = keys.indexOf(key), to = from + direction;
-    if (to < 0 || to >= keys.length) return;
-    [keys[from], keys[to]] = [keys[to], keys[from]];
+  const moveFieldTo = (key, to, focusId) => {
+    const keys = [...selected], from = keys.indexOf(key);
+    if (from < 0 || to < 0 || to >= keys.length || from === to) return;
+    keys.splice(from, 1); keys.splice(to, 0, key);
     setSelected(new Set(keys));
-    columnFocus.current = `move-${direction < 0 ? 'up' : 'down'}-${key}`;
+    columnFocus.current = focusId;
     setColumnMessage(`${VAR_LOOKUP[key].label} moved to column ${to + 1}.`);
+  };
+  const moveField = (key, direction) => moveFieldTo(key, [...selected].indexOf(key) + direction, `move-${direction < 0 ? 'up' : 'down'}-${key}`);
+  const finishColumnDrag = () => {
+    draggedColumn.current = null; setDraggedKey(null); setColumnDrop(null);
+  };
+  const startColumnDrag = (event, key) => {
+    draggedColumn.current = key; setDraggedKey(key);
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', key);
+    event.dataTransfer.setDragImage(event.currentTarget.closest('li'), 12, 20);
+  };
+  const columnDropPosition = (event, key) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    return {key, after:event.clientY >= rect.top + rect.height / 2};
+  };
+  const overColumn = (event, key) => {
+    if (!draggedColumn.current) return;
+    event.preventDefault(); event.dataTransfer.dropEffect = 'move';
+    setColumnDrop(columnDropPosition(event, key));
+  };
+  const dropColumn = (event, key) => {
+    const source = draggedColumn.current;
+    if (!source) return;
+    event.preventDefault();
+    if (source !== key) {
+      const remaining = [...selected].filter(value => value !== source);
+      const target = remaining.indexOf(key);
+      if (target >= 0) moveFieldTo(source, target + (columnDropPosition(event, key).after ? 1 : 0), `drag-column-${source}`);
+    }
+    finishColumnDrag();
   };
   const changeShownFields = domain => {
     const allAdded = domain.vars.every(v => selected.has(v.key));
@@ -865,14 +909,20 @@ function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOvervie
                 </section>
                 <section className="columns-pane" aria-labelledby="your-columns-title">
                   <h2 id="your-columns-title">Your CSV columns ({selected.size})</h2>
-                  <p className="column-hint">Columns appear in this order. Use the arrows to rearrange them.</p>
+                  <p className="column-hint" id="column-order-help">Drag a handle to change column order, or use the arrows.</p>
                   <ol className="selected-columns" aria-label="CSV columns in order">
-                    {selectedVarList.map((v,index) => <li key={v.key}>
+                    {selectedVarList.map((v,index) => <li key={v.key} draggable onDragStart={e => startColumnDrag(e,v.key)} onDragEnd={finishColumnDrag} className={draggedKey === v.key ? 'dragging' : columnDrop?.key === v.key ? `drop-${columnDrop.after ? 'after' : 'before'}` : ''} onDragOver={e => overColumn(e,v.key)} onDrop={e => dropColumn(e,v.key)}>
+                      <button type="button" className="column-drag-handle" id={`drag-column-${v.key}`} title="Drag to reorder" aria-label={`Drag ${v.label} to reorder`} aria-description="Arrow keys move one position. Home moves to the first position and End to the last." aria-describedby="column-order-help"
+                        onKeyDown={e => {const destination = {ArrowUp:index-1, ArrowDown:index+1, Home:0, End:selectedVarList.length-1}[e.key]; if (destination !== undefined) {e.preventDefault(); moveFieldTo(v.key,destination,`drag-column-${v.key}`);}}}>
+                        <svg width="16" height="20" viewBox="0 0 16 20" aria-hidden="true" fill="currentColor"><circle cx="5" cy="4" r="1.5"/><circle cx="11" cy="4" r="1.5"/><circle cx="5" cy="10" r="1.5"/><circle cx="11" cy="10" r="1.5"/><circle cx="5" cy="16" r="1.5"/><circle cx="11" cy="16" r="1.5"/></svg>
+                      </button>
                       <span className="column-number" aria-hidden="true">{index + 1}</span><span className="column-name">{v.label}</span>
                       <div className="column-actions">
-                        <button type="button" id={`move-up-${v.key}`} aria-label={`Move ${v.label} up`} aria-disabled={index === 0} onClick={() => moveField(v.key,-1)}>↑</button>
-                        <button type="button" id={`move-down-${v.key}`} aria-label={`Move ${v.label} down`} aria-disabled={index === selectedVarList.length-1} onClick={() => moveField(v.key,1)}>↓</button>
-                        <button type="button" id={`remove-column-${v.key}`} aria-label={`Remove ${v.label}`} onClick={() => removeField(v.key)}>×</button>
+                        <div className="column-order-buttons" role="group" aria-label={`Move ${v.label}`}>
+                          <button type="button" id={`move-up-${v.key}`} title="Move up" aria-label={`Move ${v.label} up`} aria-disabled={index === 0} onClick={() => moveField(v.key,-1)}><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="m4 10 4-4 4 4"/></svg></button>
+                          <button type="button" id={`move-down-${v.key}`} title="Move down" aria-label={`Move ${v.label} down`} aria-disabled={index === selectedVarList.length-1} onClick={() => moveField(v.key,1)}><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="m4 6 4 4 4-4"/></svg></button>
+                        </div>
+                        <button type="button" className="column-remove" id={`remove-column-${v.key}`} title="Remove column" aria-label={`Remove ${v.label}`} onClick={() => removeField(v.key)}><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="m4 4 8 8m0-8-8 8"/></svg></button>
                       </div>
                     </li>)}
                   </ol>

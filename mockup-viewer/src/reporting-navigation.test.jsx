@@ -1,8 +1,8 @@
 import React from 'react';
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { beforeAll, describe, expect, it } from 'vitest';
-import { render, screen, within, waitFor } from '@testing-library/react';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { render, screen, within, waitFor, fireEvent, createEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '../../designs/reports/custom-data-export-example.js';
 
@@ -75,8 +75,82 @@ const goToReview = async user => {
   await user.click(screen.getByRole('button', {name:'Next: Set Filters →'}));
   await user.click(screen.getByRole('button', {name:'Next: Review & Submit →'}));
 };
+const dragColumn = (sourceLabel, targetLabel, {after=false, cancel=false}={}) => {
+  const source = screen.getByRole('button', {name:`Drag ${sourceLabel} to reorder`}).closest('li');
+  const target = screen.getByRole('button', {name:`Drag ${targetLabel} to reorder`}).closest('li');
+  const geometry = vi.spyOn(target,'getBoundingClientRect').mockReturnValue({top:100,height:56});
+  const dataTransfer = {setData:vi.fn(),setDragImage:vi.fn()};
+  fireEvent.dragStart(source,{dataTransfer});
+  const over = createEvent.dragOver(target,{dataTransfer});
+  Object.defineProperty(over,'clientY',{value:after ? 145 : 110});
+  fireEvent(target,over);
+  if (!cancel) {
+    const drop = createEvent.drop(target,{dataTransfer});
+    Object.defineProperty(drop,'clientY',{value:after ? 145 : 110});
+    fireEvent(target,drop);
+  }
+  fireEvent.dragEnd(source,{dataTransfer});
+  geometry.mockRestore();
+};
 
 describe('ordered reporting columns', () => {
+  it('drags across several positions and preserves header/value order through save, restore and CSV download', async () => {
+    const user = userEvent.setup();
+    render(<ReportingMock />);
+    await openExample(user);
+    const original = columnNames();
+    dragColumn('Result Status','Accession Number');
+    const ordered = ['Result Status',...original.slice(0,-1)];
+    expect(columnNames()).toEqual(ordered);
+    expect(screen.getByRole('button',{name:'Drag Result Status to reorder'})).toHaveFocus();
+    expect(screen.getByText('Result Status moved to column 1.')).toBeVisible();
+    const preview = screen.getByRole('table',{name:'CSV column preview'});
+    expect(within(preview).getAllByRole('columnheader').map(cell=>cell.textContent)).toEqual(ordered);
+    expect(within(preview).getAllByRole('cell').slice(0,2).map(cell=>cell.textContent)).toEqual(['Validated','DEMO-0801']);
+    await goToReview(user);
+    expect(columnNames()).toEqual(ordered);
+    await user.click(screen.getByLabelText('Save these report settings for later'));
+    await user.type(screen.getByLabelText('Saved report name'),'Status first');
+    await user.click(screen.getByRole('button',{name:'Save report settings',exact:true}));
+    await user.type(screen.getByLabelText('File name'),'Dragged column order');
+    await user.click(screen.getByRole('button',{name:'Create CSV and add to queue'}));
+    await user.click(screen.getByRole('button',{name:'My Report Queue →'}));
+    const job = screen.getByText('Dragged column order').closest('tr');
+    const download = await within(job).findByRole('link',{name:'Download'},{timeout:3000});
+    const csv = decodeURIComponent(download.getAttribute('href').split(',').slice(1).join(','));
+    expect(csv).toMatch(/^\uFEFF"Result Status","Accession Number","Collection Date"/);
+    expect(csv).toContain('"Validated","DEMO-0801","2026-08-01"');
+    await user.click(screen.getByRole('button',{name:'← Export overview'}));
+    const saved = screen.getByText('Status first').closest('.saved-report');
+    await user.click(within(saved).getByRole('button',{name:'Use report'}));
+    expect(screen.getByLabelText('Date From *')).toHaveValue('');
+    await user.click(screen.getByRole('button',{name:'← Back'}));
+    expect(columnNames()).toEqual(ordered);
+  });
+
+  it('supports downward drops, cancellation and keyboard shortcuts without losing columns or focus', async () => {
+    const user = userEvent.setup();
+    render(<ReportingMock />);
+    await openExample(user);
+    const original = columnNames();
+    dragColumn('Accession Number','Result Status',{after:true});
+    const reordered = [...original.slice(1),original[0]];
+    expect(columnNames()).toEqual(reordered);
+    dragColumn('Accession Number','Collection Date',{cancel:true});
+    expect(columnNames()).toEqual(reordered);
+    expect(document.querySelector('.dragging, .drop-before, .drop-after')).toBeNull();
+    const handle = screen.getByRole('button',{name:'Drag Accession Number to reorder'});
+    handle.focus();
+    await user.keyboard('{Home}');
+    expect(columnNames()).toEqual(original);
+    expect(handle).toHaveFocus();
+    await user.keyboard('{End}');
+    expect(columnNames()).toEqual(reordered);
+    expect(handle).toHaveFocus();
+    await user.click(screen.getByRole('button',{name:'Remove Accession Number'}));
+    expect(columnNames()).toEqual(original.slice(1));
+  });
+
   it('keeps the complete catalog searchable, blocks restricted additions and retains choices across groups', async () => {
     const user = userEvent.setup();
     render(<ReportingMock />);

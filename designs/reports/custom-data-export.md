@@ -83,10 +83,13 @@ several can be opened together, search covers field and group names, and ordered
 beside the catalog. Group controls never clear the search. Clearing search restores
 the earlier browsing folds. Expand all and Collapse all act on the current catalog
 or search results without changing selections. Compact rows and a scrolling catalog keep search handy.
+Selected columns now have a drag grip for moving several positions in one gesture,
+compact stacked up/down chevrons, and a separate remove icon. The insertion line
+shows the destination; cancelling a drag retains the original order.
 
 This is a mock/spec review candidate, not final owner approval or a production
 change. It retains v1.4 ordering, permissions, saved settings and queue behavior.
-FR-1-002/010 below describe the candidate; R4 records whether it should become the
+FR-1-002/010/011 below describe the candidate; R4 records whether it should become the
 implementation baseline. The narrow-screen list switcher is retained for this trial.
 
 ### Changelog — v1.0 → v1.1
@@ -208,7 +211,7 @@ selected columns.
 
 **FR-1-010:** Search and group controls MUST use labeled inputs and semantic buttons with visible keyboard focus. Group buttons expose expanded state and control their own field list. Search stays above a keyboard-scrollable catalog and reports matching field/group counts. Clear search returns focus to the input. Group changes, no-match results and column edits MUST retain search text and selected-column order. Search does not hide the selected-column list on desktop or clear its state on narrow screens. Compact rows retain readable labels and usable Add controls.
 
-**FR-1-011 (Column order):** Users MUST be able to move a column up or down using keyboard-operable buttons; dragging is not required. Keep focus on the moved control, announce its new position, and make boundary actions unavailable. Removing a column moves focus to a surviving adjacent control, or the field search when empty. New selections append; existing choices retain relative order. The displayed order is the authoritative `selectedVariables` sequence (BR-009).
+**FR-1-011 (Column order):** Each selected column MUST have a drag grip for moving directly to another position, compact stacked up/down buttons, and a separate remove icon. Show an insertion line during dragging; commit the order only on a valid drop. Cancelling or dropping outside the list retains the order. Keep the buttons usable without dragging; the focused grip also supports ArrowUp/ArrowDown for adjacent moves and Home/End for first/last position. Keep focus on the moved control, announce its new position, and make boundary actions unavailable. All icon controls require accessible names identifying the column. Removing a column moves focus to a surviving adjacent control, or the field search when empty. New selections append; existing choices retain relative order. The displayed order is the authoritative `selectedVariables` sequence (BR-009).
 
 **FR-1-012 (Layout preview):** Show CSV headers in the chosen order, with a keyboard-scrollable table on small screens. The design mock may show explicitly fictional sample rows for supported fields; other choices show a clearly labeled header-only layout. This is a column-layout preview, not a query or filtered-data preview: browsing fields must not retrieve clinical rows. Final review shows the same ordered labels.
 
@@ -669,7 +672,7 @@ Two new menu items are added to the Reports section of the left navigation sideb
 - **`ProgressIndicator`** for wizard step tracking; back navigation free; forward requires validation
 - **Plain-language report-type choices** before field selection; color may reinforce but never carries meaning alone
 - **Searchable grouped catalog + ordered native list** composed with Carbon search, expandable groups, buttons and layout primitives; independently expanded groups and per-group Add all shown / Remove shown
-- **Full column labels with Add, Remove, Move up/down**, not interactive controls inside ARIA listbox options; no drag-only interaction
+- **Full column labels with a drag grip, compact up/down chevrons and a separate remove icon**; retain named keyboard-operable buttons and grip shortcuts as alternatives to dragging. Use a native ordered list rather than interactive controls inside ARIA listbox options.
 - **Dismissible `Tag`s** remain for filter values; the column list itself displays selection labels (Constitution II)
 - **Field labels show display names only** — no technical sourcing annotations (FR-1-003)
 - **`DatePicker`** with Carbon built-in `invalidText` for date validation
@@ -772,7 +775,9 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 | `button.dataExport.removeField` | Remove {field} |
 | `button.dataExport.moveFieldUp` | Move {field} up |
 | `button.dataExport.moveFieldDown` | Move {field} down |
-| `label.dataExport.columnOrderHelp` | Columns appear in this order. Use the arrows to rearrange them. |
+| `button.dataExport.dragField` | Drag {field} to reorder |
+| `label.dataExport.dragFieldKeyboardHelp` | Arrow keys move one position. Home moves to the first position and End to the last. |
+| `label.dataExport.columnOrderHelp` | Drag a handle to change column order, or use the arrows. |
 | `message.dataExport.columnMoved` | {field} moved to column {position}. |
 | `message.dataExport.columnAdded` | {field} added. {count} columns. |
 | `message.dataExport.columnRemoved` | {field} removed. {count} columns. |
@@ -930,7 +935,7 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 - [ ] **[FR-1-007]** Navigating back from Step 2 or 3 to Step 1 preserves variable selections
 - [ ] **[FR-1-008, BR-015]** Report type determines the grain family before field selection; switching after selection uses the explicit clear-and-change action; server rejects mixed-family submissions with HTTP 422
 - [ ] **[FR-1-010]** Add fields from three groups, fold/open groups, search across categories and reorder columns without losing search or selections; multiple groups can stay open, new search reveals matches, clearing restores browsing folds and focus, and no-match results retain columns. Expand all / Collapse all work by keyboard and apply only to the displayed catalog or search groups
-- [ ] **[FR-1-011/012, BR-009]** Add/remove/reorder preserves focus, prevents duplicates and updates header/value alignment; preview, review, saved/reloaded configurations, immutable jobs, retries, expired re-runs and downloaded CSV retain the requested order
+- [ ] **[FR-1-011/012, BR-009]** Drag a column across several positions in either direction; verify insertion feedback and cancellation without changes. Compact move buttons and grip keyboard shortcuts preserve focus, prevent duplicates and update header/value alignment. Preview, review, saved/reloaded configurations, immutable jobs, retries, expired re-runs and downloaded CSV retain the requested order.
 - [ ] **[FR-2-001, FR-2-007]** Empty dates show no reversed-range error; Continue reveals field-specific required errors; a complete reversed or over-limit period blocks progression
 - [ ] **[FR-2-002]** Lab Sections `MultiSelect` shows only user's authorized sections; single-section users see it pre-selected and read-only
 - [ ] **[FR-2-004]** Result Status filter is disabled when no Test Results domain variables are selected
@@ -1056,7 +1061,7 @@ The earlier v1.3 publication remains a dated baseline, not acceptance of v1.4.
 | --- | --- | --- |
 | R1 — Establish the implementation baseline | Inspect current OpenELIS code and relevant open/merged work for OGC-479, OGC-481 and OGC-483. Identify reusable components, duplicate efforts and missing behavior. Resolve product decisions that block the first implementation slice; record evidence and any owner decision here. | Baseline and reporting defaults approved; production mapping verification belongs to Slice A |
 | R2 — Revise mock and specification together | Implement the UX changes below in the existing review surface and reconcile every affected requirement, acceptance case and localization entry. Both new and repeat-report journeys remain complete. Every old requirement is retained, amended with rationale or explicitly deferred. | v1.5 grouped-catalog candidate implemented for review; retains v1.4 ordering and reporting scope |
-| R3 — Validate and publish for review | Run focused browser journeys and existing repository tests/build. Inspect desktop and narrow screenshots, keyboard/focus, recovery and downloaded CSV. Publish through the existing gallery, verify the actual live source revision/assets, and provide usable review links. | v1.5 local candidate: 276 tests and build pass; desktop/narrow screenshots inspected. Draft PR and local preview for owner testing; CI and public publication recorded separately |
+| R3 — Validate and publish for review | Run focused browser journeys and existing repository tests/build. Inspect desktop and narrow screenshots, keyboard/focus, recovery and downloaded CSV. Publish through the existing gallery, verify the actual live source revision/assets, and provide usable review links. | v1.5 local candidate: 278 tests and build pass; desktop/narrow screenshots inspected. PR #322 and local preview for owner testing; CI and public publication recorded separately |
 | R4 — Review and hand off | Record owner review and resolve blocking findings. Prepare small implementation slices linked to the existing stories, with code ownership, dependencies and behavioral acceptance. The first slice needs no unresolved product assumptions. | Handoff prepared below; owner testing the grouped-catalog interaction before selecting the implementation baseline |
 
 ### Baseline evidence — 2026-09-11
@@ -1247,24 +1252,25 @@ validation. Representative manual date entry remains part of owner/staff review.
 Existing build warnings concern unrelated design duplicate keys and tooling
 deprecations; no new dependency or application backend was introduced.
 
-v1.5 candidate validation on 2026-09-13: all 276 tests and the production gallery
+v1.5 candidate validation on 2026-09-13: all 278 tests and the production gallery
 build pass. Added behavior checks cover choosing across three groups, grouped
 field/category-name search, collapsed defaults, keyboard Expand all / Collapse all,
 independent keyboard folding, retained search, no-match
 recovery, restoring browsing folds, search-scoped bulk actions and column reordering. Search bulk actions affect only matching groups; clearing search
 restores manual browsing folds. Desktop and narrow browser checks also exercised
 these controls.
-Existing save/fresh-period, immutable retry CSV and permission checks still pass.
+Added drag checks cover multi-position moves in both directions, cancellation, grip keyboard shortcuts, retained focus, saved configuration restoration and header/value alignment in the downloaded CSV. Desktop browser gestures moved the last column to the first position and the first to the last; preview headers followed the new order. Compact chevrons and the remove control were inspected at both widths. Existing save/fresh-period, immutable retry CSV and permission checks still pass.
 Browser screenshots were inspected at 1280 and 390 pixels. At 390 pixels, adding
 from search and reordering through the columns panel retained the search and all
 eight choices; page width stayed at 390 pixels and no browser errors were logged.
+Touch-device dragging has not been verified; move buttons remain available without dragging.
 The owner can try the local candidate; no owner acceptance or public v1.5 publication
 is claimed by these checks.
 
 | Acceptance record | Current state |
 | --- | --- |
-| Revised mock/spec agreement and focused behavior checks | v1.5 candidate retains full catalog, order, save/retry and permission behavior; grouped-search and fold-state tests added |
-| Repository tests/build and verified live gallery revision | v1.5: 276 tests and local build pass; desktop/narrow browser checks pass. CI and public publication pending. Published v1.4 evidence above remains a separate baseline |
+| Revised mock/spec agreement and focused behavior checks | v1.5 candidate retains full catalog, order, save/retry and permission behavior; grouped-search, fold-state and drag-order tests added |
+| Repository tests/build and verified live gallery revision | v1.5: 278 tests and local build pass; desktop/narrow browser checks pass. CI and public publication pending. Published v1.4 evidence above remains a separate baseline |
 | Owner design review, including report meaning, access and fixture limitations | Reporting defaults and ordered-column direction approved; v1.5 catalog interaction requested for hands-on testing and remains undecided |
 | Implementation backlog and first-slice readiness | Slices A–E, story ownership and first-path acceptance recorded; Jira references reconciled; technical field/status mapping belongs to Slice A; queue/saved-report implementers remain unassigned |
 | Representative staff usability sessions | Not performed; arrange a small round if participants are available, otherwise record it as pending with the remaining usability uncertainty |
