@@ -82,6 +82,8 @@ describe('ordered reporting columns', () => {
     render(<ReportingMock />);
     await openExample(user);
     const browser = screen.getByRole('region', {name:'Available fields'});
+    expect(within(browser).queryAllByRole('listitem')).toHaveLength(0);
+    await user.click(screen.getByRole('button', {name:'Expand all',exact:true}));
     expect(within(browser).getAllByRole('listitem')).toHaveLength(38);
     await user.click(screen.getByRole('button', {name:'Sample / Order', exact:true}));
     await user.type(screen.getByLabelText('Find a field'), 'result');
@@ -104,8 +106,10 @@ describe('ordered reporting columns', () => {
     expect(columnNames()).toHaveLength(7);
     await user.click(screen.getByRole('button', {name:'Change type and clear fields'}));
     await user.click(screen.getByRole('radio', {name:/^Referrals/}));
+    await user.click(screen.getByRole('button', {name:'Expand all',exact:true}));
     expect(within(screen.getByRole('region', {name:'Available fields'})).getAllByRole('listitem')).toHaveLength(7);
     await user.click(screen.getByRole('radio', {name:/^Non-Conformance/}));
+    await user.click(screen.getByRole('button', {name:'Expand all',exact:true}));
     expect(within(screen.getByRole('region', {name:'Available fields'})).getAllByRole('listitem')).toHaveLength(5);
   });
 
@@ -115,6 +119,8 @@ describe('ordered reporting columns', () => {
     await user.click(screen.getByRole('button', {name:'Start a new export'}));
     await user.click(screen.getByRole('radio', {name:/^Sample & Testing/}));
     const fields = screen.getByRole('region', {name:'Available fields'});
+    expect(within(fields).queryAllByRole('listitem')).toHaveLength(0);
+    await user.click(screen.getByRole('button', {name:'Expand all',exact:true}));
     expect(within(fields).getAllByRole('listitem')).toHaveLength(38);
     await user.click(screen.getByRole('button', {name:'Add Accession Number',exact:true}));
     await user.click(screen.getByRole('button', {name:'Add Result Value',exact:true}));
@@ -164,6 +170,42 @@ describe('ordered reporting columns', () => {
     await user.click(screen.getByRole('button',{name:'Remove all shown Sample / Order fields',exact:true}));
     expect(columnNames()).toEqual(ordered);
     expect(screen.getByLabelText('Find a field')).toHaveValue('received');
+  });
+
+  it('starts folded, reveals only search hits and keeps search expansion separate from manual browsing', async () => {
+    const user = userEvent.setup();
+    render(<ReportingMock />);
+    await openExample(user);
+    const fields = screen.getByRole('region', {name:'Available fields'});
+    const catalog = within(fields).getByRole('region', {name:'Scrollable field catalog'});
+    const ordered = columnNames();
+    expect(within(catalog).getAllByRole('button')).toHaveLength(5);
+    expect(within(catalog).getAllByRole('button').every(button=>button.getAttribute('aria-expanded') === 'false')).toBe(true);
+    expect(within(fields).getByRole('button', {name:'Collapse all'})).toHaveAttribute('aria-disabled','true');
+
+    await user.click(within(fields).getByRole('button', {name:'Sample / Order',exact:true}));
+    await user.type(screen.getByLabelText('Find a field'),'date');
+    expect(within(catalog).queryByRole('button', {name:'Patient Identifiers',exact:true})).not.toBeInTheDocument();
+    expect(within(catalog).getByRole('button', {name:'Test Results',exact:true})).toHaveAttribute('aria-expanded','true');
+    await user.click(within(fields).getByRole('button', {name:'Collapse all'}));
+    expect(within(catalog).queryAllByRole('listitem')).toHaveLength(0);
+    expect(screen.getByLabelText('Find a field')).toHaveValue('date');
+    await user.click(within(fields).getByRole('button', {name:'Expand all'}));
+    expect(within(catalog).getAllByRole('listitem')).toHaveLength(9);
+    expect(within(catalog).queryByRole('button', {name:'Patient Identifiers',exact:true})).not.toBeInTheDocument();
+    await user.click(within(fields).getByRole('button', {name:'Clear search'}));
+    expect(within(catalog).getByRole('button', {name:'Sample / Order',exact:true})).toHaveAttribute('aria-expanded','true');
+    expect(within(catalog).getByRole('button', {name:'Test Results',exact:true})).toHaveAttribute('aria-expanded','false');
+    expect(within(catalog).getAllByRole('listitem')).toHaveLength(13);
+
+    const expand = within(fields).getByRole('button', {name:'Expand all'});
+    expand.focus();
+    await user.keyboard('{Enter}');
+    expect(expand).toHaveFocus();
+    expect(within(catalog).getAllByRole('listitem')).toHaveLength(38);
+    await user.click(within(fields).getByRole('button', {name:'Collapse all'}));
+    expect(within(catalog).queryAllByRole('listitem')).toHaveLength(0);
+    expect(columnNames()).toEqual(ordered);
   });
 
   it('uses the chosen order in preview, review and saved reports while retaining keyboard focus and fresh dates', async () => {

@@ -78,10 +78,11 @@ and the full field/permission coverage remain required.
 
 The owner requested a working iteration to try before deciding on the interaction.
 Categories remain useful as headings, including in search results. This candidate
-replaces exclusive category tabs with one continuous catalog: several groups can
-stay open, search covers field and group names, and ordered CSV columns remain
+replaces exclusive category tabs with one continuous catalog: groups start collapsed,
+several can be opened together, search covers field and group names, and ordered CSV columns remain
 beside the catalog. Group controls never clear the search. Clearing search restores
-the earlier browsing folds. Compact rows and a scrolling catalog keep search handy.
+the earlier browsing folds. Expand all and Collapse all act on the current catalog
+or search results without changing selections. Compact rows and a scrolling catalog keep search handy.
 
 This is a mock/spec review candidate, not final owner approval or a production
 change. It retains v1.4 ordering, permissions, saved settings and queue behavior.
@@ -177,14 +178,19 @@ The Custom Data Export feature gives authorized laboratory staff a self-service 
 | **REFERRAL** | Referrals | One row per referred analysis |
 | **NON_CONFORMANCE** | Non-Conformance / Rejections | One row per non-conforming event |
 
-All groups within the chosen report type are initially expanded in one continuous
+All groups within the chosen report type are initially collapsed in one continuous
 catalog. Category headings expand or collapse independently; opening one never
 closes another. Search matches field labels and category names across the whole
 report type and keeps matches grouped. Each search edit reveals matching groups;
 users can then fold individual result groups without clearing the search. Clearing
 search restores the earlier browsing folds. Each heading shows how many of that
 category's fields are already selected. New categories use the same grouping
-interaction without adding navigation tabs. Search never changes selected columns.
+interaction without adding navigation tabs. **Expand all** and **Collapse all**
+apply to the currently displayed groups; during search they never reveal unrelated
+groups or change the saved browsing folds. Outside search, fields open only through
+an individual group action or Expand all. Examples and saved settings also start
+with groups collapsed while retaining their selected columns. Search never changes
+selected columns.
 
 **FR-1-003:** Available fields MUST show the display name and an explicit **Add** action, changing to **Added** when selected. Adding appends a field once; duplicate additions are prevented. Do not show technical sourcing annotations in staff-facing labels; Section 5 retains those implementation details and the complete catalog.
 
@@ -757,6 +763,8 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 | `heading.dataExport.yourColumns` | Your CSV columns ({count}) |
 | `label.dataExport.searchFieldsPlaceholder` | Search all fields and groups… |
 | `button.dataExport.clearFieldSearch` | Clear search |
+| `button.dataExport.expandAllGroups` | Expand all |
+| `button.dataExport.collapseAllGroups` | Collapse all |
 | `label.dataExport.groupAddedCount` | {selected} / {total} added |
 | `label.dataExport.scrollableCatalog` | Scrollable field catalog |
 | `button.dataExport.addField` | Add {field} |
@@ -915,13 +923,13 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 ### Functional
 
 - [ ] **[FR-1-001, FR-7-001, Section 3]** User with `DATA_EXPORT` permission reaches a reporting landing page with equally clear new-export and saved-report paths; starting new opens the three-step builder
-- [ ] **[FR-1-002, FR-1-003, FR-1-010]** Explicit report-type selection shows all matching domain groups in one catalog; field/group-name search returns grouped matches without losing selections or coverage
+- [ ] **[FR-1-002, FR-1-003, FR-1-010]** Explicit report-type selection shows all matching domain headings collapsed in one catalog; field/group-name search expands only grouped matches without losing selections or coverage
 - [ ] **[FR-1-004]** Patient Demographics and Patient Identifiers groups are visible with restricted Add actions and identifying-data access guidance for users without respective `DATA_EXPORT_PII_DEMOGRAPHICS` / `DATA_EXPORT_PII_IDENTIFIERS` permissions
 - [ ] **[FR-1-005]** Add all shown appends missing matches once, retaining existing order; Remove shown removes only visible matches; restricted fields cannot be added
 - [ ] **[FR-1-006]** Numbered CSV-column list shows full labels and count, with Remove for each; desktop search retains visible selected columns, narrow layout offers one-tap switching; Next is disabled when empty
 - [ ] **[FR-1-007]** Navigating back from Step 2 or 3 to Step 1 preserves variable selections
 - [ ] **[FR-1-008, BR-015]** Report type determines the grain family before field selection; switching after selection uses the explicit clear-and-change action; server rejects mixed-family submissions with HTTP 422
-- [ ] **[FR-1-010]** Add fields from three groups, fold/open groups, search across categories and reorder columns without losing search or selections; multiple groups can stay open, new search reveals matches, clearing restores browsing folds and focus, and no-match results retain columns
+- [ ] **[FR-1-010]** Add fields from three groups, fold/open groups, search across categories and reorder columns without losing search or selections; multiple groups can stay open, new search reveals matches, clearing restores browsing folds and focus, and no-match results retain columns. Expand all / Collapse all work by keyboard and apply only to the displayed catalog or search groups
 - [ ] **[FR-1-011/012, BR-009]** Add/remove/reorder preserves focus, prevents duplicates and updates header/value alignment; preview, review, saved/reloaded configurations, immutable jobs, retries, expired re-runs and downloaded CSV retain the requested order
 - [ ] **[FR-2-001, FR-2-007]** Empty dates show no reversed-range error; Continue reveals field-specific required errors; a complete reversed or over-limit period blocks progression
 - [ ] **[FR-2-002]** Lab Sections `MultiSelect` shows only user's authorized sections; single-section users see it pre-selected and read-only
@@ -1048,7 +1056,7 @@ The earlier v1.3 publication remains a dated baseline, not acceptance of v1.4.
 | --- | --- | --- |
 | R1 — Establish the implementation baseline | Inspect current OpenELIS code and relevant open/merged work for OGC-479, OGC-481 and OGC-483. Identify reusable components, duplicate efforts and missing behavior. Resolve product decisions that block the first implementation slice; record evidence and any owner decision here. | Baseline and reporting defaults approved; production mapping verification belongs to Slice A |
 | R2 — Revise mock and specification together | Implement the UX changes below in the existing review surface and reconcile every affected requirement, acceptance case and localization entry. Both new and repeat-report journeys remain complete. Every old requirement is retained, amended with rationale or explicitly deferred. | v1.5 grouped-catalog candidate implemented for review; retains v1.4 ordering and reporting scope |
-| R3 — Validate and publish for review | Run focused browser journeys and existing repository tests/build. Inspect desktop and narrow screenshots, keyboard/focus, recovery and downloaded CSV. Publish through the existing gallery, verify the actual live source revision/assets, and provide usable review links. | v1.5 local candidate: 275 tests and build pass; desktop/narrow screenshots inspected. Draft PR and local preview for owner testing; CI and public publication recorded separately |
+| R3 — Validate and publish for review | Run focused browser journeys and existing repository tests/build. Inspect desktop and narrow screenshots, keyboard/focus, recovery and downloaded CSV. Publish through the existing gallery, verify the actual live source revision/assets, and provide usable review links. | v1.5 local candidate: 276 tests and build pass; desktop/narrow screenshots inspected. Draft PR and local preview for owner testing; CI and public publication recorded separately |
 | R4 — Review and hand off | Record owner review and resolve blocking findings. Prepare small implementation slices linked to the existing stories, with code ownership, dependencies and behavioral acceptance. The first slice needs no unresolved product assumptions. | Handoff prepared below; owner testing the grouped-catalog interaction before selecting the implementation baseline |
 
 ### Baseline evidence — 2026-09-11
@@ -1110,7 +1118,8 @@ The current mock/spec candidate retains v1.3/v1.4 behavior and revises catalog b
   steps; a saved setup opens at a fresh reporting period, with field editing available.
 - Make report type explicit before field selection and provide grouped search results
   and selected labels without removing permitted coverage. Within the chosen type,
-  all groups start expanded and can be folded independently (FR-1-002/010).
+  all groups start collapsed, open independently or through Expand all, and reveal
+  matching fields automatically during search (FR-1-002/010).
   Preserve incompatible-family prevention and explain it separately from permissions.
 - Keep the period, date basis, lab scope and active filters visible. Reveal less
   common filters on request; retain their values. Empty dates must not display a
@@ -1149,7 +1158,7 @@ These guides inform the design; they do not establish usability with lab staff.
 | Duplicates and missing values | Preserve distinct result records; write missing values as blank CSV cells; never deduplicate by matching display values alone | Approved 2026-09-12 |
 | Existing Routine CSV | Coexist during development; decide replacement only after CSV comparison and owner acceptance | Approved 2026-09-12 |
 | Column selection and ordering | Available fields alongside Your CSV columns; explicit Add/Remove/Move controls; save and export the selected order instead of forcing catalog order | Approved 2026-09-12 |
-| Catalog browsing candidate | Keep categories in a continuous list and grouped search results; independently expandable groups, retained search and ordered selections | Requested for testing 2026-09-13; interaction choice remains open |
+| Catalog browsing candidate | Keep categories collapsed initially in a continuous list; search reveals grouped matches, manual group and Expand all / Collapse all actions retain search and ordered selections | Requested for testing and refined 2026-09-13; overall interaction choice remains open |
 | Permission loss | Recheck access before generation and download, retain the draft, and explain denial. BR-003/004 and their acceptance/tests now reflect this. | Approved 2026-09-12 |
 
 Approved entries govern the first complete export; the catalog candidate remains
@@ -1238,10 +1247,13 @@ validation. Representative manual date entry remains part of owner/staff review.
 Existing build warnings concern unrelated design duplicate keys and tooling
 deprecations; no new dependency or application backend was introduced.
 
-v1.5 candidate validation on 2026-09-13: all 275 tests and the production gallery
+v1.5 candidate validation on 2026-09-13: all 276 tests and the production gallery
 build pass. Added behavior checks cover choosing across three groups, grouped
-field/category-name search, independent keyboard folding, retained search, no-match
-recovery, restoring browsing folds, search-scoped bulk actions and column reordering.
+field/category-name search, collapsed defaults, keyboard Expand all / Collapse all,
+independent keyboard folding, retained search, no-match
+recovery, restoring browsing folds, search-scoped bulk actions and column reordering. Search bulk actions affect only matching groups; clearing search
+restores manual browsing folds. Desktop and narrow browser checks also exercised
+these controls.
 Existing save/fresh-period, immutable retry CSV and permission checks still pass.
 Browser screenshots were inspected at 1280 and 390 pixels. At 390 pixels, adding
 from search and reordering through the columns panel retained the search and all
@@ -1252,7 +1264,7 @@ is claimed by these checks.
 | Acceptance record | Current state |
 | --- | --- |
 | Revised mock/spec agreement and focused behavior checks | v1.5 candidate retains full catalog, order, save/retry and permission behavior; grouped-search and fold-state tests added |
-| Repository tests/build and verified live gallery revision | v1.5: 275 tests and local build pass; desktop/narrow browser checks pass. CI and public publication pending. Published v1.4 evidence above remains a separate baseline |
+| Repository tests/build and verified live gallery revision | v1.5: 276 tests and local build pass; desktop/narrow browser checks pass. CI and public publication pending. Published v1.4 evidence above remains a separate baseline |
 | Owner design review, including report meaning, access and fixture limitations | Reporting defaults and ordered-column direction approved; v1.5 catalog interaction requested for hands-on testing and remains undecided |
 | Implementation backlog and first-slice readiness | Slices A–E, story ownership and first-path acceptance recorded; Jira references reconciled; technical field/status mapping belongs to Slice A; queue/saved-report implementers remain unassigned |
 | Representative staff usability sessions | Not performed; arrange a small round if participants are available, otherwise record it as pending with the remaining usability uncertainty |
@@ -1277,7 +1289,9 @@ the progress register, custom-data-export.html as the authoritative workflow,
 and custom-data-export-example.js as the fictional CSV fixture. The owner
 approved the reporting defaults and editable CSV order, and requested v1.5 for
 hands-on testing on 2026-09-13. Keep category headings and grouped search results
-in one continuous catalog with independent expansion. Preserve search, column order,
+in one continuous catalog, initially collapsed with independent expansion and Expand
+all / Collapse all. Search expands only matching groups; clearing restores browsing
+folds. Preserve search, column order,
 full catalog coverage, permissions, drafts and queue recovery. Validate the candidate
 and let the owner try it before treating this interaction as settled. v1.4 remains
 the public baseline until the candidate is merged and published. Jira descriptions

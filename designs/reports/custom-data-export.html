@@ -159,6 +159,9 @@
     .column-actions button:hover,.field-add:hover { background:#f4f4f4; }
     .catalog-tools { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:32px; margin-bottom:8px; }
     .catalog-tools .column-hint { margin:0; }
+    .catalog-expansion { display:flex; gap:16px; margin-bottom:8px; }
+    .catalog-expansion .btn-link { min-height:32px; font-size:0.75rem; }
+    .catalog-expansion .btn-link[aria-disabled=true] { color:#8d8d8d; cursor:default; text-decoration:none; }
     .field-catalog { max-height:clamp(260px,52dvh,560px); overflow-y:auto; scrollbar-gutter:stable; padding-right:6px; }
     .field-domain { border-top:1px solid #e0e0e0; }
     .field-domain-heading { display:flex; justify-content:space-between; align-items:center; gap:8px; }
@@ -560,7 +563,7 @@ function StatusTag({ status }) {
 function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOverview, onGoToQueue, onSubmit, configs, setConfigs, restoreRequest, piiAccess, newExportToken }) {
   const [step, setStep] = useState(1);
   const [reportType, setReportType] = useState(null);
-  const [collapsedDomains, setCollapsedDomains] = useState(new Set());
+  const [collapsedDomains, setCollapsedDomains] = useState(() => new Set(DOMAINS.map(d => d.id)));
   const [collapsedSearchDomains, setCollapsedSearchDomains] = useState(new Set());
   const [columnView, setColumnView] = useState('browse');
   const [columnMessage, setColumnMessage] = useState('');
@@ -591,11 +594,11 @@ function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOvervie
     setReportType(first ? first.family : null);
     setLabSection(choices.labSection || 'Virology'); setTest(choices.test || ''); setResultStatus(choices.resultStatus || 'All statuses');
     setSampleStatus(choices.sampleStatus || 'All statuses'); setPriority(choices.priority || 'All priorities'); setReferringSite(choices.referringSite || '');
-    setMessage(''); setDateAttempted(false); setColumnMessage(''); setColumnView('browse'); setFieldSearch(''); setCollapsedDomains(new Set()); setCollapsedSearchDomains(new Set());
+    setMessage(''); setDateAttempted(false); setColumnMessage(''); setColumnView('browse'); setFieldSearch(''); setCollapsedDomains(new Set(DOMAINS.map(d => d.id))); setCollapsedSearchDomains(new Set());
   };
   const startFresh = () => {
     setDraftStarted(true);
-    setMode('builder'); setStep(1); setReportType(null); setCollapsedDomains(new Set()); setCollapsedSearchDomains(new Set()); setSelected(new Set()); setFieldSearch('');
+    setMode('builder'); setStep(1); setReportType(null); setCollapsedDomains(new Set(DOMAINS.map(d => d.id))); setCollapsedSearchDomains(new Set()); setSelected(new Set()); setFieldSearch('');
     setStartDate(''); setEndDate(''); setDateAttempted(false); setLabSection('Virology'); setTest(''); setResultStatus('All statuses');
     setSampleStatus('All statuses'); setPriority('All priorities'); setReferringSite(''); setExportName(''); setConfigName('');
     setSaveForLater(false); setShowSaveSuccess(false); setMoreFiltersOpen(false); setMessage(''); setColumnMessage(''); setColumnView('browse');
@@ -610,7 +613,7 @@ function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOvervie
   const chooseReportType = (family) => {
     if (selected.size > 0 && family !== reportType) return;
     setReportType(family);
-    setCollapsedDomains(new Set()); setCollapsedSearchDomains(new Set());
+    setCollapsedDomains(new Set(DOMAINS.map(d => d.id))); setCollapsedSearchDomains(new Set());
     setFieldSearch('');
   };
 
@@ -719,6 +722,12 @@ function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOvervie
     added: d.vars.filter(v => selected.has(v.key)).length,
     vars: d.vars.filter(v => !searchTerm || `${d.label} ${v.label}`.toLowerCase().includes(searchTerm))
   })).filter(d => d.vars.length > 0);
+  const allGroupsExpanded = visibleDomains.every(d => !activeCollapsedDomains.has(d.id));
+  const allGroupsCollapsed = visibleDomains.every(d => activeCollapsedDomains.has(d.id));
+  const changeAllFieldGroups = expanded => {
+    const update = searchTerm ? setCollapsedSearchDomains : setCollapsedDomains;
+    update(new Set(expanded ? [] : visibleDomains.map(d => d.id)));
+  };
   const previewRows = selected.size > 0 && [...selected].every(key => Example.fields.includes(key)) ? Example.select(Example.august).slice(0, 2) : [];
   const activeExtraFilters = [sampleStatus !== 'All statuses' ? sampleStatus : '', priority !== 'All priorities' ? priority : '', referringSite].filter(Boolean);
 
@@ -826,6 +835,10 @@ function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOvervie
                     <p className="column-hint" id="catalog-summary" role="status">{visibleDomains.reduce((sum,d) => sum+d.vars.length,0)} {searchTerm ? 'matching fields' : 'fields'} across {visibleDomains.length} groups</p>
                     {searchTerm && <button type="button" className="btn-link" onClick={() => {changeFieldSearch(''); document.getElementById('field-search')?.focus();}}>Clear search</button>}
                   </div>
+                  {visibleDomains.length > 0 && <div className="catalog-expansion" role="group" aria-label="Expand or collapse field groups">
+                    <button type="button" className="btn-link" aria-disabled={allGroupsExpanded} onClick={() => {if (!allGroupsExpanded) changeAllFieldGroups(true);}}>Expand all</button>
+                    <button type="button" className="btn-link" aria-disabled={allGroupsCollapsed} onClick={() => {if (!allGroupsCollapsed) changeAllFieldGroups(false);}}>Collapse all</button>
+                  </div>}
                   <div className="field-catalog" role="region" aria-label="Scrollable field catalog" tabIndex="0">
                   {visibleDomains.map(domain => {
                     const locked = isDomainLocked(domain);
