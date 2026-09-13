@@ -89,8 +89,8 @@ describe('ordered reporting columns', () => {
     await user.click(screen.getByRole('button', {name:'Added Result Value',exact:true}));
     expect(columnNames()).toHaveLength(7);
     await user.clear(screen.getByLabelText('Find a field'));
-    expect(within(browser).queryByText('Result Value')).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', {name:'Patient Demographics',exact:true}));
+    expect(within(browser).getByText('Result Value')).toBeVisible();
+    expect(screen.getByRole('button', {name:'Sample / Order',exact:true})).toHaveAttribute('aria-expanded','false');
     const locked=screen.getByRole('button', {name:'Add Patient Name',exact:true});
     expect(locked).toHaveAttribute('aria-disabled','true');
     await user.click(locked);
@@ -107,6 +107,63 @@ describe('ordered reporting columns', () => {
     expect(within(screen.getByRole('region', {name:'Available fields'})).getAllByRole('listitem')).toHaveLength(7);
     await user.click(screen.getByRole('radio', {name:/^Non-Conformance/}));
     expect(within(screen.getByRole('region', {name:'Available fields'})).getAllByRole('listitem')).toHaveLength(5);
+  });
+
+  it('keeps search results grouped and selections stable while browsing, folding groups and reordering', async () => {
+    const user = userEvent.setup();
+    render(<ReportingMock />);
+    await user.click(screen.getByRole('button', {name:'Start a new export'}));
+    await user.click(screen.getByRole('radio', {name:/^Sample & Testing/}));
+    const fields = screen.getByRole('region', {name:'Available fields'});
+    expect(within(fields).getAllByRole('listitem')).toHaveLength(38);
+    await user.click(screen.getByRole('button', {name:'Add Accession Number',exact:true}));
+    await user.click(screen.getByRole('button', {name:'Add Result Value',exact:true}));
+    await user.click(screen.getByRole('button', {name:'Add Collection → Received (min)',exact:true}));
+    const ordered = columnNames();
+    expect(ordered).toEqual(['Accession Number','Result Value','Collection → Received (min)']);
+
+    const sample = within(fields).getByRole('button', {name:'Sample / Order',exact:true});
+    sample.focus();
+    await user.keyboard('{Enter}');
+    expect(sample).toHaveAttribute('aria-expanded','false');
+    expect(sample).toHaveFocus();
+    await user.type(screen.getByLabelText('Find a field'),'date');
+    expect(sample).toHaveAttribute('aria-expanded','true');
+    expect(within(fields).getByRole('button',{name:'Test Results',exact:true})).toHaveAttribute('aria-expanded','true');
+    expect(within(fields).getByRole('button',{name:'Patient Demographics',exact:true})).toHaveAttribute('aria-expanded','true');
+    await user.click(screen.getByRole('button',{name:'Add Collection Date',exact:true}));
+    await user.click(screen.getByRole('button',{name:'Add Validation Date',exact:true}));
+    await user.click(sample);
+    expect(screen.getByLabelText('Find a field')).toHaveValue('date');
+    expect(within(fields).getByText('Validation Date')).toBeVisible();
+    expect(columnNames()).toEqual([...ordered,'Collection Date','Validation Date']);
+
+    await user.click(screen.getByRole('button',{name:'Clear search',exact:true}));
+    expect(screen.getByLabelText('Find a field')).toHaveFocus();
+    expect(sample).toHaveAttribute('aria-expanded','false');
+    expect(within(fields).getByRole('button',{name:'Test Results',exact:true})).toHaveAttribute('aria-expanded','true');
+    await user.type(screen.getByLabelText('Find a field'),'not-a-field');
+    expect(within(fields).getByText('No fields match your search.')).toBeVisible();
+    expect(columnNames()).toHaveLength(5);
+    await user.clear(screen.getByLabelText('Find a field'));
+    await user.type(screen.getByLabelText('Find a field'),'turnaround');
+    expect(within(fields).getAllByRole('listitem')).toHaveLength(5);
+    await user.click(screen.getByRole('button',{name:'Move Result Value up',exact:true}));
+    expect(columnNames().slice(0,2)).toEqual(['Result Value','Accession Number']);
+    expect(screen.getByLabelText('Find a field')).toHaveValue('turnaround');
+  });
+
+  it('adds and removes only matching fields without changing an earlier cross-group selection', async () => {
+    const user = userEvent.setup();
+    render(<ReportingMock />);
+    await openExample(user);
+    const ordered = columnNames();
+    await user.type(screen.getByLabelText('Find a field'),'received');
+    await user.click(screen.getByRole('button',{name:'Add all shown Sample / Order fields',exact:true}));
+    expect(columnNames()).toEqual([...ordered,'Received Date','Received Time']);
+    await user.click(screen.getByRole('button',{name:'Remove all shown Sample / Order fields',exact:true}));
+    expect(columnNames()).toEqual(ordered);
+    expect(screen.getByLabelText('Find a field')).toHaveValue('received');
   });
 
   it('uses the chosen order in preview, review and saved reports while retaining keyboard focus and fresh dates', async () => {
