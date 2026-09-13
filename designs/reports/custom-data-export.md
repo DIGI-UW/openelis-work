@@ -315,7 +315,7 @@ all values and displays a plain-language summary of any active filters.
 
 **FR-5-003:** If a sync job exceeds 30 seconds of server-side generation time, it MUST be automatically promoted to async. The HTTP response transitions to 202 with the job ID. The frontend MUST handle a delayed 202 response gracefully by redirecting to the queue view with an explanatory notification.
 
-**FR-5-004 (Configuration):** All data export limits MUST be exposed as named configuration properties in the existing **Admin → General Configuration → Printed Reports Configuration** page (new "Data Export" property group — no new admin page):
+**FR-5-004 (Configuration):** All data export limits MUST be exposed as named configuration properties at the specified **Admin → General Configuration → Printed Reports Configuration** location (new "Data Export" property group — no new admin page). Verify the corresponding configuration component in the implementation checkout; the design location is not proof that a reusable page already exists:
 
 | Property | Default | Description |
 |---|---|---|
@@ -584,7 +584,7 @@ The following variable keys are valid values in the `selectedVariables` JSON arr
 
 ## 6. API Endpoints
 
-> **Path convention:** endpoints use the `/rest/` controller prefix per Constitution IV (`@RequestMapping("/rest/{module}")`) and MUST match the convention used by the existing Patient Report Print Queue controllers. *(v1.0 specified `/api/v1/…`, which does not match the codebase convention — dev to confirm final prefix against the Print Queue implementation before coding.)*
+> **Path convention:** endpoints use the existing OpenELIS `/rest/` controller convention per Constitution IV (`@RequestMapping("/rest/{module}")`). Patient Report Print Queue is a design reference, not a verified implementation dependency; no printing-queue controller is required before these endpoints can be implemented.
 
 All endpoints are **scoped to the authenticated user** (BR-016): job and saved-config resources belonging to another user return HTTP 404.
 
@@ -654,7 +654,7 @@ See the paired design artifacts:
 
 ### Navigation Path
 
-Two new menu items are added to the Reports section of the left navigation sidebar, as siblings to the existing Patient Report Print Queue and Patient Status Report entries:
+Two new menu items are added to the Reports section of the left navigation sidebar, alongside the patient-report entries shown in the design. Verify existing navigation in the implementation checkout; this export work does not implement a patient printing queue:
 
 - **Reports → Custom Data Export** — The 3-step report builder wizard
 - **Reports → My Report Queue** — The async job queue for data exports
@@ -973,7 +973,7 @@ All UI text is externalized. **Per Constitution VII, keys are added to `en.json`
 ### Integration
 
 - [ ] **[Integration boundary]** OpenELIS exports work with Catalyst and AI unavailable. Shared export APIs or a Catalyst wizard are not required for this release. Real cross-application sign-in and equivalent authorization are verified separately under the integration roadmap.
-- [ ] **[Patient Report Print Queue]** My Report Queue page follows identical `DataTable` architecture, controller path conventions, server-side preference persistence pattern, and status `Tag` kind conventions as Patient Report Print Queue
+- [ ] **[Queue consistency]** My Report Queue uses the specified Carbon `DataTable` and status `Tag` conventions, OpenELIS `/rest/` controllers and server-side preferences. Reuse compatible patient printing components if present; the design reference alone does not establish a reusable implementation.
 - [ ] **[BR-008, Section 11]** `PiiAccessLog` entries created at job submission time for all jobs including PII variables; verified in database after test submission
 - [ ] **[Companion release]** Build containing OGC-479 without OGC-481 has async submission disabled (over-threshold requests rejected with guidance to narrow the range) — enforced only if the stories ever ship separately, which is not planned
 
@@ -1080,10 +1080,10 @@ The earlier v1.3 publication remains a dated baseline, not acceptance of v1.4.
   mozzy mutesa; OGC-481 and OGC-483 are **Backlog** and unassigned. The three
   stories therefore describe the intended split but do not show an active
   implementation for the queue or saved reports.
-- Reuse targets are the existing Reports navigation, Carbon form/table patterns,
-  localization pipeline, role-module permissions, Printed Reports Configuration
-  area and Patient Report Print Queue conventions. Reuse must be confirmed in
-  the implementation checkout rather than inferred from this mock.
+- Reuse targets are Reports navigation, Carbon form/table patterns, localization
+  and role-module permissions. Printed Reports Configuration and Patient Report
+  Print Queue were also proposed as references; their implementation availability
+  was not established. The September 13 audit below corrects that assumption.
 
 Baseline refreshed on 2026-09-12 at OpenELIS `develop`
 `5ef1a5a31f9b59840fab1d8a508652acadc4ccc3`. Changes since `672c92a6` concern
@@ -1153,6 +1153,43 @@ Use native lists with buttons: [ARIA listbox guidance](https://www.w3.org/WAI/AR
 does not support interactive buttons inside an option.
 These guides inform the design; they do not establish usability with lab staff.
 
+### Implementation capability audit — 2026-09-13
+
+Audited OpenELIS `develop` at
+[`e57a53399c2134fe3ff58009119cc05906c61e5e`](https://github.com/DIGI-UW/OpenELIS-Global-2/commit/e57a53399c2134fe3ff58009119cc05906c61e5e).
+This was code inspection of server, frontend-component and resource paths, not
+a runtime, workload or complete field-mapping test. Absence findings apply to
+those paths at that revision, not every contributor branch. Refresh the baseline
+and matching PR/story ownership when starting implementation.
+
+| Capability | Confirmed foundation | Remaining implementation work |
+| --- | --- | --- |
+| Clinical records | [Result model](https://github.com/DIGI-UW/OpenELIS-Global-2/blob/e57a53399c2134fe3ff58009119cc05906c61e5e/src/main/java/org/openelisglobal/result/valueholder/Result.java) links results to analyses/test results and carries reportability and value information; existing reporting queries join samples, tests and sections | Map approved fields, individual result identity, corrected/validated states and missing values; verify against representative records |
+| CSV generation | [Routine CSV writer](https://github.com/DIGI-UW/OpenELIS-Global-2/blob/e57a53399c2134fe3ff58009119cc05906c61e5e/src/main/java/org/openelisglobal/reports/action/implementation/CSVRoutineSampleExportReport.java#L67) produces a complete in-memory Windows-1252 file | Ordered configurable output, UTF-8 with BOM and bounded generation; unchanged reuse does not satisfy this contract |
+| Access control | [Permission modules](https://github.com/DIGI-UW/OpenELIS-Global-2/blob/e57a53399c2134fe3ff58009119cc05906c61e5e/src/main/java/org/openelisglobal/systemusermodule/service/PermissionModuleServiceImpl.java) and [user lab-unit roles](https://github.com/DIGI-UW/OpenELIS-Global-2/blob/e57a53399c2134fe3ff58009119cc05906c61e5e/src/main/java/org/openelisglobal/userrole/service/UserRoleServiceImpl.java) exist | New export/identifying-field permissions, job ownership and current-access checks before generation/download; `DATA_EXPORT` was not found in audited application paths |
+| Background work and queue | [Scheduler](https://github.com/DIGI-UW/OpenELIS-Global-2/blob/e57a53399c2134fe3ff58009119cc05906c61e5e/src/main/java/org/openelisglobal/scheduler/SchedulerConfig.java#L78) and [user-context propagation](https://github.com/DIGI-UW/OpenELIS-Global-2/blob/e57a53399c2134fe3ff58009119cc05906c61e5e/src/main/java/org/openelisglobal/config/UserContextPropagatingTaskDecorator.java) exist | No matching personal export-job lifecycle was found. Implement persisted requests, owner-scoped retrieval, failure/retry, restart recovery and file expiry using the specified bounded worker |
+| Saved reports | [Administrative report configuration](https://github.com/DIGI-UW/OpenELIS-Global-2/blob/e57a53399c2134fe3ff58009119cc05906c61e5e/src/main/java/org/openelisglobal/reportconfiguration/controller/ReportConfigurationController.java) manages report definitions/templates | No matching personal saved-export definition was found. Implement ordered columns and non-date filters with per-user ownership and fresh reporting periods |
+
+The existing [Data Export Status controller](https://github.com/DIGI-UW/OpenELIS-Global-2/blob/e57a53399c2134fe3ff58009119cc05906c61e5e/src/main/java/org/openelisglobal/dataexport/controller/rest/DataExportStatusRestController.java#L18)
+is administrator-only monitoring/triggering of export tasks. It is not the
+specified staff My Report Queue. Earlier suggestions of a ready-to-reuse Patient
+Report Print Queue implementation were unverified; keep compatible design
+patterns without making printing infrastructure a prerequisite.
+
+### Implementation risks and required proof
+
+These are engineering checks against approved behavior, not reopened product
+decisions. Resolve them in implementation; raise only a concrete conflict that
+requires an owner decision. Preserve the existing Slice A–E sequence.
+
+| Priority | Concrete risk and evidence | Required proof and checkpoint |
+| --- | --- | --- |
+| 1 — record correctness | The [Routine result query](https://github.com/DIGI-UW/OpenELIS-Global-2/blob/e57a53399c2134fe3ff58009119cc05906c61e5e/src/main/java/org/openelisglobal/reports/action/implementation/reportBeans/CSVRoutineColumnBuilder.java#L580) filters by entry date, pivots tests into columns and has its status-filter expression commented out in this query. Our first path requires collection dates, validated results and one row per result | Slice A: explicit field/status mapping and record-level inclusion/exclusion tests, distinct result identities, repeated accessions, blanks, corrections and inclusive lab-timezone boundaries; full-family coverage follows in E |
+| 2 — access during delayed work | Scheduled work can run as a system user; copied submitting-user context is a snapshot, not evidence of current permission | Slice A: retain job owner and recheck current lab/identifying-field access before generation/download; direct API denial, cross-user access and revocation tests. Preserve the draft and release no unauthorized file |
+| 3 — workload | The current writer holds the whole export in memory. Moving it behind a queue alone does not bound memory or database work | Slice A: exercise a representative over-threshold request, record duration/memory and ordinary-work responsiveness, and verify configured limits and bounded worker behavior. No performance result has been measured in this audit |
+| 4 — durable state | A timer-driven mock and an existing scheduler do not implement immutable export jobs or retained files | Slice A: immutable submitted choices and recoverable retry through actual CSV retrieval. Slice C: queued-job survival, interrupted-job recovery, owner-scoped files, expiry and purge; export and queue remain one release boundary |
+| 5 — design and order drift | Live application state must carry the chosen order beyond the field picker; saved settings and retries must not use an edited draft | Slice A: header/value alignment through preview, job and download. B/D: direct mock comparison, grouped search, drag/keyboard controls, retained drafts and saved-config restoration; no UI approximation or silent scope reduction |
+
 ### Decisions and implementation handoff
 
 | Decision for the first complete path | Proposed review default | State |
@@ -1212,6 +1249,9 @@ include an authorized collection-period request, immutable ordered job choices,
 CSV retrieval, a recoverable failure/retry, and assertions for header/value
 alignment, distinct result identity, blank values and inclusive date boundaries.
 Service/API tests and one browser download journey prove that complete path.
+Include the Slice A proof above: permitted and denied access, record-level
+meaning and a representative queued workload. Keep measured outcomes separate
+from design expectations; a successful fictional mock is not application proof.
 The existing Routine CSV remains available until separate comparison and approval.
 
 ### Validation and completion
@@ -1286,25 +1326,48 @@ scheduling and dashboards remain outside this goal. Catalyst's approved upgrade
 continues independently; shared sign-in, equivalent authorization and real-source
 CSV/Dataset parity remain requirements of the separate integration milestones.
 
-### Copyable goal
+### New-task handoff — first implementation checkpoint
 
 ```text
-Finish the OpenELIS reporting MVP design-readiness checkpoint in
-DIGI-UW/openelis-work. Treat designs/reports/custom-data-export.md Section 14 as
-the progress register, custom-data-export.html as the authoritative workflow,
-and custom-data-export-example.js as the fictional CSV fixture. The owner
-approved the reporting defaults and editable CSV order, and requested v1.5 for
-hands-on testing on 2026-09-13. Keep category headings and grouped search results
-in one continuous catalog, initially collapsed with independent expansion and Expand
-all / Collapse all. Search expands only matching groups; clearing restores browsing
-folds. Preserve search, column order,
-full catalog coverage, permissions, drafts and queue recovery. Validate the candidate
-and let the owner try it before treating this interaction as settled. v1.4 remains
-the public baseline until the candidate is merged and published. Jira descriptions
-reference this specification. Complete R4 with explicit owner
-review and an actionable Slice A across OGC-479/481: authorized virology export,
-immutable ordered job, queue recovery and CSV retrieval. Keep the harness roadmap
-synchronized by link and milestone only. Preserve OpenELIS/Carbon styling.
-Staff usability, production implementation/authentication and real-source Catalyst
-parity remain separately tracked milestones; do not infer them from the mock.
+Implement the first complete OpenELIS configurable-export checkpoint in
+DIGI-UW/OpenELIS-Global-2, starting from a clean current-develop checkout and
+preserving unrelated work.
+
+Read DIGI-UW/openelis-work designs/reports/custom-data-export.md, especially
+Section 14's capability audit, implementation risks and Slice A–E handoff;
+custom-data-export.html is the design source and custom-data-export-example.js
+is fictional data. Refresh PR #322, owner acceptance, current application code,
+existing specs and OGC-479/481/483 work before changing anything. Code audit and
+planning can proceed while design review is open; do not assume a merge or
+mark R4 complete without the owner's acceptance.
+
+Follow OpenELIS's specification-first workflow. Use one application feature
+specification/plan/task register for implementation, linking these product/design
+requirements rather than copying them. Record milestones A–E and start with A:
+authorized selection and ordering of the seven virology fields, inclusive
+collection dates, an immutable persisted job, recoverable failure/retry and
+real queue-based UTF-8-with-BOM CSV retrieval. The full seven-domain,
+three-family scope remains in later milestones.
+
+Use the e57a533 code audit as a dated starting point, not a runtime result.
+Routine CSV's entry-date pivot query and in-memory Windows-1252 writer cannot
+be reused unchanged. Verify individual result identity, corrected/validated
+states, blanks, repeated accessions and date boundaries against actual records.
+Reuse existing roles/lab assignments and background-task mechanisms; implement
+export-specific permissions, owner-scoped jobs and current-access rechecks at
+generation/download. Do not assume a personal export queue or saved-export
+store already exists, or make a patient printing queue a prerequisite.
+
+Resolve these engineering checks autonomously. Escalate only a concrete conflict
+requiring a product decision. Prove Slice A's record correctness, denied/revoked
+access, immutable order/retry and a representative queued workload. Use existing
+OpenELIS/Carbon components and match the reviewed mock directly, including
+grouped search, collapsed defaults and drag/keyboard ordering as the UI expands.
+
+Finish with focused service/API tests, a real browser CSV-download journey,
+required CI, a locally running implementation and a reviewable PR. Record
+implementation, merge, deployment and owner acceptance separately. Raw exports,
+screenshots and recordings stay outside Git. Retain Routine CSV during rollout.
+Keep the harness roadmap synchronized by link/milestone only; Catalyst's upgrade,
+shared sign-in and CSV/Dataset parity continue as separate integration work.
 ```
