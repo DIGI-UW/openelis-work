@@ -154,25 +154,47 @@
     .columns-pane { padding-left:24px; border-left:1px solid #e0e0e0; position:sticky; top:16px; max-height:calc(100dvh - 160px); overflow:auto; }
     .field-search { margin:16px 0 12px; }
     .field-search .form-input { font-size:16px; }
-    .field-groups { display:flex; gap:2px; flex-wrap:wrap; margin-bottom:16px; }
-    .field-groups button,.column-mobile-nav button { font:inherit; background:transparent; border:0; border-bottom:2px solid transparent; padding:8px; cursor:pointer; font-size:0.75rem; color:#525252; }
-    .field-groups button[aria-pressed=true],.column-mobile-nav button[aria-pressed=true] { border-bottom-color:#0f62fe; color:#161616; font-weight:600; }
-    .field-groups button:hover,.column-actions button:hover,.field-add:hover { background:#f4f4f4; }
-    .field-domain { margin-top:20px; }
+    .column-mobile-nav button { font:inherit; background:transparent; border:0; border-bottom:2px solid transparent; padding:8px; cursor:pointer; font-size:0.75rem; color:#525252; }
+    .column-mobile-nav button[aria-pressed=true] { border-bottom-color:#0f62fe; color:#161616; font-weight:600; }
+    .column-actions button:hover,.field-add:hover { background:#f4f4f4; }
+    .catalog-tools { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:32px; margin-bottom:8px; }
+    .catalog-tools .column-hint { margin:0; }
+    .catalog-expansion { display:flex; gap:16px; margin-bottom:8px; }
+    .catalog-expansion .btn-link { min-height:32px; font-size:0.75rem; }
+    .catalog-expansion .btn-link[aria-disabled=true] { color:#8d8d8d; cursor:default; text-decoration:none; }
+    .field-catalog { max-height:clamp(260px,52dvh,560px); overflow-y:auto; scrollbar-gutter:stable; padding-right:6px; }
+    .field-domain { border-top:1px solid #e0e0e0; }
     .field-domain-heading { display:flex; justify-content:space-between; align-items:center; gap:8px; }
-    .field-domain-heading h3 { font-size:0.8125rem; font-weight:600; margin:0; }
-    .field-domain-heading button { font-size:0.75rem; }
+    .field-domain-heading h3 { flex:1; min-width:0; font-size:0.875rem; font-weight:600; margin:0; }
+    .field-group-toggle { width:100%; display:flex; align-items:center; gap:8px; min-height:44px; text-align:left; border:0; background:transparent; padding:8px 0; color:#161616; font:inherit; cursor:pointer; }
+    .field-group-toggle:hover { background:#f4f4f4; }
+    .field-group-count { white-space:nowrap; font-size:0.75rem; color:#525252; }
+    .field-group-tools { display:flex; justify-content:space-between; align-items:baseline; gap:8px; padding-left:20px; }
+    .field-group-tools .column-hint { margin:0; }
+    .field-group-tools .btn-link { margin-left:auto; padding:4px 0; font-size:0.75rem; }
     .column-hint { font-size:0.75rem; color:#525252; line-height:1.5; margin:6px 0 12px; }
     .available-field-list,.selected-columns { list-style:none; padding:0; margin:8px 0 0; }
-    .available-field-list li { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:56px; border-bottom:1px solid #e0e0e0; font-size:0.875rem; }
+    .available-field-list { margin:0 0 12px; }
+    .available-field-list li { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:44px; padding-left:20px; border-bottom:1px solid #f4f4f4; font-size:0.875rem; }
     .field-add { color:#0f62fe; background:transparent; border:0; padding:10px 8px; font:inherit; font-size:0.8125rem; cursor:pointer; white-space:nowrap; }
     .field-add[aria-disabled=true] { color:#6f6f6f; cursor:default; }
-    .selected-columns li { display:grid; grid-template-columns:18px minmax(0,1fr) auto; gap:8px; align-items:center; min-height:56px; padding:8px 0; border-bottom:1px solid #e0e0e0; }
+    .selected-columns li { position:relative; display:grid; grid-template-columns:24px 18px minmax(0,1fr) auto; gap:6px; align-items:center; min-height:56px; padding:4px 0; border-bottom:1px solid #e0e0e0; }
+    .column-drag-handle { display:grid; place-items:center; align-self:stretch; min-height:36px; padding:0; border:0; background:transparent; color:#6f6f6f; cursor:grab; }
+    .column-drag-handle:active { cursor:grabbing; }
+    .column-drag-handle:hover { color:#161616; background:#f4f4f4; }
+    .selected-columns li.dragging { opacity:0.45; }
+    .selected-columns li.drop-before::before,.selected-columns li.drop-after::after { content:''; position:absolute; left:0; right:0; height:3px; background:#0f62fe; pointer-events:none; }
+    .selected-columns li.drop-before::before { top:-2px; }
+    .selected-columns li.drop-after::after { bottom:-2px; }
     .column-number { color:#6f6f6f; font-size:0.75rem; }
     .column-name { font-size:0.875rem; overflow-wrap:anywhere; }
-    .column-actions { display:flex; }
-    .column-actions button { border:0; background:transparent; color:#161616; font:inherit; padding:4px; width:28px; min-height:36px; cursor:pointer; }
-    .column-actions button[aria-disabled=true] { color:#8d8d8d; cursor:default; }
+    .column-actions { display:flex; align-items:center; gap:4px; }
+    .column-actions button { display:grid; place-items:center; border:0; background:transparent; color:#525252; font:inherit; padding:0; width:28px; min-height:32px; cursor:pointer; }
+    .column-order-buttons { display:flex; flex-direction:column; }
+    .column-actions .column-order-buttons button { width:28px; min-width:28px; min-height:24px; height:24px; }
+    .column-actions button[aria-disabled=true] { color:#c6c6c6; cursor:default; }
+    .column-actions button[aria-disabled=true]:hover { background:transparent; }
+    .column-remove:hover { color:#da1e28; }
     .column-empty { color:#525252; font-size:0.875rem; padding:20px 0; }
     .column-feedback { min-height:20px; margin:8px 0 16px; color:#525252; font-size:0.75rem; }
     .column-preview { background:#fff; border:1px solid #e0e0e0; padding:20px; }
@@ -552,10 +574,14 @@ function StatusTag({ status }) {
 function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOverview, onGoToQueue, onSubmit, configs, setConfigs, restoreRequest, piiAccess, newExportToken }) {
   const [step, setStep] = useState(1);
   const [reportType, setReportType] = useState(null);
-  const [activeDomain, setActiveDomain] = useState('all');
+  const [collapsedDomains, setCollapsedDomains] = useState(() => new Set(DOMAINS.map(d => d.id)));
+  const [collapsedSearchDomains, setCollapsedSearchDomains] = useState(new Set());
   const [columnView, setColumnView] = useState('browse');
   const [columnMessage, setColumnMessage] = useState('');
   const columnFocus = React.useRef(null);
+  const draggedColumn = React.useRef(null);
+  const [draggedKey, setDraggedKey] = useState(null);
+  const [columnDrop, setColumnDrop] = useState(null);
   const [selected, setSelected] = useState(new Set());
   const [fieldSearch, setFieldSearch] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -582,11 +608,11 @@ function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOvervie
     setReportType(first ? first.family : null);
     setLabSection(choices.labSection || 'Virology'); setTest(choices.test || ''); setResultStatus(choices.resultStatus || 'All statuses');
     setSampleStatus(choices.sampleStatus || 'All statuses'); setPriority(choices.priority || 'All priorities'); setReferringSite(choices.referringSite || '');
-    setMessage(''); setDateAttempted(false); setColumnMessage(''); setColumnView('browse'); setFieldSearch(''); setActiveDomain('all');
+    setMessage(''); setDateAttempted(false); setColumnMessage(''); setColumnView('browse'); setFieldSearch(''); setCollapsedDomains(new Set(DOMAINS.map(d => d.id))); setCollapsedSearchDomains(new Set());
   };
   const startFresh = () => {
     setDraftStarted(true);
-    setMode('builder'); setStep(1); setReportType(null); setActiveDomain('all'); setSelected(new Set()); setFieldSearch('');
+    setMode('builder'); setStep(1); setReportType(null); setCollapsedDomains(new Set(DOMAINS.map(d => d.id))); setCollapsedSearchDomains(new Set()); setSelected(new Set()); setFieldSearch('');
     setStartDate(''); setEndDate(''); setDateAttempted(false); setLabSection('Virology'); setTest(''); setResultStatus('All statuses');
     setSampleStatus('All statuses'); setPriority('All priorities'); setReferringSite(''); setExportName(''); setConfigName('');
     setSaveForLater(false); setShowSaveSuccess(false); setMoreFiltersOpen(false); setMessage(''); setColumnMessage(''); setColumnView('browse');
@@ -601,9 +627,22 @@ function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOvervie
   const chooseReportType = (family) => {
     if (selected.size > 0 && family !== reportType) return;
     setReportType(family);
-    const firstDomain = DOMAINS.find(d => d.family === family);
-    setActiveDomain(firstDomain ? firstDomain.id : 'all');
+    setCollapsedDomains(new Set(DOMAINS.map(d => d.id))); setCollapsedSearchDomains(new Set());
     setFieldSearch('');
+  };
+
+  const changeFieldSearch = value => {
+    setFieldSearch(value);
+    // A new search reveals every matching group; clearing it restores browsing folds.
+    setCollapsedSearchDomains(new Set());
+  };
+  const toggleFieldGroup = id => {
+    const update = fieldSearch.trim() ? setCollapsedSearchDomains : setCollapsedDomains;
+    update(previous => {
+      const next = new Set(previous);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
   };
 
   const isDomainPiiLocked = domain => domain.pii && !piiAccess;
@@ -629,13 +668,43 @@ function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOvervie
     if (!next.size) setColumnView('browse');
     setColumnMessage(`${VAR_LOOKUP[key].label} removed. ${next.size} columns.`);
   };
-  const moveField = (key, direction) => {
-    const keys = [...selected], from = keys.indexOf(key), to = from + direction;
-    if (to < 0 || to >= keys.length) return;
-    [keys[from], keys[to]] = [keys[to], keys[from]];
+  const moveFieldTo = (key, to, focusId) => {
+    const keys = [...selected], from = keys.indexOf(key);
+    if (from < 0 || to < 0 || to >= keys.length || from === to) return;
+    keys.splice(from, 1); keys.splice(to, 0, key);
     setSelected(new Set(keys));
-    columnFocus.current = `move-${direction < 0 ? 'up' : 'down'}-${key}`;
+    columnFocus.current = focusId;
     setColumnMessage(`${VAR_LOOKUP[key].label} moved to column ${to + 1}.`);
+  };
+  const moveField = (key, direction) => moveFieldTo(key, [...selected].indexOf(key) + direction, `move-${direction < 0 ? 'up' : 'down'}-${key}`);
+  const finishColumnDrag = () => {
+    draggedColumn.current = null; setDraggedKey(null); setColumnDrop(null);
+  };
+  const startColumnDrag = (event, key) => {
+    draggedColumn.current = key; setDraggedKey(key);
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', key);
+    event.dataTransfer.setDragImage(event.currentTarget.closest('li'), 12, 20);
+  };
+  const columnDropPosition = (event, key) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    return {key, after:event.clientY >= rect.top + rect.height / 2};
+  };
+  const overColumn = (event, key) => {
+    if (!draggedColumn.current) return;
+    event.preventDefault(); event.dataTransfer.dropEffect = 'move';
+    setColumnDrop(columnDropPosition(event, key));
+  };
+  const dropColumn = (event, key) => {
+    const source = draggedColumn.current;
+    if (!source) return;
+    event.preventDefault();
+    if (source !== key) {
+      const remaining = [...selected].filter(value => value !== source);
+      const target = remaining.indexOf(key);
+      if (target >= 0) moveFieldTo(source, target + (columnDropPosition(event, key).after ? 1 : 0), `drag-column-${source}`);
+    }
+    finishColumnDrag();
   };
   const changeShownFields = domain => {
     const allAdded = domain.vars.every(v => selected.has(v.key));
@@ -689,10 +758,20 @@ function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOvervie
 
   const steps = ['Choose columns', 'Set Filters', 'Review & Submit'];
   const selectedVarList = [...selected].map(key => VAR_LOOKUP[key]);
-  const visibleDomains = DOMAINS.filter(d => d.family === reportType && (fieldSearch.trim() || activeDomain === 'all' || activeDomain === d.id)).map(d => ({
+  const searchTerm = fieldSearch.trim().toLowerCase();
+  const activeCollapsedDomains = searchTerm ? collapsedSearchDomains : collapsedDomains;
+  const visibleDomains = DOMAINS.filter(d => d.family === reportType).map(d => ({
     ...d,
-    vars: d.vars.filter(v => !fieldSearch.trim() || v.label.toLowerCase().includes(fieldSearch.trim().toLowerCase()))
+    total: d.vars.length,
+    added: d.vars.filter(v => selected.has(v.key)).length,
+    vars: d.vars.filter(v => !searchTerm || `${d.label} ${v.label}`.toLowerCase().includes(searchTerm))
   })).filter(d => d.vars.length > 0);
+  const allGroupsExpanded = visibleDomains.every(d => !activeCollapsedDomains.has(d.id));
+  const allGroupsCollapsed = visibleDomains.every(d => activeCollapsedDomains.has(d.id));
+  const changeAllFieldGroups = expanded => {
+    const update = searchTerm ? setCollapsedSearchDomains : setCollapsedDomains;
+    update(new Set(expanded ? [] : visibleDomains.map(d => d.id)));
+  };
   const previewRows = selected.size > 0 && [...selected].every(key => Example.fields.includes(key)) ? Example.select(Example.august).slice(0, 2) : [];
   const activeExtraFilters = [sampleStatus !== 'All statuses' ? sampleStatus : '', priority !== 'All priorities' ? priority : '', referringSite].filter(Boolean);
 
@@ -783,7 +862,7 @@ function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOvervie
               <div className="inline-notification info locked-banner">
                 <span>ℹ️</span>
                 <div style={{flex:1}}>You're building a <strong>{FAMILY_LABELS[reportType]}</strong> report. Fields with identifying data require additional permission.</div>
-                {selected.size > 0 && <button className="btn-ghost-sm" onClick={() => {setSelected(new Set()); setReportType(null); setActiveDomain('all');}}>Change type and clear fields</button>}
+                {selected.size > 0 && <button className="btn-ghost-sm" onClick={() => {setSelected(new Set()); setReportType(null);}}>Change type and clear fields</button>}
               </div>
             )}
 
@@ -795,37 +874,55 @@ function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOvervie
               <div className="column-builder" data-view={columnView}>
                 <section className="field-browser" aria-labelledby="available-fields-title">
                   <h2 id="available-fields-title">Available fields</h2>
-                  <div className="form-group field-search"><label htmlFor="field-search">Find a field</label><input id="field-search" className="form-input" type="search" placeholder="Search fields…" value={fieldSearch} onChange={e => setFieldSearch(e.target.value)}/></div>
-                  <div className="field-groups" role="group" aria-label="Field groups">
-                    <button type="button" aria-pressed={activeDomain === 'all'} onClick={() => {setActiveDomain('all'); setFieldSearch('');}}>All fields</button>
-                    {DOMAINS.filter(d => d.family === reportType).map(d => <button type="button" key={d.id} aria-pressed={activeDomain === d.id} onClick={() => {setActiveDomain(d.id); setFieldSearch('');}}>{d.label}</button>)}
+                  <div className="form-group field-search"><label htmlFor="field-search">Find a field</label><input id="field-search" className="form-input" type="search" placeholder="Search all fields and groups…" value={fieldSearch} onChange={e => changeFieldSearch(e.target.value)} aria-describedby="catalog-summary"/></div>
+                  <div className="catalog-tools">
+                    <p className="column-hint" id="catalog-summary" role="status">{visibleDomains.reduce((sum,d) => sum+d.vars.length,0)} {searchTerm ? 'matching fields' : 'fields'} across {visibleDomains.length} groups</p>
+                    {searchTerm && <button type="button" className="btn-link" onClick={() => {changeFieldSearch(''); document.getElementById('field-search')?.focus();}}>Clear search</button>}
                   </div>
-                  {fieldSearch.trim() && <p className="column-hint">{visibleDomains.reduce((sum,d) => sum+d.vars.length,0)} matching fields across this report type</p>}
+                  {visibleDomains.length > 0 && <div className="catalog-expansion" role="group" aria-label="Expand or collapse field groups">
+                    <button type="button" className="btn-link" aria-disabled={allGroupsExpanded} onClick={() => {if (!allGroupsExpanded) changeAllFieldGroups(true);}}>Expand all</button>
+                    <button type="button" className="btn-link" aria-disabled={allGroupsCollapsed} onClick={() => {if (!allGroupsCollapsed) changeAllFieldGroups(false);}}>Collapse all</button>
+                  </div>}
+                  <div className="field-catalog" role="region" aria-label="Scrollable field catalog" tabIndex="0">
                   {visibleDomains.map(domain => {
                     const locked = isDomainLocked(domain);
                     const allAdded = domain.vars.every(v => selected.has(v.key));
+                    const expanded = !activeCollapsedDomains.has(domain.id);
                     return <section className="field-domain" key={domain.id} aria-labelledby={`domain-title-${domain.id}`}>
-                      <div className="field-domain-heading"><h3 id={`domain-title-${domain.id}`}>{domain.label}</h3>
+                      <div className="field-domain-heading">
+                        <h3><button type="button" className="field-group-toggle" id={`domain-title-${domain.id}`} aria-expanded={expanded} aria-controls={`domain-fields-${domain.id}`} onClick={() => toggleFieldGroup(domain.id)}><span aria-hidden="true">{expanded ? '⌄' : '›'}</span>{domain.label}</button></h3>
+                        <span className="field-group-count">{domain.added} / {domain.total} added</span>
+                      </div>
+                      <div id={`domain-fields-${domain.id}`} hidden={!expanded}>
+                      <div className="field-group-tools">
+                        {domain.pii && <p className="column-hint">Identifying data{locked ? ' · Additional access required. Contact your administrator.' : ' · Exports are audited.'}</p>}
                         {(!locked || allAdded) && <button className="btn-link" type="button" aria-label={`${allAdded ? 'Remove' : 'Add'} all shown ${domain.label} fields`} onClick={() => changeShownFields(domain)}>{allAdded ? 'Remove shown' : 'Add all shown'}</button>}
                       </div>
-                      {domain.pii && <p className="column-hint">Identifying data{locked ? ' · Additional access required. Contact your administrator.' : ' · Exports are audited.'}</p>}
                       <ul className="available-field-list">
                         {domain.vars.map(v => <li key={v.key}><span>{v.label}</span><button type="button" className="field-add" aria-label={`${selected.has(v.key) ? 'Added' : 'Add'} ${v.label}`} aria-disabled={locked || selected.has(v.key)} onClick={() => addField(v.key)}>{selected.has(v.key) ? 'Added' : locked ? 'Restricted' : '+ Add'}</button></li>)}
                       </ul>
+                      </div>
                     </section>;
                   })}
                   {!visibleDomains.length && <p className="column-empty">No fields match your search.</p>}
+                  </div>
                 </section>
                 <section className="columns-pane" aria-labelledby="your-columns-title">
                   <h2 id="your-columns-title">Your CSV columns ({selected.size})</h2>
-                  <p className="column-hint">Columns appear in this order. Use the arrows to rearrange them.</p>
+                  <p className="column-hint" id="column-order-help">Drag a handle to change column order, or use the arrows.</p>
                   <ol className="selected-columns" aria-label="CSV columns in order">
-                    {selectedVarList.map((v,index) => <li key={v.key}>
+                    {selectedVarList.map((v,index) => <li key={v.key} draggable onDragStart={e => startColumnDrag(e,v.key)} onDragEnd={finishColumnDrag} className={draggedKey === v.key ? 'dragging' : columnDrop?.key === v.key ? `drop-${columnDrop.after ? 'after' : 'before'}` : ''} onDragOver={e => overColumn(e,v.key)} onDrop={e => dropColumn(e,v.key)}>
+                      <button type="button" className="column-drag-handle" id={`drag-column-${v.key}`} title="Drag to reorder" aria-label={`Drag ${v.label} to reorder`} aria-description="Arrow keys move one position. Home moves to the first position and End to the last." aria-describedby="column-order-help"
+                        onKeyDown={e => {const destination = {ArrowUp:index-1, ArrowDown:index+1, Home:0, End:selectedVarList.length-1}[e.key]; if (destination !== undefined) {e.preventDefault(); moveFieldTo(v.key,destination,`drag-column-${v.key}`);}}}>
+                        <svg width="16" height="20" viewBox="0 0 16 20" aria-hidden="true" fill="currentColor"><circle cx="5" cy="4" r="1.5"/><circle cx="11" cy="4" r="1.5"/><circle cx="5" cy="10" r="1.5"/><circle cx="11" cy="10" r="1.5"/><circle cx="5" cy="16" r="1.5"/><circle cx="11" cy="16" r="1.5"/></svg>
+                      </button>
                       <span className="column-number" aria-hidden="true">{index + 1}</span><span className="column-name">{v.label}</span>
                       <div className="column-actions">
-                        <button type="button" id={`move-up-${v.key}`} aria-label={`Move ${v.label} up`} aria-disabled={index === 0} onClick={() => moveField(v.key,-1)}>↑</button>
-                        <button type="button" id={`move-down-${v.key}`} aria-label={`Move ${v.label} down`} aria-disabled={index === selectedVarList.length-1} onClick={() => moveField(v.key,1)}>↓</button>
-                        <button type="button" id={`remove-column-${v.key}`} aria-label={`Remove ${v.label}`} onClick={() => removeField(v.key)}>×</button>
+                        <div className="column-order-buttons" role="group" aria-label={`Move ${v.label}`}>
+                          <button type="button" id={`move-up-${v.key}`} title="Move up" aria-label={`Move ${v.label} up`} aria-disabled={index === 0} onClick={() => moveField(v.key,-1)}><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="m4 10 4-4 4 4"/></svg></button>
+                          <button type="button" id={`move-down-${v.key}`} title="Move down" aria-label={`Move ${v.label} down`} aria-disabled={index === selectedVarList.length-1} onClick={() => moveField(v.key,1)}><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="m4 6 4 4 4-4"/></svg></button>
+                        </div>
+                        <button type="button" className="column-remove" id={`remove-column-${v.key}`} title="Remove column" aria-label={`Remove ${v.label}`} onClick={() => removeField(v.key)}><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="m4 4 8 8m0-8-8 8"/></svg></button>
                       </div>
                     </li>)}
                   </ol>
