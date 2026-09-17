@@ -84,6 +84,18 @@ export function toSlug(name) {
 export const MOCKUP_REGISTRY = [
   // ─── Admin & Configuration ───
   {
+    name: 'Provider Titles',
+    category: 'admin-config',
+    component: null,
+    description: 'A Title (honorific/cadre) field on the Provider record, separate from first and last name, plus a small admin page under Provider Management for maintaining the list — title, abbreviation, sort order, active/inactive, and how many providers use each. Titles are configured per deployment (PNG needs HEO and RMO; other countries differ), seeded with the common honorifics. Provider search never matches on title; a shared display helper renders the abbreviation ahead of first and last name everywhere. Deactivate, never delete. From the CPHL PNG duplicate-provider cleanup.',
+    specPath: 'designs/admin-config/provider-titles.md',
+    htmlUrl: 'designs/admin-config/provider-titles.html',
+    added: '2026-09-17',
+    status: 'draft',
+    jira: ['OGC-1223'],
+    tags: ['provider', 'title', 'honorific', 'dictionary', 'admin', 'configuration', 'PNG', 'CPHL'],
+  },
+  {
     name: 'Test Catalog — Specimen Many-to-Many [Completed]',
     category: 'admin-config',
     archived: true,

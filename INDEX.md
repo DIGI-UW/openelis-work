@@ -10,6 +10,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 
 | Feature | Mockup | Spec |
 |---------|--------|------|
+| Provider Titles | [provider-titles.html](designs/admin-config/provider-titles.html) | [provider-titles.md](designs/admin-config/provider-titles.md) |
 | Data Dictionary | [data-dictionary.jsx](designs/admin-config/data-dictionary.jsx) | [data-dictionary.md](designs/admin-config/data-dictionary.md) |
 | Lab Units Management | [lab-units.jsx](designs/admin-config/lab-units.jsx) | [lab-units.md](designs/admin-config/lab-units.md) |
 | Methods | [methods.jsx](designs/admin-config/methods.jsx) | [methods.md](designs/admin-config/methods.md) |
