@@ -3138,6 +3138,25 @@
   updated: "2026-07-14"
   status: draft
 
+- id: validation-clearance-rule
+  type: both
+  path: designs/results-validation/validation-clearance-rule.jsx
+  spec: designs/results-validation/validation-clearance-rule.md
+  preview: designs/results-validation/validation-clearance-rule.html
+  category: results-validation
+  description: >
+    Validation Clearance Rule & Empty-State Explanation — fixes the permanently-empty Clear lane
+    on the Validation screen. Clearance predicate treats a missing QC input as absence not risk;
+    plain-language empty-state replaces the greyed-out "Release all clear (0)" button. One predicate,
+    two consumers (server rule + display mirror). Supersedes validation-page-v4 FR-B1.
+  links:
+    github: null
+    jira: ["OGC-817", "OGC-1029"]
+    gallery: "https://digi-uw.github.io/openelis-work/#/results-validation/validation-clearance-rule"
+    preview: "https://digi-uw.github.io/openelis-work/designs/results-validation/validation-clearance-rule.html"
+  added: "2026-09-20"
+  status: draft
+
 - id: hil-specimen-quality
   type: html
   path: designs/results-validation/hil-specimen-quality-preview.html

@@ -1845,6 +1845,22 @@ export const MOCKUP_REGISTRY = [
     tags: ['validation', 'results', 'review', 'v4', 'bulk-release', 'nce', 'cross-domain', 'Indonesia', 'SILNAS', 'png-deliverable'],
   },
 
+  // ─── Results & Validation — Validation Clearance Rule (empty-state fix) ───
+  {
+    name: 'Validation Clearance Rule & Empty-State Explanation',
+    project: ['png'],
+    category: 'results-validation',
+    component: React.lazy(() => import('@designs/results-validation/validation-clearance-rule.jsx')),
+    description: 'Fixes the permanently-empty Clear lane on the Validation screen. Defines the clearance predicate (a row is Clear when it carries no risk signal it actually has — a missing QC input reads as absence, not risk) and replaces the greyed-out "Release all clear (0)" button with a plain-language explanation of why a lane is empty. One predicate, two consumers: the server-side rule and its display mirror. Supersedes validation-page-v4 FR-B1. Epic OGC-817, slice OGC-1029.',
+    specPath: 'designs/results-validation/validation-clearance-rule.md',
+    htmlUrl: 'designs/results-validation/validation-clearance-rule.html',
+    added: '2026-09-20',
+    status: 'draft',
+    githubIssue: null,
+    jira: ['OGC-817', 'OGC-1029'],
+    tags: ['validation', 'results', 'review', 'clearance', 'empty-state', 'qc', 'bulk-release', 'predicate'],
+  },
+
   // ─── Results & Validation — Multi-Component integrated FRSs (supersede v4) ───
   {
     name: 'Results Entry — Multi-Component (integrated)',
