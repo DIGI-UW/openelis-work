@@ -1,0 +1,1120 @@
+{
+  "generated": "2026-09-20",
+  "areas": [
+    {
+      "area": "Core Lab Workflows",
+      "blurb": "Order, result, validate, and sign \u2014 the everyday lab, modernized.",
+      "capabilities": [
+        {
+          "id": "electronic-lab-notebook",
+          "name": "Electronic lab notebook",
+          "maturity": "production",
+          "summary": "Digital lab documentation with audit trails, replacing paper notebooks.",
+          "domain": [
+            "clinical",
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Clinical workflows",
+          "manual": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/991821864",
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": null,
+          "spec": null
+        },
+        {
+          "id": "electronic-signatures",
+          "name": "Electronic signatures",
+          "maturity": "production",
+          "summary": "21 CFR Part 11-aligned electronic signatures on results and reports.",
+          "domain": [
+            "clinical",
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Clinical workflows",
+          "manual": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1242759175",
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": null,
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/system/electronic-signature.md"
+        },
+        {
+          "id": "informed-consent",
+          "name": "Informed consent capture",
+          "maturity": "production",
+          "summary": "Capture and record patient informed consent against orders.",
+          "domain": [
+            "clinical"
+          ],
+          "enhancement": null,
+          "section": "Clinical workflows",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/sample-collection/informed-consent",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/sample-collection/informed-consent.md"
+        },
+        {
+          "id": "order-entry",
+          "name": "Order & sample entry",
+          "maturity": "production",
+          "summary": "Register patients, orders, and samples through a streamlined, decoupled workflow.",
+          "domain": [
+            "clinical",
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Clinical workflows",
+          "manual": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/261423127",
+          "manual_status": null,
+          "enhancements": [
+            "Visual form builder for program-specific order entry (OGC-70, OGC-113)",
+            "Pre-analytical eligibility gate and required-by date (OGC-580, OGC-625)",
+            "Realignment to a unified three-workflow spec \u2014 clinical / environmental / vector (OGC-1066)"
+          ],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/sample-collection/sample-collection-redesign",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/sample-collection/sample-collection-redesign.md"
+        },
+        {
+          "id": "patient-order-enhancements",
+          "name": "Patient & order enhancements",
+          "maturity": "production",
+          "summary": "Photo capture, National ID, ID-card scanning, and diagnosis fields on patient records.",
+          "domain": [
+            "clinical"
+          ],
+          "enhancement": null,
+          "section": "Clinical workflows",
+          "manual": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1189642248",
+          "manual_status": "draft",
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/patient/patient-id-card-scanning",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/patient/patient-id-card-scanning.md"
+        },
+        {
+          "id": "result-validation",
+          "name": "Result validation",
+          "maturity": "production",
+          "summary": "Review, sign, and release results with multi-level validation and a supervisor queue.",
+          "domain": [
+            "clinical",
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Clinical workflows",
+          "manual": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/284196875",
+          "manual_status": null,
+          "enhancements": [
+            "Inline-first validation redesign \u2014 triage queue, review panel, guarded bulk release, reject-via-NCE + send-for-retest (OGC-817 V1\u2013V4, OGC-1027\u20131030; merged to develop, awaiting release)",
+            "Patient demographics (sex/age) shown during validation (OGC-291, OGC-343)",
+            "Rule-based auto-validation for in-range results"
+          ],
+          "mockup": null,
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/results-validation/results-validation-v4-breakdown.md"
+        },
+        {
+          "id": "results-entry",
+          "name": "Results entry",
+          "maturity": "production",
+          "summary": "One unified worklist to enter and review results \u2014 search by Lab Unit, date, or status, with inline editing, per-analysis save, and cross-domain (clinical/environmental/vector) rendering.",
+          "domain": [
+            "clinical",
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Clinical workflows",
+          "manual": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/278626329",
+          "manual_status": null,
+          "enhancements": [
+            "Multi-component results \u2014 multiple result fields per analysis (OGC-1131)",
+            "Smart result suggestions based on test history"
+          ],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/results-validation/results-entry-v4",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/results-validation/results-entry-multicomponent.md"
+        }
+      ]
+    },
+    {
+      "area": "Sample & Storage",
+      "blurb": "Track every sample from collection through storage, referral, and disposal.",
+      "capabilities": [
+        {
+          "id": "sample-shipment-referral",
+          "name": "Sample shipment & referral",
+          "maturity": "production",
+          "summary": "Electronic manifests, chain of custody, and inter-lab transfer for referred samples.",
+          "domain": [
+            "clinical",
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Sample & storage",
+          "manual": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1046118450",
+          "manual_status": null,
+          "enhancements": [
+            "Reference-lab results return (OGC-796)"
+          ],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/sample-collection/sample-collection-referral-addendum",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/sample-collection/sample-collection-referral-addendum.md"
+        },
+        {
+          "id": "sample-storage-management",
+          "name": "Sample storage management",
+          "maturity": "production",
+          "summary": "Track samples through a configurable storage hierarchy with disposal handling.",
+          "domain": [
+            "clinical",
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Sample & storage",
+          "manual": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1047658526",
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": null,
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/system/storage-disposition-fhir.md"
+        },
+        {
+          "id": "partial-sample-usage",
+          "name": "Partial sample usage & tags",
+          "maturity": "planned",
+          "summary": "Allocate portions of a sample while tracking remaining quantity; configurable sample tags.",
+          "domain": [
+            "clinical",
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Sample & storage",
+          "manual": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1189543964",
+          "manual_status": "draft",
+          "enhancements": [],
+          "mockup": null,
+          "spec": null
+        }
+      ]
+    },
+    {
+      "area": "Quality & Compliance",
+      "blurb": "Accreditation-ready: QC, proficiency testing, non-conformance, and a full audit trail.",
+      "capabilities": [
+        {
+          "id": "eqa",
+          "name": "EQA / proficiency testing",
+          "maturity": "production",
+          "summary": "Manage proficiency-testing events end to end \u2014 enrollment, blind testing, submission, scoring.",
+          "domain": [
+            "clinical",
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Quality & compliance",
+          "manual": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1189773314",
+          "manual_status": "draft",
+          "enhancements": [
+            "EQA V2 complete lifecycle MVP (OGC-608)"
+          ],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/quality/eqa-enrollment",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/quality/eqa-requirements.md"
+        },
+        {
+          "id": "nce-capa",
+          "name": "Non-conforming events (NCE) & CAPA",
+          "maturity": "production",
+          "summary": "Log non-conforming events, run CAPA tracking, and analyze trends.",
+          "domain": [
+            "clinical",
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Quality & compliance",
+          "manual": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/278888457",
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/nce/nce-dashboard",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/nce/nce-dashboard.md"
+        },
+        {
+          "id": "audit-trail",
+          "name": "System-level audit trail",
+          "maturity": "production",
+          "summary": "Full audit trail of configuration and data changes for accreditation.",
+          "domain": [
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Quality & compliance",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/system/audit-trail",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/system/audit-trail.md"
+        },
+        {
+          "id": "westgard-qc",
+          "name": "Westgard QC rules & dashboard",
+          "maturity": "production",
+          "summary": "Automated Westgard rule evaluation with a visual instrument-compliance dashboard.",
+          "domain": [
+            "clinical",
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Quality & compliance",
+          "manual": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1188429833",
+          "manual_status": "draft",
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/quality/westgard-dashboard",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/quality/westgard-rules.md"
+        },
+        {
+          "id": "analyzer-manual-qc",
+          "name": "Analyzer manual QC recording",
+          "maturity": "in-development",
+          "summary": "Record instrument quality-control checks (pass/fail) right where staff are working.",
+          "domain": [
+            "clinical",
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Quality & compliance",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/quality/analyzer-manual-qc",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/quality/analyzer-manual-qc.md"
+        },
+        {
+          "id": "batch-workplan-reagent-qc",
+          "name": "Batch workplan + reagent QC",
+          "maturity": "in-development",
+          "summary": "Plan batch testing with reagent-lot tracking and quality checks in one place.",
+          "domain": [
+            "clinical",
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Quality & compliance",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/quality/batch-workplan-reagent-qc",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/quality/batch-workplan-reagent-qc.md"
+        }
+      ]
+    },
+    {
+      "area": "Environmental & Vector Surveillance",
+      "blurb": "A domain-aware LIMS \u2014 water, air, soil, food, and vector surveillance alongside clinical.",
+      "capabilities": [
+        {
+          "id": "compliance-reports-lhu",
+          "name": "Certificate-of-analysis reports (Laporan Hasil)",
+          "maturity": "production",
+          "summary": "Official certificate-of-analysis reports for environmental and vector results (ISO 17025).",
+          "domain": [
+            "environmental",
+            "vector"
+          ],
+          "enhancement": null,
+          "section": "Environmental & vector",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": null,
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/reports/S06-laporan-hasil-compliance-report-frs-v1.0.md"
+        },
+        {
+          "id": "compliance-standards-engine",
+          "name": "Compliance standards engine",
+          "maturity": "production",
+          "summary": "Built-in environmental regulations (WHO, EPA, EU, ISO 17025) that automatically check results against the right limits.",
+          "domain": [
+            "environmental",
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Environmental & vector",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/admin-config/compliance-standards-admin",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/admin-config/compliance-standards-admin.md"
+        },
+        {
+          "id": "domain-aware-labs",
+          "name": "Domain-aware labs (clinical / environmental / vector)",
+          "maturity": "production",
+          "summary": "One LIMS that handles clinical, environmental, and vector samples \u2014 each lab unit configured by domain.",
+          "domain": [
+            "clinical",
+            "environmental",
+            "vector"
+          ],
+          "enhancement": null,
+          "section": "Environmental & vector",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/admin-config/sample-type-domain-classification",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/admin-config/sample-type-domain-classification.md"
+        },
+        {
+          "id": "environmental-order-entry",
+          "name": "Environmental order entry",
+          "maturity": "production",
+          "summary": "Domain-aware intake for water, air, soil, and food samples with per-regulation suggested tests.",
+          "domain": [
+            "environmental"
+          ],
+          "enhancement": null,
+          "section": "Environmental & vector",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/sample-collection/environmental-order-entry",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/sample-collection/environmental-order-entry.md"
+        },
+        {
+          "id": "sampling-site-registry",
+          "name": "Sampling site registry",
+          "maturity": "production",
+          "summary": "Register non-patient sampling sites for environmental and vector surveillance.",
+          "domain": [
+            "environmental",
+            "vector"
+          ],
+          "enhancement": null,
+          "section": "Environmental & vector",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/sample-collection/sampling-site-registry",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/sample-collection/sampling-site-registry.md"
+        },
+        {
+          "id": "vector-collection",
+          "name": "Vector collection workflow",
+          "maturity": "production",
+          "summary": "Capture mosquito/tick/rodent collection lots with trap details for surveillance.",
+          "domain": [
+            "vector"
+          ],
+          "enhancement": null,
+          "section": "Environmental & vector",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": null,
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/vector-surveillance/vector-collection-workflow.md"
+        },
+        {
+          "id": "vector-taxonomy",
+          "name": "Vector specimen types & taxonomy",
+          "maturity": "production",
+          "summary": "Reference taxonomy and specimen-type hierarchy for vector surveillance.",
+          "domain": [
+            "vector"
+          ],
+          "enhancement": null,
+          "section": "Environmental & vector",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": null,
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/vector-surveillance/vector-reference-data.md"
+        },
+        {
+          "id": "vector-surveillance-reporting",
+          "name": "Vector surveillance reporting",
+          "maturity": "production",
+          "summary": "Vector surveillance indicators and field-survey reporting, aligned to WHO guidelines.",
+          "domain": [
+            "vector"
+          ],
+          "enhancement": null,
+          "section": "Environmental & vector",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": null,
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/vector-surveillance/vector-surveillance-reporting.md"
+        },
+        {
+          "id": "vector-identification",
+          "name": "Vector testing & identification",
+          "maturity": "production",
+          "summary": "Identify vector species and the pathogens they carry, including pooled-sample testing.",
+          "domain": [
+            "vector"
+          ],
+          "enhancement": null,
+          "section": "Environmental & vector",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": null,
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/vector-surveillance/vector-testing-identification.md"
+        }
+      ]
+    },
+    {
+      "area": "Analyzer & Instrument Integration",
+      "blurb": "Connect instruments with no custom code, and a growing library of validated analyzers.",
+      "capabilities": [
+        {
+          "id": "analyzer-file-import",
+          "name": "Analyzer file import",
+          "maturity": "production",
+          "summary": "Import instrument results from exported files, with a preview before anything is saved.",
+          "domain": [
+            "clinical",
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Analyzers & instruments",
+          "manual": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1047265314",
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-file-upload",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/analyzer-integration/analyzer-file-upload.md"
+        },
+        {
+          "id": "analyzer-framework",
+          "name": "Analyzer integration framework",
+          "maturity": "production",
+          "summary": "Connect lab instruments through a simple configuration screen \u2014 no programming required.",
+          "domain": [
+            "clinical",
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Analyzers & instruments",
+          "manual": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1186365449",
+          "manual_status": null,
+          "enhancements": [
+            "Generic analyzer profiles + GUI test/result mapping (OGC-1054)"
+          ],
+          "mockup": null,
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/analyzer-integration/analyzer-profile-mapping.md"
+        },
+        {
+          "id": "outbound-order-dispatch",
+          "name": "Outbound order dispatch",
+          "maturity": "production",
+          "summary": "Send test orders directly to instruments \u2014 not just receive results \u2014 for full two-way integration.",
+          "domain": [
+            "clinical",
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Analyzers & instruments",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": null,
+          "spec": null
+        },
+        {
+          "id": "instrument-library",
+          "name": "Validated instrument library",
+          "maturity": "production",
+          "summary": "Growing library of validated analyzers (GeneXpert, MALDI, QuantStudio, Mindray, EpiCenter, and more).",
+          "domain": [
+            "clinical",
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Analyzers & instruments",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-mapping-templates",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/analyzer-integration/astm-analyzer-mapping-addendum.md"
+        }
+      ]
+    },
+    {
+      "area": "Reporting & Dashboards",
+      "blurb": "Turn lab data into decisions \u2014 surveillance dashboards, exports, and print-ready reports.",
+      "capabilities": [
+        {
+          "id": "tat-report",
+          "name": "Turnaround time report & dashboard",
+          "maturity": "production",
+          "summary": "Turnaround-time monitoring with summary statistics, detail, and a dashboard.",
+          "domain": [
+            "clinical",
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Reporting & dashboards",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/reports/tat-report",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/reports/tat-report.md"
+        },
+        {
+          "id": "patient-report-print-queue",
+          "name": "Patient report print queue",
+          "maturity": "beta",
+          "summary": "Push-based print queue for validated patient reports.",
+          "domain": [
+            "clinical"
+          ],
+          "enhancement": null,
+          "section": "Reporting & dashboards",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/reports/report-print-queue",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/reports/report-print-queue.md"
+        },
+        {
+          "id": "positivity-rate",
+          "name": "Positivity rate report & widget",
+          "maturity": "beta",
+          "summary": "Per-test positivity rates as a report and a reusable dashboard widget.",
+          "domain": [
+            "clinical",
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Reporting & dashboards",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/reports/positivity-rate",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/reports/positivity-rate.md"
+        },
+        {
+          "id": "custom-data-export",
+          "name": "Custom data export",
+          "maturity": "in-development",
+          "summary": "Build your own data exports in a few guided steps \u2014 no technical skills needed.",
+          "domain": [
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Reporting & dashboards",
+          "manual": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1189576725",
+          "manual_status": "draft",
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/reports/custom-data-export",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/reports/custom-data-export.md"
+        },
+        {
+          "id": "disease-surveillance-dashboard",
+          "name": "Disease surveillance dashboard",
+          "maturity": "in-development",
+          "summary": "Public-health surveillance view \u2014 weekly TB/HIV positivity and trends.",
+          "domain": [
+            "clinical",
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Reporting & dashboards",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/reports/disease-surveillance-dashboard",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/reports/disease-surveillance-dashboard.md"
+        },
+        {
+          "id": "facility-reagent-stock",
+          "name": "Facility reagent stock view",
+          "maturity": "in-development",
+          "summary": "See reagent stock by facility, including how many days of supply remain.",
+          "domain": [
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Reporting & dashboards",
+          "manual": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1189675014",
+          "manual_status": "draft",
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/inventory/reagent-forecasting-facility",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/inventory/reagent-forecasting-facility.md"
+        },
+        {
+          "id": "final-pdf-report",
+          "name": "Final PDF patient report layout",
+          "maturity": "in-development",
+          "summary": "Polished, signature-bearing PDF patient report templates across disease types.",
+          "domain": [
+            "clinical"
+          ],
+          "enhancement": null,
+          "section": "Reporting & dashboards",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": null,
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/reports/patient-report-redesign.md"
+        },
+        {
+          "id": "management-dashboard",
+          "name": "Management dashboard",
+          "maturity": "in-development",
+          "summary": "Strategic lab-wide view with disease surveillance (TB/HIV/malaria/AMR), quality, equipment, and stock.",
+          "domain": [
+            "clinical",
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Reporting & dashboards",
+          "manual": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1189740580",
+          "manual_status": "draft",
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/system/lab-management-dashboard",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/system/lab-management-dashboard.md"
+        },
+        {
+          "id": "reagent-forecasting-national",
+          "name": "Reagent forecasting (national / regional)",
+          "maturity": "in-development",
+          "summary": "Multi-facility reagent forecasting to plan procurement across a network.",
+          "domain": [
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Reporting & dashboards",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/inventory/reagent-forecasting-workbench",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/inventory/reagent-forecasting-workbench.md"
+        },
+        {
+          "id": "report-macro-library",
+          "name": "Report comments / macro library",
+          "maturity": "in-development",
+          "summary": "Reusable typing shortcuts (.code \u2192 expanded text) for report comments.",
+          "domain": [
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Reporting & dashboards",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": null,
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/microbiology/m-08-macro-library.md"
+        }
+      ]
+    },
+    {
+      "area": "Interoperability",
+      "blurb": "FHIR R4 throughout, and deployable out of the box as a health information exchange.",
+      "capabilities": [
+        {
+          "id": "fhir-outbound-push",
+          "name": "Automatic result sharing (FHIR)",
+          "maturity": "production",
+          "summary": "Automatically send results to connected systems, and see at a glance when a delivery needs attention.",
+          "domain": [
+            "cross-cutting",
+            "platform"
+          ],
+          "enhancement": null,
+          "section": "Interoperability",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/system/fhir-outbound-push",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/system/fhir-outbound-push.md"
+        },
+        {
+          "id": "fhir-r4-api",
+          "name": "FHIR R4 API",
+          "maturity": "production",
+          "summary": "Standards-based data sharing (FHIR R4) so lab results flow automatically to EMRs, registries, and dashboards.",
+          "domain": [
+            "cross-cutting",
+            "platform"
+          ],
+          "enhancement": null,
+          "section": "Interoperability",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": null,
+          "spec": null
+        },
+        {
+          "id": "hie-deployment",
+          "name": "HIE-ready deployment",
+          "maturity": "production",
+          "summary": "Can be deployed as a national health information exchange hub out of the box.",
+          "domain": [
+            "platform"
+          ],
+          "enhancement": null,
+          "section": "Interoperability",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": null,
+          "spec": null
+        },
+        {
+          "id": "two-way-fhir",
+          "name": "Two-way FHIR communication",
+          "maturity": "production",
+          "summary": "Receive data from other systems too \u2014 full two-way exchange with the wider health system.",
+          "domain": [
+            "cross-cutting",
+            "platform"
+          ],
+          "enhancement": null,
+          "section": "Interoperability",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": null,
+          "spec": null
+        }
+      ]
+    },
+    {
+      "area": "Test Catalog & Admin",
+      "blurb": "Configure tests, terminology, notifications, and access from modern admin screens.",
+      "capabilities": [
+        {
+          "id": "panel-management",
+          "name": "Panel management",
+          "maturity": "production",
+          "summary": "Manage test panels in the Test Catalog shell \u2014 domain-guarded membership, derived sample types, activation rules, and multi-source terminology with LOINC for FHIR-intake routing.",
+          "domain": [
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Administration",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/admin-config/panel",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/admin-config/panel.md"
+        },
+        {
+          "id": "sample-type-management",
+          "name": "Sample type management",
+          "maturity": "production",
+          "summary": "A dedicated module to configure specimen types \u2014 domain, terminology, display order, storage & disposal defaults, test links, and WHONET codes for AMR exports.",
+          "domain": [
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Administration",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/admin-config/sample-type-management",
+          "spec": null
+        },
+        {
+          "id": "terminology-ocl",
+          "name": "Standardized terminology",
+          "maturity": "production",
+          "summary": "Standardized test and result terminology (LOINC, SNOMED, ICD-10), kept up to date automatically.",
+          "domain": [
+            "cross-cutting",
+            "platform"
+          ],
+          "enhancement": null,
+          "section": "Administration",
+          "manual": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/256737340",
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/admin-config/data-dictionary",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/admin-config/data-dictionary.md"
+        },
+        {
+          "id": "unified-test-editor",
+          "name": "Unified test editor",
+          "maturity": "production",
+          "summary": "A single, modern test editor \u2014 config, ranges, terminology, reagents, methods, alerts, plus completeness checks and one test spanning many sample types with per-specimen overrides.",
+          "domain": [
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Administration",
+          "manual": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/257228825",
+          "manual_status": null,
+          "enhancements": [
+            "Lab Units management redesign (OGC-189)",
+            "Methods management redesign (OGC-214)",
+            "Multi-component results (per-test result components) (OGC-1131)"
+          ],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/admin-config/test-catalog/test-catalog-requirements-v2.5.md"
+        },
+        {
+          "id": "admin-modernization",
+          "name": "Modernized administration",
+          "maturity": "beta",
+          "summary": "Modernized, consistent administration screens that are easier and faster to use.",
+          "domain": [
+            "cross-cutting",
+            "platform"
+          ],
+          "enhancement": null,
+          "section": "Administration",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": null,
+          "spec": null
+        },
+        {
+          "id": "notifications",
+          "name": "Test notifications & SMS gateways",
+          "maturity": "beta",
+          "summary": "Patient/provider email & SMS notifications via Twilio, Africa's Talking, and TextIt.",
+          "domain": [
+            "clinical",
+            "cross-cutting"
+          ],
+          "enhancement": null,
+          "section": "Administration",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/notifications/notification-admin",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/notifications/email-notification-integration.md"
+        }
+      ]
+    },
+    {
+      "area": "Pathology & Microbiology",
+      "blurb": "Anatomic pathology, cytology, and microbiology / AMR workflows.",
+      "capabilities": [
+        {
+          "id": "cytology-case-view",
+          "name": "Cytology case view",
+          "maturity": "production",
+          "summary": "Cytology case entry and reporting, including cervical (Pap) workflows.",
+          "domain": [
+            "clinical"
+          ],
+          "enhancement": null,
+          "section": "Pathology & microbiology",
+          "manual": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/278560771",
+          "manual_status": null,
+          "enhancements": [
+            "Guided Bethesda-System workflow with HPV co-testing and ASCCP recommendations (redesign)"
+          ],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/pathology/cytology-case-view",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/pathology/cytology-case-view.md"
+        },
+        {
+          "id": "ihc-case-view",
+          "name": "Immunohistochemistry (IHC) case view",
+          "maturity": "production",
+          "summary": "Immunohistochemistry case entry, scoring, and reporting.",
+          "domain": [
+            "clinical"
+          ],
+          "enhancement": null,
+          "section": "Pathology & microbiology",
+          "manual": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/279248897",
+          "manual_status": null,
+          "enhancements": [
+            "Automated Allred / Ki-67 / HER2 scoring and digital slide viewing (redesign)"
+          ],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/pathology/ihc-case-view",
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/pathology/ihc-case-view.md"
+        },
+        {
+          "id": "amr-module",
+          "name": "AMR module & WHONET",
+          "maturity": "in-development",
+          "summary": "Track antimicrobial resistance and share it for national and global surveillance (WHONET).",
+          "domain": [
+            "clinical"
+          ],
+          "enhancement": null,
+          "section": "Pathology & microbiology",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": null,
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/microbiology/m-00-micro-module-parent.md"
+        },
+        {
+          "id": "micro-case-workbench",
+          "name": "Microbiology case workbench",
+          "maturity": "in-development",
+          "summary": "Manage microbiology cultures and antibiotic susceptibility testing with guided interpretation.",
+          "domain": [
+            "clinical"
+          ],
+          "enhancement": null,
+          "section": "Pathology & microbiology",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": null,
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/microbiology/m-04-case-workbench-core.md"
+        }
+      ]
+    },
+    {
+      "area": "Blood Bank & Transfusion",
+      "blurb": "A complete transfusion-safety chain \u2014 component inventory, patient blood-bank records, crossmatch, and issue. Fully designed and ready to build with sponsorship.",
+      "capabilities": [
+        {
+          "id": "blood-bank-component-types",
+          "name": "Blood component type configuration",
+          "maturity": "available",
+          "summary": "Manage the catalog of blood component types (pRBC, FFP, platelets, and more).",
+          "domain": [
+            "clinical"
+          ],
+          "enhancement": null,
+          "section": "Blood bank",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/blood-bank/blood-bank-admin-config",
+          "spec": null
+        },
+        {
+          "id": "blood-issue-emergency-release",
+          "name": "Blood issue & emergency release",
+          "maturity": "available",
+          "summary": "Safety-checklisted issue of approved units, with a supervisor-gated emergency release path.",
+          "domain": [
+            "clinical"
+          ],
+          "enhancement": null,
+          "section": "Blood bank",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/blood-bank/issue-to-patient",
+          "spec": null
+        },
+        {
+          "id": "blood-unit-inventory",
+          "name": "Blood unit inventory & reception",
+          "maturity": "available",
+          "summary": "Receive and track blood units from reception through availability, with expiry monitoring.",
+          "domain": [
+            "clinical"
+          ],
+          "enhancement": null,
+          "section": "Blood bank",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/blood-bank/blood-unit-inventory",
+          "spec": null
+        },
+        {
+          "id": "patient-blood-bank-record",
+          "name": "Patient blood bank record",
+          "maturity": "available",
+          "summary": "Longitudinal blood-bank history per patient \u2014 ABO/Rh typing, antibodies, and issuance log.",
+          "domain": [
+            "clinical"
+          ],
+          "enhancement": null,
+          "section": "Blood bank",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/blood-bank/patient-blood-bank-record",
+          "spec": null
+        },
+        {
+          "id": "pretransfusion-testing",
+          "name": "Pre-transfusion testing & crossmatch",
+          "maturity": "available",
+          "summary": "Compatibility testing and crossmatch to select safe units for transfusion.",
+          "domain": [
+            "clinical"
+          ],
+          "enhancement": null,
+          "section": "Blood bank",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": "https://digi-uw.github.io/openelis-work/#/blood-bank/pretransfusion-testing",
+          "spec": null
+        }
+      ]
+    },
+    {
+      "area": "Platform & AI",
+      "blurb": "Modern UI foundation, security, and an AI assistant on the horizon.",
+      "capabilities": [
+        {
+          "id": "deployment-i18n",
+          "name": "Deployment-configurable translations",
+          "maturity": "production",
+          "summary": "A deployment can supply or override its own UI translation strings without rebuilding the frontend \u2014 localize the interface on your own timetable.",
+          "domain": [
+            "platform"
+          ],
+          "enhancement": null,
+          "section": "Platform",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": null,
+          "spec": null
+        },
+        {
+          "id": "white-labeling",
+          "name": "White labeling",
+          "maturity": "production",
+          "summary": "Custom logos and color schemes per deployment.",
+          "domain": [
+            "platform"
+          ],
+          "enhancement": null,
+          "section": "Platform",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": null,
+          "spec": null
+        },
+        {
+          "id": "catalyst-ai",
+          "name": "Catalyst AI suite",
+          "maturity": "planned",
+          "summary": "Privacy-first AI assistant \u2014 natural-language reporting, form builder, and contextual help.",
+          "domain": [
+            "platform"
+          ],
+          "enhancement": null,
+          "section": "Platform",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": null,
+          "spec": null
+        },
+        {
+          "id": "help-menu",
+          "name": "In-app help system",
+          "maturity": "planned",
+          "summary": "Context-aware help, guided tours, and inline documentation throughout the app.",
+          "domain": [
+            "platform"
+          ],
+          "enhancement": null,
+          "section": "Platform",
+          "manual": null,
+          "manual_status": null,
+          "enhancements": [],
+          "mockup": null,
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/system/help-menu.md"
+        }
+      ]
+    }
+  ]
+}

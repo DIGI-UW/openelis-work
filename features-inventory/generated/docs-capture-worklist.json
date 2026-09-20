@@ -1,0 +1,273 @@
+{
+  "generated": "2026-09-20",
+  "base_url": "https://testing.openelis-global.org",
+  "count": 19,
+  "capabilities": [
+    {
+      "id": "order-entry",
+      "name": "Order & sample entry",
+      "maturity": "production",
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/261423127",
+      "manual_status": "published",
+      "reference_mockup": "https://digi-uw.github.io/openelis-work/#/sample-collection/sample-collection-redesign",
+      "has_screenshots": false,
+      "has_video": false,
+      "needs": [
+        "screenshots",
+        "video"
+      ]
+    },
+    {
+      "id": "results-entry",
+      "name": "Results entry",
+      "maturity": "production",
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/278626329",
+      "manual_status": "published",
+      "reference_mockup": "https://digi-uw.github.io/openelis-work/#/results-validation/results-entry-v4",
+      "has_screenshots": false,
+      "has_video": false,
+      "needs": [
+        "screenshots",
+        "video"
+      ]
+    },
+    {
+      "id": "result-validation",
+      "name": "Result validation",
+      "maturity": "production",
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/284196875",
+      "manual_status": "published",
+      "reference_mockup": null,
+      "has_screenshots": false,
+      "has_video": false,
+      "needs": [
+        "screenshots",
+        "video"
+      ]
+    },
+    {
+      "id": "electronic-lab-notebook",
+      "name": "Electronic lab notebook",
+      "maturity": "production",
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/991821864",
+      "manual_status": "published",
+      "reference_mockup": null,
+      "has_screenshots": false,
+      "has_video": false,
+      "needs": [
+        "screenshots",
+        "video"
+      ]
+    },
+    {
+      "id": "electronic-signatures",
+      "name": "Electronic signatures",
+      "maturity": "production",
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1242759175",
+      "manual_status": "published",
+      "reference_mockup": null,
+      "has_screenshots": false,
+      "has_video": false,
+      "needs": [
+        "screenshots",
+        "video"
+      ]
+    },
+    {
+      "id": "patient-order-enhancements",
+      "name": "Patient & order enhancements",
+      "maturity": "production",
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1189642248",
+      "manual_status": "draft",
+      "reference_mockup": "https://digi-uw.github.io/openelis-work/#/patient/patient-id-card-scanning",
+      "has_screenshots": false,
+      "has_video": false,
+      "needs": [
+        "screenshots",
+        "video"
+      ]
+    },
+    {
+      "id": "sample-storage-management",
+      "name": "Sample storage management",
+      "maturity": "production",
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1047658526",
+      "manual_status": "published",
+      "reference_mockup": null,
+      "has_screenshots": false,
+      "has_video": false,
+      "needs": [
+        "screenshots",
+        "video"
+      ]
+    },
+    {
+      "id": "sample-shipment-referral",
+      "name": "Sample shipment & referral",
+      "maturity": "production",
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1046118450",
+      "manual_status": "published",
+      "reference_mockup": "https://digi-uw.github.io/openelis-work/#/sample-collection/sample-collection-referral-addendum",
+      "has_screenshots": false,
+      "has_video": false,
+      "needs": [
+        "screenshots",
+        "video"
+      ]
+    },
+    {
+      "id": "westgard-qc",
+      "name": "Westgard QC rules & dashboard",
+      "maturity": "production",
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1188429833",
+      "manual_status": "draft",
+      "reference_mockup": "https://digi-uw.github.io/openelis-work/#/quality/westgard-dashboard",
+      "has_screenshots": false,
+      "has_video": false,
+      "needs": [
+        "screenshots",
+        "video"
+      ]
+    },
+    {
+      "id": "eqa",
+      "name": "EQA / proficiency testing",
+      "maturity": "production",
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1189773314",
+      "manual_status": "draft",
+      "reference_mockup": "https://digi-uw.github.io/openelis-work/#/quality/eqa-enrollment",
+      "has_screenshots": false,
+      "has_video": false,
+      "needs": [
+        "screenshots",
+        "video"
+      ]
+    },
+    {
+      "id": "nce-capa",
+      "name": "Non-conforming events (NCE) & CAPA",
+      "maturity": "production",
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/278888457",
+      "manual_status": "published",
+      "reference_mockup": "https://digi-uw.github.io/openelis-work/#/nce/nce-dashboard",
+      "has_screenshots": false,
+      "has_video": false,
+      "needs": [
+        "screenshots",
+        "video"
+      ]
+    },
+    {
+      "id": "analyzer-framework",
+      "name": "Analyzer integration framework",
+      "maturity": "production",
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1186365449",
+      "manual_status": "published",
+      "reference_mockup": null,
+      "has_screenshots": false,
+      "has_video": false,
+      "needs": [
+        "screenshots",
+        "video"
+      ]
+    },
+    {
+      "id": "analyzer-file-import",
+      "name": "Analyzer file import",
+      "maturity": "production",
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1047265314",
+      "manual_status": "published",
+      "reference_mockup": "https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-file-upload",
+      "has_screenshots": false,
+      "has_video": false,
+      "needs": [
+        "screenshots",
+        "video"
+      ]
+    },
+    {
+      "id": "unified-test-editor",
+      "name": "Unified test editor",
+      "maturity": "production",
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/257228825",
+      "manual_status": "published",
+      "reference_mockup": "https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog",
+      "has_screenshots": false,
+      "has_video": false,
+      "needs": [
+        "screenshots",
+        "video"
+      ]
+    },
+    {
+      "id": "organizations-management",
+      "name": "Organizations management",
+      "maturity": "production",
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1188790284",
+      "manual_status": "draft",
+      "reference_mockup": "https://digi-uw.github.io/openelis-work/#/admin-config/organizations-management",
+      "has_screenshots": false,
+      "has_video": false,
+      "needs": [
+        "screenshots",
+        "video"
+      ]
+    },
+    {
+      "id": "terminology-ocl",
+      "name": "Standardized terminology",
+      "maturity": "production",
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/256737340",
+      "manual_status": "published",
+      "reference_mockup": "https://digi-uw.github.io/openelis-work/#/admin-config/data-dictionary",
+      "has_screenshots": false,
+      "has_video": false,
+      "needs": [
+        "screenshots",
+        "video"
+      ]
+    },
+    {
+      "id": "barcode-labels",
+      "name": "Barcode label management",
+      "maturity": "production",
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/256737330",
+      "manual_status": "published",
+      "reference_mockup": null,
+      "has_screenshots": false,
+      "has_video": false,
+      "needs": [
+        "screenshots",
+        "video"
+      ]
+    },
+    {
+      "id": "ihc-case-view",
+      "name": "Immunohistochemistry (IHC) case view",
+      "maturity": "production",
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/279248897",
+      "manual_status": "published",
+      "reference_mockup": "https://digi-uw.github.io/openelis-work/#/pathology/ihc-case-view",
+      "has_screenshots": false,
+      "has_video": false,
+      "needs": [
+        "screenshots",
+        "video"
+      ]
+    },
+    {
+      "id": "cytology-case-view",
+      "name": "Cytology case view",
+      "maturity": "production",
+      "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/278560771",
+      "manual_status": "published",
+      "reference_mockup": "https://digi-uw.github.io/openelis-work/#/pathology/cytology-case-view",
+      "has_screenshots": false,
+      "has_video": false,
+      "needs": [
+        "screenshots",
+        "video"
+      ]
+    }
+  ]
+}
