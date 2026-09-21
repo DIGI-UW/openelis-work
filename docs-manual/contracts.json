@@ -543,6 +543,77 @@
    "capturedDate": "2026-06-24"
   },
   {
+   "id": "test-catalog-editor",
+   "title": "Test Catalog Management: the unified editor",
+   "manualDoc": "Confluence 1432453132 (draft under 1189609473)",
+   "captureSpec": "pending",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.2.2.0",
+   "capturedDate": "2026-09-21",
+   "routes": [
+    {
+     "path": "/MasterListsPage/TestCatalogList",
+     "anchors": [
+      "Test Catalog",
+      "Filters",
+      "New test",
+      "Name",
+      "Sample Type",
+      "Code",
+      "Domain",
+      "Status"
+     ]
+    },
+    {
+     "path": "/MasterListsPage/TestCatalogList?entity=panels",
+     "anchors": [
+      "Panel Editor",
+      "Add Panel",
+      "Panel Name",
+      "LOINC",
+      "Sample Types (derived)"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/admin/testCatalog"
+   ],
+   "jiraEpic": "OGC-949",
+   "featureDoc": "OGC-1203",
+   "captures": "docs-manual/captures/test-catalog-editor",
+   "notes": "Verified on develop d538b3c32 (local dev stack) on 2026-09-21: 15 editor sections; OGC-1114 (Basic Info save) and OGC-1122 (inline Create new panel) no longer reproduce; the panel-created toast prints {name} (OGC-1230)."
+  },
+  {
+   "id": "lab-units-editor",
+   "title": "Manage lab units",
+   "manualDoc": "Confluence 1668972546 (draft under 1189609473)",
+   "captureSpec": "pending",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.2.2.0",
+   "capturedDate": "2026-09-21",
+   "routes": [
+    {
+     "path": "/MasterListsPage/LabUnitManagement",
+     "anchors": [
+      "Lab Unit Management",
+      "Add Lab Unit",
+      "Name",
+      "Domain",
+      "Status",
+      "Tests",
+      "Actions"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/admin/labUnitManagement"
+   ],
+   "jiraEpic": "OGC-949",
+   "featureDoc": "OGC-1211",
+   "captures": "docs-manual/captures/lab-units-editor",
+   "notes": "Verified on develop d538b3c32 (local dev stack) on 2026-09-21: list search filters as you type; add, edit, domain-change confirmation, display order, assign (active tests only; the unit becomes active) and reassign all driven."
+  },
+  {
    "id": "sample-acceptance-checklist",
    "title": "Sample Acceptance Checklist",
    "base": "https://indonesiademo.openelis-global.org",
