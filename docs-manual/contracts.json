@@ -850,6 +850,40 @@
    "capturedDate": "2026-06-30"
   },
   {
+   "id": "validation-v4",
+   "title": "Triage and release results (Validation page v3/v4)",
+   "manualDoc": "Confluence 1661763585 (draft under 1189609473)",
+   "captureSpec": "OpenELIS-Global-2/frontend/playwright/tests/foundational/core/ogc-1226-validation-clearance.spec.ts",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.2.2.0",
+   "capturedDate": "2026-09-21",
+   "routes": [
+    {
+     "path": "/validation?type=routine",
+     "anchors": [
+      "Validation",
+      "Select Test Unit"
+     ]
+    },
+    {
+     "path": "/validation?type=order",
+     "anchors": [
+      "Validation",
+      "Enter Accession Number",
+      "Search"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/validation"
+   ],
+   "jiraEpic": "OGC-817",
+   "featureDoc": "OGC-1229",
+   "frs": "designs/results-validation/validation-clearance-rule.md",
+   "captures": "docs-manual/captures/validation-v4",
+   "notes": "Step 8 (Release all clear), the QC line, the confirmation messages and the auto-validated section were verified on develop d538b3c32 (OGC-1226, PR #4355) on 2026-09-21; the rest of the page on testing 3.2.2.0. Re-capture on testing once #4355 is published."
+  },
+  {
    "id": "running-reports",
    "title": "Running Reports",
    "manualDoc": "Confluence 1440841744 (draft)",
