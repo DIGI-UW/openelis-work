@@ -1259,8 +1259,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['microbiology', 'WHONET', 'surveillance', 'export', 'phase-1b'],
   },
   {
-    name: 'M-10 Hub Subscription',
+    name: 'M-10 Hub Subscription [Superseded]',
     category: 'microbiology',
+    archived: true,
     component: null,
     description: 'Unified admin for breakpoint + WHONET code + organism/antibiotic master updates from a central repository. OE pulls; never pushes. Phase 1B.',
     specPath: 'designs/microbiology/m-10-hub-subscription.md',
@@ -1328,8 +1329,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['microbiology', 'antibiogram', 'reporting', 'interactive', 'prototype', 'phase-2'],
   },
   {
-    name: 'M-04 Change Workflow / Unassigned',
+    name: 'M-04 Change Workflow / Unassigned [Completed]',
     category: 'microbiology',
+    archived: true,
     component: null,
     description: 'M-04 §4.9 runtime escape hatch: re-classify an UNASSIGNED or mis-routed Case to the correct workflow_type (BACTERIOLOGY / MYCOBACTERIOLOGY_TB). 3 demo scenarios: unassigned, mis-routed-with-results, released-blocked.',
     specPath: 'designs/microbiology/m-04-case-workbench-core.md',
@@ -2019,8 +2021,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['HIL', 'hemolysis', 'icterus', 'lipemia', 'specimen-quality', 'results', 'validation', 'analyzer', 'ASTM'],
   },
   {
-    name: 'Multi-Component Result Entry v1',
+    name: 'Multi-Component Result Entry v1 [Superseded]',
     category: 'results-validation',
+    archived: true,
     component: React.lazy(() => import('@designs/results-validation/results-entry-multicomponent-v1.jsx')),
     description: 'V1 additive multi-value capture on the existing Results Entry & Validation page (SearchResultForm.jsx). A test that defines more than one result_component renders one result-entry field PER component, each produced by the same result-cell renderer the primary result uses today (chosen by the component result_type). Single-component tests are unchanged. First use case: molecular target gene + Ct (Xpert MTB/RIF, SARS-CoV-2). Consumes the OGC-949 M1 test_result_component model; replaces the PR #3831 scalar-column approach (no new analysis/test columns, no data migration). Self-contained module intended for a future fold-in to the OGC-811/817 inline results redesign.',
     specPath: 'designs/results-validation/results-entry-multicomponent-v1.md',
@@ -3271,6 +3274,10 @@ const PERMALINK_ALIASES = {
   'microbiology/m-05-ast-entry-interpretation': 'microbiology/m-05-ast-entry-interactive-prototype',
   'microbiology/m-07-ast-worklist': 'microbiology/m-07-worklist-interactive-prototype',
   'microbiology/m-11-critical-result-acknowledgment': 'microbiology/m-11-critical-notification-inline',
+  // Archived 2026-09-22 — shipped / superseded entries retired with a status marker.
+  'microbiology/m-04-change-workflow-unassigned': 'microbiology/m-04-change-workflow-unassigned-completed',
+  'microbiology/m-10-hub-subscription': 'microbiology/m-10-hub-subscription-superseded',
+  'results-validation/multi-component-result-entry-v1': 'results-validation/multi-component-result-entry-v1-superseded',
 };
 
 /** Find a mockup by its hash path (e.g. "pathology/cytology-case-view") */
