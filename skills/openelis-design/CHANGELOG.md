@@ -1,5 +1,38 @@
 # openelis-design — Changelog
 
+## 2026-09-22 — decision-log reconciliation + skill-src fork retired
+
+**Root-caused and closed the recurring decision-log fork.** The repo had two
+`references/` folders — the real skill's (`skills/openelis-design/references/`,
+full set + `SKILL.md`) and a stray partial duplicate
+(`OpenELIS Feature Design/openelis-design-skill-src/references/`) that only ever
+held `decision-log.md` and `spec-registry.md`. Sessions updated one or the other,
+so the two leapfrogged: the decision log ended up numbered three different ways
+(the stale copy stopped at D-050 with `/breakdown`+API-reuse there; the
+maintained copy carried micro/runs/order-entry D-049–D-057; a pathology proposal
+independently claimed D-046–D-056).
+
+Fixes:
+- **Reconciled the decision log** into one canonical D-001–D-066 sequence and
+  synced both copies byte-identical (PR reconcile-2026-09-22). Renumbered the
+  double-booked clearance/runs decisions to D-058–D-064 (Order Entry keeps
+  D-056/D-057, there first); folded `/breakdown` Epic-only + API/i18n reuse in as
+  D-065/D-066; D-046–D-048 remain a deliberate skip. Updated the citations in
+  `designs/results-validation/runs.md` and `validation-clearance-rule.jsx`.
+- **Merged `spec-registry.md`** into the canonical copy (the duplicate's newer
+  micro/runs/order-entry rows + the real skill's corrected Inventory PR-3840
+  status).
+- **Retired the stray duplicate:** deleted its two files and left a README
+  pointer. `skills/openelis-design/references/` is now the single source of
+  truth; the skill loads `references/*` relative to its own directory, so nothing
+  reads the retired folder.
+
+**Still open (needs Casey, unchanged):** `designs/pathology/closing-actions.md`
+is an unmerged proposal claiming D-046–D-056 — renumber to D-067+ on adoption.
+The `/breakdown` Epic-only (now D-065) and API & Data Reuse (now D-066) decisions
+are still NOT implemented in the shipped `SKILL.md`/`frs-template.md` body.
+
+
 ## 2026-09-02 — monthly consolidation
 
 **Constitution:** re-verified against upstream raw file — still v1.11.0, no re-sync needed.
