@@ -1,7 +1,7 @@
 // Route: /ResultValidation  (also /AccessionValidation, /AccessionValidationRange, /ResultValidationByTestDate)
 // SideNav: Validation → Routine  (unchanged; no items added, removed or reordered)
 // Feature: Validation clearance rule and empty-state explanation — OGC-817 / OGC-1029
-// FRS: notes/validation-clearance-rule-frs-v0.1.md   Decisions: D-056, D-057
+// FRS: notes/validation-clearance-rule-frs-v0.1.md   Decisions: D-058, D-059
 // Version-agnostic: shows the whole feature. Slicing lives in the breakdown guide.
 
 import React, { useState, useMemo, useCallback } from 'react';
