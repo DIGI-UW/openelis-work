@@ -1,1381 +1,1951 @@
 {
- "_comment": "Provenance + UI-drift contracts for OpenELIS user-manual sections. Each section maps to the manual doc it backs, the live instance + routes it documents, and the on-load UI anchors (headings / labels / buttons) the manual relies on. The drift check (tests/docs/drift.check.spec.ts) visits each route and asserts the anchors still exist; missing anchors => the manual section may be stale. 'capturedVersion' is the OpenELIS version the screenshots were taken against.",
- "sections": [
-  {
-   "id": "add-patient",
-   "title": "Adding a Patient",
-   "manualDoc": "OpenELIS Feature Design/Add-a-Patient-User-Manual.docx",
-   "captureSpec": "tests/docs/add-patient.docs.spec.ts",
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
+  "_comment": "Provenance + UI-drift contracts for OpenELIS user-manual sections. Each section maps to the manual doc it backs, the live instance + routes it documents, and the on-load UI anchors (headings / labels / buttons) the manual relies on. The drift check (tests/docs/drift.check.spec.ts) visits each route and asserts the anchors still exist; missing anchors => the manual section may be stale. 'capturedVersion' is the OpenELIS version the screenshots were taken against.",
+  "sections": [
     {
-     "path": "/PatientManagement",
-     "anchors": [
-      "Add Or Modify Patient",
-      "Search for Patient",
-      "New Patient",
-      "Patient Id",
-      "Last Name",
-      "First Name"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/patient"
-   ],
-   "capturedDate": "2026-06-24"
-  },
-  {
-   "id": "analyzer-file-import",
-   "title": "Analyzer file import",
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/GenericSample/Import",
-     "anchors": [
-      "Import"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/analyzers",
-    "frontend/src/components/genericSample"
-   ],
-   "capturedDate": "2026-06-24"
-  },
-  {
-   "id": "analyzer-framework",
-   "title": "Analyzer integration framework",
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/analyzers/types",
-     "anchors": [
-      "Analyzer Types"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/analyzers"
-   ],
-   "capturedDate": "2026-06-24"
-  },
-  {
-   "id": "barcode-labels",
-   "title": "Barcode label management",
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/PrintBarcode",
-     "anchors": [
-      "Print Bar Code Labels"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/printBarcode",
-    "frontend/src/components/barcodeWorkflow"
-   ],
-   "capturedDate": "2026-06-24"
-  },
-  {
-   "id": "electronic-lab-notebook",
-   "title": "Electronic lab notebook",
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/NotebookDashboard",
-     "anchors": [
-      "Notebook"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/notebook"
-   ],
-   "capturedDate": "2026-06-24"
-  },
-  {
-   "id": "electronic-signatures",
-   "title": "Electronic signatures",
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/ResultValidation?type=&test=",
-     "anchors": [
-      "Validation"
-     ]
+      "id": "add-patient",
+      "title": "Adding a Patient",
+      "manualDoc": "OpenELIS Feature Design/Add-a-Patient-User-Manual.docx",
+      "captureSpec": "tests/docs/add-patient.docs.spec.ts",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/PatientManagement",
+          "anchors": [
+            "Add Or Modify Patient",
+            "Search for Patient",
+            "New Patient",
+            "Patient Id",
+            "Last Name",
+            "First Name"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/patient"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
-     "path": "/AccessionValidation",
-     "anchors": [
-      "Validation"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/esignature",
-    "frontend/src/components/validation"
-   ],
-   "capturedDate": "2026-06-24"
-  },
-  {
-   "id": "environmental-order-results",
-   "title": "Environmental Order Entry & Results",
-   "manualDoc": "OpenELIS Feature Design/Environmental-Order-Entry-and-Results-User-Manual.docx",
-   "captureSpec": "tests/docs/environmental-order-results.docs.spec.ts",
-   "base": "https://indonesiademo.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/order/environmental/enter",
-     "anchors": [
-      "Enter Order",
-      "Lab Number",
-      "Sampling Site",
-      "Default Collection Conditions",
-      "Applicable Compliance Standards",
-      "Per-Sample Manifest",
-      "Save & Next"
-     ]
+      "id": "analyzer-file-import",
+      "title": "Analyzer file import",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "routes": [
+        {
+          "path": "/GenericSample/Import",
+          "anchors": [
+            "Import",
+            "Upload File",
+            "Upload CSV or Excel file",
+            "Select file",
+            "Validate"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/analyzers",
+        "frontend/src/components/genericSample"
+      ],
+      "capturedDate": "2026-06-24",
+      "confluencePageId": "1047265314",
+      "manualDoc": "Confluence 1047265314",
+      "notes": "Linked to page 1047265314 'Import analyzer results from a file' (Taib, 2 February 2026; re-homed under Set up an analyzer on 15 September 2026). Its fourteen figures predate 3.2.2.0. Route anchors re-verified on testing.openelis-global.org 3.2.2.0 on 2026-09-22. Gap: the page's 'Where' is Main menu -> Analyzers -> Analyzer Results, and on testing there is no Analyzer Results entry in the Analyzers menu - /AnalyzerResults redirects to /analyzers. The surviving file-import screen there is Generic Sample -> Import, which is the route anchored here, so the page's step text needs re-checking against it."
     },
     {
-     "path": "/EnvironmentalDashboard",
-     "anchors": [
-      "Environmental Compliance Dashboard",
-      "Exceedance Summary"
-     ]
+      "id": "analyzer-framework",
+      "title": "Analyzer integration framework",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/analyzers/types",
+          "anchors": [
+            "Analyzer Types"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/analyzers"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
-     "path": "/GenericSample/Results",
-     "anchors": [
-      "Result Entry",
-      "Search"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/order",
-    "frontend/src/components/addOrder",
-    "frontend/src/components/compliance"
-   ],
-   "capturedDate": "2026-06-24"
-  },
-  {
-   "id": "eqa",
-   "title": "EQA / proficiency testing",
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/EQAManagement",
-     "anchors": [
-      "Program Administration"
-     ]
+      "id": "barcode-labels",
+      "title": "Barcode label management",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/PrintBarcode",
+          "anchors": [
+            "Print Bar Code Labels"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/printBarcode",
+        "frontend/src/components/barcodeWorkflow"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
-     "path": "/EQAParticipants",
-     "anchors": [
-      "Participants"
-     ]
+      "id": "electronic-lab-notebook",
+      "title": "Electronic lab notebook",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/NotebookDashboard",
+          "anchors": [
+            "Notebook"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/notebook"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
-     "path": "/EQAResults",
-     "anchors": [
-      "EQA Results & Analysis"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/eqa"
-   ],
-   "capturedDate": "2026-06-24"
-  },
-  {
-   "id": "nce-capa",
-   "title": "Non-conforming events (NCE) & CAPA",
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/NceDashboard",
-     "anchors": [
-      "All NCEs"
-     ]
+      "id": "electronic-signatures",
+      "title": "Electronic signatures",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/ResultValidation?type=&test=",
+          "anchors": [
+            "Validation"
+          ]
+        },
+        {
+          "path": "/AccessionValidation",
+          "anchors": [
+            "Validation"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/esignature",
+        "frontend/src/components/validation"
+      ],
+      "capturedDate": "2026-06-24",
+      "confluencePageId": "1242759175"
     },
     {
-     "path": "/ReportNonConformingEvent",
-     "anchors": [
-      "Report Non-Conformity Event"
-     ]
+      "id": "environmental-order-results",
+      "title": "Environmental Order Entry & Results",
+      "manualDoc": "OpenELIS Feature Design/Environmental-Order-Entry-and-Results-User-Manual.docx",
+      "captureSpec": "tests/docs/environmental-order-results.docs.spec.ts",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "routes": [
+        {
+          "path": "/order/environmental/enter",
+          "anchors": [
+            "Enter Order",
+            "Lab Number",
+            "Sampling Site",
+            "Default Collection Conditions",
+            "Applicable Compliance Standards",
+            "Per-Sample Manifest",
+            "Save & Next"
+          ]
+        },
+        {
+          "path": "/EnvironmentalDashboard",
+          "anchors": [
+            "Environmental Compliance Dashboard",
+            "Exceedance Summary"
+          ]
+        },
+        {
+          "path": "/GenericSample/Results",
+          "anchors": [
+            "Result Entry",
+            "Search"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/order",
+        "frontend/src/components/addOrder",
+        "frontend/src/components/compliance"
+      ],
+      "capturedDate": "2026-09-22"
     },
     {
-     "path": "/NCECorrectiveAction",
-     "anchors": [
-      "Nonconforming Events Corrective Action"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/nonconform"
-   ],
-   "capturedDate": "2026-06-24"
-  },
-  {
-   "id": "order-entry",
-   "title": "Enter a Clinical Order",
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/SamplePatientEntry",
-     "anchors": [
-      "Test Request",
-      "Patient Info",
-      "Program Selection",
-      "Add Sample",
-      "Add Order",
-      "New Patient"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/order",
-    "frontend/src/components/addOrder",
-    "frontend/src/components/sample"
-   ],
-   "capturedDate": "2026-06-30",
-   "manualDoc": "OpenELIS Feature Design/clinical-order-entry-manual-draft.md",
-   "captureSpec": "tests/docs/clinical-order-entry.docs.spec.ts",
-   "note": "Reworked 4-step wizard (Patient Info -> Program Selection -> Add Sample -> Add Order). Replaces the old Enter Order -> Collect -> Label & Store -> QA Review flow."
-  },
-  {
-   "id": "organizations-management",
-   "title": "Organizations management",
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/MasterListsPage",
-     "anchors": [
-      "Admin dashboard"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/admin"
-   ],
-   "capturedDate": "2026-06-24"
-  },
-  {
-   "id": "patient-order-enhancements",
-   "title": "Patient & order enhancements",
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/PatientManagement",
-     "anchors": [
-      "Add Or Modify Patient"
-     ]
+      "id": "eqa",
+      "title": "EQA / proficiency testing",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/EQAManagement",
+          "anchors": [
+            "Program Administration"
+          ]
+        },
+        {
+          "path": "/EQAParticipants",
+          "anchors": [
+            "Participants"
+          ]
+        },
+        {
+          "path": "/EQAResults",
+          "anchors": [
+            "EQA Results & Analysis"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/eqa"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
-     "path": "/PatientHistory",
-     "anchors": [
-      "Patient History"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/patient"
-   ],
-   "capturedDate": "2026-06-24"
-  },
-  {
-   "id": "result-validation",
-   "title": "Result validation",
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/ResultValidation?type=&test=",
-     "anchors": [
-      "Validation"
-     ]
+      "id": "nce-capa",
+      "title": "Non-conforming events (NCE) & CAPA",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/NceDashboard",
+          "anchors": [
+            "All NCEs"
+          ]
+        },
+        {
+          "path": "/ReportNonConformingEvent",
+          "anchors": [
+            "Report Non-Conformity Event"
+          ]
+        },
+        {
+          "path": "/NCECorrectiveAction",
+          "anchors": [
+            "Nonconforming Events Corrective Action"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/nonconform"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
-     "path": "/AccessionValidation",
-     "anchors": [
-      "Validation"
-     ]
+      "id": "order-entry",
+      "title": "Enter a Clinical Order",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/SamplePatientEntry",
+          "anchors": [
+            "Test Request",
+            "Patient Info",
+            "Program Selection",
+            "Add Sample",
+            "Add Order",
+            "New Patient"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/order",
+        "frontend/src/components/addOrder",
+        "frontend/src/components/sample"
+      ],
+      "capturedDate": "2026-06-30",
+      "manualDoc": "OpenELIS Feature Design/clinical-order-entry-manual-draft.md",
+      "captureSpec": "tests/docs/clinical-order-entry.docs.spec.ts",
+      "note": "Reworked 4-step wizard (Patient Info -> Program Selection -> Add Sample -> Add Order). Replaces the old Enter Order -> Collect -> Label & Store -> QA Review flow."
     },
     {
-     "path": "/ResultValidationByTestDate",
-     "anchors": [
-      "Validation"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/validation"
-   ],
-   "capturedDate": "2026-06-24"
-  },
-  {
-   "id": "sample-shipment-referral",
-   "title": "Sample shipment & referral",
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/SampleShipment",
-     "anchors": [
-      "Shipment Dashboard"
-     ]
+      "id": "organizations-management",
+      "title": "Organizations management",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/MasterListsPage",
+          "anchors": [
+            "Admin dashboard"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/admin"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
-     "path": "/ReferredOutTests",
-     "anchors": [
-      "Referrals"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/shipment"
-   ],
-   "capturedDate": "2026-06-24"
-  },
-  {
-   "id": "sample-storage-management",
-   "title": "Sample storage management",
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/Storage/sample-items",
-     "anchors": [
-      "Sample Items"
-     ]
+      "id": "patient-order-enhancements",
+      "title": "Patient & order enhancements",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/PatientManagement",
+          "anchors": [
+            "Add Or Modify Patient"
+          ]
+        },
+        {
+          "path": "/PatientHistory",
+          "anchors": [
+            "Patient History"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/patient"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
-     "path": "/Storage/rooms",
-     "anchors": [
-      "Rooms"
-     ]
+      "id": "result-validation",
+      "title": "Result validation",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/ResultValidation?type=&test=",
+          "anchors": [
+            "Validation"
+          ]
+        },
+        {
+          "path": "/AccessionValidation",
+          "anchors": [
+            "Validation"
+          ]
+        },
+        {
+          "path": "/ResultValidationByTestDate",
+          "anchors": [
+            "Validation"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/validation"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
-     "path": "/FreezerMonitoring?tab=0",
-     "anchors": [
-      "Cold Storage Dashboard"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/storage",
-    "frontend/src/components/coldStorage"
-   ],
-   "capturedDate": "2026-06-24"
-  },
-  {
-   "id": "vector-surveillance",
-   "title": "Vector Surveillance",
-   "confluencePageId": "1420230657",
-   "base": "https://indonesiademo.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/order/vector/enter",
-     "anchors": [
-      "Animal / Organism 1",
-      "Quantity in Pool",
-      "Trap Type",
-      "Tests & Panels"
-     ]
+      "id": "sample-shipment-referral",
+      "title": "Sample shipment & referral",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/SampleShipment",
+          "anchors": [
+            "Shipment Dashboard"
+          ]
+        },
+        {
+          "path": "/ReferredOutTests",
+          "anchors": [
+            "Referrals"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/shipment"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
-     "path": "/vector/identification",
-     "anchors": [
-      "Vector Identification Worklist",
-      "Lot ID",
-      "Species Distribution",
-      "Identify",
-      "Split"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/vector",
-    "frontend/src/components/order"
-   ],
-   "capturedDate": "2026-06-24"
-  },
-  {
-   "id": "environmental-surveillance",
-   "title": "Environmental Surveillance",
-   "confluencePageId": "1420099592",
-   "base": "https://indonesiademo.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/order/environmental/enter",
-     "anchors": [
-      "Sampling Site",
-      "Applicable Compliance Standards",
-      "Per-Sample Manifest",
-      "Tests & Panels"
-     ]
+      "id": "sample-storage-management",
+      "title": "Sample storage management",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/Storage/sample-items",
+          "anchors": [
+            "Sample Items"
+          ]
+        },
+        {
+          "path": "/Storage/rooms",
+          "anchors": [
+            "Rooms"
+          ]
+        },
+        {
+          "path": "/FreezerMonitoring?tab=0",
+          "anchors": [
+            "Cold Storage Dashboard"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/storage",
+        "frontend/src/components/coldStorage"
+      ],
+      "capturedDate": "2026-06-24"
     },
     {
-     "path": "/LogbookResults?type=",
-     "anchors": [
-      "Results"
-     ]
+      "id": "vector-surveillance",
+      "title": "Vector Surveillance",
+      "confluencePageId": "1420230657",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/order/vector/enter",
+          "anchors": [
+            "Animal/Organism 1",
+            "Quantity in Pool",
+            "Trap Type",
+            "Tests & Panels"
+          ]
+        },
+        {
+          "path": "/vector/identification",
+          "anchors": [
+            "Vector Identification Worklist",
+            "Lot ID",
+            "Species Distribution",
+            "Identify",
+            "Split"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/vector",
+        "frontend/src/components/order"
+      ],
+      "capturedDate": "2026-06-24",
+      "notes": "Re-pointed to testing 2026-09-22. 'Animal / Organism 1' -> 'Animal/Organism 1' (verified on screen: h5 on /order/vector/enter). UNRESOLVED on testing: 'Tests & Panels' renders only after a sample type is picked (cold load shows 'Select a sample type above to see available panels and tests'); 'Species Distribution', 'Identify' and 'Split' are lot-row/detail controls and /vector/identification is empty on testing ('No lots in this queue', all status counts 0). Testing also has 0 species and 0 sampling sites configured, so no vector lot can be raised there. These three are a seed-data gap on testing, NOT UI drift - do not re-anchor them green. capturedVersion deliberately left at 3.2.1.10."
     },
     {
-     "path": "/ResultValidation?type=&test=",
-     "anchors": [
-      "Validation"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/order",
-    "frontend/src/components/resultPage",
-    "frontend/src/components/validation"
-   ],
-   "capturedDate": "2026-06-24"
-  },
-  {
-   "id": "admin-vector-reference-data",
-   "title": "Admin — Vector Surveillance Reference Data",
-   "confluencePageId": "1420460034",
-   "base": "https://indonesiademo.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/MasterListsPage/vectorSurveillanceSetup/species",
-     "anchors": [
-      "Genus",
-      "Species",
-      "Sample type",
-      "Add species"
-     ]
+      "id": "environmental-surveillance",
+      "title": "Environmental Surveillance",
+      "confluencePageId": "1420099592",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/order/environmental/enter",
+          "anchors": [
+            "Sampling Site",
+            "Applicable Compliance Standards",
+            "Per-Sample Manifest",
+            "Tests & Panels"
+          ]
+        },
+        {
+          "path": "/LogbookResults?type=",
+          "anchors": [
+            "Results"
+          ]
+        },
+        {
+          "path": "/ResultValidation?type=&test=",
+          "anchors": [
+            "Validation"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/order",
+        "frontend/src/components/resultPage",
+        "frontend/src/components/validation"
+      ],
+      "capturedDate": "2026-06-24",
+      "notes": "Re-pointed to testing 2026-09-22. /order/environmental/enter and /ResultValidation?type=&test= pass all anchors. FINDING: /LogbookResults?type= redirects to /Results on testing 3.2.2.0 and will score as a routeError. capturedVersion deliberately left at 3.2.1.10 pending that route decision."
     },
     {
-     "path": "/MasterListsPage/vectorSurveillanceSetup/trap-types",
-     "anchors": [
-      "Add trap type"
-     ]
+      "id": "admin-vector-reference-data",
+      "title": "Admin \u2014 Vector Surveillance Reference Data",
+      "confluencePageId": "1420460034",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/MasterListsPage/vectorSurveillanceSetup/species",
+          "anchors": [
+            "Genus",
+            "Species",
+            "Sample type",
+            "Add species"
+          ]
+        },
+        {
+          "path": "/MasterListsPage/vectorSurveillanceSetup/trap-types",
+          "anchors": [
+            "Add trap type"
+          ]
+        },
+        {
+          "path": "/MasterListsPage/vectorSurveillanceSetup/sampling-sites",
+          "anchors": [
+            "Sampling Site Registry"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/admin/vectorSurveillance",
+        "frontend/src/components/admin/sampleType"
+      ],
+      "capturedDate": "2026-06-24",
+      "notes": "Re-pointed to testing 2026-09-22. 'Sampling Sites' -> 'Sampling Site Registry' (verified on screen). All three routes now pass their anchors, but note the registries are empty on testing (0 species, 0 sampling sites; trap types are seeded), so the figures in the manual showing populated tables will not match. capturedVersion left at 3.2.1.10 until the figures are re-shot."
     },
     {
-     "path": "/MasterListsPage/vectorSurveillanceSetup/sampling-sites",
-     "anchors": [
-      "Sampling Sites"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/admin/vectorSurveillance",
-    "frontend/src/components/admin/sampleType"
-   ],
-   "capturedDate": "2026-06-24"
-  },
-  {
-   "id": "admin-compliance-standards",
-   "title": "Admin — Compliance Standards & Holding-Time",
-   "confluencePageId": "1421148161",
-   "base": "https://indonesiademo.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/MasterListsPage/ComplianceStandardsAdmin",
-     "anchors": [
-      "Compliance Standards Administration",
-      "Add Standard",
-      "Applicable Sample Types"
-     ]
+      "id": "admin-compliance-standards",
+      "title": "Admin \u2014 Compliance Standards & Holding-Time",
+      "confluencePageId": "1421148161",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/MasterListsPage/ComplianceStandardsAdmin",
+          "anchors": [
+            "Compliance Standards Administration",
+            "Add Standard",
+            "Applicable Sample Types"
+          ]
+        },
+        {
+          "path": "/MasterListsPage/testManagementConfigMenu",
+          "anchors": [
+            "Test Management"
+          ]
+        },
+        {
+          "path": "/MasterListsPage/TestCatalogList",
+          "anchors": [
+            "Test Catalog",
+            "Filters",
+            "New test",
+            "Sample Type",
+            "Code",
+            "Domain",
+            "Status"
+          ]
+        },
+        {
+          "path": "/MasterListsPage/TestCatalogEditor/6/qc-targets",
+          "anchors": [
+            "QC Targets",
+            "Control level",
+            "Expected value",
+            "Uncertainty (\u00b1)",
+            "Lot overrides",
+            "Add target"
+          ]
+        },
+        {
+          "path": "/MasterListsPage/TestCatalogEditor/6/storage",
+          "anchors": [
+            "Sample Storage",
+            "Storage condition",
+            "Maximum storage duration",
+            "Duration unit",
+            "Stability notes",
+            "Special handling",
+            "Disposal"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/admin/testManagement",
+        "frontend/src/components/admin/compliance"
+      ],
+      "capturedDate": "2026-06-24",
+      "notes": "Re-pointed to testing 2026-09-22. DECISION 2026-09-23 (Casey): the manual documents the new Test Catalogue Management editor ALWAYS; the legacy /MasterListsPage/TestModifyEntry screen is no longer documented and its route has been removed. The two anchors this section used to carry moved as follows, both verified cold on testing 3.2.2.0 on 2026-09-23: 'QC Acceptance Thresholds' -> the 'QC Targets' editor section; 'SOP Max Holding Time' -> 'Maximum storage duration' + 'Duration unit' in the 'Sample Storage' editor section. Both sit on a CLINICAL test, so the environmental-sample-type gap that blocked the legacy screen on testing no longer applies. CAVEAT ON THE TEST ID: /MasterListsPage/TestCatalogEditor/{id}/{section} needs a concrete id; 6 is Albumin(Urines) on testing and is instance-specific - these two routes will route-error on any other instance. The durable fix is a resolver token in drift.check.spec.ts alongside {{ORDER_IN_PROGRESS}} (e.g. {{ANY_TEST}} resolved from the catalog list), which has not been added. STILL TO DO: published page 1421148161 Step 5 and Figure 3 still tell the reader to open Modify tests and set 'SOP Max Holding Time (minutes)' under 'QC Acceptance Thresholds' - that single step now SPLITS across two editor sections (QC Targets, Sample Storage) and needs rewriting plus a re-shot figure. capturedVersion left at 3.2.1.10 until that lands. PNGDEMO CROSS-CHECK 2026-09-23 (driven on screen; base stays testing per Casey). pngdemo runs a Vite dev server and needs ~50s to mount - it is not down, just slow; an earlier read gave up too early. On pngdemo 3.2.2.0 the Test Catalogue Editor has 15 sections, read off the left nav: basic-info, sample-results, methods, ranges, storage, panels, labels, terminology, reagents, analyzers, alerts, accreditation, reflex-calc, localization, display-order. TWO DIFFERENCES FROM TESTING, both confirmed on screen: (1) 'qc-targets' NO LONGER EXISTS - /TestCatalogEditor/{id}/qc-targets redirects to /basic-info, so the qc-targets route registered here will become a routeError as soon as pngdemo's build reaches testing; where QC targets moved to is UNRESOLVED (the new 'accreditation' section is unrelated - it reads 'test is not accredited by any body / Manage accrediting bodies and expiry dates' - and the qc/controlLots + qc/dashboard modules are the likely new home). (2) 'accreditation' is new and absent on testing. The storage section is IDENTICAL on both: all seven anchors present on pngdemo test 696 Acanthamoeba sp-PCR-Air(Water). ALSO: pngdemo HAS the environmental catalog (Water and Air sample types; 611 configuration issues vs testing's 61), so the environmental-sample-type gap recorded above is a testing seed-data gap, not a product gap. QC TARGETS RESOLVED 2026-09-23 (driven on pngdemo): they left the test editor for a new top-level 'Quality Assurance' menu (which on testing is still the older 'Non-Conform / EQA Tests / EQA Management' set). Quality Assurance > Statistical QC holds QA Overview (/qa/overview), QC Dashboard (/qa/qc/dashboard), QC Alerts (/qa/qc/alerts), QC Lot Management (/qa/qc/control-lots), Rule Configuration (/qa/qc/rule-config), Reagent QC (/qa/qc/reagent-qc) and Analyzer Manual QC (/qa/qc/manual-qc). Targets are now LOT-first, not test-first: /qa/qc/control-lots is 'Control Lots - Manage QC control lots for Westgard rule evaluation' with columns Lot Number / Control Material / Manufacturer / Control Level / Status / Calculation Method / Expiration Date, and the New Control Lot form (which redirects to /analyzers/qc/control-lots/new) carries Lot Number, Control Material, Control Level, Expiration Date, Analyzer, Test, Status and a 'Statistics Configuration' block of CALCULATION METHOD (e.g. Manufacturer Fixed) / MEAN / STANDARD DEVIATION - the statistical equivalent of the editor's 'Expected value' and 'Uncertainty (+-)'. So the editor's per-test three-level QC Targets table is replaced by per-control-lot mean/SD. NOTE the nav link /qa/qc/control-lots and the form route /analyzers/qc/control-lots/new are different route families - check for redirects before anchoring either."
     },
     {
-     "path": "/MasterListsPage/testManagementConfigMenu",
-     "anchors": [
-      "Test Management"
-     ]
+      "id": "admin-sample-type-management",
+      "title": "Admin \u2014 Sample Type Management",
+      "confluencePageId": "1420853278",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "routes": [
+        {
+          "path": "/MasterListsPage/SampleTypeManagement",
+          "anchors": [
+            "Create New Sample Type",
+            "Set Sample Type Order",
+            "Test Assignment"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/admin/sampleType"
+      ],
+      "capturedDate": "2026-09-22"
     },
     {
-     "path": "/MasterListsPage/TestModifyEntry",
-     "anchors": [
-      "QC Acceptance Thresholds",
-      "SOP Max Holding Time"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/admin/testManagement",
-    "frontend/src/components/admin/compliance"
-   ],
-   "capturedDate": "2026-06-24"
-  },
-  {
-   "id": "admin-sample-type-management",
-   "title": "Admin — Sample Type Management",
-   "confluencePageId": "1420853278",
-   "base": "https://indonesiademo.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/MasterListsPage/SampleTypeManagement",
-     "anchors": [
-      "Create New Sample Type",
-      "Set Sample Type Order",
-      "Test Assignment"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/admin/sampleType"
-   ],
-   "capturedDate": "2026-06-24"
-  },
-  {
-   "id": "test-catalog-editor",
-   "title": "Test Catalog Management: the unified editor",
-   "manualDoc": "Confluence 1432453132 (draft under 1189609473)",
-   "captureSpec": "pending",
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.2.0",
-   "capturedDate": "2026-09-21",
-   "routes": [
-    {
-     "path": "/MasterListsPage/TestCatalogList",
-     "anchors": [
-      "Test Catalog",
-      "Filters",
-      "New test",
-      "Name",
-      "Sample Type",
-      "Code",
-      "Domain",
-      "Status"
-     ]
+      "id": "sample-acceptance-checklist",
+      "title": "Sample Acceptance Checklist",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "routes": [
+        {
+          "path": "/MasterListsPage/SampleAcceptanceChecklist/all",
+          "anchors": [
+            "Sample Acceptance Checklist",
+            "Add item",
+            "Lab-wide items"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/admin/sampleAcceptance"
+      ],
+      "capturedDate": "2026-09-22",
+      "manualDoc": "OpenELIS Feature Design/sample-acceptance-checklist-manual-draft.md",
+      "note": "OGC-580 #3778; configured items render on the QA Review step (Intake Acceptance, Pass/Fail/N/A) of the domain order flow; per-domain enforcement Mandatory (gate: must answer to Accept) / Optional / Off; lab-wide + per-domain items.",
+      "notes": "Re-pointed to testing 2026-09-22. Route path corrected to /MasterListsPage/SampleAcceptanceChecklist/all - the bare path redirects there and would score as a routeError under the redirect guard. All anchors verified on screen."
     },
     {
-     "path": "/MasterListsPage/TestCatalogList?entity=panels",
-     "anchors": [
-      "Panel Editor",
-      "Add Panel",
-      "Panel Name",
-      "LOINC",
-      "Sample Types (derived)"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/admin/testCatalog"
-   ],
-   "jiraEpic": "OGC-949",
-   "featureDoc": "OGC-1203",
-   "captures": "docs-manual/captures/test-catalog-editor",
-   "notes": "Verified on develop d538b3c32 (local dev stack) on 2026-09-21: 15 editor sections; OGC-1114 (Basic Info save) and OGC-1122 (inline Create new panel) no longer reproduce; the panel-created toast prints {name} (OGC-1230)."
-  },
-  {
-   "id": "lab-units-editor",
-   "title": "Manage lab units",
-   "manualDoc": "Confluence 1668972546 (draft under 1189609473)",
-   "captureSpec": "pending",
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.2.0",
-   "capturedDate": "2026-09-21",
-   "routes": [
-    {
-     "path": "/MasterListsPage/LabUnitManagement",
-     "anchors": [
-      "Lab Unit Management",
-      "Add Lab Unit",
-      "Name",
-      "Domain",
-      "Status",
-      "Tests",
-      "Actions"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/admin/labUnitManagement"
-   ],
-   "jiraEpic": "OGC-949",
-   "featureDoc": "OGC-1211",
-   "captures": "docs-manual/captures/lab-units-editor",
-   "notes": "Verified on develop d538b3c32 (local dev stack) on 2026-09-21: list search filters as you type; add, edit, domain-change confirmation, display order, assign (active tests only; the unit becomes active) and reassign all driven."
-  },
-  {
-   "id": "sample-acceptance-checklist",
-   "title": "Sample Acceptance Checklist",
-   "base": "https://indonesiademo.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/MasterListsPage/SampleAcceptanceChecklist",
-     "anchors": [
-      "Sample Acceptance Checklist",
-      "Add item",
-      "Lab-wide items"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/admin/sampleAcceptance"
-   ],
-   "capturedDate": "2026-06-30",
-   "manualDoc": "OpenELIS Feature Design/sample-acceptance-checklist-manual-draft.md",
-   "note": "OGC-580 #3778; configured items render on the QA Review step (Intake Acceptance, Pass/Fail/N/A) of the domain order flow; per-domain enforcement Mandatory (gate: must answer to Accept) / Optional / Off; lab-wide + per-domain items."
-  },
-  {
-   "id": "organization-management",
-   "title": "Organization Management",
-   "manualDoc": "Confluence 1437892659 (draft)",
-   "captureSpec": "tests/docs/org-capture.docs.spec.ts",
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/MasterListsPage/organizationManagement",
-     "anchors": [
-      "Organization Management",
-      "Search By Org Name",
-      "Add",
-      "Org Name",
-      "CLIA Number"
-     ]
+      "id": "organization-management",
+      "title": "Organization Management",
+      "manualDoc": "Confluence 1437892659 (draft)",
+      "captureSpec": "tests/docs/org-capture.docs.spec.ts",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/MasterListsPage/organizationManagement",
+          "anchors": [
+            "Organization Management",
+            "Search By Org Name",
+            "Add",
+            "Org Name",
+            "CLIA Number"
+          ]
+        },
+        {
+          "path": "/MasterListsPage/organizationEdit?ID=0",
+          "anchors": [
+            "Add Organization",
+            "Org Name",
+            "Type of Activity",
+            "Save"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/admin/organizationManagement"
+      ],
+      "capturedDate": "2026-06-30"
     },
     {
-     "path": "/MasterListsPage/organizationEdit?ID=0",
-     "anchors": [
-      "Add Organization",
-      "Org Name",
-      "Type of Activity",
-      "Save"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/admin/organizationManagement"
-   ],
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "provider-management",
-   "title": "Provider Management",
-   "manualDoc": "Confluence 1439203334 (draft)",
-   "captureSpec": "tests/docs/provider-capture.docs.spec.ts",
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/MasterListsPage/providerMenu",
-     "anchors": [
-      "Provider Management",
-      "Provider Lastname",
-      "Is Active"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/admin/providerManagement"
-   ],
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "lab-number-management",
-   "title": "Lab Number Management",
-   "manualDoc": "Confluence 1439170565 (draft)",
-   "captureSpec": "tests/docs/admin-discover.docs.spec.ts",
-   "routes": [
-    {
-     "path": "/MasterListsPage/labNumber",
-     "anchors": [
-      "Lab Number Management",
-      "Lab Number Type",
-      "Submit"
-     ]
-    }
-   ],
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "program-entry",
-   "title": "Program Entry",
-   "manualDoc": "Confluence 1439006727 (draft)",
-   "captureSpec": "tests/docs/admin-discover.docs.spec.ts",
-   "routes": [
-    {
-     "path": "/MasterListsPage/program",
-     "anchors": [
-      "Add/Edit Program",
-      "Program Name",
-      "Program Code",
-      "Test Section"
-     ]
-    }
-   ],
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "application-properties",
-   "title": "Application Properties",
-   "manualDoc": "Confluence 1439367188 (draft)",
-   "captureSpec": "tests/docs/admin-discover.docs.spec.ts",
-   "routes": [
-    {
-     "path": "/MasterListsPage/commonproperties",
-     "anchors": [
-      "Common Properties",
-      "configuration.dir",
-      "Update"
-     ]
-    }
-   ],
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "test-notification-configuration",
-   "title": "Test Notification Configuration",
-   "manualDoc": "Confluence 1439072261 (draft)",
-   "captureSpec": "tests/docs/admin-discover.docs.spec.ts",
-   "routes": [
-    {
-     "path": "/MasterListsPage/testNotificationConfigMenu",
-     "anchors": [
-      "Test Notification Configuration",
-      "Test names",
-      "Patient Email",
-      "Provider SMS"
-     ]
-    }
-   ],
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "search-index-management",
-   "title": "Search Index Management",
-   "manualDoc": "Confluence 1438973960 (draft)",
-   "captureSpec": "tests/docs/admin-discover.docs.spec.ts",
-   "routes": [
-    {
-     "path": "/MasterListsPage/SearchIndexManagement",
-     "anchors": [
-      "Search Index Management",
-      "Start Reindexing"
-     ]
-    }
-   ],
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "logging-configuration",
-   "title": "Logging Configuration",
-   "manualDoc": "Confluence 1438908431 (draft)",
-   "captureSpec": "tests/docs/admin-discover.docs.spec.ts",
-   "routes": [
-    {
-     "path": "/MasterListsPage/loggingManagement",
-     "anchors": [
-      "Logging Configuration",
-      "Log Level",
-      "Logger Name",
-      "Apply Log Level"
-     ]
-    }
-   ],
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "user-management",
-   "title": "User Management",
-   "manualDoc": "Confluence 1439367205 (draft)",
-   "captureSpec": "tests/docs/user-dict-capture.docs.spec.ts",
-   "routes": [
-    {
-     "path": "/MasterListsPage/userManagement",
-     "anchors": [
-      "User Management",
-      "System User Login Name",
-      "Add",
-      "Is Active"
-     ]
-    }
-   ],
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "dictionary-menu",
-   "title": "Dictionary Menu",
-   "manualDoc": "Confluence 1438973976 (draft)",
-   "captureSpec": "tests/docs/user-dict-capture.docs.spec.ts",
-   "routes": [
-    {
-     "path": "/MasterListsPage/DictionaryMenu",
-     "anchors": [
-      "Dictionary Menu",
-      "Category",
-      "Dictionary Entry",
-      "LOINC Code"
-     ]
-    }
-   ],
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "reflex-testing",
-   "title": "Reflex Testing",
-   "manualDoc": "Confluence 1439137808 (draft)",
-   "captureSpec": "tests/docs/reflex-discover.docs.spec.ts",
-   "routes": [
-    {
-     "path": "/MasterListsPage/reflex",
-     "anchors": [
-      "Reflex Tests Management",
-      "Rule Name",
-      "Add Rule"
-     ]
-    }
-   ],
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "calculated-value-tests",
-   "title": "Calculated Value Tests",
-   "manualDoc": "Confluence 1438842886 (draft)",
-   "captureSpec": "tests/docs/reflex-discover.docs.spec.ts",
-   "routes": [
-    {
-     "path": "/MasterListsPage/calculatedValue",
-     "anchors": [
-      "Calculated Value Tests Management",
-      "Calculation Name",
-      "Add Rule"
-     ]
-    }
-   ],
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "results-entry",
-   "title": "Results Entry",
-   "manualDoc": "Confluence 1439072277 (draft)",
-   "captureSpec": "tests/docs/results-entry-cap.docs.spec.ts",
-   "base": "https://indonesiademo.openelis-global.org",
-   "routes": [
-    {
-     "path": "/LogbookResults?type=",
-     "anchors": [
-      "Results",
-      "Select Test Unit"
-     ]
-    }
-   ],
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "validation",
-   "title": "Validation",
-   "manualDoc": "Confluence 1441202177 (draft)",
-   "captureSpec": "tests/docs/validation-probe.docs.spec.ts",
-   "base": "https://indonesiademo.openelis-global.org",
-   "routes": [
-    {
-     "path": "/ResultValidation?type=&test=",
-     "anchors": [
-      "Validation",
-      "Select Test Unit"
-     ]
-    }
-   ],
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "validation-v4",
-   "title": "Triage and release results (Validation page v3/v4)",
-   "manualDoc": "Confluence 1661763585 (draft under 1189609473)",
-   "captureSpec": "OpenELIS-Global-2/frontend/playwright/tests/foundational/core/ogc-1226-validation-clearance.spec.ts",
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.2.0",
-   "capturedDate": "2026-09-21",
-   "routes": [
-    {
-     "path": "/validation?type=routine",
-     "anchors": [
-      "Validation",
-      "Select Test Unit"
-     ]
+      "id": "provider-management",
+      "title": "Provider Management",
+      "manualDoc": "Confluence 1439203334 (draft)",
+      "captureSpec": "tests/docs/provider-capture.docs.spec.ts",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "routes": [
+        {
+          "path": "/MasterListsPage/providerMenu",
+          "anchors": [
+            "Provider Management",
+            "Provider Lastname",
+            "Is Active"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/admin/providerManagement"
+      ],
+      "capturedDate": "2026-06-30"
     },
     {
-     "path": "/validation?type=order",
-     "anchors": [
-      "Validation",
-      "Enter Accession Number",
-      "Search"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/validation"
-   ],
-   "jiraEpic": "OGC-817",
-   "featureDoc": "OGC-1229",
-   "frs": "designs/results-validation/validation-clearance-rule.md",
-   "captures": "docs-manual/captures/validation-v4",
-   "notes": "Step 8 (Release all clear), the QC line, the confirmation messages and the auto-validated section were verified on develop d538b3c32 (OGC-1226, PR #4355) on 2026-09-21; the rest of the page on testing 3.2.2.0. Re-capture on testing once #4355 is published."
-  },
-  {
-   "id": "running-reports",
-   "title": "Running Reports",
-   "manualDoc": "Confluence 1440841744 (draft)",
-   "captureSpec": "tests/docs/discover4.docs.spec.ts",
-   "base": "https://indonesiademo.openelis-global.org",
-   "routes": [
-    {
-     "path": "/Report?type=patient&report=patientCILNSP_vreduit",
-     "anchors": [
-      "Patient Status Report",
-      "Generate Printable Version"
-     ]
-    }
-   ],
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "patient-management",
-   "title": "Patient Management",
-   "manualDoc": "Confluence 1441136648 (draft)",
-   "captureSpec": "tests/docs/patient-mgmt-cap.docs.spec.ts",
-   "base": "https://indonesiademo.openelis-global.org",
-   "routes": [
-    {
-     "path": "/PatientManagement",
-     "anchors": [
-      "Add Or Modify Patient",
-      "Search for Patient",
-      "New Patient",
-      "Patient Results"
-     ]
-    }
-   ],
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "site-information",
-   "title": "Site Information",
-   "manualDoc": "Confluence 1439432709 (draft)",
-   "captureSpec": "tests/docs/admin-discover2.docs.spec.ts",
-   "routes": [
-    {
-     "path": "/MasterListsPage/SiteInformationMenu",
-     "anchors": [
-      "Site Information",
-      "Name",
-      "Description",
-      "Value",
-      "Modify"
-     ]
-    }
-   ],
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "menu-configuration",
-   "title": "Menu Configuration",
-   "manualDoc": "Confluence 1439694850 (draft)",
-   "captureSpec": "tests/docs/admin-discover2.docs.spec.ts",
-   "routes": [
-    {
-     "path": "/MasterListsPage/globalMenuManagement",
-     "anchors": [
-      "Global Menu Management",
-      "Side Nav Active",
-      "Show Child Elements",
-      "Submit"
-     ]
-    }
-   ],
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "calendar-management",
-   "title": "Calendar Management",
-   "manualDoc": "Confluence 1439334404 (draft)",
-   "captureSpec": "tests/docs/admin-discover2.docs.spec.ts",
-   "routes": [
-    {
-     "path": "/MasterListsPage/calendarManagement",
-     "anchors": [
-      "Calendar Management",
-      "Weekend Days",
-      "Add Holiday",
-      "Holiday Name"
-     ]
-    }
-   ],
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "result-reporting-configuration",
-   "title": "Result Reporting Configuration",
-   "manualDoc": "Confluence 1439596548 (draft)",
-   "captureSpec": "tests/docs/admin-discover2.docs.spec.ts",
-   "routes": [
-    {
-     "path": "/MasterListsPage/resultReportingConfiguration",
-     "anchors": [
-      "Result Reporting Configuration",
-      "Result Reporting",
-      "Queue Size"
-     ]
-    }
-   ],
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "order-search",
-   "title": "Order Search & Lookup",
-   "manualDoc": "Confluence 1440350210 (draft)",
-   "captureSpec": "tests/docs/discover4.docs.spec.ts",
-   "base": "https://indonesiademo.openelis-global.org",
-   "routes": [
-    {
-     "path": "/SampleEdit?type=readwrite",
-     "anchors": [
-      "Modify Order",
-      "Search By Accession Number",
-      "Search By Patient"
-     ]
-    }
-   ],
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "sample-storage",
-   "title": "Sample Storage",
-   "manualDoc": "Confluence 1440677908 (draft)",
-   "captureSpec": "tests/docs/discover4.docs.spec.ts",
-   "base": "https://indonesiademo.openelis-global.org",
-   "routes": [
-    {
-     "path": "/Storage/sample-items",
-     "anchors": [
-      "Sample Items",
-      "SampleItem ID",
-      "Sample Accession",
-      "Storage location"
-     ]
-    }
-   ],
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "aliquot",
-   "title": "Aliquot Management",
-   "manualDoc": "Confluence 1440940035 (draft)",
-   "captureSpec": "tests/docs/discover4.docs.spec.ts",
-   "base": "https://indonesiademo.openelis-global.org",
-   "routes": [
-    {
-     "path": "/Aliquot",
-     "anchors": [
-      "Aliquot",
-      "Search Sample",
-      "Enter Accession Number"
-     ]
-    }
-   ],
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "patient-merge",
-   "title": "Merge Patient Records",
-   "manualDoc": "Confluence 1440907275 (draft)",
-   "captureSpec": "tests/docs/patient-extras.docs.spec.ts",
-   "base": "https://indonesiademo.openelis-global.org",
-   "routes": [
-    {
-     "path": "/PatientMerge",
-     "anchors": [
-      "Merge Patient Records",
-      "Select Patients",
-      "Select Primary",
-      "Confirm Merge"
-     ]
-    }
-   ],
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "register-new-patient",
-   "title": "Register a New Patient",
-   "manualDoc": "Confluence 1440841760 (draft)",
-   "captureSpec": "tests/docs/patient-extras.docs.spec.ts",
-   "base": "https://indonesiademo.openelis-global.org",
-   "routes": [
-    {
-     "path": "/PatientManagement",
-     "anchors": [
-      "Add Or Modify Patient",
-      "New Patient",
-      "National ID",
-      "Gender"
-     ]
-    }
-   ],
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
-  },
-  {
-   "id": "vector-surveillance-report",
-   "title": "Vector Surveillance Report",
-   "manualDoc": "",
-   "captureSpec": "",
-   "base": "https://indonesiademo.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/VectorSurveillanceReport",
-     "anchors": [
-      "Vector Surveillance",
-      "Export PDF",
-      "Apply"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/reports/vectorSurveillance"
-   ],
-   "capturedDate": "2026-07-23"
-  },
-  {
-   "id": "laporan-hasil-report",
-   "title": "Compliance Report (Laporan Hasil)",
-   "manualDoc": "",
-   "captureSpec": "",
-   "base": "https://indonesiademo.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/LaporanHasil",
-     "anchors": [
-      "Compliance Report",
-      "Generate compliance certificates for validated environmental orders",
-      "All Standards"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/reports/compliance"
-   ],
-   "capturedDate": "2026-07-23"
-  },
-  {
-   "id": "reference-lab-results",
-   "title": "Reference Lab Results",
-   "manualDoc": "",
-   "captureSpec": "",
-   "base": "https://indonesiademo.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "routes": [
-    {
-     "path": "/SampleShipment/reference-lab-results",
-     "anchors": [
-      "Reference Lab Results",
-      "Outstanding referrals",
-      "History"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/referenceLabResults"
-   ],
-   "capturedDate": "2026-07-23"
-  },
-  {
-   "id": "qc-setup-instrument",
-   "title": "Set up QC for an instrument",
-   "manualDoc": "OpenELIS QA/docs-manual/publish/qc-setup-instrument.xhtml",
-   "routes": [
-    {
-     "path": "/analyzers",
-     "anchors": [
-      "Analyzer List",
-      "Add Analyzer"
-     ]
+      "id": "lab-number-management",
+      "title": "Lab Number Management",
+      "manualDoc": "Confluence 1439170565 (draft)",
+      "captureSpec": "tests/docs/admin-discover.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/labNumber",
+          "anchors": [
+            "Lab Number Management",
+            "Lab Number Type",
+            "Submit"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
     },
     {
-     "path": "/analyzers/qc/rule-config",
-     "anchors": [
-      "Rule Configuration",
-      "Configured Rule Sets",
-      "Analyzer",
-      "Test",
-      "Enabled Rules"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/qc/ruleConfig",
-    "frontend/src/components/analyzers"
-   ],
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.2.0",
-   "capturedDate": "2026-09-02",
-   "jiraEpic": "OGC-684",
-   "featureDoc": "OGC-1167",
-   "captureSpec": "tests/docs/qc-capture.docs.spec.ts"
-  },
-  {
-   "id": "qc-control-lot",
-   "title": "Receive and activate a control lot",
-   "manualDoc": "OpenELIS QA/docs-manual/publish/qc-control-lot.xhtml",
-   "routes": [
-    {
-     "path": "/analyzers/qc/control-lots",
-     "anchors": [
-      "Control Lots",
-      "New Control Lot",
-      "Lot Number",
-      "Control Material",
-      "Control Level",
-      "Calculation Method",
-      "Expiration Date"
-     ]
+      "id": "program-entry",
+      "title": "Program Entry",
+      "manualDoc": "Confluence 1439006727 (draft)",
+      "captureSpec": "tests/docs/admin-discover.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/program",
+          "anchors": [
+            "Add/Edit Program",
+            "Program Name",
+            "Program Code",
+            "Test Section"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
     },
     {
-     "path": "/analyzers/qc/control-lots/new",
-     "anchors": [
-      "New Control Lot",
-      "Lot Number",
-      "Control Material",
-      "Control Level",
-      "Expiration Date",
-      "Analyzer",
-      "Test",
-      "Statistics Configuration",
-      "Configure"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/qc/controlLots"
-   ],
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.2.0",
-   "capturedDate": "2026-09-02",
-   "jiraEpic": "OGC-684",
-   "featureDoc": "OGC-1167",
-   "captureSpec": "tests/docs/qc-capture.docs.spec.ts"
-  },
-  {
-   "id": "qc-review",
-   "title": "Review QC and act on violations",
-   "manualDoc": "OpenELIS QA/docs-manual/publish/qc-review.xhtml",
-   "routes": [
-    {
-     "path": "/analyzers/qc/db",
-     "anchors": [
-      "Quality Control Dashboard",
-      "Instruments In Control",
-      "Warning Status",
-      "Out of Control",
-      "Instruments",
-      "Alerts",
-      "Instrument Quality Control Status"
-     ]
-    }
-   ],
-   "uiPaths": [
-    "frontend/src/components/qc/dashboard"
-   ],
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.2.0",
-   "capturedDate": "2026-09-02",
-   "jiraEpic": "OGC-684",
-   "featureDoc": "OGC-1167",
-   "captureSpec": "tests/docs/qc-capture.docs.spec.ts"
-  },
-  {
-   "id": "qc-empty-chart",
-   "title": "Why is my QC chart empty?",
-   "manualDoc": "OpenELIS QA/docs-manual/publish/qc-empty-chart.xhtml",
-   "routes": [
-    {
-     "path": "/analyzers/qc/db",
-     "anchors": [
-      "Quality Control Dashboard",
-      "Instruments"
-     ]
+      "id": "application-properties",
+      "title": "Application Properties",
+      "manualDoc": "Confluence 1439367188 (draft)",
+      "captureSpec": "tests/docs/admin-discover.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/commonproperties",
+          "anchors": [
+            "Common Properties",
+            "configuration.dir",
+            "Update"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
     },
     {
-     "path": "/analyzers/qc/control-lots",
-     "anchors": [
-      "Control Lots",
-      "Status"
-     ]
+      "id": "test-notification-configuration",
+      "title": "Test Notification Configuration",
+      "manualDoc": "Confluence 1439072261 (draft)",
+      "captureSpec": "tests/docs/admin-discover.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/testNotificationConfigMenu",
+          "anchors": [
+            "Test Notification Configuration",
+            "Test names",
+            "Patient Email",
+            "Provider SMS"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
     },
     {
-     "path": "/analyzers/qc/rule-config",
-     "anchors": [
-      "Configured Rule Sets",
-      "Enabled Rules"
-     ]
+      "id": "search-index-management",
+      "title": "Search Index Management",
+      "manualDoc": "Confluence 1438973960 (draft)",
+      "captureSpec": "tests/docs/admin-discover.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/SearchIndexManagement",
+          "anchors": [
+            "Search Index Management",
+            "Start Reindexing"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "logging-configuration",
+      "title": "Logging Configuration",
+      "manualDoc": "Confluence 1438908431 (draft)",
+      "captureSpec": "tests/docs/admin-discover.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/loggingManagement",
+          "anchors": [
+            "Logging Configuration",
+            "Log Level",
+            "Logger Name",
+            "Apply Log Level"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "user-management",
+      "title": "User Management",
+      "manualDoc": "Confluence 1439367205 (draft)",
+      "captureSpec": "tests/docs/user-dict-capture.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/userManagement",
+          "anchors": [
+            "User Management",
+            "System User Login Name",
+            "Add",
+            "Is Active"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "dictionary-menu",
+      "title": "Dictionary Menu",
+      "manualDoc": "Confluence 1438973976 (draft)",
+      "captureSpec": "tests/docs/user-dict-capture.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/DictionaryMenu",
+          "anchors": [
+            "Dictionary Menu",
+            "Category",
+            "Dictionary Entry",
+            "LOINC Code"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "reflex-testing",
+      "title": "Reflex Testing",
+      "manualDoc": "Confluence 1439137808 (draft)",
+      "captureSpec": "tests/docs/reflex-discover.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/reflex",
+          "anchors": [
+            "Reflex Tests Management",
+            "Rule Name",
+            "Add Rule"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "calculated-value-tests",
+      "title": "Calculated Value Tests",
+      "manualDoc": "Confluence 1438842886 (draft)",
+      "captureSpec": "tests/docs/reflex-discover.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/calculatedValue",
+          "anchors": [
+            "Calculated Value Tests Management",
+            "Calculation Name",
+            "Add Rule"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "results-entry",
+      "title": "Results Entry",
+      "manualDoc": "Confluence 1439072277 (draft, unified worklist)",
+      "captureSpec": "tests/docs/results-entry-unified.docs.spec.ts",
+      "base": "https://testing.openelis-global.org",
+      "routes": [
+        {
+          "path": "/Results",
+          "anchors": [
+            "Results",
+            "Search by lab number",
+            "Lab Unit",
+            "Test date",
+            "Search by patient",
+            "Load results"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-16",
+      "configToggle": "resultsEntryUnifiedRoute=true"
+    },
+    {
+      "id": "results-entry-legacy",
+      "title": "Results Entry (legacy screen)",
+      "manualDoc": "Confluence 1653604361 (superseded)",
+      "captureSpec": "tests/docs/results-entry-cap.docs.spec.ts",
+      "base": "https://testing.openelis-global.org",
+      "routes": [
+        {
+          "path": "/LogbookResults?type=",
+          "anchors": [
+            "Results",
+            "Select Test Unit"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30",
+      "notes": "Re-pointed to testing 2026-09-22. FINDING: /LogbookResults?type= no longer exists on testing 3.2.2.0 - it redirects to /Results (the unified results screen), and 'Select Test Unit' is now 'Lab Unit'. Under the redirect guard added to drift.check this scores as a routeError. The legacy screen this section documents appears to be retired on 3.2.2.0; decide whether to retire the section rather than re-anchor it. capturedVersion deliberately left at 3.2.1.10."
+    },
+    {
+      "id": "validation",
+      "title": "Validation",
+      "manualDoc": "Confluence 1441202177 (draft)",
+      "captureSpec": "tests/docs/validation-probe.docs.spec.ts",
+      "base": "https://testing.openelis-global.org",
+      "routes": [
+        {
+          "path": "/ResultValidation?type=&test=",
+          "anchors": [
+            "Validation",
+            "Select Test Unit"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-22"
+    },
+    {
+      "id": "running-reports",
+      "title": "Running Reports",
+      "manualDoc": "Confluence 1440841744 (draft)",
+      "captureSpec": "tests/docs/discover4.docs.spec.ts",
+      "base": "https://testing.openelis-global.org",
+      "routes": [
+        {
+          "path": "/Report?type=patient&report=patientCILNSP_vreduit",
+          "anchors": [
+            "Patient Status Report",
+            "Generate Printable Version"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-22"
+    },
+    {
+      "id": "patient-management",
+      "title": "Patient Management",
+      "manualDoc": "Confluence 1441136648 (draft)",
+      "captureSpec": "tests/docs/patient-mgmt-cap.docs.spec.ts",
+      "base": "https://testing.openelis-global.org",
+      "routes": [
+        {
+          "path": "/PatientManagement",
+          "anchors": [
+            "Add Or Modify Patient",
+            "Search for Patient",
+            "New Patient",
+            "Patient Results"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-22"
+    },
+    {
+      "id": "site-information",
+      "title": "Site Information",
+      "manualDoc": "Confluence 1439432709 (draft)",
+      "captureSpec": "tests/docs/admin-discover2.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/SiteInformationMenu",
+          "anchors": [
+            "Site Information",
+            "Name",
+            "Description",
+            "Value",
+            "Modify"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "menu-configuration",
+      "title": "Menu Configuration",
+      "manualDoc": "Confluence 1439694850 (draft)",
+      "captureSpec": "tests/docs/admin-discover2.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/globalMenuManagement",
+          "anchors": [
+            "Global Menu Management",
+            "Side Nav Active",
+            "Show Child Elements",
+            "Submit"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "calendar-management",
+      "title": "Calendar Management",
+      "manualDoc": "Confluence 1439334404 (draft)",
+      "captureSpec": "tests/docs/admin-discover2.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/calendarManagement",
+          "anchors": [
+            "Calendar Management",
+            "Weekend Days",
+            "Add Holiday",
+            "Holiday Name"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "result-reporting-configuration",
+      "title": "Result Reporting Configuration",
+      "manualDoc": "Confluence 1439596548 (draft)",
+      "captureSpec": "tests/docs/admin-discover2.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/resultReportingConfiguration",
+          "anchors": [
+            "Result Reporting Configuration",
+            "Result Reporting",
+            "Queue Size"
+          ]
+        }
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.1.10",
+      "capturedDate": "2026-06-30"
+    },
+    {
+      "id": "order-search",
+      "title": "Order Search & Lookup",
+      "manualDoc": "Confluence 1440350210 (draft)",
+      "captureSpec": "tests/docs/discover4.docs.spec.ts",
+      "base": "https://testing.openelis-global.org",
+      "routes": [
+        {
+          "path": "/SampleEdit?type=readwrite",
+          "anchors": [
+            "Modify Order",
+            "Search By Accession Number",
+            "Search By Patient"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-22"
+    },
+    {
+      "id": "sample-storage",
+      "title": "Sample Storage",
+      "manualDoc": "Confluence 1440677908 (draft)",
+      "captureSpec": "tests/docs/discover4.docs.spec.ts",
+      "base": "https://testing.openelis-global.org",
+      "routes": [
+        {
+          "path": "/Storage/sample-items",
+          "anchors": [
+            "Sample Items",
+            "SampleItem ID",
+            "Sample Accession",
+            "Storage location"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-22"
+    },
+    {
+      "id": "aliquot",
+      "title": "Aliquot Management",
+      "manualDoc": "Confluence 1440940035 (draft)",
+      "captureSpec": "tests/docs/discover4.docs.spec.ts",
+      "base": "https://testing.openelis-global.org",
+      "routes": [
+        {
+          "path": "/Aliquot",
+          "anchors": [
+            "Aliquot",
+            "Search Sample",
+            "Enter Accession Number"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-22"
+    },
+    {
+      "id": "patient-merge",
+      "title": "Merge Patient Records",
+      "manualDoc": "Confluence 1440907275 (draft)",
+      "captureSpec": "tests/docs/patient-extras.docs.spec.ts",
+      "base": "https://testing.openelis-global.org",
+      "routes": [
+        {
+          "path": "/PatientMerge",
+          "anchors": [
+            "Merge Patient Records",
+            "Select Patients",
+            "Select Primary",
+            "Confirm Merge"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-22"
+    },
+    {
+      "id": "register-new-patient",
+      "title": "Register a New Patient",
+      "manualDoc": "Confluence 1440841760 (draft)",
+      "captureSpec": "tests/docs/patient-extras.docs.spec.ts",
+      "base": "https://testing.openelis-global.org",
+      "routes": [
+        {
+          "path": "/PatientManagement",
+          "anchors": [
+            "Add Or Modify Patient",
+            "New Patient",
+            "National ID",
+            "Gender"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-22"
+    },
+    {
+      "id": "vector-surveillance-report",
+      "title": "Vector Surveillance Report",
+      "manualDoc": "",
+      "captureSpec": "",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "routes": [
+        {
+          "path": "/VectorSurveillanceReport",
+          "anchors": [
+            "Vector Surveillance",
+            "Export PDF",
+            "Apply"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/reports/vectorSurveillance"
+      ],
+      "capturedDate": "2026-09-22"
+    },
+    {
+      "id": "laporan-hasil-report",
+      "title": "Compliance Report (Laporan Hasil)",
+      "manualDoc": "",
+      "captureSpec": "",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "routes": [
+        {
+          "path": "/LaporanHasil",
+          "anchors": [
+            "Compliance Report",
+            "Generate compliance certificates for validated environmental orders",
+            "All Standards"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/reports/compliance"
+      ],
+      "capturedDate": "2026-09-22",
+      "confluencePageId": "1427505177"
+    },
+    {
+      "id": "reference-lab-results",
+      "title": "Reference Lab Results",
+      "manualDoc": "",
+      "captureSpec": "",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "routes": [
+        {
+          "path": "/SampleShipment/reference-lab-results",
+          "anchors": [
+            "Reference Lab Results",
+            "Outstanding referrals",
+            "History"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/referenceLabResults"
+      ],
+      "capturedDate": "2026-09-22"
+    },
+    {
+      "id": "qc-setup-instrument",
+      "title": "Set up QC for an instrument",
+      "manualDoc": "OpenELIS QA/docs-manual/publish/qc-setup-instrument.xhtml",
+      "routes": [
+        {
+          "path": "/analyzers",
+          "anchors": [
+            "Manage laboratory analyzers and field mappings",
+            "Add Analyzer",
+            "Total Analyzers",
+            "Needs attention",
+            "Test Units"
+          ]
+        },
+        {
+          "path": "/analyzers/qc/rule-config",
+          "anchors": [
+            "Rule Configuration",
+            "Configure Westgard rules per analyzer and test combination",
+            "Configured Rule Sets",
+            "Analyzer",
+            "Test",
+            "Enabled Rules"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/qc/ruleConfig",
+        "frontend/src/components/analyzers"
+      ],
+      "base": "https://analyzers.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-23",
+      "jiraEpic": "OGC-684",
+      "featureDoc": "OGC-1167",
+      "captureSpec": "tests/docs/qc-capture.docs.spec.ts",
+      "note": "2026-09-23: section repointed from testing to analyzers.openelis-global.org, and all four figures re-captured there. Reason: testing has no Analyzer Bridge (/analyzers/types shows 'Analyzer types could not be loaded - Check the Analyzer Bridge connection'; rest/analyzer-types returns 502 'Bridge URL is not configured'), so no analyzer can be registered and this workflow cannot run there at all - its anchors were passing only because empty shell pages render. The analyzers host runs the workflow fully (13 analyzers, a live rule set). CAVEAT - the analyzers host is a build BEHIND testing: it shows Analyzers List columns 'Test Units'/'Type' where testing shows 'Lab Units'/'Analyzer type', and its Rule Configuration page still renders the pre-OGC-1224 'Analyzers > Quality Control Dashboard > Rule Configuration' title with no real h1. Step 1 prose and the anchors follow the analyzers host. When that host picks up the newer build, expect 'Test Units' to fail here - that is the signal to re-capture and restore the Lab Units / Analyzer type wording. HISTORY - the 19 Sep failure on '/analyzers :: Analyzer List' was a true positive: the page-hierarchy title 'Analyzer List' (i18n analyzer.page.hierarchy.list) was rendered at the 2026-09-02 capture and has since been removed from AnalyzersList on both hosts. OPERATIONAL - this section now only runs when the drift check is invoked with BASE=https://analyzers.openelis-global.org; a testing-only weekly run will skip it silently."
+    },
+    {
+      "id": "qc-control-lot",
+      "title": "Receive and activate a control lot",
+      "manualDoc": "OpenELIS QA/docs-manual/publish/qc-control-lot.xhtml",
+      "routes": [
+        {
+          "path": "/analyzers/qc/control-lots",
+          "anchors": [
+            "Control Lots",
+            "New Control Lot",
+            "Lot Number",
+            "Control Material",
+            "Control Level",
+            "Calculation Method",
+            "Expiration Date"
+          ]
+        },
+        {
+          "path": "/analyzers/qc/control-lots/new",
+          "anchors": [
+            "New Control Lot",
+            "Lot Number",
+            "Control Material",
+            "Control Level",
+            "Expiration Date",
+            "Analyzer",
+            "Test",
+            "Statistics Configuration",
+            "Configure"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/qc/controlLots"
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-02",
+      "jiraEpic": "OGC-684",
+      "featureDoc": "OGC-1167",
+      "captureSpec": "tests/docs/qc-capture.docs.spec.ts"
+    },
+    {
+      "id": "qc-review",
+      "title": "Review QC and act on violations",
+      "manualDoc": "OpenELIS QA/docs-manual/publish/qc-review.xhtml",
+      "routes": [
+        {
+          "path": "/analyzers/qc/db",
+          "anchors": [
+            "Quality Control Dashboard",
+            "Instruments In Control",
+            "Warning Status",
+            "Out of Control",
+            "Instruments",
+            "Alerts",
+            "Instrument Quality Control Status"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/qc/dashboard"
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-02",
+      "jiraEpic": "OGC-684",
+      "featureDoc": "OGC-1167",
+      "captureSpec": "tests/docs/qc-capture.docs.spec.ts"
+    },
+    {
+      "id": "qc-empty-chart",
+      "title": "Why is my QC chart empty?",
+      "manualDoc": "OpenELIS QA/docs-manual/publish/qc-empty-chart.xhtml",
+      "routes": [
+        {
+          "path": "/analyzers/qc/db",
+          "anchors": [
+            "Quality Control Dashboard",
+            "Instruments"
+          ]
+        },
+        {
+          "path": "/analyzers/qc/control-lots",
+          "anchors": [
+            "Control Lots",
+            "Status"
+          ]
+        },
+        {
+          "path": "/analyzers/qc/rule-config",
+          "anchors": [
+            "Configured Rule Sets",
+            "Enabled Rules"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/qc"
+      ],
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-02",
+      "jiraEpic": "OGC-684",
+      "featureDoc": "OGC-1167",
+      "captureSpec": "tests/docs/qc-capture.docs.spec.ts"
+    },
+    {
+      "id": "clinical-collect",
+      "title": "Collect samples for a clinical order",
+      "manualDoc": "Confluence 1655930882 (draft)",
+      "captureSpec": "tests/docs/clinical-pipeline.docs.spec.ts",
+      "base": "https://testing.openelis-global.org",
+      "routes": [
+        {
+          "path": "/order/clinical/collect?labNumber={{ORDER_IN_PROGRESS}}",
+          "anchors": [
+            "Collect",
+            "Requested Tests",
+            "Informed Consent",
+            "Samples",
+            "Save & Next"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-16",
+      "note": "2026-09-22: was reporting green without proof - a cold visit to this wizard-gated route lands on /order/clinical/enter, where only 'Collect' and 'Save & Next' match. Now deep-linked by in-progress lab number; all five anchors verified live on the real Collect screen."
+    },
+    {
+      "id": "label-store-shared",
+      "title": "Label & store samples (shared stage)",
+      "manualDoc": "Confluence 1428684802 (draft)",
+      "captureSpec": "tests/docs/clinical-pipeline.docs.spec.ts",
+      "base": "https://testing.openelis-global.org",
+      "routes": [
+        {
+          "path": "/order/clinical/label?labNumber={{ORDER_IN_PROGRESS}}",
+          "anchors": [
+            "Label & Store",
+            "Print Labels",
+            "Assign Storage Location",
+            "Refer Out / Subcontract",
+            "Save & Next"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-16",
+      "note": "2026-09-22: the 19 Sep 'drift' was not drift - all five anchors are present on the real Label & Store screen (verified live). /order/clinical/label is wizard-gated: OrderContext redirects a cold visit to /order/clinical/enter, where 'Label & Store', 'Print Labels' and 'Save & Next' false-pass from the stepper and the other two correctly fail. Route now deep-links by in-progress lab number, the way the product's own storage-assign-order-label.spec.ts does, and the checker refuses to score anchors after a redirect."
+    },
+    {
+      "id": "qa-review-shared",
+      "title": "Complete QA review (shared stage)",
+      "manualDoc": "Confluence 1429176321 (live)",
+      "captureSpec": "tests/docs/clinical-pipeline.docs.spec.ts",
+      "base": "https://testing.openelis-global.org",
+      "routes": [
+        {
+          "path": "/order/clinical/qa?labNumber={{ORDER_IN_PROGRESS}}",
+          "anchors": [
+            "QA Review",
+            "Intake Acceptance",
+            "Patient Information",
+            "Sample Summary",
+            "Submit"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-16",
+      "note": "2026-09-22: was reporting green without proof - a cold visit to this wizard-gated route lands on /order/clinical/enter, where only 'QA Review' matches. Now deep-linked by in-progress lab number; all five anchors verified live on the real QA Review screen."
+    },
+    {
+      "id": "validation-v4",
+      "title": "Triage and release results",
+      "manualDoc": "Confluence 1661763585 (draft, redesigned Validation page)",
+      "captureSpec": "tests/docs/validation-v4.docs.spec.ts",
+      "jiraEpic": "OGC-817",
+      "featureDoc": null,
+      "frs": "validation-page-v4-frs.md",
+      "base": "https://testing.openelis-global.org",
+      "routes": [
+        {
+          "path": "/ResultValidation?type=&test=",
+          "anchors": [
+            "Validation",
+            "Search",
+            "Select Test Unit"
+          ]
+        },
+        {
+          "path": "/AccessionValidation",
+          "anchors": [
+            "Validation",
+            "Search",
+            "Enter Accession Number"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-19",
+      "notes": "Queue header controls (Release all clear, filter chips, lane tags, Review) render only after a search returns rows awaiting validation, so they are not usable as on-load anchors. By Order uses the same queue plus an Include auto-validated toggle."
+    },
+    {
+      "id": "analyzer-setup",
+      "title": "Set up an analyzer",
+      "confluencePageId": "1648361491",
+      "manualDoc": "Confluence 1648361491 (draft under 1189609473)",
+      "captureSpec": "pending",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-15",
+      "routes": [
+        {
+          "path": "/analyzers",
+          "anchors": [
+            "Analyzers",
+            "Manage laboratory analyzers and field mappings",
+            "Add Analyzer",
+            "Total Analyzers",
+            "In Setup",
+            "Needs attention",
+            "All Statuses",
+            "Connection",
+            "Lab Units",
+            "Analyzer type"
+          ]
+        },
+        {
+          "path": "/analyzers?setup=instrument",
+          "anchors": [
+            "Set up a new analyzer",
+            "Instrument",
+            "Analyzer name",
+            "Lab units",
+            "Instrument not listed?",
+            "Continue to Verify",
+            "Verify",
+            "Connect"
+          ]
+        },
+        {
+          "path": "/analyzers/types",
+          "anchors": [
+            "Analyzer Types",
+            "The reusable setups behind your analyzers.",
+            "Duplicate Profile",
+            "Reusable analyzer setup",
+            "In Use",
+            "Needs Attention",
+            "Deactivated",
+            "Mapping status",
+            "Show deactivated"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/analyzers"
+      ],
+      "captures": "docs-manual/captures/sept15/1648361491",
+      "notes": "Figures captured 2026-09-15 on analyzers.openelis-global.org (the only instance with a reachable Bridge). Anchors re-derived from those figures and verified against testing.openelis-global.org 3.2.2.0 on 2026-09-22. /analyzers and Add Analyzer step 1 render in full on testing. /analyzers/types renders only its chrome there: with no Bridge the table is replaced by 'Analyzer types could not be loaded / Check the Analyzer Bridge connection, then try again' (OGC-1214), so the columns Analyzer type, Protocol, Tests mapped, Results mapped and Used by are deliberately NOT anchored. Two labels also differ from the figures: testing shows 'Create Profile' where figure 02 shows 'Create New Analyzer Type', and the list columns read 'Lab Units' / 'Analyzer type' where figure 01 shows 'Test Units' / 'Type'."
+    },
+    {
+      "id": "analyzer-mapping-qc",
+      "title": "Map analyzer codes, resolve held results, and run QC",
+      "confluencePageId": "1648590851",
+      "manualDoc": "Confluence 1648590851 (draft under 1189609473)",
+      "captureSpec": "pending",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-15",
+      "routes": [
+        {
+          "path": "/analyzers/qc/db",
+          "anchors": [
+            "Quality Control Dashboard",
+            "Monitor instrument QC status and alerts",
+            "Instruments In Control",
+            "Warning Status",
+            "Out of Control",
+            "Overall QC Pass Rate",
+            "Instrument Quality Control Status",
+            "Instrument Name",
+            "Recent Violations",
+            "Last Update"
+          ]
+        },
+        {
+          "path": "/analyzers/qc/rule-config",
+          "anchors": [
+            "Rule Configuration",
+            "Configure Westgard rules per analyzer and test combination",
+            "Configured Rule Sets",
+            "Enabled Rules"
+          ]
+        },
+        {
+          "path": "/analyzers/qc/control-lots",
+          "anchors": [
+            "Control Lots",
+            "Manage QC control lots for Westgard rule evaluation",
+            "New Control Lot",
+            "Lot Number",
+            "Control Material",
+            "Manufacturer",
+            "Control Level",
+            "Calculation Method",
+            "Expiration Date"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/qc",
+        "frontend/src/components/analyzers"
+      ],
+      "captures": "docs-manual/captures/sept15/1648590851",
+      "notes": "Figures captured 2026-09-15 on analyzers.openelis-global.org; anchors verified on testing.openelis-global.org 3.2.2.0 on 2026-09-22, where all three QC routes render in full. The page's other two screens are NOT anchored because they cannot be reached on testing: the mapping editor (/analyzers/types/<profile>/mapping) renders an empty main there, since with no Bridge there are no analyzer types to open (OGC-1214); and the held-results screen (/AnalyzerResults?id=<n>) is both instance-specific and redirected - /AnalyzerResults now lands on /analyzers. Figures 04, 05 and 09 therefore have no drift coverage. Also unanchored: /analyzers/qc/instruments/<id>, which needs a concrete instrument id."
+    },
+    {
+      "id": "general-configurations",
+      "title": "General Configurations reference",
+      "confluencePageId": "1649082375",
+      "manualDoc": "Confluence 1649082375 (draft under 1189609473)",
+      "captureSpec": "pending",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-15",
+      "routes": [
+        {
+          "path": "/MasterListsPage/SampleEntryConfigurationMenu",
+          "anchors": [
+            "Order Entry Configuration",
+            "Modify",
+            "Value",
+            "eqaEnabled",
+            "validateAccessionNumber"
+          ]
+        },
+        {
+          "path": "/MasterListsPage/ResultConfigurationMenu",
+          "anchors": [
+            "Result Entry Configuration",
+            "Modify",
+            "Value",
+            "resultsEntryUnifiedRoute",
+            "allowBulkReleaseClear"
+          ]
+        },
+        {
+          "path": "/MasterListsPage/PatientConfigurationMenu",
+          "anchors": [
+            "Patient Entry Configuration",
+            "Modify",
+            "Value",
+            "useNewAddressHierarchy",
+            "patientGpsCaptureEnabled",
+            "National ID required"
+          ]
+        },
+        {
+          "path": "/MasterListsPage/ValidationConfigurationMenu",
+          "anchors": [
+            "Validation Configuration",
+            "Modify",
+            "Value",
+            "firstNameCharset",
+            "patientIdCharset",
+            "userNameCharset"
+          ]
+        },
+        {
+          "path": "/MasterListsPage/NonConformityConfigurationMenu",
+          "anchors": [
+            "NonConformity Configuration",
+            "Modify",
+            "Value",
+            "Collection as unit",
+            "Reception as unit",
+            "sortQaEvents"
+          ]
+        },
+        {
+          "path": "/MasterListsPage/WorkPlanConfigurationMenu",
+          "anchors": [
+            "WorkPlan Configuration",
+            "Modify",
+            "Value",
+            "next visit on workplan",
+            "results on workplan",
+            "subject on workplan"
+          ]
+        },
+        {
+          "path": "/MasterListsPage/PrintedReportsConfigurationMenu",
+          "anchors": [
+            "Printed Report Configuration",
+            "Modify",
+            "Value",
+            "reportPageNumbers",
+            "SiteName",
+            "headerLeftImage"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/admin"
+      ],
+      "captures": "docs-manual/captures/sept15/1649082375",
+      "notes": "Seven property screens, one route each, anchored on the on-screen heading plus the Modify action, the Value column and setting names read off each figure. All seven verified on testing.openelis-global.org 3.2.2.0 on 2026-09-22. Site Branding (/MasterListsPage/SiteBrandingMenu) and MenuStatement Configuration (/MasterListsPage/MenuStatementConfigMenu) both load on testing but have no figure on the page, so they are not anchored."
+    },
+    {
+      "id": "clinical-order-enter",
+      "title": "Enter a clinical order",
+      "confluencePageId": "1648787462",
+      "manualDoc": "Confluence 1648787462 (draft under 1189609473)",
+      "captureSpec": "pending",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-15",
+      "routes": [
+        {
+          "path": "/order/clinical/enter",
+          "anchors": [
+            "Enter Order",
+            "Collect",
+            "Label & Store",
+            "QA Review",
+            "Lab Number",
+            "Generate Lab Number",
+            "Unique identifier for this order",
+            "Print Labels",
+            "Sample Handling",
+            "External quality assessment (EQA) sample",
+            "This order has no patient",
+            "Patient"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/order",
+        "frontend/src/components/addOrder"
+      ],
+      "captures": "docs-manual/captures/sept15/1648787462",
+      "notes": "Anchors read off figure 02 and verified on testing.openelis-global.org 3.2.2.0 on 2026-09-22. The search field's 'Scan barcode or enter lab number' text is a placeholder attribute, not page text, so it is not anchored. This is the first stage of the clinical pipeline that clinical-collect, label-store-shared and qa-review-shared continue; it is a different screen from the legacy /SamplePatientEntry wizard covered by the order-entry section."
+    },
+    {
+      "id": "sample-type-editor",
+      "title": "Add a sample type",
+      "confluencePageId": "1644658691",
+      "manualDoc": "Confluence 1644658691 (draft under 1189609473)",
+      "captureSpec": "pending",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-15",
+      "routes": [
+        {
+          "path": "/MasterListsPage/SampleTypeEditor",
+          "anchors": [
+            "Sample Type Editor",
+            "Configure sample types, display order, test associations, and domain classification.",
+            "Add Sample Type",
+            "All domains",
+            "Sample Domain",
+            "Tests",
+            "Actions"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/admin/sampleType"
+      ],
+      "captures": "docs-manual/captures/sept15/1644658691",
+      "notes": "Anchors read off figure 09 (the list, which is what loads) and verified on testing.openelis-global.org 3.2.2.0 on 2026-09-22. The Add New Sample Type form (figure 01) and the WHONET field (figure 02) sit behind Add Sample Type and an existing record, so they are not anchored. Verification of the page itself is tracked on OGC-1212. Distinct from admin-sample-type-management, which covers the legacy Manage Sample Types screen (page 1420853278) on indonesiademo."
+    },
+    {
+      "id": "test-catalogue-add-test",
+      "title": "Add a test to the test catalogue",
+      "confluencePageId": "1643872278",
+      "manualDoc": "Confluence 1643872278 (draft under 1189609473)",
+      "captureSpec": "pending",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-15",
+      "routes": [
+        {
+          "path": "/MasterListsPage/TestCatalogList",
+          "anchors": [
+            "Test Catalog",
+            "Filters",
+            "New test",
+            "Sample Type",
+            "Code",
+            "Domain",
+            "Status"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/admin/testCatalog"
+      ],
+      "captures": "docs-manual/captures/sept15/1643872278",
+      "notes": "Anchors read off figure 01 (the list) and verified on testing.openelis-global.org 3.2.2.0 on 2026-09-22. The Create new test form (figure 03) and the Active/orderable toggles (figure 05) are behind New test and an open record, so they are not anchored. Shares the /MasterListsPage/TestCatalogList route with the test-catalog-editor section, which documents a different page (1432453132); both should be re-checked together when that screen changes."
+    },
+    {
+      "id": "panel-editor",
+      "title": "Create a test panel",
+      "confluencePageId": "1644298250",
+      "manualDoc": "Confluence 1644298250 (draft under 1189609473)",
+      "captureSpec": "pending",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-15",
+      "routes": [
+        {
+          "path": "/MasterListsPage/TestCatalogList?entity=panels",
+          "anchors": [
+            "Panel Editor",
+            "Ordered bundles of tests; sample types derive from the member tests",
+            "Add Panel",
+            "Panel Name",
+            "LOINC",
+            "Sample Types (derived)",
+            "All domains",
+            "All statuses"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/admin/testCatalog"
+      ],
+      "captures": "docs-manual/captures/sept15/1644298250",
+      "notes": "Anchors read off figure 08 (the Panel Editor list) and verified on testing.openelis-global.org 3.2.2.0 on 2026-09-22. The new-panel form (figure 03), the Tests section (figure 04) and the active panel with derived sample types (figure 05) are behind Add Panel or an open panel, so they are not anchored."
+    },
+    {
+      "id": "lab-unit-add",
+      "title": "Add a lab unit",
+      "confluencePageId": "1644691457",
+      "manualDoc": "Confluence 1644691457 (draft under 1189609473)",
+      "captureSpec": "pending",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-15",
+      "routes": [
+        {
+          "path": "/MasterListsPage/LabUnitManagement",
+          "anchors": [
+            "Lab Unit Management",
+            "Configure lab units (lab sections), domain classification, test assignments, and display order.",
+            "Add Lab Unit",
+            "All domains",
+            "All statuses",
+            "Domain",
+            "Tests",
+            "Actions"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/admin/labUnitManagement"
+      ],
+      "captures": "docs-manual/captures/sept15/1644691457",
+      "notes": "Anchors read off figure 10 (the list) and verified on testing.openelis-global.org 3.2.2.0 on 2026-09-22. The Add New Lab Unit form (figure 06) and the edit view (figure 07) are behind Add Lab Unit and an open record, so they are not anchored. Shares the /MasterListsPage/LabUnitManagement route with the lab-units-editor section, which documents a different page (1668972546)."
+    },
+    {
+      "id": "catalog-import-csv",
+      "title": "Import a test catalog from CSV",
+      "confluencePageId": "1666547755",
+      "manualDoc": "Confluence 1666547755",
+      "captureSpec": "pending",
+      "jiraEpic": "OGC-1194",
+      "featureDoc": "OGC-1225",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-22",
+      "routes": [
+        {
+          "path": "/MasterListsPage/CatalogImport",
+          "anchors": [
+            "Import Catalog (CSV)",
+            "Add CSV files",
+            "Preview",
+            "Apply",
+            "Needs your decision"
+          ]
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/admin/catalogImport"
+      ],
+      "captures": "dev/oe-catalog-import/manual-import-catalog/images",
+      "notes": "Anchors read off figure 01 (the empty import page) and verified on testing.openelis-global.org 3.2.2.0 on 2026-09-22. 'Catalog area' is deliberately NOT anchored: it is the file-table column header and only exists after a file has been added, so anchoring it would fail on every load. 'Nothing is waiting for a decision.' is likewise not anchored, since the queue is shared and fills up; the 'Needs your decision' heading is always rendered. Page carries a known-defect panel for OGC-1228 (Apply writes nothing on 3.2.2.0); when that ships, remove the panel and the Step 6 workaround, re-check the 'Not yet available' list, and bump capturedVersion."
+    },
+    {
+      "id": "test-catalog-editor",
+      "title": "Test Catalog Management: the unified editor",
+      "confluencePageId": "1432453132",
+      "manualDoc": "Confluence 1432453132 (under the workflow overview 1437270018)",
+      "captureSpec": "pending",
+      "captures": "openelis-work docs-manual/captures/test-catalog-editor",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-21",
+      "reverifiedDate": "2026-09-22",
+      "jiraEpic": "OGC-949",
+      "featureDoc": "OGC-1203",
+      "frs": "pending",
+      "routes": [
+        {
+          "path": "/MasterListsPage/TestCatalogList",
+          "anchors": [
+            "Test Catalog",
+            "Filters",
+            "tests have configuration issues",
+            "New test",
+            "Sample Type",
+            "Code",
+            "Domain",
+            "Status",
+            "No LOINC",
+            "Items per page"
+          ]
+        }
+      ],
+      "pendingRoutes": [
+        {
+          "path": "/MasterListsPage/TestCatalogList?entity=panels",
+          "anchors": [
+            "A panel's domain is set on the panel itself, not worked out from the sample types its tests use.",
+            "Ordered bundles of tests; sample types derive from the member tests",
+            "Add Panel",
+            "Panel Name",
+            "LOINC",
+            "Sample Types (derived)",
+            "Mixed domain"
+          ],
+          "why": "Reached by clicking Panel Editor, not by a cold visit. All seven anchors verified present on testing 2026-09-22."
+        },
+        {
+          "path": "/MasterListsPage/TestCatalogEditor/new/basic-info",
+          "anchors": [
+            "Create new test",
+            "Test name",
+            "Reporting name",
+            "Test code",
+            "Lab Unit",
+            "Sample types",
+            "Select at least one sample type.",
+            "AMR surveillance test",
+            "Orderable",
+            "The test is created Inactive. Configure its sections, then activate it to make it orderable."
+          ],
+          "why": "Reached by clicking New test. All ten anchors verified present on testing 2026-09-22. Covers the create form and, via the left navigation, the fifteen section names."
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/admin/testCatalog"
+      ],
+      "notes": "Shares /MasterListsPage/TestCatalogList with the test-catalogue-add-test section, which documents a different page (1643872278); re-check both together when that screen changes. Anchors deliberately exclude 'Search by test name' (a placeholder attribute, not matchable text) and 'Coverage incomplete' (data-dependent; absent from testing). The editor's per-test route is instance-specific (/MasterListsPage/TestCatalogEditor/<id>/basic-info) and is not anchored; the create-test route in pendingRoutes covers the same shell. Figures were captured on a development build of develop d538b3c32; the counts in them (854 tests, 618 issues) are that instance's data, not testing's."
+    },
+    {
+      "id": "lab-units-editor",
+      "title": "Manage lab units",
+      "confluencePageId": "1668972546",
+      "manualDoc": "Confluence 1668972546 (under the workflow overview 1437270018)",
+      "captureSpec": "pending",
+      "captures": "openelis-work docs-manual/captures/lab-units-editor",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-21",
+      "reverifiedDate": "2026-09-22",
+      "jiraEpic": "OGC-949",
+      "featureDoc": "OGC-1211",
+      "frs": "pending",
+      "routes": [
+        {
+          "path": "/MasterListsPage/LabUnitManagement",
+          "anchors": [
+            "Lab Unit Management",
+            "Configure lab units (lab sections), domain classification, test assignments, and display order.",
+            "Search lab units...",
+            "Filter by Domain",
+            "Filter by status",
+            "All domains",
+            "All statuses",
+            "Add Lab Unit",
+            "Domain",
+            "Status",
+            "Tests",
+            "Actions"
+          ]
+        }
+      ],
+      "pendingRoutes": [
+        {
+          "path": "/MasterListsPage/LabUnitManagement/new/basic-info",
+          "anchors": [
+            "Add New Lab Unit",
+            "Name (English)",
+            "Enter a unique name for this lab unit",
+            "Determines which order entry and sample collection fields apply to orders routed to this lab unit.",
+            "Create Lab Unit"
+          ],
+          "why": "Reached by clicking Add Lab Unit. All five anchors verified present on testing 2026-09-22. Anchors exclude the non-English name fields: testing has only English and Francais enabled, the development build had six languages."
+        }
+      ],
+      "uiPaths": [
+        "frontend/src/components/admin/labUnitManagement"
+      ],
+      "notes": "Shares /MasterListsPage/LabUnitManagement with the lab-unit-add section, which documents a different page (1644691457). The Assign Tests and Reassign Tests dialogs, the Change Lab Unit Domain? confirmation and the Display Order section all sit behind an open record and are not anchored; their wording was verified on testing on 2026-09-22 by opening the Assign Tests dialog on Hematology. Figures were captured on a development build of develop d538b3c32; testing has 18 lab units to that instance's 35."
     }
-   ],
-   "uiPaths": [
-    "frontend/src/components/qc"
-   ],
-   "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.2.0",
-   "capturedDate": "2026-09-02",
-   "jiraEpic": "OGC-684",
-   "featureDoc": "OGC-1167",
-   "captureSpec": "tests/docs/qc-capture.docs.spec.ts"
-  }
- ]
+  ]
 }
