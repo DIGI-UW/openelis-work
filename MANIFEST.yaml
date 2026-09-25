@@ -3970,14 +3970,26 @@
 - id: clinical-order-entry-v4
   type: mockup
   path: designs/sample-collection/clinical-order-entry-v4.html
-  spec: designs/sample-collection/order-entry-three-workflows.md
+  spec: designs/sample-collection/clinical-order-entry-v4.md
+  jsx: designs/sample-collection/clinical-order-entry-v4.jsx
+  breakdown: designs/sample-collection/clinical-order-entry-v4-breakdown.md
+  acceptance_tests: designs/sample-collection/clinical-order-entry-v4-acceptance-tests.md
+  research: designs/sample-collection/clinical-order-entry-v4-research-brief.md
+  companion: designs/sample-collection/env-vector-order-entry-alignment.md
+  preview: designs/sample-collection/clinical-order-entry-v4.html
   category: vector-surveillance
-  description: Clinical Enter Order stage under Order Entry FRS v4 — explicit save model (Save & Next / Save & Exit / Discard, no autosave), lab number reserved on form load, restored Ward/Unit/Department typeahead, restored Order Date + new Order Time alongside Required By, corrected saved-state indicator
+  description: >
+    Clinical Order Entry v4 (FRS v0.8). Enter Order + Prepare Samples (+ optional Sample check),
+    whole-step all-or-nothing saves, Container Types and Body Sites in the test catalog, shared
+    ordered-tests / samples tables and summary strip, search-first creation, lab time zone,
+    working labels. Two-phase plan. Supersedes the 2026-09-10 Enter Order preview and OGC-1066.
   links:
-    jira: [OGC-1146, OGC-1066]
+    jira: [OGC-1266, OGC-1146, OGC-1066]
     github: https://github.com/DIGI-UW/openelis-work/issues/311
     gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/clinical-order-entry-v4
+    preview: https://digi-uw.github.io/openelis-work/designs/sample-collection/clinical-order-entry-v4.html
   added: "2026-09-10"
+  updated: "2026-09-26"
 - id: environmental-order-entry-v2
   type: mockup
   path: designs/sample-collection/environmental-order-entry-v2.html
