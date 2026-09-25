@@ -1,0 +1,268 @@
+{
+  "generatedAt": "2026-09-25T16:34:42Z",
+  "reportAt": "2026-09-25T16:33:25.457Z",
+  "sections": 70,
+  "contracts": 70,
+  "ok": 2,
+  "review": 52,
+  "errors": 8,
+  "stale": [
+    "add-patient",
+    "admin-compliance-standards",
+    "admin-sample-type-management",
+    "admin-vector-reference-data",
+    "aliquot",
+    "analyzer-file-import",
+    "analyzer-framework",
+    "analyzer-mapping-qc",
+    "analyzer-setup",
+    "application-properties",
+    "barcode-labels",
+    "calculated-value-tests",
+    "calendar-management",
+    "catalog-import-csv",
+    "clinical-collect",
+    "clinical-order-enter",
+    "dictionary-menu",
+    "electronic-lab-notebook",
+    "electronic-signatures",
+    "environmental-order-results",
+    "environmental-surveillance",
+    "general-configurations",
+    "lab-number-management",
+    "lab-unit-add",
+    "lab-units-editor",
+    "label-store-shared",
+    "laporan-hasil-report",
+    "logging-configuration",
+    "menu-configuration",
+    "nce-capa",
+    "order-entry",
+    "order-search",
+    "organization-management",
+    "organizations-management",
+    "panel-editor",
+    "patient-management",
+    "patient-merge",
+    "patient-order-enhancements",
+    "program-entry",
+    "provider-management",
+    "qa-review-shared",
+    "qc-control-lot",
+    "qc-empty-chart",
+    "qc-review",
+    "qc-setup-instrument",
+    "reference-lab-results",
+    "reflex-testing",
+    "register-new-patient",
+    "result-reporting-configuration",
+    "result-validation",
+    "results-entry",
+    "results-entry-legacy",
+    "running-reports",
+    "sample-acceptance-checklist",
+    "sample-shipment-referral",
+    "sample-storage",
+    "sample-storage-management",
+    "sample-type-editor",
+    "search-index-management",
+    "site-information",
+    "test-catalog-editor",
+    "test-catalogue-add-test",
+    "test-notification-configuration",
+    "user-management",
+    "validation",
+    "validation-v4",
+    "vector-surveillance",
+    "vector-surveillance-report"
+  ],
+  "capturedOld": 33,
+  "unchecked": [],
+  "instances": {
+    "analyzers.openelis-global.org": {
+      "contracts": 1,
+      "checked": 1,
+      "ok": 0,
+      "review": 0,
+      "drift": 0,
+      "error": 1,
+      "version": "3.2.3.0",
+      "checkedAt": "2026-09-25T16:24:40.713Z"
+    },
+    "pngtest.openelis-global.org": {
+      "contracts": 2,
+      "checked": 2,
+      "ok": 2,
+      "review": 0,
+      "drift": 0,
+      "error": 0,
+      "version": "3.2.2.0",
+      "checkedAt": "2026-09-25T16:25:36.483Z"
+    },
+    "testing.openelis-global.org": {
+      "contracts": 67,
+      "checked": 67,
+      "ok": 0,
+      "review": 52,
+      "drift": 8,
+      "error": 7,
+      "version": "3.2.3.0",
+      "checkedAt": "2026-09-25T16:33:25.450Z"
+    }
+  },
+  "drift": [
+    {
+      "id": "analyzer-framework",
+      "base": "testing.openelis-global.org",
+      "missing": [
+        "/analyzers/types :: Analyzer Types"
+      ],
+      "page": null
+    },
+    {
+      "id": "analyzer-setup",
+      "base": "testing.openelis-global.org",
+      "missing": [
+        "/analyzers :: Manage laboratory analyzers and field mappings",
+        "/analyzers :: Add Analyzer",
+        "/analyzers :: Total Analyzers",
+        "/analyzers :: Analyzer type",
+        "/analyzers?setup=instrument :: Set up a new analyzer",
+        "/analyzers?setup=instrument :: Analyzer name",
+        "/analyzers/types :: Analyzer Types",
+        "/analyzers/types :: The reusable setups behind your analyzers.",
+        "/analyzers/types :: Reusable analyzer setup"
+      ],
+      "page": "1648361491"
+    },
+    {
+      "id": "label-store-shared",
+      "base": "testing.openelis-global.org",
+      "missing": [
+        "/order/clinical/label?labNumber={{ORDER_IN_PROGRESS}} :: Save & Next"
+      ],
+      "page": null
+    },
+    {
+      "id": "menu-configuration",
+      "base": "testing.openelis-global.org",
+      "missing": [
+        "/MasterListsPage/globalMenuManagement :: Side Nav Active",
+        "/MasterListsPage/globalMenuManagement :: Show Child Elements",
+        "/MasterListsPage/globalMenuManagement :: Submit"
+      ],
+      "page": null
+    },
+    {
+      "id": "organization-management",
+      "base": "testing.openelis-global.org",
+      "missing": [
+        "/MasterListsPage/organizationManagement :: Organization Management",
+        "/MasterListsPage/organizationEdit?ID=0 :: Add Organization"
+      ],
+      "page": null
+    },
+    {
+      "id": "patient-management",
+      "base": "testing.openelis-global.org",
+      "missing": [
+        "/PatientManagement :: Patient Results"
+      ],
+      "page": null
+    },
+    {
+      "id": "program-entry",
+      "base": "testing.openelis-global.org",
+      "missing": [
+        "/MasterListsPage/program :: Add/Edit Program",
+        "/MasterListsPage/program :: Program Name",
+        "/MasterListsPage/program :: Program Code",
+        "/MasterListsPage/program :: Test Section"
+      ],
+      "page": null
+    },
+    {
+      "id": "vector-surveillance",
+      "base": "testing.openelis-global.org",
+      "missing": [
+        "/order/vector/enter :: Tests & Panels",
+        "/vector/identification :: Species Distribution",
+        "/vector/identification :: Identify",
+        "/vector/identification :: Split"
+      ],
+      "page": "1420230657"
+    }
+  ],
+  "errorRoutes": [
+    {
+      "id": "analyzer-mapping-qc",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/analyzers/qc/db :: redirected to /qa/qc/dashboard",
+        "/analyzers/qc/rule-config :: redirected to /qa/qc/rule-config",
+        "/analyzers/qc/control-lots :: redirected to /qa/qc/control-lots"
+      ],
+      "page": "1648590851"
+    },
+    {
+      "id": "environmental-surveillance",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/LogbookResults?type= :: redirected to /Results"
+      ],
+      "page": "1420099592"
+    },
+    {
+      "id": "qc-control-lot",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/analyzers/qc/control-lots :: redirected to /qa/qc/control-lots"
+      ],
+      "page": null
+    },
+    {
+      "id": "qc-empty-chart",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/analyzers/qc/db :: redirected to /qa/qc/dashboard",
+        "/analyzers/qc/control-lots :: redirected to /qa/qc/control-lots",
+        "/analyzers/qc/rule-config :: redirected to /qa/qc/rule-config"
+      ],
+      "page": null
+    },
+    {
+      "id": "qc-review",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/analyzers/qc/db :: redirected to /qa/qc/dashboard"
+      ],
+      "page": null
+    },
+    {
+      "id": "qc-setup-instrument",
+      "base": "analyzers.openelis-global.org",
+      "routes": [
+        "/analyzers/qc/rule-config :: redirected to /qa/qc/rule-config"
+      ],
+      "page": null
+    },
+    {
+      "id": "results-entry-legacy",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/LogbookResults?type= :: redirected to /Results"
+      ],
+      "page": null
+    },
+    {
+      "id": "sample-shipment-referral",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/SampleShipment :: redirected to /SampleShipment/boxes",
+        "/ReferredOutTests :: redirected to /api/OpenELIS-Global/ReferredOutTests"
+      ],
+      "page": null
+    }
+  ],
+  "summary": "70 of 70 contracts checked: 2 ok, 52 review, 8 drift, 8 route errors."
+}
