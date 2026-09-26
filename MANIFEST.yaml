@@ -4016,6 +4016,24 @@
     jira: [OGC-1066]
   added: "2026-06-25"
 
+- id: navigation-redesign
+  type: html
+  path: designs/system/navigation-redesign-preview.html
+  spec: designs/system/navigation-redesign.md
+  jsx: designs/system/navigation-redesign-mockup.jsx
+  data: designs/system/navigation-redesign-data/
+  preview: designs/system/navigation-redesign-preview.html
+  category: system
+  description: >
+    Navigation Redesign (FRS v0.1, approved 2026-09-24): main side menu regrouped into six
+    workflow sections with Home and Alerts pinned, max depth 3, one entry per destination,
+    retired rows redirected; Admin sidebar grouped into five buckets. IA only, no page redesign.
+  links:
+    jira: [OGC-1241]
+    gallery: https://digi-uw.github.io/openelis-work/#/system/navigation-redesign
+    preview: https://digi-uw.github.io/openelis-work/designs/system/navigation-redesign-preview.html
+  added: "2026-09-26"
+
 - id: analyzer-import-redesign-v2
   type: jsx
   path: designs/system/analyzer-import-redesign-v2.jsx

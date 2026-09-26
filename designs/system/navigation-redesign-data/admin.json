@@ -1,0 +1,782 @@
+{
+ "current": [
+  {
+   "label": "Reflex Tests Configuration",
+   "key": null,
+   "kids": [
+    {
+     "key": "reflex",
+     "label": "Reflex Tests Management"
+    },
+    {
+     "key": "calculatedValue",
+     "label": "Calculated Value Tests Management"
+    }
+   ]
+  },
+  {
+   "label": "Microbiology reference data",
+   "key": null,
+   "kids": [
+    {
+     "key": "MicrobiologyReference/organisms",
+     "label": "Organisms"
+    },
+    {
+     "key": "MicrobiologyReference/antibiotics",
+     "label": "Antibiotics"
+    },
+    {
+     "key": "MicrobiologyReference/ast-panels",
+     "label": "AST Panels"
+    },
+    {
+     "key": "MicrobiologyReference/culture-setups",
+     "label": "Culture Setups"
+    },
+    {
+     "key": "MicrobiologyReference/breakpoints",
+     "label": "Breakpoints"
+    },
+    {
+     "key": "MicrobiologyReference/patient-origins",
+     "label": "Patient Origins"
+    }
+   ]
+  },
+  {
+   "label": "Test Catalogue Management",
+   "key": null,
+   "kids": [
+    {
+     "key": "SampleTypeEditor",
+     "label": "Sample Type Editor"
+    },
+    {
+     "key": "TestCatalogList",
+     "label": "Test Catalogue Editor"
+    },
+    {
+     "key": "TestCatalogList?entity=panels",
+     "label": "Panel Editor"
+    },
+    {
+     "key": "LabUnitManagement",
+     "label": "Lab Units Editor"
+    },
+    {
+     "key": "CatalogImport",
+     "label": "Import Catalog (CSV)"
+    }
+   ]
+  },
+  {
+   "label": "Lab Number Management",
+   "key": "labNumber",
+   "kids": []
+  },
+  {
+   "label": "Program Entry",
+   "key": "program",
+   "kids": []
+  },
+  {
+   "label": "Provider Management",
+   "key": null,
+   "kids": [
+    {
+     "key": "providerMenu",
+     "label": "Provider Management"
+    },
+    {
+     "key": "providerTitleMenu",
+     "label": "Provider Titles"
+    }
+   ]
+  },
+  {
+   "label": "Label Presets",
+   "key": "labelPresets",
+   "kids": []
+  },
+  {
+   "label": "Vector Surveillance",
+   "key": null,
+   "kids": [
+    {
+     "key": "vectorSurveillanceSetup/species",
+     "label": "Species"
+    },
+    {
+     "key": "vectorSurveillanceSetup/trap-types",
+     "label": "Trap Types"
+    },
+    {
+     "key": "vectorSurveillanceSetup/sampling-sites",
+     "label": "Sampling Sites"
+    },
+    {
+     "key": "vectorSurveillanceSetup/manual-entry-fields",
+     "label": "Manual Entry Field Map"
+    }
+   ]
+  },
+  {
+   "label": "Organization Management",
+   "key": "organizationManagement",
+   "kids": []
+  },
+  {
+   "label": "Result Reporting Configuration",
+   "key": "resultReportingConfiguration",
+   "kids": []
+  },
+  {
+   "label": "User Management",
+   "key": "userManagement",
+   "kids": []
+  },
+  {
+   "label": "Batch test reassignment and cancelation",
+   "key": "batchTestReassignment",
+   "kids": []
+  },
+  {
+   "label": "Test Management",
+   "key": "testManagementConfigMenu",
+   "kids": []
+  },
+  {
+   "label": "Menu Configuration",
+   "key": null,
+   "kids": [
+    {
+     "key": "globalMenuManagement",
+     "label": "Global Menu"
+    },
+    {
+     "key": "billingMenuManagement",
+     "label": "Billing Menu"
+    },
+    {
+     "key": "nonConformityMenuManagement",
+     "label": "Non-Conform Menu"
+    },
+    {
+     "key": "patientMenuManagement",
+     "label": "Patient Menu"
+    },
+    {
+     "key": "studyMenuManagement",
+     "label": "Study Menu"
+    }
+   ]
+  },
+  {
+   "label": "General Configurations",
+   "key": null,
+   "kids": [
+    {
+     "key": "NonConformityConfigurationMenu",
+     "label": "NonConformity Configuration"
+    },
+    {
+     "key": "MenuStatementConfigMenu",
+     "label": "MenuStatement Configuration"
+    },
+    {
+     "key": "WorkPlanConfigurationMenu",
+     "label": "WorkPlan Configuration"
+    },
+    {
+     "key": "SiteInformationMenu",
+     "label": "Site Information"
+    },
+    {
+     "key": "SiteBrandingMenu",
+     "label": "Site Branding"
+    },
+    {
+     "key": "ResultConfigurationMenu",
+     "label": "Result Entry Configuration"
+    },
+    {
+     "key": "PatientConfigurationMenu",
+     "label": "Patient Entry Configuration"
+    },
+    {
+     "key": "PrintedReportsConfigurationMenu",
+     "label": "Printed Report Configuration"
+    },
+    {
+     "key": "SampleEntryConfigurationMenu",
+     "label": "Order Entry Configuration"
+    },
+    {
+     "key": "ValidationConfigurationMenu",
+     "label": "Validation Configuration"
+    }
+   ]
+  },
+  {
+   "label": "Sample Acceptance Checklist",
+   "key": null,
+   "kids": [
+    {
+     "key": "SampleAcceptanceChecklist/all",
+     "label": "All domains"
+    },
+    {
+     "key": "SampleAcceptanceChecklist/clinical",
+     "label": "Clinical"
+    },
+    {
+     "key": "SampleAcceptanceChecklist/environmental",
+     "label": "Environmental"
+    },
+    {
+     "key": "SampleAcceptanceChecklist/vector",
+     "label": "Vector"
+    }
+   ]
+  },
+  {
+   "label": "Application Properties",
+   "key": "commonproperties",
+   "kids": []
+  },
+  {
+   "label": "Test Notification Configuration",
+   "key": "testNotificationConfigMenu",
+   "kids": []
+  },
+  {
+   "label": "Dictionary Menu",
+   "key": "DictionaryMenu",
+   "kids": []
+  },
+  {
+   "label": "Notify User",
+   "key": "NotifyUser",
+   "kids": []
+  },
+  {
+   "label": "Search Index Management",
+   "key": "SearchIndexManagement",
+   "kids": []
+  },
+  {
+   "label": "Logging Configuration",
+   "key": "loggingManagement",
+   "kids": []
+  },
+  {
+   "label": "Database Cleaning (training only)",
+   "key": "DatabaseCleaning",
+   "kids": []
+  },
+  {
+   "label": "Localization",
+   "key": null,
+   "kids": [
+    {
+     "key": "languageManagement",
+     "label": "Language Management"
+    },
+    {
+     "key": "translationManagement",
+     "label": "Translation Management"
+    }
+   ]
+  },
+  {
+   "label": "External Connections",
+   "key": "externalConnections",
+   "kids": []
+  },
+  {
+   "label": "FHIR Data Export Status",
+   "key": "dataExportStatus",
+   "kids": []
+  },
+  {
+   "label": "Calendar Management",
+   "key": "calendarManagement",
+   "kids": []
+  },
+  {
+   "label": "Legacy Admin",
+   "key": "(JSP) /MasterListsPage",
+   "kids": []
+  }
+ ],
+ "orphans": [
+  [
+   "barcodeConfiguration",
+   "Barcode Configuration"
+  ],
+  [
+   "ComplianceStandardsAdmin",
+   "Compliance Standards"
+  ],
+  [
+   "notificationTriggerConfig",
+   "Notification Triggers"
+  ]
+ ],
+ "target": [
+  {
+   "bucket": "Config",
+   "note": "How this lab's workflows behave",
+   "entries": [
+    {
+     "group": "Workflow Settings",
+     "items": [
+      {
+       "key": "SampleEntryConfigurationMenu",
+       "label": "Order Entry",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "PatientConfigurationMenu",
+       "label": "Patient Entry",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "ResultConfigurationMenu",
+       "label": "Result Entry",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "ValidationConfigurationMenu",
+       "label": "Validation",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "WorkPlanConfigurationMenu",
+       "label": "Workplan",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "PrintedReportsConfigurationMenu",
+       "label": "Printed Reports",
+       "note": null,
+       "tier": "keep"
+      }
+     ],
+     "note": "Was \"General Configurations\"; labels drop the repeated word \"Configuration\""
+    },
+    {
+     "key": "commonproperties",
+     "label": "Application Properties",
+     "note": null,
+     "tier": "keep"
+    },
+    {
+     "group": "Menu Configuration",
+     "items": [
+      {
+       "key": "globalMenuManagement",
+       "label": "Main Menu",
+       "note": "Relabel \"Global Menu\"",
+       "tier": "keep"
+      },
+      {
+       "key": "billingMenuManagement",
+       "label": "Billing Menu",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "nonConformityMenuManagement",
+       "label": "Non-Conform Menu",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "patientMenuManagement",
+       "label": "Patient Menu",
+       "note": null,
+       "tier": "keep"
+      }
+     ],
+     "note": null
+    },
+    {
+     "key": "labNumber",
+     "label": "Lab Number Format",
+     "note": "Relabel \"Lab Number Management\"",
+     "tier": "keep"
+    },
+    {
+     "key": "barcodeConfiguration",
+     "label": "Barcode Configuration",
+     "note": "Orphan page added to the sidebar",
+     "tier": "keep"
+    },
+    {
+     "key": "labelPresets",
+     "label": "Label Presets",
+     "note": null,
+     "tier": "keep"
+    },
+    {
+     "key": "calendarManagement",
+     "label": "Calendar",
+     "note": null,
+     "tier": "keep"
+    },
+    {
+     "group": "Localization",
+     "items": [
+      {
+       "key": "languageManagement",
+       "label": "Languages",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "translationManagement",
+       "label": "Translations",
+       "note": null,
+       "tier": "keep"
+      }
+     ],
+     "note": null
+    }
+   ]
+  },
+  {
+   "bucket": "Organization",
+   "note": "Who the lab is and who works in it",
+   "entries": [
+    {
+     "key": "SiteInformationMenu",
+     "label": "Site Information",
+     "note": null,
+     "tier": "keep"
+    },
+    {
+     "key": "SiteBrandingMenu",
+     "label": "Site Branding",
+     "note": null,
+     "tier": "keep"
+    },
+    {
+     "key": "userManagement",
+     "label": "Users",
+     "note": null,
+     "tier": "keep"
+    },
+    {
+     "key": "NotifyUser",
+     "label": "Notify Users",
+     "note": null,
+     "tier": "keep"
+    },
+    {
+     "key": "organizationManagement",
+     "label": "Organizations",
+     "note": null,
+     "tier": "keep"
+    },
+    {
+     "group": "Providers",
+     "items": [
+      {
+       "key": "providerMenu",
+       "label": "Providers",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "providerTitleMenu",
+       "label": "Provider Titles",
+       "note": null,
+       "tier": "keep"
+      }
+     ],
+     "note": null
+    }
+   ]
+  },
+  {
+   "bucket": "Resources",
+   "note": "Catalog and reference data the lab tests against",
+   "entries": [
+    {
+     "group": "Test Catalog",
+     "items": [
+      {
+       "key": "TestCatalogList",
+       "label": "Tests",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "TestCatalogList?entity=panels",
+       "label": "Panels",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "SampleTypeEditor",
+       "label": "Sample Types",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "LabUnitManagement",
+       "label": "Lab Units",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "CatalogImport",
+       "label": "Import Catalog (CSV)",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "reflex",
+       "label": "Reflex Rules",
+       "note": "Moved in from \"Reflex Tests Configuration\"",
+       "tier": "keep"
+      },
+      {
+       "key": "calculatedValue",
+       "label": "Calculated Values",
+       "note": "Moved in",
+       "tier": "keep"
+      }
+     ],
+     "note": null
+    },
+    {
+     "key": "testManagementConfigMenu",
+     "label": "Test Management (legacy)",
+     "note": "Still the only door to Methods, Units of Measure and Result Select Lists; hide once the catalog covers them",
+     "tier": "hide-later"
+    },
+    {
+     "group": "Microbiology Reference",
+     "items": [
+      {
+       "key": "MicrobiologyReference/organisms",
+       "label": "Organisms",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "MicrobiologyReference/antibiotics",
+       "label": "Antibiotics",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "MicrobiologyReference/ast-panels",
+       "label": "AST Panels",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "MicrobiologyReference/culture-setups",
+       "label": "Culture Setups",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "MicrobiologyReference/breakpoints",
+       "label": "Breakpoints",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "MicrobiologyReference/patient-origins",
+       "label": "Patient Origins",
+       "note": null,
+       "tier": "keep"
+      }
+     ],
+     "note": null
+    },
+    {
+     "group": "Vector Surveillance",
+     "items": [
+      {
+       "key": "vectorSurveillanceSetup/species",
+       "label": "Species",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "vectorSurveillanceSetup/trap-types",
+       "label": "Trap Types",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "vectorSurveillanceSetup/sampling-sites",
+       "label": "Sampling Sites",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "vectorSurveillanceSetup/manual-entry-fields",
+       "label": "Manual Entry Field Map",
+       "note": null,
+       "tier": "keep"
+      }
+     ],
+     "note": null
+    },
+    {
+     "key": "program",
+     "label": "Programs",
+     "note": "Relabel \"Program Entry\"",
+     "tier": "keep"
+    },
+    {
+     "key": "DictionaryMenu",
+     "label": "Dictionary",
+     "note": "Relabel \"Dictionary Menu\"",
+     "tier": "keep"
+    }
+   ]
+  },
+  {
+   "bucket": "Automation",
+   "note": "Integrations, notifications and system upkeep",
+   "entries": [
+    {
+     "key": "externalConnections",
+     "label": "External Connections",
+     "note": null,
+     "tier": "keep"
+    },
+    {
+     "key": "dataExportStatus",
+     "label": "FHIR Data Export Status",
+     "note": null,
+     "tier": "keep"
+    },
+    {
+     "key": "resultReportingConfiguration",
+     "label": "Result Reporting",
+     "note": null,
+     "tier": "keep"
+    },
+    {
+     "key": "testNotificationConfigMenu",
+     "label": "Test Notifications",
+     "note": null,
+     "tier": "keep"
+    },
+    {
+     "key": "notificationTriggerConfig",
+     "label": "Notification Triggers",
+     "note": "Orphan page added to the sidebar",
+     "tier": "keep"
+    },
+    {
+     "key": "batchTestReassignment",
+     "label": "Batch Test Reassignment",
+     "note": null,
+     "tier": "keep"
+    },
+    {
+     "key": "SearchIndexManagement",
+     "label": "Search Index",
+     "note": null,
+     "tier": "keep"
+    },
+    {
+     "key": "loggingManagement",
+     "label": "Logging",
+     "note": null,
+     "tier": "keep"
+    },
+    {
+     "key": "DatabaseCleaning",
+     "label": "Database Cleaning",
+     "note": "Training installations only (existing gate)",
+     "tier": "keep"
+    }
+   ]
+  },
+  {
+   "bucket": "Compliance",
+   "note": "Rules that keep samples and results defensible",
+   "entries": [
+    {
+     "group": "Sample Acceptance Checklist",
+     "items": [
+      {
+       "key": "SampleAcceptanceChecklist/all",
+       "label": "All Domains",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "SampleAcceptanceChecklist/clinical",
+       "label": "Clinical",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "SampleAcceptanceChecklist/environmental",
+       "label": "Environmental",
+       "note": null,
+       "tier": "keep"
+      },
+      {
+       "key": "SampleAcceptanceChecklist/vector",
+       "label": "Vector",
+       "note": null,
+       "tier": "keep"
+      }
+     ],
+     "note": null
+    },
+    {
+     "key": "NonConformityConfigurationMenu",
+     "label": "Non-Conformity Reasons",
+     "note": "Moved from General Configurations",
+     "tier": "keep"
+    },
+    {
+     "key": "ComplianceStandardsAdmin",
+     "label": "Compliance Standards",
+     "note": "Orphan page added to the sidebar",
+     "tier": "keep"
+    }
+   ]
+  }
+ ],
+ "retire": [
+  [
+   "studyMenuManagement",
+   "Study Menu",
+   "remove",
+   "Study (RetroCI); D-021"
+  ],
+  [
+   "MenuStatementConfigMenu",
+   "MenuStatement Configuration",
+   "remove",
+   "Same data as Menu Configuration with an older UI (admin MVP Q2)"
+  ]
+ ],
+ "pinned": [
+  [
+   "Legacy Admin",
+   "keep",
+   "Pinned to the bottom until no JSP-only admin page remains"
+  ]
+ ]
+}
