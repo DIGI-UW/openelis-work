@@ -199,7 +199,7 @@ function nextStepText(){
   switch(cs){
     case 'inoculation':
       if(S.inoc.length===0) return {txt:'Case received. Record the initial inoculation to start incubation.',act:['Start inoculation','startInoculation']};
-      return {txt:'Incubating. Mark the case positive when the instrument signals growth, or record no growth when incubation is complete.',act:['Mark positive','markPositive']};
+      return {txt:'Incubating. Mark the case positive when the instrument signals growth, or mark no growth when incubation is complete.',act:['Mark positive','markPositive']};
     case 'isolates':
       if(S.iso.length===0) return {txt:'Positive signal. Subculture the bottle and add an isolate with its Gram stain.',act:['Add isolate','addIsolate']};
       return {txt:'Growth detected. Identify each isolate — manually or from the analyzer.',act:['Identify organism','identify:'+firstPending()]};
@@ -253,7 +253,7 @@ function secInoc(){
   '<button class="btn b-ter b-sm" '+(primaryExists?'':'disabled title="Add a primary inoculation first"')+' onclick="act(\'addSubculture\')">+ Add subculture</button></div>'+
   (S.inoc.length? '<table class="t"><thead><tr><th>Media</th><th>Source</th><th>Bottle/Plate</th><th>Reagent lot</th></tr></thead><tbody>'+rows+'</tbody></table>'
     : '<div class="empty">No media recorded yet. <b>+ Start inoculation</b> to begin.</div>')+
-  (primaryExists && S.stage==='INCUBATING'? '<div class="acts"><button class="btn b-ghost b-sm" onclick="act(\'markPositive\')">Mark positive</button><button class="btn b-ghost b-sm" onclick="act(\'markNoGrowth\')">Record no growth</button></div>':'')+
+  (primaryExists && S.stage==='INCUBATING'? '<div class="acts"><button class="btn b-ghost b-sm" onclick="act(\'markPositive\')">Mark positive</button><button class="btn b-ghost b-sm" onclick="act(\'markNoGrowth\')">Mark no growth</button></div>':'')+
   '</section>';
 }
 function secTimeline(){

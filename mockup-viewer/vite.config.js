@@ -6,7 +6,7 @@ import fs from 'fs';
 const BASE_URL = '/openelis-work/';
 const SITE_URL = 'https://digi-uw.github.io/openelis-work/';
 
-/** Copy designs/*.md, .html, and .jsx files into dist so they're fetchable at runtime */
+/** Copy design documents, previews, components and script assets into dist so they're fetchable at runtime */
 function copyDesignsPlugin() {
   return {
     name: 'copy-designs',
@@ -21,7 +21,7 @@ function copyDesignsPlugin() {
           const destPath = path.join(dest, entry.name);
           if (entry.isDirectory()) {
             copyRecursive(srcPath, destPath);
-          } else if (entry.name.endsWith('.md') || entry.name.endsWith('.html') || entry.name.endsWith('.jsx')) {
+          } else if (entry.name.endsWith('.md') || entry.name.endsWith('.html') || entry.name.endsWith('.jsx') || entry.name.endsWith('.js')) {
             fs.mkdirSync(dest, { recursive: true });
             fs.copyFileSync(srcPath, destPath);
           }

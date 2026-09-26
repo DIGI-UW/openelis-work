@@ -1,11 +1,13 @@
 # M-09 WHONET Export — Functional Requirements Specification
 
-**Version:** 2.0 (consolidated — folds review edits inline; no separate addendum)
-**Date:** 2026-06-07
+**Version:** 2.1 (consolidated — folds review edits inline; no separate addendum). **v2.1 adds no-growth rows** — see §4.6, §5, AC-M09-24…27, and the changelog in §13.
+**Date:** 2026-08-27 (v2.0: 2026-06-07)
 **Module:** Microbiology → WHONET Export + Admin → WHONET Mapping
 **Phase:** 1B
 **Owner:** Microbiology Module (M-00 parent)
 **Status:** Draft
+
+> **v2.1 amendment in one line:** v2.0 exported one row per isolate, so a culture that grew nothing produced no row at all. For **sample-based** GLASS reporting the specimens that grew nothing are the **denominator**, so v2.1 exports them too — as no-growth rows — and stops gating export on an isolate existing. Companion amendment to M-15 v1.1 §4.9/§4.10.
 
 This spec implements the WHONET surveillance export. It builds on the substantive design review in `whonet-export-design-review-v1.md` — that doc enumerates the column set, dedup algorithm, validation rules, and file format details. This FRS formalizes those into spec form aligned with the M-* bundle structure.
 
@@ -36,7 +38,7 @@ Mapping vocabularies by hand is the single biggest pain and the usual reason exp
 > **Open reconciliation (flag, do not silently restructure).** In OpenELIS an antibiotic susceptibility *is a Test*, so its WHONET code naturally lives on `test_amr_config` (Test Catalog), which **overlaps with M-01's proposed `antibiotic_master.whonet_code`**. Source of truth should be **one** of them — recommend the Test Catalog AMR config (where the lab already configures the test), with M-01/M-09 reading it. Resolve before build; M-01's antibiotic-master mapping may collapse into a read-through. (Organisms still need the M-01 `organism_master` code, since an organism is not a Test.)
 
 ### 0.3 Surface readiness against the right denominator — what you're actually exporting
-The readiness number is only meaningful against a **target set**, and the target is **not** the whole master (labs carry hundreds of organisms they never report). The denominator is the **distinct codes that actually appear in the results in scope to export** — the organisms on finalized isolates, the antibiotics with AST results, the specimen types, origins, and phenotypes present in the cases for the selected period (or the unexported backlog). So readiness reads, e.g., *"of the 47 organisms you reported this period, 45 are WHONET-mapped — 2 isolates would be dropped"* — computed from real data (`SELECT DISTINCT organism_id FROM micro_isolate` on finalized cases in range, etc.), answering the only question that matters: **will the export drop anything?** A secondary "whole active catalog" coverage figure is an optional forward-looking view; the **used-set** figure is the actionable one and the one the export preview already needs to compute. Surfaced on the WHONET Mapping landing and as a small management-dashboard tile (reuse), so unmapped items are handled proactively, not discovered mid-export.
+The readiness number is only meaningful against a **target set**, and the target is **not** the whole master (labs carry hundreds of organisms they never report). The denominator is the **distinct codes that actually appear in the results in scope to export** — the organisms on finalized isolates, the antibiotics with AST results, the specimen types, origins, and phenotypes present in the cases for the selected period (or the unexported backlog). So readiness reads, e.g., *"of the 47 organisms you reported this period, 45 are WHONET-mapped — 2 isolates would be dropped"* — computed from real data (`SELECT DISTINCT organism_id FROM micro_isolate` on finalized cases in range, etc.), answering the only question that matters: **will the export drop anything?** A secondary "whole active catalog" coverage figure is an optional forward-looking view; the **used-set** figure is the actionable one and the one the export preview already needs to compute. *(v2.1: note the word "denominator" here means the **mapping-readiness** denominator — how many of the codes you actually used are mapped. It is a different quantity from the **surveillance** denominator of §4.6, which is the count of specimens cultured. Both matter; they are not the same number, and the preview shows them in different places.)* Surfaced on the WHONET Mapping landing and as a small management-dashboard tile (reuse), so unmapped items are handled proactively, not discovered mid-export.
 
 ### 0.4 One-click happy path — sensible defaults, advanced hidden
 The dedup block (§3.1, six surveillance-statistics controls) **collapses to a single line** — *"First-isolate de-duplication: WHO GLASS standard (7-day)"* — behind an **"Adjust (advanced)"** disclosure. Date range defaults to **Last Month**; filters default to **all clinically-significant**. The routine path is **open → Preview → Generate**, no parameter decisions. The six controls and their helper text (§3.1) remain, just not in the operator's face.
@@ -261,6 +263,10 @@ WHONET code-list updates arrive through the existing **Catalog Subscription & Me
 │  ☐ Include patient demographics (last name, first name)                     │
 │  ☑ Include lab profile file (first export to this destination)              │
 │     ⓘ Sent once to bootstrap the destination's WHONET profile (see §4.4).   │
+│  ☑ Include no-growth (negative) cultures                                    │
+│     ⓘ Negatives are the denominator for sample-based surveillance.          │
+│       Unchecking this makes resistance proportions computed from this        │
+│       file too high (see §4.6).                                             │
 │                                                                              │
 │  ──────────────────────────────────────────────────────────────────────────  │
 │                                                                              │
@@ -279,9 +285,15 @@ Clicking "Preview" runs the query + dedup + validation pass and shows results.
 ┌─ Preview ───────────────────────────────────────────────────────────────────┐
 │                                                                              │
 │ Summary:                                                                     │
-│   Total isolates in date range: 489                                          │
-│   After significance filter:    412                                          │
-│   After deduplication:          312                                          │
+│   Cultures in date range:       1,842                                        │
+│     · grew a reportable organism:    402                                     │
+│     · contaminant-only:               87  → export as no-growth rows (§4.6)  │
+│     · no growth:                   1,353                                     │
+│   Total isolates in date range:   489                                        │
+│   After significance filter:      402   ← 489 − 87 contaminant               │
+│   After deduplication:            312   ← isolate rows                       │
+│   No-growth (negative) rows:    1,440   ← 1,353 + 87 (§4.6)                  │
+│   Rows in file:                 1,752                                        │
 │   Validation: 0 errors, 4 warnings                                           │
 │                                                                              │
 │ ⚠ Warnings:                                                                  │
@@ -323,7 +335,7 @@ Per `whonet-export-design-review-v1.md` §3. Summary:
 - UTF-8 encoded
 - Unix line endings (LF)
 - First row: header column names
-- Subsequent rows: one isolate per row
+- Subsequent rows: one isolate per row — *(v2.1)* plus one row per **no-growth** culture, see §4.6
 - Empty cells for missing values (no `NULL` / `NA` / `-`)
 - Quoting: minimal — only for cells containing delimiter or newline
 - Separator: comma (CSV) or tab (TXT)
@@ -371,9 +383,38 @@ TB results originate in **M-14 (Mycobacteriology / TB)**. The export carries thr
 
 ---
 
+### 4.6 No-growth rows *(v2.1)*
+
+**Why they are in the file.** A culture that grows nothing is a complete, final result — the commonest one bacteriology produces — and in a **sample-based** GLASS-AMR dataset the negatives are the denominator: %resistance is *resistant isolates ÷ specimens tested* (**or ÷ patients tested** — which unit the target dataset uses is unconfirmed; see §11 V-8 and M-15 §11 V-8. Either way the negatives are required; only how the recipient aggregates them is open). Export the isolates without the specimens and every resistance proportion the recipient computes is too high by an unknown factor, silently, because the file is still well-formed. A file of isolates alone can support the isolate-based dataset only.
+
+**What a no-growth row contains.** The same columns as any other row, filled from the **specimen** rather than the isolate:
+
+- Demographic / Lab block: unchanged — it never depended on an isolate.
+- Specimen block: unchanged — `SPEC_NUM`, `SPEC_DATE`, `SPEC_TYPE`, `WARD`, `INFECTION_ORIGIN` and the rest all come from the case.
+- Organism / Isolate block: `ORG` carries the WHONET **no-growth** code (see §11 V-6 for the exact code); `FIRST_OR_REPEAT` and `SIGNIFICANCE` are left **empty**, because neither concept applies to a specimen with no organism in it.
+- AST results block: **empty** for every antibiotic column. Empty here means *not tested*, which is true — nothing grew to test.
+- Phenotype flags: **empty**.
+- `BREAKPOINT_STANDARD`: **empty** — no interpretation was made.
+
+**A no-growth row comes from the case's outcome, never from an empty filter result.** This distinction matters and is easy to get backwards. A no-growth row is emitted **only** for a case whose recorded outcome is no growth or contaminant-only (see "Which cases produce one" below). It is **never** emitted merely because the operator's Significance or Organism filters happened to exclude every isolate on a case — a culture that grew a significant pathogen, filtered out of this particular run, must export **no row at all**, not a row saying nothing grew. Emitting one would report a positive culture to the recipient as a negative, which is worse than omitting it.
+
+The filters therefore act at two different levels, and both are correct: **isolate-level** filters (Significance, Organism) select which isolate rows appear, and **case-level** outcome selects whether a no-growth row appears. Filtering an isolate away never converts its case into a negative.
+
+**On the TB bench the sorting differs — M-14 §7.1 owns it.** A TB culture negative at day N produces a no-growth row on the **WHONET TB export** (§4.5) on the same terms as a bacterial one. But a **`CONTAMINATED`** TB culture produces **no row at all** — the specimen was not successfully cultured, so unlike a bacteriology contaminant-only case it is not a specimen tested — and an **`NTM_IDENTIFIED`** case is a positive culture of the wrong organism and must never carry the no-growth `ORG` code. A TB case still culturing produces nothing, however many interim smear or molecular results have already been reported.
+
+**Which cases produce one (bacteriology).** A finalized culture that reached the no-growth outcome, and a finalized culture whose isolates were **all** judged contaminants (contaminant isolates are omitted rather than exported as pathogens; the judgement reuses the existing isolate significance attribute already exported in `SIGNIFICANCE`). **Rejected, cancelled and lost specimens produce no row at all** — they were never cultured, so they belong in neither the numerator nor the denominator.
+
+**Operator control.** The generator's **OUTPUT block (§3.1)** — not the advanced dedup disclosure, since this is an export-scope choice, not a dedup parameter — gains **Include no-growth (negative) cultures**, **checked by default**, with the inline helper *"Negatives are the denominator for sample-based surveillance. Unchecking this makes resistance proportions computed from this file too high."* Preview and run history report **isolate rows and no-growth rows as separate counts**, so an operator can see the positivity rate implied by their own file — an implausible rate is usually the first sign the data is incomplete.
+
+**Export is not gated on an isolate.** A finalized **bacteriology** case is exportable once it has a **recorded culture outcome** — isolate workup complete, no growth recorded, or contaminant-only. On the **TB** export the outcomes sort differently and M-14 §7.1 governs: `CONTAMINATED` releases but exports **nothing**, and `NTM_IDENTIFIED` is a positive culture, never a no-growth row. **Releasable and exportable are not the same test** — a TB `CONTAMINATED` case is the one that is the first without being the second. It is never gated on an isolate existing. A case with no recorded outcome is genuinely unfinished and is still excluded, and the reason shown names the missing **outcome**, not a missing isolate. This is the same rule M-15 §4.10 applies to final release; the two paths must not disagree about what "ready" means.
+
+---
+
 ## 5. Deduplication algorithm
 
 Per `whonet-export-design-review-v1.md` §4. Default: WHO GLASS-aligned 7-day window. Parameters configurable per §3.1 UI, each with the inline helper text defined there.
+
+*(v2.1)* **De-duplication applies to isolate rows only.** First-isolate de-duplication answers *"is this the same organism in the same patient again?"* — a question a no-growth row cannot be asked. Each cultured specimen is counted once, on its own; no-growth rows are never collapsed by patient, and `FIRST_OR_REPEAT` is left empty on them (§4.6). Applying the dedup window to negatives would silently shrink the denominator and reintroduce the same inflation the negatives were added to prevent.
 
 ---
 
@@ -389,7 +430,9 @@ whonet_export_run
 ├── date_range_start, date_range_end
 ├── filters_json (JSON of all filter parameters)
 ├── dedup_params_json (JSON of dedup parameters)
-├── validation_summary (JSON: error count, warning count, row counts before/after dedup)
+├── validation_summary (JSON: error count, warning count, row counts before/after dedup;
+│      NEW in v2.1 — isolate_row_count and no_growth_row_count reported separately, AC-M09-27)
+├── include_negatives (bool — NEW in v2.1; whether no-growth rows were included this run, §4.6)
 ├── output_file_path (relative path or storage URL)
 ├── output_file_size (bytes)
 ├── output_file_sha256 (for integrity verification)
@@ -450,7 +493,7 @@ Per `whonet-export-design-review-v1.md` §8 plus:
 - **AC-M09-13**: AST Worklist quick action opens M-09 with filters pre-populated.
 - **AC-M09-14**: Code Mapping admin pages (8 vocabularies) work with bulk operations.
 - **AC-M09-15**: All actions respect permissions.
-- **AC-M09-16**: NFR-05 (preview < 5s for 1000 isolates; generate < 30s for 5000), NFR-04 (a11y).
+- **AC-M09-16**: NFR-05 (preview < 5s for 1000 isolates; generate < 30s for 5000), NFR-04 (a11y). *(v2.1: read these as **rows**, not isolates. Negatives are the majority of cultures, so a file's row count is commonly 3–10× its isolate count — the same multiplier M-15 §4.9 notes for submission volume. The targets are unchanged; what they are measured over is now stated.)*
 - **AC-M09-17** *(folds E1)*: Every deduplication parameter (window length, window basis, scope, significance handling, repeat-row handling, susceptibility-profile sensitivity) shows an inline one-line helper explaining the surveillance-statistics choice.
 - **AC-M09-18** *(folds E2)*: "Map now" opens the WHONET Mapping admin pre-filtered to the exact unmapped item via `/admin/whonet-mapping/{vocabulary}?focus={id}&unmappedOnly=true`, not a blank search, and returns to the preview afterward.
 - **AC-M09-19** *(folds E3)*: The lab-profile inclusion is scoped to **first export per destination**; the checkbox defaults checked on a destination's first export and unchecked thereafter, is operator-toggleable, and the run records `lab_profile_included`.
@@ -458,12 +501,20 @@ Per `whonet-export-design-review-v1.md` §8 plus:
 - **AC-M09-21** *(Phase 1B surfacing)*: In Phase 1A the export entry points (worklist quick action, Reports menu) render disabled with a "coming in Phase 1B" tooltip and do not navigate.
 - **AC-M09-22** *(WHONET TB export)*: TB results from M-14 export in the WHONET TB format — species ID (mapped organism code), phenotypic DST as R/S by WHO critical concentration per drug × method (MGIT / LJ / agar proportion) with the WHO_TB breakpoint-standard version in `BREAKPOINT_STANDARD`, and molecular resistance flags from Xpert/LPA in dedicated flag columns distinct from the phenotypic DST columns — reusing the existing dedup, field-mapping, preview, validation, and audit machinery (no separate TB pipeline).
 - **AC-M09-23** *(WHONET TB export)*: TB code mappings (mycobacterial species, anti-TB drugs, WHO_TB standard label, TB molecular flags) are configured through the same WHONET Mapping admin vocabularies (§2.5), with unmapped TB items surfaced via the standard preview warning + "Map now" deep-link.
+- **AC-M09-24** *(v2.1)*: A finalized **no-growth** culture exports as one row carrying the demographic, lab and specimen blocks, the WHONET no-growth organism code in `ORG`, and empty AST, phenotype, `SIGNIFICANCE`, `FIRST_OR_REPEAT` and `BREAKPOINT_STANDARD` cells.
+- **AC-M09-25** *(v2.1)*: De-duplication is applied to isolate rows only — two no-growth cultures from the same patient inside the dedup window both appear in the file.
+- **AC-M09-26** *(v2.1)*: A **bacteriology** culture whose isolates are **all** contaminants exports as a no-growth row with no contaminant isolate rows. Rejected, cancelled and lost specimens export nothing. On the **TB** export (§4.5) the sorting follows M-14 §7.1 instead: a negative-at-day-N culture exports a no-growth row; `CONTAMINATED` exports **nothing**; `NTM_IDENTIFIED` is never exported with the no-growth code.
+- **AC-M09-27** *(v2.1)*: **Include no-growth (negative) cultures** defaults checked; preview and run history report isolate-row and no-growth-row counts separately; export eligibility is gated on a recorded culture outcome and never on an isolate existing, and the exclusion reason for an unfinished case names the missing outcome rather than a missing isolate.
 
 ---
 
 ## 10. i18n keys
 
-Estimated 95-115 keys. Pattern:
+Estimated 100-120 keys *(v2.1: +4)*. Pattern:
+
+*(v2.1)* Four added and one relabelled: `reports.whonetExport.output.includeNoGrowth` and `…includeNoGrowth.helper` (the §3.1 OUTPUT checkbox and its inline helper), `reports.whonetExport.preview.summary.noGrowthRows` (the §3.2 count), and `reports.whonetExport.exclusion.outcomeRequired` (the §4.6 exclusion reason for a case with no recorded outcome). `reports.whonetExport.preview.summary.total` is **relabelled** from *"Total isolates in date range"* to *"Cultures in date range"* — with negatives in the file, the old label no longer describes the top line.
+
+Pattern:
 
 ```
 reports.whonetExport.title                       "WHONET Export Generator"
@@ -570,6 +621,9 @@ Carried from design review:
 - WHONET lab profile file format (current version)
 - Per-deployment national reference lab intake protocols
 - Confirm the route shape for the "Map now" deep-link (`/admin/whonet-mapping/{vocabulary}?focus=…`) against the final admin sidenav structure.
+- **V-6 *(v2.1)* — the WHONET no-growth organism code.** Confirm the exact code WHONET expects in `ORG` for a culture with no growth, whether it is carried in the standard organism vocabulary (and therefore belongs in the M-01 seed pack and the §2.5 mapping vocabularies), and whether WHONET's own import expects negatives as rows at all or as a separate specimen count. §4.6 is written for the row form; if WHONET wants a count instead, §4.6's shape changes but its rationale does not. Pairs with M-15 §11 V-4.
+- **V-7 *(v2.1)* — recipient appetite.** Confirm whether the deployment's National Coordinating Centre accepts the sample-based dataset. This decides whether the §4.6 toggle is left on for that deployment; it does not change what the export is capable of producing.
+- **V-8 *(v2.1)* — the denominator's unit.** Owned by **M-15 §11 V-8** (same question, both paths): whether the target dataset counts **specimens tested** or **patients tested**, and whether negatives are expected to be collapsed to the patient. §4.6 and §5 are written in specimens throughout. One row per cultured specimen preserves both options, so this does not change what the export produces — only what the recipient does with it — but §4.6's wording should follow whichever is confirmed. **The most consequential open item in v2.1.**
 
 ---
 
@@ -586,3 +640,19 @@ Carried from design review:
 - M-14 Mycobacteriology / TB (source of TB species ID, phenotypic DST, and Xpert/LPA molecular flags for the WHONET TB export, §4.5)
 - **`whonet-export-design-review-v1.md`** — comprehensive design review; this FRS formalizes it
 - `amr-pre-frs-planning-v1.md` §7 (GLASS direction; M-13 removed; M-09 stays)
+
+---
+
+## 13. Changelog *(added in v2.1)*
+
+**v2.1 — 2026-08-27.** Adds no-growth rows. Prompted by UAT on build `b1c692b` (OGC-782 AMR UAT, AMR-S29): a finalized, released no-growth case was refused by the export with an isolate-required block, and the same block also made the released case report itself as not releasable. v2.0 was silent on negatives — it never used the words *no growth*, *negative*, or *denominator* — so the behaviour matched the spec as written; the spec is amended before the code is.
+
+Changed: header; §0.3 (distinguishing the mapping-readiness denominator from the surveillance denominator); §3.1 (the OUTPUT block gains **Include no-growth (negative) cultures**, checked by default); §3.2 (preview summary reports cultures, isolate rows and no-growth rows separately); §4.1; **new §4.6** (no-growth rows, contaminant-only cases, the significance-filter interaction, and export gated on recorded outcome rather than isolate present); §5 (dedup applies to isolate rows only); §6 (`whonet_export_run` gains `include_negatives`, and `validation_summary` reports the two row counts separately — **both declared as new**); §10 (four new i18n keys, one relabelled); AC-M09-16 restated in rows rather than isolates; **new AC-M09-24…27**; §11 V-6, V-7 and V-8 (the last a pointer to M-15 §11 V-8, which owns it); §4.6 and AC-M09-26 extended to the TB export, deferring the outcome sorting to M-14 §7.1.
+
+Companion: **M-14 v1.1** aligns the TB bench (`NO_GROWTH_READY`, `CONTAMINATED` releases but exports nothing, new §7.1).
+
+Companion amendments: **M-15 v1.1** §4.9/§4.10/§5, **M-00 / M-04 v2.1** (`NO_GROWTH_FINAL` → non-terminal `NO_GROWTH_READY`, which then releases into the normal terminal released stage). The separate `FINAL_REPORTED` / `FINAL_RELEASED` naming divergence between the specs and the shipped build is **flagged in M-04 §3.1, not resolved**.
+
+**v2.0 — 2026-06-07.** Consolidated spec folding the design review inline.
+
+---

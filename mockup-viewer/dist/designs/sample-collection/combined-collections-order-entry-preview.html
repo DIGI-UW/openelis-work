@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Combined Collections at Order Entry — OpenELIS Preview</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  body { background:var(--cds-background,#f4f4f4); margin:0; font-family:'IBM Plex Sans',sans-serif; }
+  .preview-banner { background:var(--cds-interactive,#0f62fe); color:var(--cds-text-on-color,#fff);
+                    padding:var(--cds-spacing-02,.25rem) var(--cds-spacing-05,1rem); font-size:12px; font-family:monospace; }
+  .preview-content { padding:var(--cds-spacing-05,1rem) var(--cds-spacing-07,2rem) var(--cds-spacing-10,4rem);
+                     max-width:1200px; margin:0 auto; }
+  .group { background:var(--cds-layer,#fff); border:1px solid var(--cds-border-subtle,#e0e0e0);
+           border-left:3px solid var(--cds-interactive,#0f62fe); margin-bottom:var(--cds-spacing-06,1.5rem); }
+  .group-head { display:flex; align-items:center; gap:var(--cds-spacing-04,.75rem);
+                padding:var(--cds-spacing-04,.75rem) var(--cds-spacing-05,1rem);
+                border-bottom:1px solid var(--cds-border-subtle,#e0e0e0);
+                background:var(--cds-background,#f4f4f4); flex-wrap:wrap; }
+  .group-title { font-size:16px; font-weight:600; margin:0; }
+  .group-body { padding:var(--cds-spacing-05,1rem); }
+  .lbl { font-size:12px; color:var(--cds-text-secondary,#525252); display:block; margin-bottom:var(--cds-spacing-02,.25rem); }
+  .muted { color:var(--cds-text-secondary,#6f6f6f); font-size:12px; }
+  .helper { font-size:12px; color:var(--cds-text-secondary,#6f6f6f); margin-top:var(--cds-spacing-02,.25rem); }
+  .cds--text-input, .cds--select-input { width:100%; }
+  .crow { display:grid; grid-template-columns:110px 1.3fr 130px 130px 120px 130px;
+          gap:var(--cds-spacing-04,.75rem); align-items:start;
+          padding:var(--cds-spacing-03,.5rem) var(--cds-spacing-04,.75rem);
+          border:1px solid var(--cds-border-subtle,#e0e0e0); border-top:none; }
+  .crow:first-of-type { border-top:1px solid var(--cds-border-subtle,#e0e0e0); }
+  .crow.voided { background:var(--cds-background,#f4f4f4); color:var(--cds-text-disabled,#8d8d8d); }
+  .totalbar { display:flex; align-items:baseline; gap:var(--cds-spacing-05,1rem);
+              padding:var(--cds-spacing-04,.75rem); background:var(--cds-highlight,#edf5ff);
+              border:1px solid var(--cds-border-subtle,#e0e0e0); border-top:none; flex-wrap:wrap; }
+  .totalnum { font-size:24px; font-weight:600; }
+  .win { display:grid; grid-template-columns:repeat(4,1fr) 1.2fr; gap:var(--cds-spacing-04,.75rem); align-items:end; }
+  .sectionhead { margin:var(--cds-spacing-08,2.5rem) 0 var(--cds-spacing-03,.5rem);
+                 border-bottom:2px solid var(--cds-text-primary,#161616); padding-bottom:.35rem; }
+  .callout { background:var(--cds-highlight,#edf5ff); border-left:3px solid var(--cds-interactive,#0f62fe);
+             padding:var(--cds-spacing-04,.75rem) var(--cds-spacing-05,1rem); margin:var(--cds-spacing-05,1rem) 0; font-size:13px; }
+  .modal-scrim { position:fixed; inset:0; background:rgba(22,22,22,.7); display:flex; align-items:center; justify-content:center; z-index:50; }
+  .modal-box { background:var(--cds-layer,#fff); width:min(560px,92vw); padding:var(--cds-spacing-06,1.5rem); }
+  .modal-actions { display:flex; justify-content:flex-end; gap:var(--cds-spacing-03,.5rem); margin-top:var(--cds-spacing-06,1.5rem); }
+  .moderow { display:flex; gap:var(--cds-spacing-06,1.5rem); flex-wrap:wrap; margin-bottom:var(--cds-spacing-05,1rem); }
+  .modecard { border:1px solid var(--cds-border-subtle,#e0e0e0); padding:var(--cds-spacing-04,.75rem); flex:1; min-width:260px; cursor:pointer; }
+  .modecard.sel { border:2px solid var(--cds-interactive,#0f62fe); }
+  .labelrow { display:grid; grid-template-columns:1fr 120px; gap:1rem; align-items:center;
+              padding:.4rem 0; border-bottom:1px solid var(--cds-border-subtle,#e0e0e0); }
+</style>
+</head>
+<body class="cds--white">
+<div class="preview-banner">
+  Visual Preview — Combined Collections at Order Entry &nbsp;|&nbsp; Route: /SamplePatientEntry &nbsp;|&nbsp; FRS v2.0 &nbsp;|&nbsp; builds on Multiple Samples v1.1 &nbsp;|&nbsp; OpenELIS Design Mockup — not a live application
+</div>
+<div class="preview-content" id="root"></div>
+
+<script type="text/babel">
+const { useState } = React;
+const t = (key, fallback, vars) => {
+  let s = fallback;
+  if (vars) Object.keys(vars).forEach(k => { s = s.split("{"+k+"}").join(vars[k]); });
+  return s;
+};
+
+function Tag({kind="gray", children, style}) {
+  return <span className={"cds--tag cds--tag--"+kind} style={style}>{children}</span>;
+}
+function Btn({kind="primary", size="", children, onClick, disabled}) {
+  return <button disabled={disabled} onClick={onClick}
+    className={"cds--btn cds--btn--"+kind+(size==="sm"?" cds--btn--sm":"")}
+    style={{minHeight:size==="sm"?"32px":"40px", paddingRight:"1rem"}}>{children}</button>;
+}
+function TextField({label, value, onChange, placeholder, type="text", disabled, invalid, invalidText, maxLength}) {
+  return (
+    <div>
+      {label && <label className="lbl">{label}</label>}
+      <div className="cds--text-input-wrapper">
+        <input className={"cds--text-input"+(invalid?" cds--text-input--invalid":"")}
+          type={type} value={value===undefined||value===null?"":value} placeholder={placeholder}
+          maxLength={maxLength} disabled={disabled}
+          onChange={e=>onChange && onChange(e.target.value)} />
+      </div>
+      {invalid && invalidText &&
+        <div className="cds--form-requirement" style={{color:"var(--cds-support-error,#da1e28)", fontSize:"12px", marginTop:".25rem"}}>
+          {invalidText}
+        </div>}
+    </div>
+  );
+}
+function SelectField({label, value, options, onChange, disabled}) {
+  return (
+    <div>
+      {label && <label className="lbl">{label}</label>}
+      <div className="cds--select">
+        <select className="cds--select-input" value={value} disabled={disabled}
+          onChange={e=>onChange && onChange(e.target.value)}>
+          {options.map(o=><option key={o} value={o}>{o}</option>)}
+        </select>
+      </div>
+    </div>
+  );
+}
+function Note({kind="warning", title, children}) {
+  return (
+    <div className={"cds--inline-notification cds--inline-notification--"+kind} style={{maxWidth:"none", minWidth:0}}>
+      <div className="cds--inline-notification__details">
+        {title && <p className="cds--inline-notification__title">{title}</p>}
+        <p className="cds--inline-notification__subtitle">{children}</p>
+      </div>
+    </div>
+  );
+}
+function Modal({title, children, onCancel, onConfirm, confirmLabel, confirmKind="danger", confirmDisabled}) {
+  return (
+    <div className="modal-scrim" role="dialog" aria-modal="true">
+      <div className="modal-box">
+        <h3 style={{marginTop:0}}>{title}</h3>
+        {children}
+        <div className="modal-actions">
+          <Btn kind="secondary" onClick={onCancel}>{t('label.button.cancel','Cancel')}</Btn>
+          <Btn kind={confirmKind} onClick={onConfirm} disabled={confirmDisabled}>{confirmLabel}</Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const UOM = ["mL","L","g"];
+const VOID_REASONS = ["Choose a reason","Spilled in transit","Container damaged","Belongs to another patient","Recorded in error"];
+const INCOMPLETE_REASONS = ["Choose a reason","Patient discarded a void","Collection stopped early","Container lost in transit","Collection period exceeded","Other"];
+
+/* -------- time helpers (no Date.now — fixed reference values) -------- */
+function toMinutes(d, tm) {
+  if (!d || !tm) return null;
+  const [dd, mm, yy] = d.split("/").map(Number);
+  const [h, mi] = tm.split(":").map(Number);
+  if ([dd,mm,yy,h,mi].some(n=>isNaN(n))) return null;
+  return ((yy*12+mm)*31 + dd) * 1440 + h*60 + mi;
+}
+function elapsed(sD,sT,eD,eT) {
+  const a = toMinutes(sD,sT), b = toMinutes(eD,eT);
+  if (a===null||b===null) return null;
+  return b - a;
+}
+
+/* ---------------- Container row ---------------- */
+function ContainerRow({c, position, unit, onChange, onVoid, mode, showErrors}) {
+  const empty = !c.voided && (c.volume === "" || Number(c.volume) <= 0);
+  return (
+    <div className={"crow"+(c.voided?" voided":"")}>
+      <div style={{paddingTop:"1.35rem", fontSize:"13px", fontWeight:600}}>
+        {t('order.sample.combined.container.position','Container {position}',{position})}
+        {c.voided &&
+          <div style={{marginTop:".25rem"}}>
+            <Tag kind="gray">{t('order.sample.combined.container.voided.tag','Voided — excluded from the total')}</Tag>
+          </div>}
+      </div>
+      <TextField label={t('order.sample.combined.container.label','Container label')}
+        value={c.label} disabled={c.voided} maxLength={60}
+        placeholder={t('order.sample.combined.container.label.placeholder','e.g. Bottle 1, green cap, overnight')}
+        onChange={v=>onChange({...c, label:v})} />
+      <TextField label={t('sample.quantity.label','Quantity')+" ("+unit+")"} type="number"
+        value={c.volume} disabled={c.voided}
+        invalid={showErrors && empty}
+        invalidText={t('order.sample.combined.volume.required','Volume is required on every container.')}
+        onChange={v=>onChange({...c, volume:v})} />
+      <TextField label={t('sample.collection.date','Collection Date')} value={c.date}
+        disabled={c.voided} onChange={v=>onChange({...c, date:v})} />
+      <TextField label={t('sample.collection.time','Collection Time')} value={c.time}
+        disabled={c.voided} placeholder="hh:mm" onChange={v=>onChange({...c, time:v})} />
+      <div style={{paddingTop:"1.35rem", textAlign:"right"}}>
+        {mode === "new"
+          ? <Btn kind="ghost" size="sm" onClick={()=>onVoid("remove")}>{t('label.button.remove','Remove')}</Btn>
+          : <Btn kind="danger--ghost" size="sm" disabled={c.voided} onClick={()=>onVoid("void")}>
+              {t('order.sample.combined.container.void','Void container')}
+            </Btn>}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Combined group ---------------- */
+function CombinedGroup({g, setG, mode}) {
+  const [showErrors, setShowErrors] = useState(false);
+  const [voidTarget, setVoidTarget] = useState(null);
+  const [voidReason, setVoidReason] = useState(VOID_REASONS[0]);
+  const [switchTo, setSwitchTo] = useState(null);
+  const [unitWarn, setUnitWarn] = useState(false);
+  const [expanded, setExpanded] = useState(true);
+
+  const live = g.containers.filter(c=>!c.voided);
+  const total = live.reduce((s,c)=>s + (Number(c.volume)||0), 0);
+
+  const times = live.map(c=>({d:c.date, tm:c.time, m:toMinutes(c.date,c.time)})).filter(x=>x.m!==null);
+  const sorted = [...times].sort((a,b)=>a.m-b.m);
+  const derivedStart = sorted[0] || null;
+  const derivedEnd = sorted[sorted.length-1] || null;
+
+  const startD = g.startStated ? g.startDate : (derivedStart ? derivedStart.d : "");
+  const startT = g.startStated ? g.startTime : (derivedStart ? derivedStart.tm : "");
+  const endD   = g.endStated   ? g.endDate   : (derivedEnd   ? derivedEnd.d   : "");
+  const endT   = g.endStated   ? g.endTime   : (derivedEnd   ? derivedEnd.tm  : "");
+
+  const mins = elapsed(startD, startT, endD, endT);
+  const windowInvalid = mins !== null && mins < 0;
+
+  const addContainer = () => {
+    const last = g.containers[g.containers.length-1] || {};
+    setG({...g, containers:[...g.containers, {
+      id: Math.max(0,...g.containers.map(c=>c.id))+1,
+      label:"", volume:"", date:last.date||"12/08/2026", time:""
+    }]});
+  };
+
+  const doVoid = () => {
+    setG({...g, containers:g.containers.map(c=>c.id===voidTarget.id?{...c, voided:true, voidReason}:c)});
+    setVoidTarget(null); setVoidReason(VOID_REASONS[0]);
+  };
+
+  return (
+    <div className="group">
+      <div className="group-head">
+        <h4 className="group-title">{g.type}</h4>
+        <Tag kind="blue">
+          {t('order.sample.combined.specimen.summary','Combined collection · {total} {unit} · {count} containers',
+             {total: total.toLocaleString(), unit:g.unit, count:live.length})}
+        </Tag>
+        <span className="muted">{t('common.labNumber.preview','Lab number')} {g.labNo}</span>
+        {g.incomplete &&
+          <Tag kind="red">{t('order.sample.combined.completeness.incomplete','Incomplete')}</Tag>}
+      </div>
+
+      <div className="group-body">
+        {/* ---- mode chooser ---- */}
+        <label className="lbl">{t('order.sample.combined.mode.label','Collection mode')}</label>
+        <div className="moderow">
+          <div className={"modecard"+(g.mode==="separate"?" sel":"")}
+               onClick={()=>{ if(mode!=="placed" && g.mode!=="separate") setSwitchTo("separate"); }}>
+            <label style={{display:"flex", gap:".5rem", alignItems:"flex-start", cursor:"pointer"}}>
+              <input type="radio" readOnly checked={g.mode==="separate"} />
+              <span>
+                <strong>{t('order.sample.combined.mode.separate','Separate samples')}</strong>
+                <div className="helper">
+                  {t('order.sample.combined.mode.separate.helper','Separate samples — each container is tested on its own and produces its own result.')}
+                </div>
+              </span>
+            </label>
+          </div>
+          <div className={"modecard"+(g.mode==="combined"?" sel":"")}
+               onClick={()=>{ if(mode!=="placed" && g.mode!=="combined") setSwitchTo("combined"); }}>
+            <label style={{display:"flex", gap:".5rem", alignItems:"flex-start", cursor:"pointer"}}>
+              <input type="radio" readOnly checked={g.mode==="combined"} />
+              <span>
+                <strong>{t('order.sample.combined.mode.combined','Combined collection')}</strong>
+                <div className="helper">
+                  {t('order.sample.combined.mode.combined.helper','Combined collection — the containers are mixed and tested once, producing one result.')}
+                </div>
+              </span>
+            </label>
+          </div>
+        </div>
+        {mode==="placed" &&
+          <div style={{marginBottom:"1rem"}}>
+            <Note kind="info">{t('order.sample.combined.mode.locked','The collection mode cannot be changed once the order is placed.')}</Note>
+          </div>}
+
+        {g.mode === "separate" &&
+          <Note kind="info">
+            This group is in separate-sample mode — the behaviour specified in v1. Switch it to
+            Combined collection above to see what this specification adds.
+          </Note>}
+
+        {g.mode === "combined" && <>
+          {/* ---- unit ---- */}
+          <div style={{maxWidth:"220px", marginBottom:"1rem"}}>
+            <SelectField label={t('sample.uom.label','Sample Unit Of Measure')} value={g.unit} options={UOM}
+              onChange={v=>{ setG({...g, unit:v}); setUnitWarn(true); }} />
+          </div>
+          {unitWarn &&
+            <div style={{marginBottom:"1rem"}}>
+              <Note>{t('order.sample.combined.unitChanged.warning','The volumes were not converted. Check each container against the new unit.')}</Note>
+            </div>}
+
+          {/* ---- containers ---- */}
+          <div style={{display:"flex", alignItems:"center", gap:".75rem", marginBottom:".5rem"}}>
+            <h5 style={{margin:0}}>{t('order.sample.combined.containers.title','Containers')}</h5>
+            <Btn kind="ghost" size="sm" onClick={()=>setExpanded(!expanded)}>
+              {expanded
+                ? t('order.sample.combined.containers.collapse','Hide containers')
+                : t('order.sample.combined.containers.expand','Show containers')}
+            </Btn>
+          </div>
+
+          {expanded && <>
+            {g.containers.map((c,i)=>{
+              const position = i+1;
+              return <ContainerRow key={c.id} c={c} position={position} unit={g.unit} mode={mode}
+                showErrors={showErrors}
+                onChange={nc=>{ const arr=[...g.containers]; arr[i]=nc; setG({...g, containers:arr}); }}
+                onVoid={(kind)=>{
+                  if (kind==="remove") {
+                    if (g.containers.length===1) return;
+                    setG({...g, containers:g.containers.filter(x=>x.id!==c.id)});
+                  } else setVoidTarget(c);
+                }} />;
+            })}
+
+            <div className="totalbar">
+              <div>
+                <div className="lbl" style={{marginBottom:0}}>
+                  {t('order.sample.combined.totalVolume','Total volume')}
+                </div>
+                <div className="totalnum">{total.toLocaleString()} {g.unit}</div>
+              </div>
+              <div className="muted">
+                {t('order.sample.combined.totalVolume.summary','{total} {unit} across {count} containers',
+                   {total: total.toLocaleString(), unit:g.unit, count:live.length})}
+              </div>
+              <div style={{marginLeft:"auto"}}>
+                <Btn kind="tertiary" size="sm" onClick={addContainer}>
+                  {t('order.sample.combined.container.add','Add container')} &nbsp;+
+                </Btn>
+              </div>
+            </div>
+
+            {total <= 0 &&
+              <div style={{marginTop:".75rem"}}>
+                <Note>{t('order.sample.combined.volume.zero','Enter a volume greater than zero before saving.')}</Note>
+              </div>}
+            {live.length >= 12 &&
+              <div style={{marginTop:".75rem"}}>
+                <Note>{t('order.sample.combined.container.countGuard','This group already has {count} containers. Add more only if the collection requires it.',{count:live.length})}</Note>
+              </div>}
+          </>}
+
+          {/* ---- collection window ---- */}
+          <h5 style={{margin:"1.5rem 0 .5rem"}}>{t('order.sample.combined.window.title','Collection window')}</h5>
+          <div className="win">
+            <div>
+              <TextField label={t('reports.startDate','Start Date')} value={startD}
+                onChange={v=>setG({...g, startStated:true, startDate:v, startTime:startT})} />
+              <div className="helper">
+                {g.startStated
+                  ? t('order.sample.combined.window.stated','Stated by the collector')
+                  : t('order.sample.combined.window.derived','Derived from the containers')}
+              </div>
+            </div>
+            <TextField label={t('dataexport.status.attempt.startTime','Start Time')} value={startT}
+              onChange={v=>setG({...g, startStated:true, startDate:startD, startTime:v})} />
+            <div>
+              <TextField label={t('reports.endDate','End Date')} value={endD}
+                invalid={windowInvalid}
+                invalidText={t('order.sample.combined.window.invalid','The end of the collection cannot be before its start.')}
+                onChange={v=>setG({...g, endStated:true, endDate:v, endTime:endT})} />
+              <div className="helper">
+                {g.endStated
+                  ? t('order.sample.combined.window.stated','Stated by the collector')
+                  : t('order.sample.combined.window.derived','Derived from the containers')}
+              </div>
+            </div>
+            <TextField label={t('dataexport.status.attempt.endTime','End Time')} value={endT}
+              onChange={v=>setG({...g, endStated:true, endDate:endD, endTime:v})} />
+            <div>
+              <div className="lbl">{t('order.sample.combined.window.elapsed','Elapsed')}</div>
+              <div style={{fontSize:"18px", fontWeight:600, paddingTop:".15rem"}}>
+                {mins===null || mins<0
+                  ? "—"
+                  : t('order.sample.combined.window.elapsedValue','{hours} h {minutes} min',
+                      {hours:Math.floor(mins/60), minutes:mins%60})}
+              </div>
+              <div className="helper">{t('dataexport.status.attempt.duration','Duration')}</div>
+            </div>
+          </div>
+
+          {/* ---- completeness ---- */}
+          <h5 style={{margin:"1.5rem 0 .5rem"}}>{t('order.sample.combined.completeness.title','Collection completeness')}</h5>
+          <div style={{display:"flex", gap:"1.5rem", alignItems:"flex-start", flexWrap:"wrap"}}>
+            <label style={{display:"flex", gap:".5rem", alignItems:"center", fontSize:"14px"}}>
+              <input type="radio" checked={!g.incomplete} readOnly
+                onClick={()=>setG({...g, incomplete:false, incompleteReason:INCOMPLETE_REASONS[0], incompleteNote:""})} />
+              {t('order.sample.combined.completeness.complete','Complete')}
+            </label>
+            <label style={{display:"flex", gap:".5rem", alignItems:"center", fontSize:"14px"}}>
+              <input type="radio" checked={!!g.incomplete} readOnly onClick={()=>setG({...g, incomplete:true})} />
+              {t('order.sample.combined.completeness.incomplete','Incomplete')}
+            </label>
+            {g.incomplete && <>
+              <div style={{minWidth:"280px"}}>
+                <SelectField label={t('order.sample.combined.completeness.reason','Reason the collection is incomplete')}
+                  value={g.incompleteReason} options={INCOMPLETE_REASONS}
+                  onChange={v=>setG({...g, incompleteReason:v})} />
+              </div>
+              <div style={{minWidth:"280px"}}>
+                <TextField label={t('label.results.notes','Notes')} value={g.incompleteNote}
+                  onChange={v=>setG({...g, incompleteNote:v})} />
+              </div>
+            </>}
+          </div>
+          {g.incomplete &&
+            <div style={{marginTop:".75rem"}}>
+              <Note>{t('order.sample.combined.completeness.caveat','Incomplete collection — interpret the result with caution.')}</Note>
+            </div>}
+
+          {/* ---- tests ---- */}
+          <h5 style={{margin:"1.5rem 0 .5rem"}}>{t('common.tests.preview','Tests')}</h5>
+          <div style={{display:"flex", gap:".5rem", flexWrap:"wrap", marginBottom:".5rem"}}>
+            {g.tests.map(x=><Tag key={x} kind="red">{x}</Tag>)}
+          </div>
+          <div className="muted">
+            {g.tests.length} tests × 1 specimen = <strong>{g.tests.length} results.</strong> The
+            containers are mixed before testing, so the number of containers does not change the
+            number of results.
+          </div>
+
+          {/* ---- labels ---- */}
+          <h5 style={{margin:"1.5rem 0 .5rem"}}>{t('barcode.labels.section.title','Label quantities')}</h5>
+          <div className="labelrow" style={{fontWeight:600, fontSize:"13px"}}>
+            <div>{t('order.sample.label.column','Label')}</div><div>{t('sample.quantity.label','Quantity')}</div>
+          </div>
+          <div className="labelrow">
+            <div>{t('order.sample.label.orderRow','Order label — {labNo}',{labNo:g.labNo})}</div>
+            <div><div className="cds--text-input-wrapper"><input className="cds--text-input" type="number" defaultValue="1" /></div></div>
+          </div>
+          <div className="labelrow">
+            <div>
+              Specimen label — {g.labNo}-1
+              <span className="muted"> · {total.toLocaleString()} {g.unit} · {live.length} containers</span>
+            </div>
+            <div><div className="cds--text-input-wrapper"><input className="cds--text-input" type="number" defaultValue="1" /></div></div>
+          </div>
+          <div className="muted" style={{marginTop:".5rem"}}>
+            {t('barcode.labels.running.total','Running total')}: 2
+          </div>
+
+          <div style={{marginTop:"1.5rem"}}>
+            <Btn kind="primary" onClick={()=>setShowErrors(true)}>{t('button.save','Save')}</Btn>
+            <span className="muted" style={{marginLeft:"1rem"}}>
+              Clear a container's volume, then Save, to see the required-field validation.
+            </span>
+          </div>
+        </>}
+      </div>
+
+      {/* ---- modals ---- */}
+      {voidTarget &&
+        <Modal title={t('order.sample.combined.container.void','Void container')}
+          onCancel={()=>{setVoidTarget(null); setVoidReason(VOID_REASONS[0]);}}
+          onConfirm={doVoid}
+          confirmLabel={t('order.sample.combined.container.void','Void container')}
+          confirmDisabled={voidReason===VOID_REASONS[0]}>
+          <p style={{fontSize:"14px"}}>
+            {t('order.sample.combined.container.void.explanation','Voiding this container removes its volume from the total. The container stays on the record.')}
+          </p>
+          <div style={{marginTop:"1rem"}}>
+            <SelectField label={t('order.sample.combined.container.void.reason','Reason for voiding this container')}
+              value={voidReason} options={VOID_REASONS} onChange={setVoidReason} />
+          </div>
+        </Modal>}
+
+      {switchTo &&
+        <Modal title={t('order.sample.combined.mode.label','Collection mode')}
+          onCancel={()=>setSwitchTo(null)}
+          onConfirm={()=>{ setG({...g, mode:switchTo}); setSwitchTo(null); }}
+          confirmLabel={t('label.button.confirm','Confirm')}>
+          <p style={{fontSize:"14px"}}>
+            {switchTo === "combined"
+              ? t('order.sample.combined.switchTo.confirm','Switching to a combined collection turns the {count} samples in this group into containers of a single specimen. They will share one set of tests and produce one result.',{count:g.containers.length})
+              : t('order.sample.combined.switchFrom.confirm','Switching to separate samples turns each container into its own specimen, with its own label and its own result.')}
+          </p>
+        </Modal>}
+    </div>
+  );
+}
+
+/* ---------------- App ---------------- */
+const seedUrine24 = {
+  type:"Urine", labNo:"26-004311", mode:"combined", unit:"mL",
+  tests:["Urine Protein, quantitative","Urine Creatinine"],
+  startStated:false, endStated:false, startDate:"", startTime:"", endDate:"", endTime:"",
+  incomplete:false, incompleteReason:INCOMPLETE_REASONS[0], incompleteNote:"",
+  containers:[
+    {id:1, label:"Bottle 1", volume:"820", date:"11/08/2026", time:"08:10"},
+    {id:2, label:"Bottle 2", volume:"760", date:"11/08/2026", time:"15:40"},
+    {id:3, label:"Bottle 3", volume:"610", date:"11/08/2026", time:"23:05"},
+    {id:4, label:"Bottle 4 — green cap", volume:"150", date:"12/08/2026", time:"07:20"},
+  ]
+};
+const seedPlaced = {
+  type:"Water — composite", labNo:"26-004290", mode:"combined", unit:"mL",
+  tests:["Faecal Coliforms","Turbidity"],
+  startStated:true, startDate:"10/08/2026", startTime:"06:00",
+  endStated:false, endDate:"", endTime:"",
+  incomplete:true, incompleteReason:"Container lost in transit", incompleteNote:"Grab 3 not received at the lab.",
+  containers:[
+    {id:1, label:"Upstream grab", volume:"500", date:"10/08/2026", time:"06:15"},
+    {id:2, label:"Midpoint grab", volume:"500", date:"10/08/2026", time:"09:30"},
+    {id:3, label:"Downstream grab", volume:"500", date:"10/08/2026", time:"12:45"},
+  ]
+};
+
+function App() {
+  const [g1, setG1] = useState(seedUrine24);
+  const [g2, setG2] = useState(seedPlaced);
+
+  return (
+    <div>
+      <nav className="cds--breadcrumb" style={{margin:"1rem 0"}}>
+        <div className="cds--breadcrumb-item"><a className="cds--link" href="#">{t('home.label','Home')}</a></div>
+        <div className="cds--breadcrumb-item cds--breadcrumb-item--current">{t('breadcrumb.label.addOrder','Add Order')}</div>
+      </nav>
+
+      <h2 style={{marginTop:0}}>{t('breadcrumb.label.addOrder','Add Order')}</h2>
+
+      <div className="callout">
+        <strong>What v2 adds.</strong> A sample group can now be a <em>combined collection</em>: several
+        containers mixed into <strong>one</strong> specimen, tested once. The containers are collection
+        events, not specimens — they are not accessioned, not labelled, and produce no result of their
+        own. What the laboratory gains is the <strong>total volume</strong> and the <strong>collection
+        window</strong>, which is what turns a concentration into a per-24-hour result.
+        v1's separate-sample mode is unchanged and remains the default.
+      </div>
+
+      <h3 className="sectionhead">1 — A 24-hour urine in four bottles</h3>
+      <p className="muted" style={{marginTop:0}}>
+        Patient: RASOAMANANA, Voahirana · 47 · F &nbsp;|&nbsp; 24-hour urine protein.
+        Try it: edit a volume and watch the total and the elapsed duration change; override the start
+        date or time to see it switch from derived to stated; mark the collection incomplete; clear a
+        volume and press Save; switch the mode back to Separate samples.
+      </p>
+      <CombinedGroup g={g1} setG={setG1} mode="new" />
+
+      <h3 className="sectionhead">2 — A placed order: composite water sample, one grab missing</h3>
+      <p className="muted" style={{marginTop:0}}>
+        A three-point composite where one container never arrived. The mode is locked because the order
+        is placed, the collection is flagged incomplete with a reason, and the start was stated by the
+        sampler rather than derived. Voiding a container removes its volume from the total but leaves it
+        visible on the record.
+      </p>
+      <CombinedGroup g={g2} setG={setG2} mode="placed" />
+
+      <h3 className="sectionhead">3 — What the lab sees downstream</h3>
+      <div className="cds--data-table-container">
+        <table className="cds--data-table">
+          <thead>
+            <tr>
+              <th>{t('common.labNumber.preview','Lab Number')}</th>
+              <th>{t('label.button.sample','Sample')}</th>
+              <th>{t('order.sample.combined.totalVolume','Total volume')}</th>
+              <th>{t('order.sample.combined.window.elapsed','Elapsed')}</th>
+              <th>{t('common.test.preview','Test')}</th>
+              <th>{t('common.result.preview','Result')}</th>
+              <th>{t('common.status.preview','Status')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>26-004311-1</td>
+              <td>Combined collection · 4 containers</td>
+              <td>2 340 mL</td><td>23 h 10 min</td>
+              <td>Urine Protein, quantitative</td>
+              <td>0.28 g/L &nbsp;<span className="muted">(0.66 g/24 h)</span></td>
+              <td><Tag kind="purple">Pending</Tag></td>
+            </tr>
+            <tr>
+              <td>26-004311-1</td>
+              <td>Combined collection · 4 containers</td>
+              <td>2 340 mL</td><td>23 h 10 min</td>
+              <td>Urine Creatinine</td>
+              <td>—</td>
+              <td><Tag kind="purple">Pending</Tag></td>
+            </tr>
+            <tr>
+              <td>26-004290-1</td>
+              <td>Combined collection · 3 containers &nbsp;<Tag kind="red">Incomplete</Tag></td>
+              <td>1 500 mL</td><td>6 h 45 min</td>
+              <td>Faecal Coliforms</td>
+              <td>48 CFU/100 mL</td>
+              <td><Tag kind="teal">Validated</Tag></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p className="muted">
+        The per-24-hour figure in brackets is shown to make the point of the feature visible — computing
+        it is <strong>out of scope here</strong>. This specification captures the total volume and the
+        elapsed duration that such a calculation needs.
+      </p>
+
+      <h3 className="sectionhead">Not in this version</h3>
+      <ul className="muted" style={{lineHeight:1.7}}>
+        <li><strong>Pooling across patients or subjects</strong> — minipool screening and vector pools
+          combine material from several subjects and need deconvolution when a pool is positive. Different
+          feature, different risk; it belongs with the environmental and vector work (OGC-527).</li>
+        <li><strong>Calculated results</strong> — multiplying a concentration by the total volume.
+          This supplies the inputs only.</li>
+        <li><strong>Automatic adequacy checking</strong> — judging a collection inadequate from its
+          duration or its creatinine. OpenELIS records the numbers; the technician makes the call.</li>
+        <li><strong>Unit conversion</strong> between container volumes — the design warns rather than converts.</li>
+        <li><strong>Separately accessioning or labelling containers</strong> — if a lab needs each container
+          individually tested, that is v1's separate mode, which is the right model for that case.</li>
+      </ul>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

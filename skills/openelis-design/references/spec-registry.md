@@ -35,7 +35,7 @@ Feature Doc owed · `N/A` Docs N/A ticked · `<pageId>` published Confluence man
 | Label Presets | LabelPreset (configurable) | `/labelPresets`, Test Catalog Labels section | per-sample presets, allow_override | — | Test Catalog Labels (FR-66/67), Order Entry Labels | OGC-285 (spec v2.5) / OGC-284 | — | built + spec evolving |
 | Critical Result Acknowledgment | result ack flag | Alerts dashboard, result views | **Critical Acknowledgment**, alerts feed | — | Test Catalog Alerts, home Attention feed | ? | — | idea/global TODO |
 | Reagent ↔ Test linkage | Reagent, Test | Test Catalog → Reagents tab | inventory | **Test↔Reagent linkage (NOT built)** | reagent inventory | ? | — | blocked |
-| Inventory redesign | InventoryItem, InventoryLot, InventoryTransaction, InventoryUsage (+ type tag, UPC, reorder horizon, per-item lead time, consumption mean+SD) | `/inventory`, `/inventory/receive`, `/inventory/reports` | **sample Storage model (OGC-657)**, Test↔Reagent link (auto-consume), **Alerts** (ack-to-quiet, D-042), OGC-436 forecast | sample Storage model — OGC-657 **in PR #3840 (open, occupant_type on sample_storage_assignment/movement, shared LocationPickerModal)**; Test↔Reagent link (built) | multi-lab oversight = external BI via FHIR (D-041), not in-app | OGC-657 (PR #3840); OGC-658 closed superseded (D-038); OGC-436 | — | FRS v1.3 draft |
+| Inventory redesign | InventoryItem, InventoryLot, InventoryTransaction, InventoryUsage (+ type tag, UPC, reorder horizon, per-item lead time, consumption mean+SD) | `/inventory`, `/inventory/receive`, `/inventory/reports` | **sample Storage model (OGC-657)**, Test↔Reagent link (auto-consume), **Alerts** (ack-to-quiet, D-042), OGC-436 forecast | sample Storage model — OGC-657 **PR #3840 CLOSED, NOT MERGED 2026-08-09** (occupant_type on sample_storage_assignment/movement, shared LocationPickerModal — verified via GitHub 2026-09-02; no successor PR found, `mergeable_state: blocked`); Test↔Reagent link (built) | multi-lab oversight = external BI via FHIR (D-041), not in-app | OGC-657 (PR #3840); OGC-658 closed superseded (D-038); OGC-436 | — | FRS v1.3 draft |
 | Env/Vector order entry | Sample, Order (4-step wizard), aliquot LABNO.X-Y | order entry wizard | Domain (ENV/VECTOR), NCE, validator-final | FHIR referral (vector pools) | validation, deconvolution | OGC-527 | — | specced |
 | Test Catalog Completion v2 | Test, TestResultComponent, test_result options, SAMPLETYPE_TEST, result_limits, variant-link (NEW datum), test_label_preset_link | `/admin/TestCatalogList`, `/MasterListsPage/TestCatalogEditor/*` | Domain enum, LOINC routing, Deactivate, completeness gate, catalog health | delivered OGC-949 editor; Label Preset Mgmt (built); OGC-285 Labels contract | order entry (grouped list), e-order intake (variant link), sample-type + panel + lab-unit specs | OGC-949 family | — | specced (passed /analyze 2026-07-14) |
 | Sample Type Management v2.1 | TypeOfSample, SAMPLETYPE_TEST (read), terminology store (NEW) | `/admin/TestCatalogList?entity=sampletypes` | Domain enum (migration), read-only Associated Tests, WHONET | shell contexts; domain migration | order entry sample-type menu | OGC-296, OGC-538 | — | specced + mockup |
@@ -68,3 +68,13 @@ Feature Doc owed · `N/A` Docs N/A ticked · `<pageId>` published Confluence man
 `/specify` adds a row as a closing step (entities, routes, shared concepts, deps). The
 monthly consolidation task reconciles the registry against new FRSs and fills `?` cells.
 Confirm `built`/`blocked` status against `current-state-gotchas.md`.
+
+## 2026-09-02 (monthly consolidation)
+- **Inventory redesign row corrected**: its upstream dependency OGC-657 was recorded as
+  "in PR #3840 (open)" — verified against GitHub this cycle and the PR is actually **closed,
+  not merged** (closed 2026-08-09, `mergeable_state: blocked`), with no successor PR found.
+  The Inventory FRS's `sample Storage model` dependency is therefore **not delivered**;
+  treat the FRS's "Status: v1.3 draft" as blocked on that dependency until a new PR lands.
+  Flagging for Casey rather than guessing at a successor branch.
+- No new FRS rows added this cycle (no new `/specify` output since the last pass). `?` Jira
+  cells left as-is — no confirmed values surfaced.

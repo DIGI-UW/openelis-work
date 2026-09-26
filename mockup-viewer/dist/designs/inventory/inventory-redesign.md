@@ -4,12 +4,12 @@
 **Version:** 1.9
 **Date:** 2026-07-22
 **Status:** Draft for Review
-**Jira:** OGC-438 (rescoped as the Stock-view slice of this module; not yet edited in Jira)
+**Jira:** OGC-438 (Epic — this whole module; reclassified Story→Epic, detached from OGC-436, and rewritten to this scope in Jira on 2026-07-23. Intentionally not pre-sliced — the developer owns the story breakdown.)
 **Technology:** Java Spring Framework, Carbon React
-**Related (verified 2026-07-22):**
-- **OGC-657** (Story, *In Progress*) — wires inventory lots into the **shared sample Storage model** (deletes the inventory storage skeleton, reuses the Order Entry storage modal). **This FRS depends on it; it is not re-specced here.**
+**Related (verified 2026-07-22; re-verified 2026-09-22):**
+- **OGC-657** (Story, *In Progress* — PR #3840 open as of 2026-09-22) — wires inventory lots into the **shared sample Storage model** (deletes the inventory storage skeleton, reuses the Order Entry storage modal). **This FRS depends on it; it is not re-specced here.**
 - **OGC-658** (Story) — Item-Type CRUD (`inventory_item_type` table). **Replaced/closed** by this redesign: item type becomes a free-form tag, not a managed entity (§4.2). Close with a supersession note so it doesn't draw effort. (Its separate generated-item-`code` idea may be revisited within the redesign if wanted.)
-- **OGC-1052** (Bug, Backlog) — raw i18n key `label.button.action` shows on Inventory tables; **mooted** by this redesign's string replacement.
+- **OGC-1052** (Bug) — raw i18n key `label.button.action` on Inventory tables; **fixed independently and closed Done 2026-09-11**, so it is no longer waiting on this redesign. FR-24/§7 still carry the no-raw-keys requirement for the reworked strings.
 - **OGC-992** (Story, Backlog, epic OGC-762) — Link Reagent modal; harmonize the reagent-linking pattern.
 - **OGC-457** (Story, Backlog) — Blood Bank Blood-Unit Inventory; **separate domain**, harmonize patterns only.
 - **OGC-436** (Epic, Ready) — national forecasting engine; upstream/coordinate on shared projection logic.

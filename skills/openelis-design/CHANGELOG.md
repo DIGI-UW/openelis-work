@@ -1,5 +1,74 @@
 # openelis-design — Changelog
 
+## 2026-09-22 — decision-log reconciliation + skill-src fork retired
+
+**Root-caused and closed the recurring decision-log fork.** The repo had two
+`references/` folders — the real skill's (`skills/openelis-design/references/`,
+full set + `SKILL.md`) and a stray partial duplicate
+(`OpenELIS Feature Design/openelis-design-skill-src/references/`) that only ever
+held `decision-log.md` and `spec-registry.md`. Sessions updated one or the other,
+so the two leapfrogged: the decision log ended up numbered three different ways
+(the stale copy stopped at D-050 with `/breakdown`+API-reuse there; the
+maintained copy carried micro/runs/order-entry D-049–D-057; a pathology proposal
+independently claimed D-046–D-056).
+
+Fixes:
+- **Reconciled the decision log** into one canonical D-001–D-066 sequence and
+  synced both copies byte-identical (PR reconcile-2026-09-22). Renumbered the
+  double-booked clearance/runs decisions to D-058–D-064 (Order Entry keeps
+  D-056/D-057, there first); folded `/breakdown` Epic-only + API/i18n reuse in as
+  D-065/D-066; D-046–D-048 remain a deliberate skip. Updated the citations in
+  `designs/results-validation/runs.md` and `validation-clearance-rule.jsx`.
+- **Merged `spec-registry.md`** into the canonical copy (the duplicate's newer
+  micro/runs/order-entry rows + the real skill's corrected Inventory PR-3840
+  status).
+- **Retired the stray duplicate:** deleted its two files and left a README
+  pointer. `skills/openelis-design/references/` is now the single source of
+  truth; the skill loads `references/*` relative to its own directory, so nothing
+  reads the retired folder.
+
+**Still open (needs Casey, unchanged):** `designs/pathology/closing-actions.md`
+is an unmerged proposal claiming D-046–D-056 — renumber to D-067+ on adoption.
+The `/breakdown` Epic-only (now D-065) and API & Data Reuse (now D-066) decisions
+are still NOT implemented in the shipped `SKILL.md`/`frs-template.md` body.
+
+
+## 2026-09-02 — monthly consolidation
+
+**Constitution:** re-verified against upstream raw file — still v1.11.0, no re-sync needed.
+
+**Decision log fixed, not just appended.** D-017 (EQA V2) had been left `provisional` even
+though `current-state-gotchas.md` already recorded EQA V2 as built (verified 2026-08-01) —
+marked **superseded**. More importantly: recovered two of Casey's real 2026-07-01 decisions
+(`/breakdown` Epic-only, API & i18n reuse) that the 2026-08-01 pass's own CHANGELOG *claimed*
+would land as D-043/D-044, but never actually did — those IDs were reused a few days later by
+the unrelated analyzer-results-lab-unit-access work (D-043–D-045) without cross-checking the
+earlier promise, so the two decisions had no row at all. Re-recorded as **D-049**/**D-050** —
+and, checked against the actual shipped `SKILL.md`/`frs-template.md`, **neither is implemented**
+yet (`/breakdown` still creates child Stories; the FRS template has no API & Data Reuse
+section). This is the same "needs Casey, not an unattended judgment call" gap the 2026-08-01
+CHANGELOG flagged for the `openelis-design-skill-src/` divergence — now pinned to exact
+line numbers instead of a vague "SKILL.md bodies diverged" note.
+
+**spec-registry.md corrected against GitHub**, not just left with stale `?`s: the Inventory
+redesign's OGC-657 dependency (`PR #3840`) was recorded as "open" — it is actually **closed,
+not merged** (2026-08-09, `mergeable_state: blocked`), no successor PR found. The Inventory
+FRS's Storage-model dependency is therefore not delivered; flagged rather than silently carried
+as "open."
+
+**Not done (still needs Casey, carried forward again):** the SKILL.md `/breakdown` and
+`frs-template.md` edits implementing D-049/D-050 — same class of judgment call the 2026-08-01
+pass deferred for the `openelis-design-skill-src/` divergence, now scoped precisely (see
+decision-log.md's 2026-09-02 note for exact line numbers). Recommend a dedicated session,
+not another unattended pass, since it changes what `/breakdown` and `/specify` actually output.
+
+**Live-app re-verification deferred this cycle** (unattended run — authenticated session/JS
+extraction blocked by tool-use policy in the browser tool; cross-confirmed the front-end build
+hash is unchanged since 2026-08-26 via the `openelis-qa-tracker` artifact's own 2026-09-01
+probe instead of re-probing directly). Route table, admin-ia-inventory, and verified-data-models
+carry their 2026-08-01 last-confirmed status.
+
+
 ## 2026-08-01 — monthly consolidation
 
 **Decision log unblocked.** Applied `upload/decision-log-additions.md` (D-035…D-042) *and* the

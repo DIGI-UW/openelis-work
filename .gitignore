@@ -18,3 +18,8 @@ Thumbs.db
 # Environment
 .env
 .env.local
+
+# Local credentials — never commit
+.secrets/
+*.token
+*.pem

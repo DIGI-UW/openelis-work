@@ -1,0 +1,522 @@
+<title>Admin Redesign Finalization</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --ground:#f7f9fa; --surface:#ffffff; --surface-2:#eef2f4;
+  --ink:#12191e; --ink-2:#3c4a55; --muted:#66757f;
+  --line:#dbe3e7; --line-2:#c3cfd6;
+  --accent:#0d5c66; --accent-soft:#e2eef0; --accent-ink:#0a464e;
+  --ship:#2c6448; --ship-bg:#e4efe9;
+  --polish:#7a5a10; --polish-bg:#f4ecd9;
+  --redo:#0d5c66; --redo-bg:#e2eef0;
+  --retire:#8f3030; --retire-bg:#f6e5e5;
+  --crit:#a02020; --crit-bg:#f7e4e4;
+  --shadow:0 1px 2px rgba(18,25,30,.05),0 1px 8px rgba(18,25,30,.04);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0e1417; --surface:#151d21; --surface-2:#1c262b;
+    --ink:#e8eef1; --ink-2:#b6c4cb; --muted:#8496a0;
+    --line:#26333a; --line-2:#35454e;
+    --accent:#5fb3bf; --accent-soft:#16323a; --accent-ink:#8bcdd6;
+    --ship:#7cc0a0; --ship-bg:#16302a;
+    --polish:#d9b463; --polish-bg:#312819;
+    --redo:#5fb3bf; --redo-bg:#16323a;
+    --retire:#e08a8a; --retire-bg:#331e1e;
+    --crit:#f08a8a; --crit-bg:#3a1d1d;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 1px 10px rgba(0,0,0,.2);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0e1417; --surface:#151d21; --surface-2:#1c262b;
+  --ink:#e8eef1; --ink-2:#b6c4cb; --muted:#8496a0;
+  --line:#26333a; --line-2:#35454e;
+  --accent:#5fb3bf; --accent-soft:#16323a; --accent-ink:#8bcdd6;
+  --ship:#7cc0a0; --ship-bg:#16302a;
+  --polish:#d9b463; --polish-bg:#312819;
+  --redo:#5fb3bf; --redo-bg:#16323a;
+  --retire:#e08a8a; --retire-bg:#331e1e;
+  --crit:#f08a8a; --crit-bg:#3a1d1d;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 1px 10px rgba(0,0,0,.2);
+}
+*{box-sizing:border-box}
+body{
+  background:var(--ground); color:var(--ink);
+  font-family:"Public Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:15px; line-height:1.6; margin:0;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1120px; margin:0 auto; padding:0 24px 96px}
+code,.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace; font-size:.86em}
+code{background:var(--surface-2); padding:.12em .38em; border-radius:3px; color:var(--ink-2)}
+h1,h2,h3{font-family:"Newsreader",Georgia,serif; font-weight:500; text-wrap:balance; margin:0}
+a{color:var(--accent); text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:2px}
+
+/* masthead */
+header.mast{border-bottom:1px solid var(--line); background:var(--surface); margin-bottom:44px}
+.mast-in{max-width:1120px; margin:0 auto; padding:44px 24px 34px}
+.eyebrow{font-size:11.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--muted); font-weight:600; display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+.eyebrow .dot{width:4px;height:4px;border-radius:50%;background:var(--line-2)}
+h1{font-size:clamp(32px,5vw,46px); line-height:1.1; margin:14px 0 12px; letter-spacing:-.015em}
+.standfirst{font-size:17.5px; color:var(--ink-2); max-width:64ch; line-height:1.55}
+.stamp{margin-top:26px; display:flex; gap:0; flex-wrap:wrap; border:1px solid var(--line); border-radius:6px; overflow:hidden; background:var(--ground)}
+.stamp div{padding:12px 18px; border-right:1px solid var(--line); flex:1 1 auto; min-width:150px}
+.stamp div:last-child{border-right:0}
+.stamp dt{font-size:10.5px; letter-spacing:.11em; text-transform:uppercase; color:var(--muted); font-weight:600; margin:0 0 3px}
+.stamp dd{margin:0; font-size:14px; font-weight:500}
+
+/* sections */
+section{margin-bottom:56px; scroll-margin-top:20px}
+h2{font-size:27px; letter-spacing:-.01em; margin-bottom:6px; display:flex; align-items:baseline; gap:12px}
+h2 .num{font-family:"JetBrains Mono",monospace; font-size:13px; color:var(--accent); font-weight:500; letter-spacing:0}
+.lede{color:var(--ink-2); max-width:68ch; margin:0 0 22px}
+h3{font-size:18px; margin:30px 0 10px; color:var(--ink)}
+
+/* stat row */
+.stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(128px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:8px; overflow:hidden; margin:0 0 8px}
+.stat{background:var(--surface); padding:16px 18px}
+.stat .n{font-family:"Newsreader",serif; font-size:34px; line-height:1; font-variant-numeric:tabular-nums; letter-spacing:-.02em}
+.stat .l{font-size:11.5px; text-transform:uppercase; letter-spacing:.09em; color:var(--muted); font-weight:600; margin-top:7px}
+.stat.ship .n{color:var(--ship)} .stat.polish .n{color:var(--polish)}
+.stat.redo .n{color:var(--redo)} .stat.retire .n{color:var(--retire)}
+.caption{font-size:13px; color:var(--muted); margin-top:10px}
+
+/* tables */
+.tw{overflow-x:auto; border:1px solid var(--line); border-radius:8px; background:var(--surface); box-shadow:var(--shadow)}
+table{border-collapse:collapse; width:100%; font-size:13.5px; min-width:560px}
+th{text-align:left; font-weight:600; font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); padding:11px 14px; border-bottom:1px solid var(--line-2); background:var(--surface-2); white-space:nowrap}
+td{padding:10px 14px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--ink-2)}
+tbody tr:last-child td{border-bottom:0}
+td strong{color:var(--ink); font-weight:600}
+td.num{font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap}
+
+/* chips */
+.chip{display:inline-block; font-size:10.5px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; padding:3px 8px; border-radius:3px; white-space:nowrap}
+.c-ship{background:var(--ship-bg); color:var(--ship)}
+.c-polish{background:var(--polish-bg); color:var(--polish)}
+.c-redo{background:var(--redo-bg); color:var(--redo)}
+.c-retire{background:var(--retire-bg); color:var(--retire)}
+.c-crit{background:var(--crit-bg); color:var(--crit)}
+.c-plain{background:var(--surface-2); color:var(--muted)}
+
+/* callout */
+.call{border-left:3px solid var(--accent); background:var(--surface); padding:16px 20px; border-radius:0 6px 6px 0; margin:20px 0; box-shadow:var(--shadow)}
+.call.warn{border-left-color:var(--crit)}
+.call p{margin:0; color:var(--ink-2)}
+.call p+p{margin-top:9px}
+.call strong{color:var(--ink)}
+
+/* decision cards */
+.qs{display:flex; flex-direction:column; gap:14px}
+.q{background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:18px 20px; box-shadow:var(--shadow)}
+.q h4{margin:0 0 7px; font-size:15.5px; font-weight:700; font-family:"Public Sans",sans-serif; display:flex; gap:9px; align-items:baseline}
+.q h4 .tag{font-family:"JetBrains Mono",monospace; font-size:11.5px; color:var(--accent); font-weight:500}
+.q p{margin:0 0 11px; color:var(--ink-2); font-size:14px}
+.opts{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px}
+.opts li{font-size:13.5px; color:var(--ink-2); padding-left:22px; position:relative}
+.opts li::before{content:attr(data-k); position:absolute; left:0; font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--muted); font-weight:500}
+.opts li.rec{color:var(--ink)}
+.opts li.rec strong{color:var(--accent)}
+
+/* bucket list */
+.bucket{margin-bottom:22px}
+.bucket h3{display:flex; align-items:baseline; gap:10px; margin:0 0 8px; font-family:"Public Sans",sans-serif; font-size:14px; font-weight:700; letter-spacing:.02em; text-transform:uppercase; color:var(--ink)}
+.bucket h3 .bn{font-family:"JetBrains Mono",monospace; color:var(--muted); font-weight:500; font-size:12.5px}
+
+/* ranked list */
+ol.ranked{list-style:none; counter-reset:r; margin:0; padding:0; display:flex; flex-direction:column; gap:1px; background:var(--line); border:1px solid var(--line); border-radius:8px; overflow:hidden}
+ol.ranked li{counter-increment:r; background:var(--surface); padding:13px 18px 13px 52px; position:relative; font-size:14px; color:var(--ink-2)}
+ol.ranked li::before{content:counter(r,decimal-leading-zero); position:absolute; left:18px; top:13px; font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--accent); font-weight:500}
+ol.ranked li strong{color:var(--ink)}
+footer{border-top:1px solid var(--line); padding-top:20px; color:var(--muted); font-size:13px}
+@media (max-width:640px){ .mast-in{padding:32px 20px 26px} .wrap{padding:0 20px 64px} }
+</style>
+
+<header class="mast">
+  <div class="mast-in">
+    <div class="eyebrow">
+      <span>OpenELIS Global</span><span class="dot"></span>
+      <span>Phase 5 Admin Redesign</span><span class="dot"></span>
+      <span>Finalization v2.0</span>
+    </div>
+    <h1>The admin plan versus the running app</h1>
+    <p class="standfirst">Phase 5 was scoped in April against a 42-page admin inventory. Three months of
+    development have moved underneath it. This is every admin page in OpenELIS, walked route by route
+    on the live instance, with a finalized disposition for each.</p>
+    <dl class="stamp">
+      <div><dt>Live baseline</dt><dd class="mono">testing.openelis-global.org</dd></div>
+      <div><dt>Version</dt><dd class="mono">3.2.2.0</dd></div>
+      <div><dt>Walked</dt><dd>25 August 2026</dd></div>
+      <div><dt>Supersedes</dt><dd>Roadmap 04-23 · MVP v1.8 05-14</dd></div>
+    </dl>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section>
+  <h2><span class="num">01</span> Where the work actually stands</h2>
+  <p class="lede">Forty-five admin pages exist today. Twenty-one of them need no design work at all —
+  they shipped while the plan sat at its approval gate.</p>
+  <div class="stats">
+    <div class="stat ship"><div class="n">15</div><div class="l">Shipped</div></div>
+    <div class="stat polish"><div class="n">11</div><div class="l">Polish</div></div>
+    <div class="stat redo"><div class="n">10</div><div class="l">Redesign</div></div>
+    <div class="stat retire"><div class="n">6</div><div class="l">Retire &#8226; provisional</div></div>
+    <div class="stat"><div class="n">2</div><div class="l">Spec written</div></div>
+    <div class="stat"><div class="n">2</div><div class="l">Phase 5b</div></div>
+  </div>
+  <p class="caption">Ten pages need genuine design work — not the 42 the roadmap projected.
+  Revised estimate: roughly 10 sessions against the original ~30.</p>
+
+  <div class="call warn">
+    <p><strong>The plan is not slightly stale — it is structurally stale.</strong> Nine pages scheduled
+    for design have already shipped. Five pages scheduled for redesign contain zero configuration rows.
+    Eleven pages exist that the roadmap has never heard of. Two of the five "Top-5 priority" pages are
+    already modern Carbon screens.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">02</span> Four findings that change the plan</h2>
+
+  <h3>Five redesign targets are empty</h3>
+  <p class="lede">The most consequential finding. These pages hold no configuration rows on a live instance.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Page</th><th>Route</th><th class="num">Rows</th><th>MVP Story B planned</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Result Entry Configuration</strong></td><td><code>ResultConfigurationMenu</code></td><td class="num">0</td><td>B.3 — "in-place redesign, inline form grouped by purpose"</td></tr>
+      <tr><td><strong>Patient Entry Configuration</strong></td><td><code>PatientConfigurationMenu</code></td><td class="num">0</td><td>B.2 — merge with Order Entry</td></tr>
+      <tr><td><strong>NonConformity Configuration</strong></td><td><code>NonConformityConfigurationMenu</code></td><td class="num">0</td><td>B.6 — "in-place redesign"</td></tr>
+      <tr><td><strong>Printed Report Configuration</strong></td><td><code>PrintedReportsConfigurationMenu</code></td><td class="num">0</td><td>B.7 — "redesign with real-data preview"</td></tr>
+      <tr><td><strong>MenuStatement Configuration</strong></td><td><code>MenuStatementConfigMenu</code></td><td class="num">0</td><td>Retire with Menu Configuration</td></tr>
+      <tr><td>WorkPlan Configuration</td><td><code>WorkPlanConfigurationMenu</code></td><td class="num">3</td><td>B.5 — full page redesign</td></tr>
+      <tr><td>Validation Configuration</td><td><code>ValidationConfigurationMenu</code></td><td class="num">4</td><td>B.4 — "rule editor with live validation preview"</td></tr>
+    </tbody>
+  </table></div>
+  <p class="caption">Four of Story B's nine surfaces design screens with nothing on them; two more build
+  a full page around three or four properties.</p>
+
+  <h3>Two pages outgrew their designs</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Page</th><th>Plan assumed</th><th>Live today</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Order Entry Configuration</strong></td><td>"only 2 settings each — natural merge candidate" with Patient Entry</td><td><strong>20 properties</strong> — <code>requesterRequired</code> (OGC-1143, shipped), 3× <code>sampleAcceptCheck.*</code>, 3× <code>gps*</code>, 4× <code>restrictFreeText*</code>, <code>eqaEnabled</code></td></tr>
+      <tr><td><strong>Site Information</strong></td><td>Four sub-domains: identity, patient search, banner, locale</td><td><strong>32 properties</strong> — plus e-signature (21 CFR Part 11), freezer BACnet/Modbus ports, FHIR SNOMED codes, <code>referralStuckThresholdDays</code>, <code>requireLabUnitAtLogin</code></td></tr>
+    </tbody>
+  </table></div>
+  <p class="caption">The Order Entry / Patient Entry merge rests on a premise now false in both
+  directions. Separately: MVP v1.8 records multi-locale fields as "dropped" — the live app already
+  stores <code>bannerHeading</code> per locale.</p>
+
+  <h3>Eleven pages the roadmap never listed</h3>
+  <p class="lede">Four of them are Vector Surveillance setup pages with no home in IA v2.3 — that is a
+  twelfth bucket, not a rounding error.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Page</th><th>Route</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td>Vector Surveillance — Species, Trap Types, Sampling Sites, Manual Entry Field Map</td><td><code>vectorSurveillanceSetup/*</code></td><td>Render with <strong>no breadcrumb and no page title</strong></td></tr>
+      <tr><td>Sample Acceptance Checklist × 4</td><td><code>SampleAcceptanceChecklist/*</code></td><td>Domain-scoped; breadcrumb nests under Order Entry Configuration</td></tr>
+      <tr><td>FHIR Data Export Status</td><td><code>dataExportStatus</code></td><td>Read-only subscriber monitor</td></tr>
+      <tr><td>Lab Units</td><td><code>LabUnitManagement</code></td><td>Shipped</td></tr>
+      <tr><td>Compliance Standards Administration</td><td>— no SideNav entry —</td><td>Shipped, reachable only through the Test Management link-hub</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Defects found during the walk</h3>
+  <div class="tw"><table>
+    <thead><tr><th>ID</th><th>Page</th><th>Finding</th><th>Severity</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">L-01</td><td>Language Management</td><td>Red trash-can <strong>hard Delete</strong> per row on a domain record — violates MUST D / D-002</td><td><span class="chip c-crit">Critical</span></td></tr>
+      <tr><td class="mono">L-02</td><td><code>eqaProgram</code></td><td>Route renders blank; gone from the nav but still resolves</td><td><span class="chip c-retire">High</span></td></tr>
+      <tr><td class="mono">L-03</td><td>Vector Surveillance pages</td><td>No breadcrumb, no page title — outside the admin shell chrome</td><td><span class="chip c-retire">High</span></td></tr>
+      <tr><td class="mono">L-04</td><td>Language + Translation Mgmt</td><td>Breadcrumb reads <code>Home / Admin /…</code> where every other page reads <code>Admin Management</code></td><td><span class="chip c-polish">Medium</span></td></tr>
+      <tr><td class="mono">L-05</td><td>Site Branding</td><td>Parented under Site Information, a page it has no relationship to</td><td><span class="chip c-polish">Medium</span></td></tr>
+      <tr><td class="mono">L-06</td><td>Global Menu Configuration</td><td>~300-node flat checkbox tree, no search, no collapse, one Submit</td><td><span class="chip c-polish">Medium</span></td></tr>
+      <tr><td class="mono">L-07</td><td>Test Management</td><td>~22 legacy links into JSP — largest un-migrated admin surface</td><td><span class="chip c-polish">Medium</span></td></tr>
+      <tr><td class="mono">L-08</td><td>List Plugins</td><td>Legacy gray table, not Carbon</td><td><span class="chip c-plain">Low</span></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2><span class="num">03</span> Decisions locked</h2>
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>Decision</th></tr></thead>
+    <tbody>
+      <tr><td class="mono"><strong>F1</strong></td><td><strong>New <code>/admin/&lt;bucket&gt;/&lt;page&gt;</code> namespace</strong> is canonical. Every legacy <code>/MasterListsPage/&lt;editorKey&gt;</code> redirects to its new home.</td></tr>
+      <tr><td class="mono"><strong>F2</strong></td><td><strong>Y pivot stands.</strong> Distributed surfaces in their IA-correct buckets via SideNav submenus. There is no consolidated "Application Settings" tab page.</td></tr>
+      <tr><td class="mono"><strong>F3</strong> <span class="chip c-crit">amended</span></td><td><s>Empty pages are retired, not redesigned.</s> <strong>Superseded by F8</strong> — the evidence was one instance. See §08.</td></tr>
+      <tr><td class="mono"><strong>F4</strong> <span class="chip c-polish">amended</span></td><td><strong>IA v2.3 gains a twelfth bucket:</strong> Vector Surveillance — but per F8/F13 it renders only where the module is enabled.</td></tr>
+      <tr><td class="mono"><strong>F5</strong></td><td><strong>Already-modern pages get polish, not redesign.</strong> User, Provider, Organization and Dictionary are shipped Carbon screens sharing one shape.</td></tr>
+      <tr><td class="mono"><strong>F6</strong></td><td><strong>Feature Flags becomes its own page</strong> under System Administration, not "the 10th tab."</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2><span class="num">04</span> Per-page disposition</h2>
+  <p class="lede">All 45 live pages across the finalized 12 buckets.</p>
+
+  <div class="bucket"><h3><span class="bn">01</span> People &amp; Access</h3>
+  <div class="tw"><table><tbody>
+    <tr><td><strong>User Management</strong><br><code>userManagement</code></td><td><span class="chip c-polish">Polish</span></td><td>Carbon list with lab-unit-role filter. Roadmap called this "Page 1, full pattern exercise" — largely done.</td></tr>
+    <tr><td><strong>Role Management</strong><br>— none —</td><td><span class="chip c-redo">Redesign</span></td><td>Does not exist. RBAC PRD written March 2026, never shipped. The one genuine Top-5 gap.</td></tr>
+    <tr><td><strong>Provider Management</strong><br><code>providerMenu</code></td><td><span class="chip c-polish">Polish</span></td><td>Carbon list; confirm FHIR link fields.</td></tr>
+    <tr><td><strong>Organization Management</strong><br><code>organizationManagement</code></td><td><span class="chip c-polish">Polish</span></td><td>Carbon list with parent-org column.</td></tr>
+  </tbody></table></div></div>
+
+  <div class="bucket"><h3><span class="bn">02</span> Test Catalog</h3>
+  <div class="tw"><table><tbody>
+    <tr><td><strong>Test Catalogue Editor</strong><br><code>TestCatalogList</code></td><td><span class="chip c-ship">Shipped</span></td><td>Routed 14-section editor</td></tr>
+    <tr><td><strong>Panel Editor</strong><br><code>?entity=panels</code></td><td><span class="chip c-ship">Shipped</span></td><td></td></tr>
+    <tr><td><strong>Sample Type Editor</strong><br><code>SampleTypeEditor</code></td><td><span class="chip c-ship">Shipped</span></td><td></td></tr>
+    <tr><td><strong>Lab Units</strong><br><code>LabUnitManagement</code></td><td><span class="chip c-ship">Shipped</span></td><td></td></tr>
+    <tr><td><strong>Analyzer Test Name</strong><br><code>AnalyzerTestName</code></td><td><span class="chip c-polish">Polish</span></td><td></td></tr>
+    <tr><td><strong>Compliance Standards</strong><br>— no route —</td><td><span class="chip c-redo">IA only</span></td><td>Shipped but reachable only via the Test Management hub. Needs a SideNav slot.</td></tr>
+    <tr><td><strong>Test Management</strong><br><code>testManagementConfigMenu</code></td><td><span class="chip c-redo">Redesign</span></td><td>~22 legacy links into JSP; most now duplicate the shipped editor. Retirement candidate.</td></tr>
+    <tr><td><strong>Program Entry</strong><br><code>program</code></td><td><span class="chip c-plain">Spec written</span></td><td>Live page is still a raw "Edit Json" box. OGC-781 v2 written, unshipped.</td></tr>
+    <tr><td><strong>Reflex Tests</strong> · <strong>Calculated Values</strong></td><td><span class="chip c-plain">Phase 5b</span></td><td>Rule cards with Activate/Deactivate</td></tr>
+  </tbody></table></div></div>
+
+  <div class="bucket"><h3><span class="bn">03</span> Reference Data · <span class="bn">05</span> Subscriptions</h3>
+  <div class="tw"><table><tbody>
+    <tr><td><strong>Dictionary Menu</strong><br><code>DictionaryMenu</code></td><td><span class="chip c-polish">Polish</span></td><td>Carbon list, Add/Modify/Deactivate, LOINC column</td></tr>
+    <tr><td><strong>Test Notification Config</strong><br><code>testNotificationConfigMenu</code></td><td><span class="chip c-polish">Polish</span></td><td>Per-test × 4-channel grid; benchmark at 176 tests</td></tr>
+    <tr><td><strong>Notify User</strong><br><code>NotifyUser</code></td><td><span class="chip c-polish">Polish</span></td><td></td></tr>
+  </tbody></table></div></div>
+
+  <div class="bucket"><h3><span class="bn">04</span> Workflow Tuning</h3>
+  <div class="tw"><table><tbody>
+    <tr><td><strong>Order Entry Configuration</strong><br><code>SampleEntryConfigurationMenu</code></td><td><span class="chip c-redo">Redesign</span></td><td>20 properties. Existing design assumed 2. Re-scope; drop the Patient Entry merge.</td></tr>
+    <tr><td><strong>Sample Acceptance Checklist × 4</strong><br><code>SampleAcceptanceChecklist/*</code></td><td><span class="chip c-ship">Shipped</span></td><td>Re-parent the breadcrumb</td></tr>
+    <tr><td><strong>Batch test reassignment</strong><br><code>batchTestReassignment</code></td><td><span class="chip c-polish">Polish</span></td><td></td></tr>
+    <tr><td><strong>Validation Configuration</strong> · <strong>WorkPlan Configuration</strong></td><td><span class="chip c-crit">Decide</span></td><td>4 and 3 properties respectively — see Q1</td></tr>
+    <tr><td><strong>Result Entry</strong> · <strong>Patient Entry</strong> · <strong>NonConformity</strong></td><td><span class="chip c-retire">Retire</span></td><td>0 rows each</td></tr>
+  </tbody></table></div></div>
+
+  <div class="bucket"><h3><span class="bn">06</span> Lab Setup · <span class="bn">07</span> Lab Identity</h3>
+  <div class="tw"><table><tbody>
+    <tr><td><strong>Site Information</strong><br><code>SiteInformationMenu</code></td><td><span class="chip c-redo">Redesign</span></td><td>32 properties, up from ~12. Still carries C039 — verify <code>patientSearchPassword</code> masking.</td></tr>
+    <tr><td><strong>Calendar Management</strong><br><code>calendarManagement</code></td><td><span class="chip c-ship">Shipped</span></td><td>Holidays, weekend config, CSV, TAT working-time</td></tr>
+    <tr><td><strong>Language Management</strong><br><code>languageManagement</code></td><td><span class="chip c-redo">Defect fix</span></td><td>L-01 hard delete → Deactivate; L-04 breadcrumb</td></tr>
+    <tr><td><strong>Translation Management</strong><br><code>translationManagement</code></td><td><span class="chip c-polish">Polish</span></td><td>Per-locale progress, missing-only, CSV export. Fix L-04.</td></tr>
+    <tr><td><strong>Site Branding</strong><br><code>SiteBrandingMenu</code></td><td><span class="chip c-ship">Shipped</span></td><td>Fix L-05 breadcrumb parenting</td></tr>
+    <tr><td><strong>Lab Number Management</strong><br><code>labNumber</code></td><td><span class="chip c-polish">Polish</span></td><td>Format-once and irreversible — needs a confirm step</td></tr>
+    <tr><td><strong>Label Presets</strong><br><code>labelPresets</code></td><td><span class="chip c-ship">Shipped</span></td><td><code>barcodeConfiguration</code> already redirects here</td></tr>
+  </tbody></table></div></div>
+
+  <div class="bucket"><h3><span class="bn">08</span> Integrations · <span class="bn">09</span> Reporting &amp; Exchange</h3>
+  <div class="tw"><table><tbody>
+    <tr><td><strong>External Connections</strong><br><code>externalConnections</code></td><td><span class="chip c-ship">Shipped</span></td><td>Carbon list with Deactivate</td></tr>
+    <tr><td><strong>List Plugins</strong><br><code>PluginFile</code></td><td><span class="chip c-polish">Polish</span></td><td>Legacy gray table (L-08)</td></tr>
+    <tr><td><strong>FHIR Data Export Status</strong><br><code>dataExportStatus</code></td><td><span class="chip c-ship">Shipped</span></td><td></td></tr>
+    <tr><td><strong>Result Reporting Config</strong><br><code>resultReportingConfiguration</code></td><td><span class="chip c-redo">Redesign</span></td><td>Three hardcoded identical feed blocks → a configurable feed list. No design exists.</td></tr>
+    <tr><td><strong>Printed Report Config</strong><br><code>PrintedReportsConfigurationMenu</code></td><td><span class="chip c-retire">Retire</span></td><td>0 rows</td></tr>
+  </tbody></table></div></div>
+
+  <div class="bucket"><h3><span class="bn">10</span> System Administration</h3>
+  <div class="tw"><table><tbody>
+    <tr><td><strong>Application Properties</strong><br><code>commonproperties</code></td><td><span class="chip c-redo">Redesign</span></td><td>61 properties in a flat two-column list of raw keys. C052 Critical — highest-priority target.</td></tr>
+    <tr><td><strong>Feature Flags</strong><br>— new —</td><td><span class="chip c-plain">Spec written</span></td><td>Own page per F6</td></tr>
+    <tr><td><strong>Menu Configuration × 5</strong><br><code>globalMenuManagement</code> +4</td><td><span class="chip c-redo">Redesign</span></td><td>One template, five scopes. L-06 performance risk is live.</td></tr>
+    <tr><td><strong>Search Index Management</strong><br><code>SearchIndexManagement</code></td><td><span class="chip c-polish">Polish</span></td><td>Single break-glass button</td></tr>
+    <tr><td><strong>Logging Configuration</strong><br><code>loggingManagement</code></td><td><span class="chip c-ship">Shipped</span></td><td>Runtime log level + live stream</td></tr>
+  </tbody></table></div></div>
+
+  <div class="bucket"><h3><span class="bn">11</span> Vector Surveillance <span class="chip c-redo">new bucket</span> · <span class="bn">12</span> Legacy</h3>
+  <div class="tw"><table><tbody>
+    <tr><td><strong>Species · Trap Types · Sampling Sites · Manual Entry Field Map</strong><br><code>vectorSurveillanceSetup/*</code></td><td><span class="chip c-redo">IA only</span></td><td>Fix L-03 — pages render outside the admin shell entirely</td></tr>
+    <tr><td><strong>MenuStatement Configuration</strong> · <strong>EQA Program Management</strong></td><td><span class="chip c-retire">Retire</span></td><td>0 rows; blank route (L-02). EQA lives at <code>/EQAManagement</code>.</td></tr>
+    <tr><td><strong>Legacy Admin</strong><br><code>/api/OpenELIS-Global/MasterListsPage</code></td><td><span class="chip c-plain">Keep</span></td><td>Pointer</td></tr>
+  </tbody></table></div></div>
+</section>
+
+<section>
+  <h2><span class="num">05</span> Four decisions I need from you</h2>
+  <div class="qs">
+    <div class="q">
+      <h4><span class="tag">Q1</span> The two thin Workflow Tuning pages</h4>
+      <p>Validation Configuration has 4 charset properties; WorkPlan Configuration has 3. Both are too
+      small to justify a page, but F2 rules out a tab-based settings page.</p>
+      <ul class="opts">
+        <li data-k="a">Keep both as minimal pages in Workflow Tuning — consistent with F2, but two very sparse screens.</li>
+        <li data-k="b" class="rec"><strong>Fold both into the Application Properties redesign</strong> as domain-grouped sections. Same <code>SystemConfiguration</code> rows, one surface — grouping, not tabs, so F2 holds. <em>Recommended.</em></li>
+        <li data-k="c">Fold the charsets into Application Properties; keep WorkPlan where it is, since its settings are workflow-facing.</li>
+      </ul>
+    </div>
+    <div class="q">
+      <h4><span class="tag">Q2</span> Test Management</h4>
+      <p>A ~22-link legacy hub whose links now largely duplicate the shipped Test Catalogue Editor.
+      Redesign it as a modern landing page, or retire it and redistribute the genuinely unique links —
+      spelling corrections, batch renames, Compliance Standards?</p>
+      <ul class="opts"><li data-k="→" class="rec"><strong>Recommendation: retire.</strong> It is the last big JSP doorway and the editor has superseded most of it.</li></ul>
+    </div>
+    <div class="q">
+      <h4><span class="tag">Q3</span> Role Management</h4>
+      <p>The RBAC PRD is from March and has not shipped. Does it stay in Phase 5 as the one real
+      People &amp; Access gap, or move to its own track given its size?</p>
+    </div>
+    <div class="q">
+      <h4><span class="tag">Q4</span> Defect handling</h4>
+      <p>L-01 (Language Management hard delete) is a live MUST-D violation; L-02 (blank
+      <code>eqaProgram</code>) is a live broken route. File these as bugs now, independent of the
+      redesign, or fold them into the redesign tickets?</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">06</span> Ledger conflicts to resolve</h2>
+  <p class="lede">The decision log contradicts the Phase 5 plan in three places, two of them GLOBAL
+  decisions that every future admin design cites.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Decision</th><th>Conflict</th><th>Severity</th><th>Resolution</th></tr></thead>
+    <tbody>
+      <tr><td class="mono"><strong>D-010</strong></td><td>Fixes the global admin buckets as <em>Config / Organization / Resources / Automation / Compliance</em>. IA v2.3 uses eleven entirely different buckets. These have coexisted, contradicting, since April.</td><td><span class="chip c-crit">Critical</span></td><td>Supersede with the 12-bucket IA. The most important ledger fix — every admin placement cites D-010 today.</td></tr>
+      <tr><td class="mono"><strong>D-012</strong></td><td>Makes <code>/MasterListsPage/&lt;editorKey&gt;</code> the GLOBAL admin URL pattern. F1 replaces it.</td><td><span class="chip c-crit">Critical</span></td><td>Supersede: legacy pattern for un-migrated pages, <code>/admin/*</code> canonical for the redesign.</td></tr>
+      <tr><td class="mono"><strong>D-020</strong></td><td>Makes Feature Flags "the 10th Application Settings tab". F2/F6 remove that page.</td><td><span class="chip c-retire">High</span></td><td>Supersede.</td></tr>
+      <tr><td class="mono"><strong>D-013</strong></td><td>Records breadcrumb "Admin Management". Live app now uses both variants (L-04).</td><td><span class="chip c-polish">Medium</span></td><td>Amend — "Admin Management" canonical; the "Admin" variant is a defect.</td></tr>
+      <tr><td class="mono"><strong>D-021</strong></td><td>Says Study Menu Configuration retires with the RETROCI flag. Still live at <code>studyMenuManagement</code>.</td><td><span class="chip c-polish">Medium</span></td><td>Re-confirm — an instance of D-025, Done ≠ shipped.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="call">
+    <p><strong>Registry upkeep triggered.</strong> <code>admin-ia-inventory.md</code> is a v3.2.1.x
+    snapshot with 16 missing routes and 3 wrong ones — re-sync from this walk.
+    <code>current-state-gotchas.md</code> gains L-01 through L-08.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">07</span> What actually remains</h2>
+  <p class="lede">Ordered by value. Each line is backed by what the live walk found.</p>
+  <ol class="ranked">
+    <li><strong>Application Properties</strong> — 61 raw property keys in a flat list. C052 Critical. Design exists; re-verify against the current property set.</li>
+    <li><strong>Admin Shell (Story A)</strong> — the frame. Brief approved in April; re-scope to 12 buckets and the redirect table.</li>
+    <li><strong>Menu Configuration × 5</strong> — one template, five scopes; the ~300-node tree needs search and collapse.</li>
+    <li><strong>Site Information</strong> — 32 properties, up from ~12. Re-scope.</li>
+    <li><strong>Order Entry Configuration</strong> — 20 properties, up from an assumed 2. Re-scope; drop the merge.</li>
+    <li><strong>Test Management</strong> — retire or redesign (Q2).</li>
+    <li><strong>Result Reporting Configuration</strong> — three hardcoded feed blocks → a configurable feed list. No design exists.</li>
+    <li><strong>Role Management</strong> — RBAC PRD unshipped (Q3).</li>
+    <li><strong>Vector Surveillance × 4</strong> — IA and shell fix only.</li>
+    <li><strong>Compliance Standards Administration</strong> — SideNav slot only.</li>
+  </ol>
+  <p class="caption">Plus two finished specs awaiting delivery: Program Entry (OGC-781) and Feature Flags.</p>
+</section>
+
+<section>
+  <h2><span class="num">08</span> What users will hate</h2>
+  <p class="lede">The adversarial pass, ranked by pain. Several of these are criticisms of the
+  sections above &mdash; including one that undercuts a decision I locked in &sect;03.</p>
+
+  <div class="call warn">
+    <p><strong>The correction first.</strong> F3 retired five pages because they showed zero rows on
+    <code>testing.openelis-global.org</code>. One dev instance is not evidence that a production
+    deployment has nothing configured there &mdash; these are <code>SystemConfiguration</code> rows
+    filtered by category, and Result Entry Configuration is especially suspect since the audit raised
+    C045/C046 against it, implying it had content when audited.</p>
+    <p><strong>The demo instance proves the general point.</strong> <code>demo.openelis-global.org</code>
+    runs 3.2.1.9 branded "Labsolution", and its admin nav is materially different: <em>Barcode
+    Configuration</em> where testing has <em>Label Presets</em>, and no Vector Surveillance, no Sample
+    Acceptance Checklist, no Test Catalogue Management group at all. <strong>The 45-page inventory is
+    one build's inventory, not the product's.</strong> Retiring a page a deployment uses is a
+    data-access regression discovered during an accreditation audit.</p>
+  </div>
+
+  <div class="qs">
+    <div class="q">
+      <h4><span class="tag">01</span> The URL migration is scoped as routing. It is a documentation migration.</h4>
+      <p><code>docs-manual/contracts.json</code> pins each manual section to live routes <em>and</em>
+      on-load UI anchors, and a drift check asserts them. Every admin manual section breaks twice on
+      migration day: the pinned route moves, and the screenshots show a dead breadcrumb. Contracts are
+      already at <code>capturedVersion</code> 3.2.1.10 against a live 3.2.2.0 &mdash; the manual drifts
+      before we touch anything. Outside the repo nothing redirects at all: locally-authored French
+      training decks, two years of deep links in Jira and Slack, and support muscle memory.
+      <strong>/analyze Pass N exists to catch exactly this and I ran it without flagging one docs impact.</strong></p>
+    </div>
+    <div class="q">
+      <h4><span class="tag">02</span> Forty-five pages get reorganized and there is no search</h4>
+      <p>The shell brief defers cross-bucket search to "Phase 6 if admins ask for it." That is
+      backwards &mdash; search is what makes a reorganization survivable. On day one every admin's
+      spatial memory is void and the only recovery path is browsing 12 lopsided buckets (System
+      Administration holds 8 pages; Reference Data holds 1).</p>
+    </div>
+    <div class="q">
+      <h4><span class="tag">03</span> The half-migrated state is the steady state</h4>
+      <p>Story A wraps legacy JSP pages in the new Carbon shell &mdash; a Carbon breadcrumb and rail
+      around a 2009 form. With 10 pages still needing design, that mixed state persists for many
+      releases. It is not a brief awkward window, and it reads as less finished than either UI alone.</p>
+    </div>
+    <div class="q">
+      <h4><span class="tag">04</span> The Application Properties redesign may hurt its heaviest users</h4>
+      <p>61 raw keys in a flat list is bad for a newcomer but has one real virtue: <strong>Ctrl+F finds
+      anything</strong>. Group them into ~14 cards and an admin who knows
+      <code>login.saml.entityId</code> must now know which card owns it. The heaviest users are
+      implementers and support who already know the key names &mdash; grouping optimizes for the
+      once-a-year visitor and taxes the weekly one.</p>
+    </div>
+    <div class="q">
+      <h4><span class="tag">05</span> Francophone deployments get a <em>more</em> English admin</h4>
+      <p>Live Translation Management reports French at <strong>1257/2003 &mdash; 62.8%</strong>, 746
+      strings already missing. This plan adds 12 bucket names, 45 page titles, every breadcrumb and
+      every retirement notice. <code>t(key, fallback)</code> guarantees a key, not a translation &mdash;
+      the fallback <em>is</em> the English string. Madagascar and C&ocirc;te d'Ivoire use admin heavily
+      and would see more English than they do today.</p>
+    </div>
+    <div class="q">
+      <h4><span class="tag">06</span> Menu Configuration risks ceremony without confidence</h4>
+      <p>If the redesign paginates the ~300-node tree per scope, an admin making a bulk change now
+      saves five times instead of once &mdash; and still cannot see what they changed before
+      committing.</p>
+    </div>
+    <div class="q">
+      <h4><span class="tag">07</span> There is no transition plan, and retirement notices dead-end</h4>
+      <p>No flag, no opt-in period, no "old nav still available", no in-app "this moved" affordance.
+      And a notice that says <em>this page has moved</em> to an admin hunting for
+      <code>results on workplan</code> tells them their setting is gone and offers nothing further.</p>
+    </div>
+    <div class="q">
+      <h4><span class="tag">08</span> The uncomfortable question &mdash; who asked for this?</h4>
+      <p>Nothing in the Phase 5 corpus cites user research. The 74 audit findings are an expert
+      critique, not user demand. Meanwhile <strong>Program Entry is still a raw "Edit Json" textarea in
+      production</strong> with a finished, approved, unshipped v2 spec. That is a page where admins
+      demonstrably struggle &mdash; while the plan proposes ~10 sessions plus a large routing migration
+      to reorganize pages that mostly work.</p>
+    </div>
+  </div>
+
+  <h3>Plan changes that follow</h3>
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>Change</th><th>Supersedes</th></tr></thead>
+    <tbody>
+      <tr><td class="mono"><strong>F7</strong></td><td>Cross-bucket search ships <strong>with the shell</strong>, searching page names, property keys and i18n labels</td><td>Shell brief open Q3</td></tr>
+      <tr><td class="mono"><strong>F8</strong></td><td>No retirement on single-instance evidence &mdash; row-count query across &ge;3 real deployments incl. one distro first</td><td><strong>F3</strong></td></tr>
+      <tr><td class="mono"><strong>F9</strong></td><td>Redirect table is a <strong>docs deliverable</strong>: re-capture, bump <code>capturedVersion</code>, drift check green before "done"</td><td>&sect;06</td></tr>
+      <tr><td class="mono"><strong>F10</strong></td><td>Application Properties keeps a flat, key-searchable <em>All properties</em> view beside the grouped one</td><td>&sect;04</td></tr>
+      <tr><td class="mono"><strong>F11</strong></td><td>Legacy pages open in a marked legacy frame, not dressed in Carbon chrome</td><td>MVP &sect;A.3</td></tr>
+      <tr><td class="mono"><strong>F12</strong></td><td>New admin i18n keys ship with French; <code>fr</code> coverage in the Definition of Done</td><td>&sect;08 non-functional</td></tr>
+      <tr><td class="mono"><strong>F13</strong></td><td>Buckets render only where their module is enabled</td><td><strong>F4</strong></td></tr>
+      <tr><td class="mono"><strong>F14</strong></td><td>Retirement notices name the new location or state the setting no longer applies</td><td>&sect;06</td></tr>
+      <tr><td class="mono"><strong>F15</strong></td><td>Shell ships behind a flag; old nav available one full release</td><td>&mdash;</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="call">
+    <p><strong>And one sequencing change, which is the most important line here.</strong> Before Story A
+    gets a ticket: ship the two finished specs &mdash; Program Entry and Feature Flags &mdash; and put
+    the IA migration behind five to ten admin conversations at two deployments. If admins report they
+    can't find things, the reorganization is justified and we learn which buckets are wrong. If they
+    report that Application Properties and Program Entry are the pain, we have saved most of the
+    program's cost and delivered the part that mattered.</p>
+  </div>
+</section>
+
+<footer>
+  Companion document: <code>admin-phase5-finalization.md</code> — carries the full 50-row route
+  redirect table and the section-by-section reconciliation of <code>admin-mvp-scope.md</code>.
+</footer>
+</div>

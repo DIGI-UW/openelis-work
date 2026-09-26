@@ -1,0 +1,1757 @@
+{
+ "target": [
+  {
+   "id": "menu_home",
+   "label": null,
+   "url": null,
+   "icon": "home",
+   "style": null,
+   "note": null,
+   "kids": [],
+   "flag": null
+  },
+  {
+   "id": "menu_alerts_standalone",
+   "label": null,
+   "url": null,
+   "icon": "alerts",
+   "style": null,
+   "note": "Moved up from mid-menu: alerts are cross-cutting and time-sensitive",
+   "kids": [],
+   "flag": null
+  },
+  {
+   "id": "menu_section_orders",
+   "label": "Orders & Patients",
+   "url": null,
+   "icon": null,
+   "style": "section",
+   "note": "NEW section heading row",
+   "kids": [
+    {
+     "id": "menu_sample",
+     "label": "Orders",
+     "url": null,
+     "icon": "order",
+     "style": null,
+     "note": "Relabel \"Order\" to \"Orders\"",
+     "kids": [
+      {
+       "id": "menu_clinical_workflow",
+       "label": "Clinical",
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": "Relabel \"Add Clinical Order\"; domain-filtered (OGC-1070)",
+       "kids": [
+        {
+         "id": "menu_clinical_dashboard",
+         "label": null,
+         "url": null,
+         "icon": null,
+         "style": null,
+         "note": null,
+         "kids": [],
+         "flag": null
+        },
+        {
+         "id": "menu_clinical_enter",
+         "label": null,
+         "url": null,
+         "icon": null,
+         "style": null,
+         "note": null,
+         "kids": [],
+         "flag": null
+        },
+        {
+         "id": "menu_clinical_collect",
+         "label": null,
+         "url": null,
+         "icon": null,
+         "style": null,
+         "note": null,
+         "kids": [],
+         "flag": null
+        },
+        {
+         "id": "menu_clinical_label",
+         "label": null,
+         "url": null,
+         "icon": null,
+         "style": null,
+         "note": null,
+         "kids": [],
+         "flag": null
+        },
+        {
+         "id": "menu_clinical_qa",
+         "label": null,
+         "url": null,
+         "icon": null,
+         "style": null,
+         "note": null,
+         "kids": [],
+         "flag": null
+        }
+       ],
+       "flag": null
+      },
+      {
+       "id": "menu_environmental_workflow",
+       "label": "Environmental",
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": "Relabel \"Add Environmental Order\"",
+       "kids": [
+        {
+         "id": "menu_environmental_dashboard",
+         "label": null,
+         "url": null,
+         "icon": null,
+         "style": null,
+         "note": null,
+         "kids": [],
+         "flag": null
+        },
+        {
+         "id": "menu_environmental_enter",
+         "label": null,
+         "url": null,
+         "icon": null,
+         "style": null,
+         "note": null,
+         "kids": [],
+         "flag": null
+        },
+        {
+         "id": "menu_environmental_label",
+         "label": null,
+         "url": null,
+         "icon": null,
+         "style": null,
+         "note": null,
+         "kids": [],
+         "flag": null
+        },
+        {
+         "id": "menu_environmental_qa",
+         "label": null,
+         "url": null,
+         "icon": null,
+         "style": null,
+         "note": null,
+         "kids": [],
+         "flag": null
+        }
+       ],
+       "flag": null
+      },
+      {
+       "id": "menu_vector_workflow",
+       "label": "Vector",
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": "Relabel \"Add Vector Order\"",
+       "kids": [
+        {
+         "id": "menu_vector_dashboard",
+         "label": null,
+         "url": null,
+         "icon": null,
+         "style": null,
+         "note": null,
+         "kids": [],
+         "flag": null
+        },
+        {
+         "id": "menu_vector_enter",
+         "label": null,
+         "url": null,
+         "icon": null,
+         "style": null,
+         "note": null,
+         "kids": [],
+         "flag": null
+        },
+        {
+         "id": "menu_vector_label",
+         "label": null,
+         "url": null,
+         "icon": null,
+         "style": null,
+         "note": null,
+         "kids": [],
+         "flag": null
+        },
+        {
+         "id": "menu_vector_qa",
+         "label": null,
+         "url": null,
+         "icon": null,
+         "style": null,
+         "note": null,
+         "kids": [],
+         "flag": null
+        }
+       ],
+       "flag": null
+      },
+      {
+       "id": "menu_sample_edit",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_sample_eorder",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_sample_batch_entry",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_sample_print_barcode",
+       "label": "Print Barcodes",
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": "Relabel \"Barcode\"",
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_referrals",
+       "label": "Referrals",
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": "NEW group row under Orders; a referral is an order sent to another lab",
+       "kids": [
+        {
+         "id": "menu_sample_shipment",
+         "label": "Sample Shipments",
+         "url": null,
+         "icon": null,
+         "style": null,
+         "note": "Moved from top level",
+         "kids": [],
+         "flag": null
+        },
+        {
+         "id": "menu_results_referred",
+         "label": "Referral Results",
+         "url": null,
+         "icon": null,
+         "style": null,
+         "note": "Moved from Results; OGC-798 page",
+         "kids": [],
+         "flag": null
+        }
+       ],
+       "flag": null
+      }
+     ],
+     "flag": null
+    },
+    {
+     "id": "menu_patient",
+     "label": "Patients",
+     "url": null,
+     "icon": "patient",
+     "style": null,
+     "note": "Relabel \"Patient\"",
+     "kids": [
+      {
+       "id": "menu_patient_add_or_edit",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_patienthistory",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_patient_merge",
+       "label": "Merge Patients",
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": "Add to default profile (was excluded)",
+       "kids": [],
+       "flag": null
+      }
+     ],
+     "flag": null
+    }
+   ],
+   "flag": null
+  },
+  {
+   "id": "menu_section_samples",
+   "label": "Samples & Supplies",
+   "url": null,
+   "icon": null,
+   "style": "section",
+   "note": "NEW section heading row",
+   "kids": [
+    {
+     "id": "menu_sample_management",
+     "label": null,
+     "url": null,
+     "icon": "sample",
+     "style": null,
+     "note": "Moved out of Generic Sample",
+     "kids": [],
+     "flag": null
+    },
+    {
+     "id": "menu_storage",
+     "label": null,
+     "url": null,
+     "icon": "storage",
+     "style": null,
+     "note": null,
+     "kids": [
+      {
+       "id": "menu_storage_management",
+       "label": "Sample Storage",
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": "Relabel \"Storage Management\"",
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_freezer_monitoring",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [
+        {
+         "id": "menu_freezer_dashboard",
+         "label": null,
+         "url": null,
+         "icon": null,
+         "style": null,
+         "note": null,
+         "kids": [],
+         "flag": null
+        },
+        {
+         "id": "menu_freezer_corrective",
+         "label": null,
+         "url": null,
+         "icon": null,
+         "style": null,
+         "note": null,
+         "kids": [],
+         "flag": null
+        },
+        {
+         "id": "menu_freezer_trends",
+         "label": null,
+         "url": null,
+         "icon": null,
+         "style": null,
+         "note": null,
+         "kids": [],
+         "flag": null
+        },
+        {
+         "id": "menu_freezer_reports",
+         "label": null,
+         "url": null,
+         "icon": null,
+         "style": null,
+         "note": null,
+         "kids": [],
+         "flag": null
+        },
+        {
+         "id": "menu_freezer_settings",
+         "label": null,
+         "url": null,
+         "icon": null,
+         "style": null,
+         "note": null,
+         "kids": [],
+         "flag": null
+        }
+       ],
+       "flag": null
+      }
+     ],
+     "flag": null
+    },
+    {
+     "id": "menu_aliquot",
+     "label": "Aliquoting",
+     "url": null,
+     "icon": "aliquot",
+     "style": null,
+     "note": "Relabel \"Aliquot\"",
+     "kids": [],
+     "flag": null
+    },
+    {
+     "id": "menu_inventory",
+     "label": null,
+     "url": "/inventory",
+     "icon": "inventory",
+     "style": null,
+     "note": "Flattened: single-child group becomes a link",
+     "kids": [],
+     "flag": null
+    }
+   ],
+   "flag": null
+  },
+  {
+   "id": "menu_section_testing",
+   "label": "Testing",
+   "url": null,
+   "icon": null,
+   "style": "section",
+   "note": "NEW section heading row",
+   "kids": [
+    {
+     "id": "menu_workplan",
+     "label": null,
+     "url": null,
+     "icon": "workplan",
+     "style": null,
+     "note": null,
+     "kids": [
+      {
+       "id": "menu_workplan_batch",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_workplan_test",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_workplan_panel",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_workplan_bench",
+       "label": "By Lab Unit",
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": "Relabel \"By Unit\"",
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_workplan_priority",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      }
+     ],
+     "flag": null
+    },
+    {
+     "id": "menu_results",
+     "label": null,
+     "url": null,
+     "icon": "results",
+     "style": null,
+     "note": null,
+     "kids": [
+      {
+       "id": "menu_results_unified",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": "Shown when RESULTS_ENTRY_UNIFIED_ROUTE=true (existing flag)",
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_results_logbook",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": "unified-off"
+      },
+      {
+       "id": "menu_results_patient",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": "unified-off"
+      },
+      {
+       "id": "menu_results_accession",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": "unified-off"
+      },
+      {
+       "id": "menu_results_range",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": "unified-off"
+      },
+      {
+       "id": "menu_results_status",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": "unified-off"
+      },
+      {
+       "id": "menu_vector_identification",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      }
+     ],
+     "flag": null
+    },
+    {
+     "id": "menu_resultvalidation",
+     "label": null,
+     "url": "",
+     "icon": "validation",
+     "style": null,
+     "note": "Parent loses its URL (it duplicated Routine)",
+     "kids": [
+      {
+       "id": "menu_resultvalidation_routine",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_accession_validation",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_accession_validation_range",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_resultvalidation_date",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      }
+     ],
+     "flag": null
+    },
+    {
+     "id": "menu_specialty",
+     "label": "Case Workbenches",
+     "url": null,
+     "icon": "specialty",
+     "style": null,
+     "note": "NEW group row; four specialty dashboards plus programs",
+     "kids": [
+      {
+       "id": "menu_microbiology",
+       "label": "Microbiology",
+       "url": "/Microbiology/worklist",
+       "icon": null,
+       "style": null,
+       "note": "JSON-only row becomes a DB row; single child flattened",
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_pathology",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_immunochem",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_cytology",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "order_programmes",
+       "label": "Program Cases",
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": "Moved from Results; relabel \"Order Programs\"",
+       "kids": [],
+       "flag": null
+      }
+     ],
+     "flag": null
+    },
+    {
+     "id": "menu_analyzers",
+     "label": null,
+     "url": "",
+     "icon": "analyzers",
+     "style": null,
+     "note": "Parent loses its URL (it duplicated Analyzers List)",
+     "kids": [
+      {
+       "id": "menu_analyzers_list",
+       "label": "Analyzers",
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": "Relabel \"Analyzers List\"",
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_analyzers_types",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_administration_stuck_analyzer_events",
+       "label": "Import Issues",
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": "Moved from the JSON-only Admin child",
+       "kids": [],
+       "flag": null
+      }
+     ],
+     "flag": null
+    },
+    {
+     "id": "menu_notebook",
+     "label": "Lab Notebook",
+     "url": null,
+     "icon": "notebook",
+     "style": null,
+     "note": "Relabel \"NoteBook\"",
+     "kids": [],
+     "flag": null
+    }
+   ],
+   "flag": null
+  },
+  {
+   "id": "menu_qa",
+   "label": "Quality",
+   "url": null,
+   "icon": null,
+   "style": "section",
+   "note": "Existing QA group row restyled as a section heading, so its pillars become top-level groups (depth 5 to 3)",
+   "kids": [
+    {
+     "id": "menu_qa_overview",
+     "label": null,
+     "url": null,
+     "icon": "qaOverview",
+     "style": null,
+     "note": null,
+     "kids": [],
+     "flag": null
+    },
+    {
+     "id": "menu_qa_qc",
+     "label": "Quality Control",
+     "url": null,
+     "icon": "qc",
+     "style": null,
+     "note": "Relabel \"Statistical QC\": it also holds reagent and manual QC",
+     "kids": [
+      {
+       "id": "menu_qa_qc_dashboard",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_qa_qc_alerts",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_qa_qc_control_lots",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_qa_qc_rule_config",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_qa_qc_reagent_qc",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_qa_qc_manual_qc",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      }
+     ],
+     "flag": null
+    },
+    {
+     "id": "menu_eqa",
+     "label": null,
+     "url": null,
+     "icon": "eqa",
+     "style": null,
+     "note": "Intermediate EQA Tests / EQA Management groups removed; role filtering still hides provider items",
+     "kids": [
+      {
+       "id": "menu_eqa_orders",
+       "label": "EQA Orders",
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_eqa_my_programs",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_eqa_mgmt_programs",
+       "label": "Program Management",
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_eqa_mgmt_participants",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_eqa_mgmt_distributions",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_eqa_mgmt_results",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      }
+     ],
+     "flag": null
+    },
+    {
+     "id": "menu_qa_qi",
+     "label": null,
+     "url": null,
+     "icon": "qi",
+     "style": null,
+     "note": null,
+     "kids": [
+      {
+       "id": "menu_qa_qi_dashboard",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_qa_qi_config",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      }
+     ],
+     "flag": null
+    },
+    {
+     "id": "menu_nonconformity",
+     "label": "Non-Conformity & CAPA",
+     "url": null,
+     "icon": "nce",
+     "style": null,
+     "note": "Promoted from QMS: reporting an NCE is an every-staff action",
+     "kids": [
+      {
+       "id": "menu_nce_dashboard",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_non_conforming_report",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_non_conforming_view",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_non_conforming_corrective_actions",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_qa_qms_capa_register",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": "Moved from QMS to sit with Corrective Actions",
+       "kids": [],
+       "flag": null
+      }
+     ],
+     "flag": null
+    },
+    {
+     "id": "menu_qa_qms",
+     "label": null,
+     "url": null,
+     "icon": "qms",
+     "style": null,
+     "note": null,
+     "kids": [
+      {
+       "id": "menu_reports_audittrail_system",
+       "label": "Audit Trail: System Events",
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": "Audit Trail group flattened",
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_reports_audittrail_order",
+       "label": "Audit Trail: Order Events",
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_qa_qms_esig_log",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_qa_qms_accreditation",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      }
+     ],
+     "flag": null
+    }
+   ],
+   "flag": null
+  },
+  {
+   "id": "menu_reports",
+   "label": "Reports",
+   "url": "",
+   "icon": null,
+   "style": "section",
+   "note": "Existing Reports group row restyled as a section heading",
+   "kids": [
+    {
+     "id": "menu_reports_status_patient",
+     "label": null,
+     "url": null,
+     "icon": "reports",
+     "style": null,
+     "note": "Promoted from Routine > Patient Status",
+     "kids": [],
+     "flag": null
+    },
+    {
+     "id": "menu_reports_routine",
+     "label": null,
+     "url": null,
+     "icon": "reports",
+     "style": null,
+     "note": "Link to the Routine Reports landing, which already lists every routine report; its 17 menu children are removed",
+     "kids": [],
+     "flag": null
+    },
+    {
+     "id": "menu_reports_custom_data_export",
+     "label": null,
+     "url": null,
+     "icon": "reports",
+     "style": null,
+     "note": null,
+     "kids": [],
+     "flag": null
+    },
+    {
+     "id": "menu_reports_tatreport",
+     "label": null,
+     "url": null,
+     "icon": "reports",
+     "style": null,
+     "note": null,
+     "kids": [],
+     "flag": null
+    },
+    {
+     "id": "menu_microbiology_whonet",
+     "label": "WHONET Export",
+     "url": null,
+     "icon": "reports",
+     "style": null,
+     "note": "Canonical WHONET entry (OGC-782); JSON-only row becomes a DB row",
+     "kids": [],
+     "flag": null
+    },
+    {
+     "id": "menu_reports_environmental",
+     "label": "Environmental",
+     "url": null,
+     "icon": "reports",
+     "style": null,
+     "note": null,
+     "kids": [
+      {
+       "id": "menu_environmental_compliance",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": "Moved from top level",
+       "kids": [],
+       "flag": null
+      },
+      {
+       "id": "menu_reports_environmental_laporanhasil",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      }
+     ],
+     "flag": null
+    },
+    {
+     "id": "menu_reports_vectorsurveillance",
+     "label": null,
+     "url": null,
+     "icon": "reports",
+     "style": null,
+     "note": null,
+     "kids": [],
+     "flag": null
+    }
+   ],
+   "flag": null
+  },
+  {
+   "id": "menu_section_admin",
+   "label": "Administration",
+   "url": null,
+   "icon": null,
+   "style": "section",
+   "note": "NEW section heading row",
+   "kids": [
+    {
+     "id": "menu_administration",
+     "label": null,
+     "url": null,
+     "icon": "settings",
+     "style": null,
+     "note": null,
+     "kids": [],
+     "flag": null
+    },
+    {
+     "id": "menu_billing",
+     "label": null,
+     "url": null,
+     "icon": "billing",
+     "style": null,
+     "note": "Hidden unless a Billing URL is configured (fixes OGC-469/470 dead link)",
+     "kids": [],
+     "flag": null
+    },
+    {
+     "id": "menu_help",
+     "label": null,
+     "url": null,
+     "icon": "help",
+     "style": null,
+     "note": null,
+     "kids": [
+      {
+       "id": "menu_help_user_manual",
+       "label": null,
+       "url": null,
+       "icon": null,
+       "style": null,
+       "note": null,
+       "kids": [],
+       "flag": null
+      }
+     ],
+     "flag": null
+    }
+   ],
+   "flag": null
+  }
+ ],
+ "disp": {
+  "menu_sample_create": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_sample_create_initial": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_sample_create_double": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_sample_consult": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_study_sample_eorder": [
+   "remove",
+   "Study electronic orders; D-021",
+   "/ElectronicOrders"
+  ],
+  "menu_patient_create": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_patient_create_initial": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_patient_create_double": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_patient_edit": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_patient_consult": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_resultvalidation_study": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_resultvalidation_immunology": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_resultvalidation_biochemistry": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_resultvalidation_serology": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_resultvalidation_virology": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_resultvalidation_dnapcr": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_resultvalidation_viralload": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_resultvalidation_genotyping": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_study": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_patients": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_arv": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_arv_initial1": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_arv_initial2": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_arv_followup1": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_arv_followup2": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_arv_all": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_eid": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_eid_version1": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_eid_version2": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_indeterminate": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_indeterminate_version1": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_indeterminate_version2": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_indeterminate_location": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_special": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_patient_collection": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_patient_associated": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_vl": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_vl_version1": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_indicator": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_indicator_performance": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_validation_backlog.study": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_nonconformity.study": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_nonconformity_date.study": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_nonconformity_section.study": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_nonconformity_notification.study": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_followupRequired_ByLocation.study": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_nonconformity.Labno": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_export": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_export_general": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_export_specific": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_export_valid": [
+   "remove",
+   "Study (RetroCI) workflow for one lab; D-021. Legacy JSP route",
+   "\u2014"
+  ],
+  "menu_reports_auditTrail.study": [
+   "remove",
+   "Study; already off",
+   "\u2014"
+  ],
+  "menu_order_workflow": [
+   "remove",
+   "Generic order workflow, already off; superseded by the three domain workflows",
+   "/order/clinical"
+  ],
+  "menu_order_dashboard": [
+   "remove",
+   "Generic order workflow, already off; superseded by the three domain workflows",
+   "/order/clinical"
+  ],
+  "menu_order_enter": [
+   "remove",
+   "Generic order workflow, already off; superseded by the three domain workflows",
+   "/order/clinical"
+  ],
+  "menu_order_collect": [
+   "remove",
+   "Generic order workflow, already off; superseded by the three domain workflows",
+   "/order/clinical"
+  ],
+  "menu_order_label": [
+   "remove",
+   "Generic order workflow, already off; superseded by the three domain workflows",
+   "/order/clinical"
+  ],
+  "menu_order_qa": [
+   "remove",
+   "Generic order workflow, already off; superseded by the three domain workflows",
+   "/order/clinical"
+  ],
+  "menu_add_order": [
+   "remove",
+   "Generic order workflow, already off; superseded by the three domain workflows",
+   "/order/clinical"
+  ],
+  "menu_sample_add": [
+   "remove",
+   "Legacy single \"Add Order\" (/SamplePatientEntry); second front door to order entry. Gate on domain workflows live (add-order-menu-cleanup story)",
+   "/order/clinical/enter"
+  ],
+  "menu_environmental_collect": [
+   "remove",
+   "Already off by design (030: environmental has no collection step)",
+   "/order/environmental"
+  ],
+  "menu_storage_samples": [
+   "remove",
+   "Already off (073 collapsed them into tabs on /Storage)",
+   "/Storage"
+  ],
+  "menu_storage_rooms": [
+   "remove",
+   "Already off (073 collapsed them into tabs on /Storage)",
+   "/Storage"
+  ],
+  "menu_storage_devices": [
+   "remove",
+   "Already off (073 collapsed them into tabs on /Storage)",
+   "/Storage"
+  ],
+  "menu_storage_shelves": [
+   "remove",
+   "Already off (073 collapsed them into tabs on /Storage)",
+   "/Storage"
+  ],
+  "menu_storage_racks": [
+   "remove",
+   "Already off (073 collapsed them into tabs on /Storage)",
+   "/Storage"
+  ],
+  "menu_storage_boxes": [
+   "remove",
+   "Already off (073 collapsed them into tabs on /Storage)",
+   "/Storage"
+  ],
+  "menu_analyzers_qc": [
+   "remove",
+   "Already off (qa-015); QC now lives under Quality > Quality Control",
+   "/qa/qc/dashboard"
+  ],
+  "menu_analyzers_qc_dashboard": [
+   "remove",
+   "Already off (qa-015); QC now lives under Quality > Quality Control",
+   "/qa/qc/dashboard"
+  ],
+  "menu_analyzers_qc_rule_config": [
+   "remove",
+   "Already off (qa-015); QC now lives under Quality > Quality Control",
+   "/qa/qc/dashboard"
+  ],
+  "menu_analyzers_qc_control_lots": [
+   "remove",
+   "Already off (qa-015); QC now lives under Quality > Quality Control",
+   "/qa/qc/dashboard"
+  ],
+  "menu_alerts": [
+   "remove",
+   "Duplicate of Alerts, already off",
+   "/Alerts"
+  ],
+  "menu_eqa_management": [
+   "remove",
+   "Duplicate of EQA Program Management, already off",
+   "/qa/eqa/management"
+  ],
+  "menu_eqa_distribution": [
+   "remove",
+   "Duplicate of EQA Distributions, already off",
+   "/qa/eqa/distribution"
+  ],
+  "menu_eqa_tests": [
+   "merge",
+   "Intermediate group removed; children move up to EQA",
+   "\u2014"
+  ],
+  "menu_eqa_mgmt": [
+   "merge",
+   "Intermediate group removed; children move up to EQA",
+   "\u2014"
+  ],
+  "menu_reports_audittrail": [
+   "merge",
+   "Group flattened into two QMS links",
+   "\u2014"
+  ],
+  "menu_reports_auditTrail": [
+   "merge",
+   "Listed on the Routine Reports landing page already; menu copy removed",
+   "/RoutineReports"
+  ],
+  "menu_reports_aggregate": [
+   "merge",
+   "Listed on the Routine Reports landing page already; menu copy removed",
+   "/RoutineReports"
+  ],
+  "menu_reports_aggregate_hiv": [
+   "hide",
+   "Country-specific report (C\u00f4te d'Ivoire LNSP): hide from the Routine Reports landing by default; deployment can enable",
+   "/RoutineReports"
+  ],
+  "menu_reports_aggregate_all": [
+   "merge",
+   "Listed on the Routine Reports landing page already; menu copy removed",
+   "/RoutineReports"
+  ],
+  "menu_reports_aggregate_statistics": [
+   "merge",
+   "Listed on the Routine Reports landing page already; menu copy removed",
+   "/RoutineReports"
+  ],
+  "menu_reports_management": [
+   "merge",
+   "Listed on the Routine Reports landing page already; menu copy removed",
+   "/RoutineReports"
+  ],
+  "menu_reports_nonconformity": [
+   "merge",
+   "Listed on the Routine Reports landing page already; menu copy removed",
+   "/RoutineReports"
+  ],
+  "menu_reports_nonconformity_date": [
+   "merge",
+   "Listed on the Routine Reports landing page already; menu copy removed",
+   "/RoutineReports"
+  ],
+  "menu_reports_nonconformity_section": [
+   "merge",
+   "Listed on the Routine Reports landing page already; menu copy removed",
+   "/RoutineReports"
+  ],
+  "menu_reports_validation_backlog": [
+   "merge",
+   "Listed on the Routine Reports landing page already; menu copy removed",
+   "/RoutineReports"
+  ],
+  "menu_reports_activity": [
+   "merge",
+   "Listed on the Routine Reports landing page already; menu copy removed",
+   "/RoutineReports"
+  ],
+  "menu_activity_report_test": [
+   "merge",
+   "Listed on the Routine Reports landing page already; menu copy removed",
+   "/RoutineReports"
+  ],
+  "menu_activity_report_panel": [
+   "merge",
+   "Listed on the Routine Reports landing page already; menu copy removed",
+   "/RoutineReports"
+  ],
+  "menu_activity_report_bench": [
+   "merge",
+   "Listed on the Routine Reports landing page already; menu copy removed",
+   "/RoutineReports"
+  ],
+  "menu_reports_referred": [
+   "merge",
+   "Listed on the Routine Reports landing page already; menu copy removed",
+   "/RoutineReports"
+  ],
+  "menu_reports_management_rejection": [
+   "merge",
+   "Listed on the Routine Reports landing page already; menu copy removed",
+   "/RoutineReports"
+  ],
+  "menu_reports_export_routine": [
+   "hide",
+   "Country-specific report (C\u00f4te d'Ivoire LNSP): hide from the Routine Reports landing by default; deployment can enable",
+   "/RoutineReports"
+  ],
+  "menu_reports_whonet_export": [
+   "merge",
+   "Duplicate WHONET export; legacy report route redirects to Microbiology WHONET export",
+   "/Microbiology/whonet"
+  ],
+  "menu_generic_sample": [
+   "hide",
+   "Generic Sample (3.2) superseded by Environmental and Vector order workflows. Hide now; Remove once no deployment uses it",
+   "\u2014"
+  ],
+  "menu_generic_sample_order": [
+   "hide",
+   "Generic Sample (3.2) superseded by Environmental and Vector order workflows. Hide now; Remove once no deployment uses it",
+   "\u2014"
+  ],
+  "menu_generic_sample_edit": [
+   "hide",
+   "Generic Sample (3.2) superseded by Environmental and Vector order workflows. Hide now; Remove once no deployment uses it",
+   "\u2014"
+  ],
+  "menu_generic_sample_import": [
+   "hide",
+   "Generic Sample (3.2) superseded by Environmental and Vector order workflows. Hide now; Remove once no deployment uses it",
+   "\u2014"
+  ],
+  "menu_generic_sample_results": [
+   "hide",
+   "Generic Sample (3.2) superseded by Environmental and Vector order workflows. Hide now; Remove once no deployment uses it",
+   "\u2014"
+  ],
+  "menu_inventory_management": [
+   "merge",
+   "Single child folded into its parent link",
+   "/inventory"
+  ],
+  "menu_microbiology_worklist": [
+   "merge",
+   "Single child folded into Microbiology link",
+   "/Microbiology/worklist"
+  ],
+  "menu_administration_dashboard": [
+   "merge",
+   "Same URL as Admin itself",
+   "/MasterListsPage"
+  ],
+  "menu_results_analyzer": [
+   "remove",
+   "Runtime per-analyzer Results entries; retire with Runs (OGC-1200, spec-registry)",
+   "/Results?run="
+  ],
+  "menu_help_documents": [
+   "remove",
+   "C\u00f4te d'Ivoire study PDFs (VL, DBS request forms)",
+   "\u2014"
+  ],
+  "menu_help_form_VL": [
+   "remove",
+   "C\u00f4te d'Ivoire study PDF",
+   "\u2014"
+  ],
+  "menu_help_form_DBS": [
+   "remove",
+   "C\u00f4te d'Ivoire study PDF",
+   "\u2014"
+  ]
+ }
+}

@@ -1,7 +1,7 @@
 # M-00 Microbiology Module — Parent Specification
 
-**Version:** 2.0 (consolidated — folds review edits inline; no separate addendum)
-**Date:** 2026-06-05
+**Version:** 2.1 (consolidated — folds review edits inline; no separate addendum). **v2.1 corrects the no-growth stage name** — `NO_GROWTH_FINAL` → `NO_GROWTH_READY`, which then **releases** to `FINAL_REPORTED` rather than being terminal (M-04 v2.1 §3.1).
+**Date:** 2026-08-27 (v2.0: 2026-06-05)
 **Module:** Microbiology (top-level)
 **Status:** Draft — anchors the M-01 through M-12 bundle.
 **Companion docs:** `amr-design-critique-v1.md`, `amr-micro-narrative-v1-for-devs.md`, `amr-crosswalk-working.md`, `whonet-export-design-review-v1.md`, `amr-pre-frs-planning-v1.md`
@@ -148,9 +148,13 @@ micro_case
    ├── workflow_type (enum: BACTERIOLOGY, MYCOBACTERIOLOGY_TB; NULL = needs classification)
    │          UNIQUE (sample_item_id, workflow_type) — one Case per specimen per workflow;
    │          one specimen can hold a bacterial AND a TB Case sharing the SampleItem (M-04 §2A)
+   │      [v2.1 flag, not resolved: this enum lists INOCULATING and M-04 §3.1 does not —
+   │       M-04 goes RECEIVED → INCUBATING on "Save inoculation". Pre-existing drift,
+   │       surfaced while correcting NO_GROWTH_*; settle it in the lifecycle reconciliation
+   │       rather than by a one-sided edit here.]
    ├── stage (enum: RECEIVED, INOCULATING, INCUBATING, POSITIVE_SIGNAL,
    │          GROWTH_DETECTED, ORGANISM_ID, AST_IN_PROGRESS, READY_REVIEW,
-   │          PRELIM_REPORTED, FINAL_REPORTED, NO_GROWTH_FINAL,
+   │          PRELIM_REPORTED, FINAL_REPORTED, NO_GROWTH_READY,
    │          REJECTED_AT_ACCESSIONING, CANCELLED_PRE_INOCULATION,
    │          CANCELLED_POST_INOCULATION, CANCELLED_POST_POSITIVE,
    │          LOST_SPECIMEN, LOST_SPECIMEN_POSITIVE, AMENDED)
@@ -473,31 +477,47 @@ Detailed in M-04. Summary diagram for orientation:
    INOCULATING       REJECTED_AT_
         │            ACCESSIONING (terminal — reuses existing sample-rejection — §8.2)
         ▼
-    INCUBATING ──────────────────────────────────┐
-        │                                          │
-        │ analyzer event POSITIVE_SIGNAL           │
-        │ OR manual plate reading shows growth     │
-        │                                          │ no growth after
-        ▼                                          │ max_incubation_days
-   POSITIVE_SIGNAL                                 │
-        │                                          ▼
-        ▼                                  NO_GROWTH_FINAL ──┐
-   GROWTH_DETECTED                                            │
-        │  (reflex: positive → order Organism ID — §8.2)      │
-        ▼                                                     │
-   ORGANISM_ID                                                │
-        │  (reflex: identified → order AST panel — §8.2)      │ late slow
-        ▼                                                     │ grower revives
-   AST_IN_PROGRESS                                            │ to POSITIVE_SIGNAL
-        │  (reflex: phenotype → order confirmation — §8.2)    │
-        ▼                                                     │
-   READY_REVIEW                                               │
-        │                                                     │
-        ▼                                                     │
-   PRELIM_REPORTED                                            │
-        │                                                     │
-        ▼                                                     │
-   FINAL_REPORTED ◀──────────────────────────────────────────┘
+    INCUBATING ────────────────────────────────┐
+        │                                      │
+        │ analyzer event POSITIVE_SIGNAL       │ no growth after
+        │ OR manual plate reading shows growth │ max_incubation_days
+        ▼                                      ▼
+   POSITIVE_SIGNAL                             NO_GROWTH_READY
+        │                                      │  (plate read and called;
+        │  (reflex: positive →                 │   NOT yet released — nothing
+        │   order Organism ID — §8.2)          │   has reached the patient)
+        ▼                                      │
+   GROWTH_DETECTED                             │
+        │                                      │  "Release final report" by an
+        ▼                                      │   authorized final-result reviewer
+   ORGANISM_ID                                 │
+        │  (reflex: identified →               │
+        │   order AST panel — §8.2)            │
+        ▼                                      │
+   AST_IN_PROGRESS                             │
+        │  (reflex: phenotype →                │
+        │   order confirmation — §8.2)         │
+        ▼                                      │
+   READY_REVIEW                                │
+        │                                      │
+        ▼                                      │
+   PRELIM_REPORTED                             │
+        │                                      │
+        ▼                                      │
+   FINAL_REPORTED ◀────────────────────────────┘
+
+   FINAL_REPORTED is the released state for BOTH branches — a released
+   negative is a final report like any other, and there is no separate
+   terminal state for no growth. A late slow grower revives the case to
+   POSITIVE_SIGNAL from EITHER NO_GROWTH_READY (nothing released yet) or
+   FINAL_REPORTED (released — the prior negative report is preserved and
+   the revival follows the amendment cycle). See M-04 §3.1–§3.2.
+
+   [v2.1 flag, not resolved: the INOCULATING box above and the stage enum
+    in §3.1 both carry a stage M-04 §3.1 does not have — M-04 goes
+    RECEIVED → INCUBATING on "Save inoculation". Pre-existing drift,
+    surfaced while correcting NO_GROWTH_*; settle it deliberately here
+    rather than by a one-sided edit.]
         │
         │ amendment workflow
         ▼
@@ -513,7 +533,7 @@ Terminal alternative branches (any non-terminal stage above can transition):
    ── on lost specimen post-positive ───▶ LOST_SPECIMEN_POSITIVE (terminal — reuses NCE — §8.2)
 ```
 
-Every transition is auditable. M-04 §State Transitions enumerates triggers, allowed roles, side effects per transition. The positive→ID→AST→confirmation cascade is driven by the existing reflex/test-rules engine (§8.2); the Case Workbench owns the workup *state* the cascade advances through.
+Every transition is auditable. M-04 §3.2 enumerates triggers, allowed roles, side effects per transition. The positive→ID→AST→confirmation cascade is driven by the existing reflex/test-rules engine (§8.2); the Case Workbench owns the workup *state* the cascade advances through.
 
 ---
 
@@ -726,9 +746,9 @@ Tracking what survives, dies, renames, or splits from the v1.1 trio (AMR Configu
 - Polymorphic critical-notification table (M-11).
 - Cross-cutting Test → Reagent linkage (M-12).
 - Analyzer event channel (M-04 §Analyzer Events; supporting M-05).
-- Phenotype flag columns in WHONET export (M-09 §3.5).
+- Phenotype flag columns in WHONET export (M-09 §4.2).
 - Reidentification versioning (M-04 §5).
-- Workflow unhappy paths as explicit state transitions (M-04 §State Machine).
+- Workflow unhappy paths as explicit state transitions (M-04 §3.2).
 - Versioning rules for reference data and rule sets (M-00 §8, M-02, M-06).
 - Quality threshold validation in WHONET export (M-09 §5).
 - Cross-cutting review principles: shared state-driven queue (§8.1), explicit OE reuse mappings (§8.2), inline-interaction principle (§8.3), and the Culture-workflow test-designation reconciliation (§8.4).

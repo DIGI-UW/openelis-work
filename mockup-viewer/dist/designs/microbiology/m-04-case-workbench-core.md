@@ -1,7 +1,7 @@
 # M-04 Case Workbench Core — Functional Requirements Specification
 
-**Version:** 2.0 (consolidated — folds the full AMR design review inline; no separate addendum)
-**Date:** 2026-06-05
+**Version:** 2.1 (consolidated — folds the full AMR design review inline; no separate addendum). **v2.1 corrects the no-growth terminal state, and adds the fourth recorded outcome for the TB profile (§4.6)** — `NO_GROWTH_FINAL` becomes `NO_GROWTH_READY` (in workup, awaiting release) followed by release to `FINAL_REPORTED`; see §3.1, §3.2, §4.6, §5, AC-M04-10, AC-M04-26, AC-M04-27.
+**Date:** 2026-08-27 (v2.0: 2026-06-05)
 **Module:** Microbiology → Case Workbench
 **Route:** `/microbiology/case/:caseId`
 **Phase:** MVP-1A + Phase 1A+ (items marked)
@@ -59,8 +59,19 @@ The Case is the central abstraction of the Microbiology module — a per-specime
 The state machine is the spine of the case; the page's next-step guidance (§5) and the worklist's filters are projections of it. Every transition writes an immutable `micro_case_stage_transition` row and is atomic with the action that triggered it.
 
 ### 3.1 Stages
-**Non-terminal:** RECEIVED → INCUBATING → POSITIVE_SIGNAL → GROWTH_DETECTED → ORGANISM_ID → AST_IN_PROGRESS → READY_REVIEW → PRELIM_REPORTED → FINAL_REPORTED → AMENDED.
-**Terminal:** NO_GROWTH_FINAL, REJECTED_AT_ACCESSIONING, CANCELLED_PRE_INOCULATION, CANCELLED_POST_INOCULATION, CANCELLED_POST_POSITIVE, LOST_SPECIMEN, LOST_SPECIMEN_POSITIVE.
+**In workup:** RECEIVED → INCUBATING → POSITIVE_SIGNAL → GROWTH_DETECTED → ORGANISM_ID → AST_IN_PROGRESS → READY_REVIEW → PRELIM_REPORTED; and, on the negative branch, **NO_GROWTH_READY**.
+**Released** (terminal for reporting; revivable only through the amendment cycle, never by ordinary workup): **FINAL_REPORTED**, and its in-flight amendment state AMENDED.
+**Closed without a result:** REJECTED_AT_ACCESSIONING, CANCELLED_PRE_INOCULATION, CANCELLED_POST_INOCULATION, CANCELLED_POST_POSITIVE, LOST_SPECIMEN, LOST_SPECIMEN_POSITIVE.
+
+> **Reading the older wording.** Elsewhere in this spec and in M-00, these three classes are still referred to with the older pair **non-terminal** / **terminal**. Map them as: **non-terminal = In workup**; **terminal = Released, or Closed without a result**. Where an existing rule says "any non-terminal stage", it means any stage in the *In workup* class. The classes were renamed in v2.1 because "terminal" was doing two incompatible jobs — *the case is finished* and *the case has no outgoing edges* — and `FINAL_REPORTED` has always had outgoing edges (amendment, and now late-slow-grower revival).
+>
+> **v2.1 — the negative branch releases, it does not just end.** v2.0 modelled no growth as a single terminal stage, `NO_GROWTH_FINAL`, reached by marking no growth. That collapsed two distinct events into one: *the bench has finished reading the plate* and *an authorized reviewer has released the report*. The shipped build separates them, and it is right to — the positive path has always had that two-stage gate, and a negative result reaches a clinician through exactly the same report. So marking no growth now moves the case to **`NO_GROWTH_READY`** (still *in workup*: read, called, awaiting release), and releasing the final report moves it to **`FINAL_REPORTED`**, the same *Released* state the positive path uses. There is no separate end state for negatives.
+>
+> This also settles a naming divergence: M-00 §5 and this spec said `NO_GROWTH_FINAL`; the build ships `NO_GROWTH_READY` and the AMR-S29 acceptance story expects the label **"No Growth Ready"**. The build and the story agree, so the specs are the stale party and are corrected here rather than the code being changed to match them.
+>
+> **A second naming divergence is flagged here, not resolved.** The specs call the terminal released stage `FINAL_REPORTED`; the shipped build appears to use **`FINAL_RELEASED`** (UAT on `b1c692b` observed both `stage` and `finalReleaseState` reading `FINAL_RELEASED`, with the badge "Final Released"). This amendment deliberately does **not** rename it — that touches every module in the bundle and is a larger change than the no-growth correction. It is recorded so the M-00 §5 lifecycle reconciliation settles it deliberately rather than by accident. Everything below reads `FINAL_REPORTED` as "the terminal released stage", whatever it ends up being called.
+>
+> **A `NO_GROWTH_READY` case must not leak a result.** Between marking no growth and releasing, the negative must not appear on the patient's report — the same boundary the positive path enforces between READY_REVIEW and release.
 
 **Classification is orthogonal to these stages — and is *not* a mandatory first step, nor its own stage value.** A case carries `workflow_type` (`BACTERIOLOGY` / `MYCOBACTERIOLOGY_TB`), set automatically from the ordered test at order entry (M-03 §2.1a). In the normal path **the case is born already classified** and enters `RECEIVED` directly in its profile — it never passes through a "classify" step.
 
@@ -75,7 +86,8 @@ The state machine is the spine of the case; the page's next-step guidance (§5) 
 | `workflow_type = NULL` | (workflow set) | Tech **Change workflow** (§4.9) | Profile instantiated (sections, breakpoint family, organism vocab, WHONET flavor); audited timeline note. *Not a stage transition — sets the classification attribute.* |
 | RECEIVED | INCUBATING | Save inoculation (§4 Inoculation) | `micro_case_inoculation` row + INOCULATION timeline event |
 | INCUBATING | POSITIVE_SIGNAL | Analyzer `POSITIVE_SIGNAL` event **or** manual "Mark positive" | Timeline event; worklist row highlights |
-| INCUBATING | NO_GROWTH_FINAL | "Mark no growth" after incubation hours met | Timeline event; final negative report |
+| INCUBATING | NO_GROWTH_READY | "Mark no growth" after incubation hours met | Timeline event *"Incubation complete with no growth"*; case is **ready for release, not released** — nothing reaches the patient report yet |
+| NO_GROWTH_READY | FINAL_REPORTED | "Release final report" by an authorized final-result reviewer | Final negative report published; case locked; **surveillance-eligible as a negative** (M-09 §4.6, M-15 §4.9) |
 | POSITIVE_SIGNAL | GROWTH_DETECTED | First isolate added **or** subculture recorded | Auto-transition |
 | GROWTH_DETECTED | ORGANISM_ID | Isolate workup begins (add/edit isolate) | Implicit on first edit |
 | ORGANISM_ID | AST_IN_PROGRESS | First AST setup saved (M-05) | `micro_ast_run` row |
@@ -83,7 +95,7 @@ The state machine is the spine of the case; the page's next-step guidance (§5) 
 | (any non-terminal, ≥1 Gram stain) | PRELIM_REPORTED | "Release preliminary" | Prelim report; distribution |
 | PRELIM_REPORTED | FINAL_REPORTED | "Release final" (checklist passes) | Final report; case locked |
 | FINAL_REPORTED | AMENDED→FINAL_REPORTED | "Amend" → "Release amended final" | New report version; originals preserved |
-| NO_GROWTH_FINAL | POSITIVE_SIGNAL | Late slow grower (reason required) | Revives case; prior final kept |
+| NO_GROWTH_READY *or* FINAL_REPORTED (negative) | POSITIVE_SIGNAL | Late slow grower (reason required) | Revives case; a released negative report is kept and the revival follows the normal amendment cycle |
 | Order cancelled | CANCELLED_* | Cancellation cascade from Order Entry | Terminal stage per current progress; reason captured |
 
 ### 3.3 Rules
@@ -140,7 +152,9 @@ Per-isolate AST run tables: inline rows; overridden rows shaded and **expandable
 **AST progress count.** The section header counts **completed runs / total runs**, plus an explicit tally of significant isolates **awaiting AST setup** and isolates **pending identification**. A case with two isolates where one is not yet identified must therefore never read as "1 / 1 complete" — the unidentified/un-set-up isolate is surfaced in the count (e.g. "1 / 1 runs complete · 1 pending ID"), because AST is per-isolate-run and an un-worked isolate is not "done."
 
 ### 4.6 Reports — checklist-gated
-Preliminary and Final report rows with versions. **Release preliminary** is enabled once any isolate has a Gram stain. **Release final** is gated by a **pass/fail readiness checklist** (all isolates identified · AST complete for significant isolates · expert flags addressed [N/A 1A] · no pending tests · clinical correlation reviewed); the button is disabled with a count of blocking items until all pass. Final release generates the Jasper PDF, distributes via existing channels, locks the case. Amendment (§3) preserves originals.
+Preliminary and Final report rows with versions. **Release preliminary** is enabled once any isolate has a Gram stain. **Release final** is gated by a **pass/fail readiness checklist**. *(v2.1)* The checklist's first item is that the culture has a **recorded outcome** — satisfied by any one of: **(1)** isolate workup complete; **(2)** a recorded **no growth**; **(3)** isolates present but **all** judged contaminants *(bacteriology — the culture worked and grew skin flora)*; or **(4)** *(v2.1)* on the TB profile, a recorded **`CONTAMINATED`** or **`NTM_IDENTIFIED`** outcome (M-14 §5, §7.1). It is **never** gated on an isolate existing.
+
+**Releasing and exporting are two different questions, and this checklist answers only the first.** Outcomes 1–3 release *and* contribute to surveillance. Outcome 4 releases but contributes **nothing to TB surveillance** (whether NTM is reportable to any other stream is open — M-14 §14 T-2) — a contaminated TB culture means the specimen was never successfully cultured, yet the clinician must still be told so a repeat can be sent, and withholding release would strand the patient. Which outcomes are surveillance-eligible is decided in M-14 §7.1 (TB) and M-09 §4.6 (bacteriology), never here. On **every branch without a worked-up isolate** — no-growth, contaminant-only, and the TB outcome 4 branches — the remaining isolate-dependent items (all isolates identified · AST complete for significant isolates · expert flags addressed [N/A 1A]) evaluate as **N/A**, not as failures — there is no isolate for them to be about — while the isolate-independent items (no pending tests · clinical correlation reviewed) still apply. On the positive branch the checklist is unchanged. The button is disabled with a count of blocking items until all pass; the blocking message names the **missing outcome** (*"Record the culture outcome before releasing"*), never a missing isolate. **After release the checklist must report no blockers** — on either branch. A blocker returned for an already-released case is a defect regardless of which blocker it is, because it teaches staff to disregard the banner that is supposed to flag genuinely unfinished work. Mirrors M-15 §4.10 and M-09 §4.6. Final release generates the Jasper PDF, distributes via existing channels, locks the case. Amendment (§3) preserves originals.
 
 ### 4.7 Critical notification
 A **Log critical notification** action appears in the **case header** (`target_type = CASE`) and on **each isolate tile** (`target_type = ISOLATE`); the entry point sets the target. On save it writes the M-11 record + a timeline event and shows the unacknowledged badge immediately (optimistic).
@@ -211,7 +225,7 @@ The case's **`workflow_type`** is normally set automatically from the ordered te
 ---
 
 ## 5. Next-step guidance
-The main column renders a **stage-keyed banner** stating the recommended next action(s) — the user-facing projection of §3. Mapping (excerpt): INCUBATING → "Incubating (day n of max); no action until positive or read time"; POSITIVE_SIGNAL → "Subculture the bottle and record the Gram stain on a new isolate"; ORGANISM_ID → "Identify each isolate, then set up AST"; AST_IN_PROGRESS → "Review flagged overrides; release a preliminary report if you haven't"; READY_REVIEW → "Supervisor review, then release final." Each section also carries one-line helper text and an empty state with a call-to-action.
+The main column renders a **stage-keyed banner** stating the recommended next action(s) — the user-facing projection of §3. Mapping (excerpt): INCUBATING → "Incubating (day n of max); no action until positive or read time"; POSITIVE_SIGNAL → "Subculture the bottle and record the Gram stain on a new isolate"; ORGANISM_ID → "Identify each isolate, then set up AST"; AST_IN_PROGRESS → "Review flagged overrides; release a preliminary report if you haven't"; READY_REVIEW → "Supervisor review, then release final."; *(v2.1)* NO_GROWTH_READY → "No growth recorded; release the final negative report." Each section also carries one-line helper text and an empty state with a call-to-action.
 
 ---
 
@@ -265,7 +279,7 @@ A Case is created by the Order-Entry post-save hook (`MicroCaseService.createCas
 Case Detail (5 isolates × 100 AST results × 30 timeline events) renders < 1 s; saves < 500 ms (NFR-02/05). WCAG 2.1 AA: all fields labeled; status by text + colour; modal focus management; macro dropdown keyboard-navigable (NFR-04). Offline: forms queue saves locally with reconnect conflict resolution (NFR-01).
 
 ## 12. i18n (pattern `micro.case.*`)
-~150–200 keys: stage labels, section headers, inoculation/subculture actions, **culture-protocol set/change (`micro.case.inoculation.protocol.label` / `.none` "No protocol set" / `.set` / `.change` / `.reason` / `.reasonRequired`)**, timeline event types + AUTO badge, isolate ID-status + Identify CTA, AST section, release-prelim/final + checklist items, amend reasons, next-step banner per stage, error strings (e.g. `micro.case.error.releasePrelim.noGramStain`). (Full list maintained with implementation.)
+~150–200 keys: stage labels, section headers, inoculation/subculture actions, **culture-protocol set/change (`micro.case.inoculation.protocol.label` / `.none` "No protocol set" / `.set` / `.change` / `.reason` / `.reasonRequired`)**, timeline event types + AUTO badge, isolate ID-status + Identify CTA, AST section, release-prelim/final + checklist items, amend reasons, next-step banner per stage, error strings (e.g. `micro.case.error.releasePrelim.noGramStain`). *(v2.1)* Three added: `micro.case.stage.noGrowthReady` ("No Growth Ready"), `micro.case.nextStep.noGrowthReady` (the §5 banner), and `micro.case.error.releaseFinal.outcomeRequired` — English *"Record the culture outcome before releasing"*, the §4.6 replacement for the isolate-required message. The old isolate-required string is **retired**, not re-worded in place, so no deployment keeps a translated copy of a message that is wrong on the negative branch. (M-15 §8 notes this key lives here, in M-04's namespace, because M-04 owns the release path.) (Full list maintained with implementation.)
 
 ## 13. Acceptance criteria
 - **AC-M04-01**: Micro order save auto-creates a Case (RECEIVED) via the hook; idempotent; trigger isolated in one resolver.
@@ -277,7 +291,7 @@ Case Detail (5 isolates × 100 AST results × 30 timeline events) renders < 1 s;
 - **AC-M04-07**: AST rows expand to original→override with revert; matched breakpoint shown; awaiting-results state; no manual import.
 - **AC-M04-08**: Preliminary allowed once a Gram stain exists; Final gated by the pass/fail checklist with blocking count.
 - **AC-M04-09**: Amendment preserves originals; reidentification versions the isolate without auto-re-interpreting AST.
-- **AC-M04-10**: Late slow grower revives NO_GROWTH_FINAL with reason; cancellation cascades to the right terminal stage.
+- **AC-M04-10**: Late slow grower revives a no-growth case (from `NO_GROWTH_READY` or from a released negative) with reason; a released negative report is preserved and the revival follows the amendment cycle; cancellation cascades to the right terminal stage.
 - **AC-M04-11**: Analyzer events route correctly; unmatched → FAILED in admin.
 - **AC-M04-12**: Critical notification reachable from header + isolate; target_type set by entry point; optimistic badge.
 - **AC-M04-13**: Case Info renders as a compact collapsible summary (clinical history first).
@@ -292,6 +306,8 @@ Case Detail (5 isolates × 100 AST results × 30 timeline events) renders < 1 s;
 - **AC-M04-23**: Changing the protocol never rewrites existing `micro_case_inoculation` rows. Media implied by the new protocol but not yet inoculated surface only as §5 next-step guidance, never as an automatic write.
 - **AC-M04-24**: After a protocol change the Worklist day count recomputes against the **new** `max_incubation_days` while still measuring from the **original** inoculation date — the clock is neither restarted nor frozen at the old maximum.
 - **AC-M04-25**: A protocol-only change does **not** mark an already-exported case for surveillance re-export (contrast AC for §4.9, which does).
+- **AC-M04-26** *(v2.1)*: "Mark no growth" moves the case to **`NO_GROWTH_READY`**, writes the *"Incubation complete with no growth"* Timeline event with actor and time, and renders the §5 next-step banner for that stage. The negative does **not** appear on the patient's report until an authorized final-result reviewer releases it, at which point the case becomes `FINAL_REPORTED` and the patient report carries the final culture result **No growth**. There is no terminal `NO_GROWTH_FINAL` stage.
+- **AC-M04-27** *(v2.1)*: Final release is gated on a **recorded culture outcome** — isolate workup complete, no growth recorded, all isolates contaminant, or (TB) a recorded `CONTAMINATED` / `NTM_IDENTIFIED` outcome — never on an isolate existing. On every branch without a worked-up isolate the checklist items that presuppose one evaluate as **N/A**, not as failures. **Passing this gate does not by itself make a case exportable** — surveillance eligibility is decided separately (M-14 §7.1, M-09 §4.6). A released case reports **no** outstanding blockers on either branch, and a case with no recorded outcome is blocked with a message naming the missing outcome rather than a missing isolate. Mirrors M-15 §4.10 and M-09 §4.6.
 - **AC-M04-19**: At AST setup the breakpoint standard is selectable (defaults to the lab's active standard; any loaded standard/version choosable per run) and snapshotted on the run; switching the lab's active standard later does not change historical interpretations. Default active + loaded set managed in M-02.
 
 ## 14. References

@@ -10,8 +10,10 @@
  * no barcode-dimension dropdown, integer mm only, Lab Number locked + first.
  * v2.3 adds per-scope flags (printsPerOrder / printsPerSample) plus four
  * independent quantity fields (default/max per order, default/max per sample).
- * v2.5 trims the site-wide preprinted-barcode settings out of scope — they
- * already exist on the legacy /MasterListsPage#barcodeConfiguration surface.
+ * v2.6 restores the site-wide pre-printed accession settings to this surface
+ * (FRS 5.1). The legacy /MasterListsPage#barcodeConfiguration page was deleted
+ * during OGC-285 implementation, leaving the shipped
+ * SiteWideBarcodeSettingsRestController with no control. See OGC-1217.
  */
 
 import React, { useState, useMemo } from 'react';
@@ -21,7 +23,7 @@ import {
   TableToolbar, TableToolbarContent, TableToolbarSearch,
   Button, IconButton, Tag, Toggle, TextInput, NumberInput, Dropdown,
   FilterableMultiSelect, Checkbox, InlineNotification, Modal, Form, FormGroup,
-  Breadcrumb, BreadcrumbItem, Tile, Tooltip,
+  Breadcrumb, BreadcrumbItem, Tile, Tooltip, RadioButton, RadioButtonGroup,
 } from '@carbon/react';
 import {
   Plus, Edit, Copy, Trash2, Eye, GripVertical, ArrowUp, ArrowDown, Lock,
@@ -295,6 +297,107 @@ function SourceTag({ source }) {
 // VIEW 1 — Admin: Master Lists → Label Presets
 // =============================================================================
 
+// -----------------------------------------------------------------------------
+// Site-wide Barcode Settings (FRS 5.1 · OGC-1217)
+//
+// One site-wide decision, not a per-preset one: the toggle registers an extra
+// accession validator system-wide, so it governs which lab-number formats are
+// accepted at order entry and at scan. The scan path carries no preset context.
+//
+// Persists to the two existing site_information keys via the already-shipped
+// SiteWideBarcodeSettingsRestController:
+//   prePrintUseAltAccession     (text "true"/"false")
+//   prePrintAltAccessionPrefix  (text, exactly 4 chars)
+//
+// Stated positively here. The retired form field was prePrintDontUseAltAccession,
+// the logical inverse of the stored property — do not double-invert.
+// -----------------------------------------------------------------------------
+function SiteWideBarcodeSettings() {
+  // 'orderEntry' => prePrintUseAltAccession = false
+  // 'altSeries'  => prePrintUseAltAccession = true
+  const [source, setSource] = useState('orderEntry');
+  const [prefix, setPrefix] = useState('PRE1');
+  const [saved, setSaved] = useState(false);
+
+  const usesAltSeries = source === 'altSeries';
+  const prefixInvalid = usesAltSeries && prefix.trim().length !== 4;
+
+  return (
+    <Tile style={{ padding: '1.25rem 1.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '2rem' }}>
+        <div style={{ flex: 1 }}>
+          <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '0.25rem' }}>
+            Site-wide Barcode Settings
+          </h3>
+          <p style={{ fontSize: '0.875rem', color: '#525252', maxWidth: 640, marginBottom: '1rem' }}>
+            These apply to the whole laboratory, not to an individual preset.
+          </p>
+
+          <FormGroup legendText="Pre-printed label numbers come from">
+            <RadioButtonGroup
+              name="preprint-accession-source"
+              orientation="vertical"
+              valueSelected={source}
+              onChange={(v) => { setSource(v); setSaved(false); }}
+            >
+              <RadioButton
+                labelText="The same format and number pool as order entry"
+                value="orderEntry"
+                id="preprint-order-entry"
+              />
+              <RadioButton
+                labelText="A separate pre-printed series"
+                value="altSeries"
+                id="preprint-alt-series"
+              />
+            </RadioButtonGroup>
+
+            <div style={{ marginTop: '0.75rem', maxWidth: 260 }}>
+              <TextInput
+                id="preprint-alt-prefix"
+                labelText="Pre-printed series prefix"
+                helperText="Exactly 4 characters."
+                value={prefix}
+                maxLength={4}
+                disabled={!usesAltSeries}
+                invalid={prefixInvalid}
+                invalidText="Prefix must be exactly 4 characters."
+                onChange={(e) => { setPrefix(e.target.value); setSaved(false); }}
+              />
+            </div>
+          </FormGroup>
+
+          <p style={{ fontSize: '0.75rem', color: '#6f6f6f', maxWidth: 640, marginTop: '0.75rem' }}>
+            A label printed in advance carries no order and no patient yet, so patient-derived
+            content fields render blank on it.
+          </p>
+
+          <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <Button
+              size="sm"
+              disabled={prefixInvalid}
+              onClick={() => setSaved(true)}
+            >
+              Save site-wide settings
+            </Button>
+            {saved && (
+              <span style={{ fontSize: '0.8125rem', color: '#0e6027', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                <CheckCircle2 size={14} /> Saved
+              </span>
+            )}
+          </div>
+        </div>
+
+        <Tooltip label="Changing this changes which lab-number formats the system accepts at order entry and at scan, for every preset.">
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.75rem', color: '#525252', whiteSpace: 'nowrap' }}>
+            <Info size={14} /> Applies laboratory-wide
+          </span>
+        </Tooltip>
+      </div>
+    </Tile>
+  );
+}
+
 function LabelPresetsAdminView() {
   const [presets, setPresets] = useState(INITIAL_PRESETS);
   const [showEditor, setShowEditor] = useState(false);
@@ -404,6 +507,8 @@ function LabelPresetsAdminView() {
             Add Label Preset
           </Button>
         </div>
+
+        <SiteWideBarcodeSettings />
 
         {savedNotice && (
           <InlineNotification

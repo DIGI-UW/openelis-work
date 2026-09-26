@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Entry v4 — Clinical Enter Order — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',sans-serif; }
+    .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
+    .preview-content { padding:1rem 2rem 4rem; max-width:1180px; margin:0 auto; }
+    .stepper { display:flex; gap:0; border-bottom:1px solid #e0e0e0; margin:0 0 1.5rem; flex-wrap:wrap; }
+    .step { padding:.75rem 1.25rem; font-size:14px; color:#525252; border-bottom:2px solid transparent; }
+    .step.current { color:#161616; font-weight:600; border-bottom-color:#0f62fe; }
+    .summary { display:flex; gap:2.5rem; flex-wrap:wrap; align-items:center;
+               background:#fff; border:1px solid #e0e0e0; padding:.875rem 1.25rem; margin:0 0 1.5rem; }
+    .summary dt { font-size:11px; letter-spacing:.32px; text-transform:uppercase; color:#6f6f6f; margin:0 0 2px; }
+    .summary dd { margin:0; font-size:14px; font-weight:600; font-family:'IBM Plex Mono',monospace; }
+    .sect { background:#fff; border:1px solid #e0e0e0; padding:1.25rem; margin:0 0 1rem; }
+    .sect h3 { margin:0 0 1rem; font-size:14px; font-weight:600; letter-spacing:.16px; }
+    .row { display:flex; gap:1rem; flex-wrap:wrap; }
+    .fld { flex:1 1 220px; min-width:0; margin-bottom:1rem; }
+    .lbl { display:block; font-size:12px; color:#525252; margin-bottom:.375rem; }
+    .req::after { content:' *'; color:#da1e28; }
+    .help { font-size:12px; color:#6f6f6f; margin-top:.375rem; line-height:1.34; }
+    .bound { background:#f4f4f4; border:1px solid #e0e0e0; padding:.625rem .75rem; font-size:14px;
+             display:flex; justify-content:space-between; align-items:center; gap:1rem; }
+    .actionbar { display:flex; gap:.75rem; align-items:center; flex-wrap:wrap;
+                 background:#fff; border:1px solid #e0e0e0; padding:1rem 1.25rem; }
+    .spacer { flex:1 1 auto; }
+    .newflag { display:inline-block; background:#d0e2ff; color:#0043ce; font-size:10px; font-weight:600;
+               letter-spacing:.5px; text-transform:uppercase; padding:2px 6px; margin-left:.5rem; vertical-align:2px; }
+    .chg { background:#fff1f1; color:#a2191f; }
+    .modal-back { position:fixed; inset:0; background:rgba(22,22,22,.6); display:grid; place-items:center; z-index:20; }
+    .modal-box { background:#fff; max-width:480px; width:92%; }
+    .modal-h { padding:1.25rem 1.25rem .5rem; font-size:20px; font-weight:400; }
+    .modal-b { padding:0 1.25rem 1.75rem; font-size:14px; color:#393939; line-height:1.5; }
+    .modal-f { display:flex; }
+    .modal-f .cds--btn { flex:1 1 50%; max-width:none; }
+    .tests { display:flex; gap:.5rem; flex-wrap:wrap; }
+    .note { font-size:12px; color:#6f6f6f; margin:.5rem 0 0; }
+    table.mini { border-collapse:collapse; width:100%; font-size:13px; }
+    table.mini th, table.mini td { text-align:left; padding:.5rem .75rem; border-bottom:1px solid #e0e0e0; }
+    table.mini th { font-size:11px; text-transform:uppercase; letter-spacing:.32px; color:#6f6f6f; font-weight:600; }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">
+    Visual Preview — Order Entry v4, Clinical Enter Order &nbsp;|&nbsp; Route: existing per-domain wizard path (unchanged) &nbsp;|&nbsp; Not a live application
+  </div>
+  <div class="preview-content" id="root"></div>
+
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+const WARDS = [
+  'Emergency Department','Intensive Care Unit','Maternity Ward','Paediatric Ward',
+  'Medical Ward A','Medical Ward B','Surgical Ward','Outpatient Clinic',
+  'Tuberculosis Clinic','Antiretroviral Therapy Clinic','Antenatal Clinic','Operating Theatre',
+];
+
+function Chip({ dirty, saved }) {
+  // FR-13: a form with no user input must NOT read as "Saved".
+  if (!dirty && !saved) return <span className="cds--tag cds--tag--gray">No changes yet</span>;
+  if (dirty) return <span className="cds--tag cds--tag--red">Unsaved changes</span>;
+  return <span className="cds--tag cds--tag--green">All changes saved</span>;
+}
+
+function WardCombo({ facility, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState('');
+  const matches = useMemo(
+    () => WARDS.filter(w => w.toLowerCase().includes(q.toLowerCase())), [q]);
+  const disabled = !facility;
+  return (
+    <div>
+      <label className="lbl" htmlFor="ward">Ward / Unit / Department</label>
+      <div className="cds--text-input-wrapper" style={{ position:'relative' }}>
+        <input id="ward" className="cds--text-input" disabled={disabled}
+          placeholder={disabled ? 'Select an ordering facility first' : 'Type to filter wards'}
+          value={open ? q : (value || '')}
+          onFocus={() => { setOpen(true); setQ(''); }}
+          onChange={e => { setQ(e.target.value); setOpen(true); }} />
+        {open && !disabled && (
+          <ul style={{ position:'absolute', zIndex:10, top:'100%', left:0, right:0, background:'#fff',
+                       border:'1px solid #8d8d8d', maxHeight:200, overflowY:'auto', margin:0,
+                       padding:0, listStyle:'none' }}>
+            {matches.length === 0 && <li style={{ padding:'.5rem .75rem', color:'#6f6f6f', fontSize:13 }}>No wards match</li>}
+            {matches.map(w => (
+              <li key={w} style={{ padding:'.5rem .75rem', fontSize:14, cursor:'pointer' }}
+                  onMouseDown={() => { onChange(w); setOpen(false); }}>{w}</li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <p className="help">
+        {disabled
+          ? 'Select an ordering facility to choose a ward.'
+          : 'The ward or unit within the ordering facility that requested this test. Optional.'}
+      </p>
+    </div>
+  );
+}
+
+function App() {
+  const LAB_NO = 'DEV01260000000000048';
+  const [dirty, setDirty] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [facility, setFacility] = useState('Mulago National Referral Hospital');
+  const [ward, setWard] = useState('');
+  const [orderDate, setOrderDate] = useState('10/09/2026');
+  const [orderTime, setOrderTime] = useState('09:15');
+  const [requiredBy, setRequiredBy] = useState('');
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const touch = () => { setDirty(true); setSaved(false); };
+  const persist = (where) => {
+    setDirty(false); setSaved(true);
+    setToast(where === 'next'
+      ? `Saved. Lab number ${LAB_NO} — continuing to Collect.`
+      : `Saved and closed. Lab number ${LAB_NO} is in your order list.`);
+  };
+
+  return (
+    <div>
+      <div className="stepper">
+        <div className="step current">Enter Order</div>
+        <div className="step">Collect</div>
+        <div className="step">Label &amp; Store</div>
+        <div className="step">QA Review</div>
+      </div>
+
+      <div className="summary">
+        <div><dt>Lab Number</dt><dd>{LAB_NO}</dd></div>
+        <div><dt>Patient</dt><dd style={{ fontFamily:'inherit' }}>Nakato, Grace &middot; F &middot; 14/03/1991</dd></div>
+        <div><dt>Samples</dt><dd style={{ fontFamily:'inherit' }}>1 &middot; Serum</dd></div>
+        <div className="spacer" />
+        <Chip dirty={dirty} saved={saved} />
+      </div>
+
+      {toast && (
+        <div className="cds--inline-notification cds--inline-notification--success" style={{ maxWidth:'none', marginBottom:'1rem' }}>
+          <div className="cds--inline-notification__details">
+            <div className="cds--inline-notification__text-wrapper">
+              <p className="cds--inline-notification__title">Order saved</p>
+              <p className="cds--inline-notification__subtitle">{toast}</p>
+            </div>
+          </div>
+          <button className="cds--inline-notification__close-button" onClick={() => setToast(null)} aria-label="Close">×</button>
+        </div>
+      )}
+
+      <div className="sect">
+        <h3>Lab number</h3>
+        <div className="row">
+          <div className="fld">
+            <label className="lbl req" htmlFor="labno">Lab Number</label>
+            <div className="bound"><span style={{ fontFamily:"'IBM Plex Mono',monospace" }}>{LAB_NO}</span>
+              <span className="cds--tag cds--tag--blue">Reserved to this order</span></div>
+            <p className="help">
+              Reserved when this form opened. It is already in use and will not be issued again,
+              whether or not this order is saved.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="sect">
+        <h3>Dates</h3>
+        <div className="row">
+          <div className="fld">
+            <label className="lbl req" htmlFor="odate">Order Date<span className="newflag">restored</span></label>
+            <div className="cds--text-input-wrapper">
+              <input id="odate" className="cds--text-input" value={orderDate}
+                onChange={e => { setOrderDate(e.target.value); touch(); }} placeholder="dd/mm/yyyy" />
+            </div>
+            <p className="help">The date the order was raised, as written on the request slip. Defaults to today.</p>
+          </div>
+          <div className="fld">
+            <label className="lbl req" htmlFor="otime">Order Time<span className="newflag">new</span></label>
+            <div className="cds--text-input-wrapper">
+              <input id="otime" className="cds--text-input" value={orderTime}
+                onChange={e => { setOrderTime(e.target.value); touch(); }} placeholder="hh:mm" />
+            </div>
+            <p className="help">Defaults to now. Editable when the slip records a different time.</p>
+          </div>
+          <div className="fld">
+            <label className="lbl" htmlFor="rby">Required By</label>
+            <div className="cds--text-input-wrapper">
+              <input id="rby" className="cds--text-input" value={requiredBy}
+                onChange={e => { setRequiredBy(e.target.value); touch(); }} placeholder="dd/mm/yyyy" />
+            </div>
+            <p className="help">The date the result is needed by. Cannot be in the past.</p>
+          </div>
+        </div>
+        <p className="note">
+          Two dates, opposite constraints: Order Date looks backwards and accepts past dates;
+          Required By looks forwards and does not.
+        </p>
+      </div>
+
+      <div className="sect">
+        <h3>Requester</h3>
+        <div className="row">
+          <div className="fld">
+            <label className="lbl req">Ordering Facility</label>
+            {facility ? (
+              <div className="bound">
+                <span>{facility}</span>
+                <span style={{ display:'flex', gap:'.5rem' }}>
+                  <button className="cds--btn cds--btn--ghost cds--btn--sm">Edit details</button>
+                  <button className="cds--btn cds--btn--ghost cds--btn--sm"
+                    onClick={() => { setFacility(''); setWard(''); touch(); }}>Clear</button>
+                </span>
+              </div>
+            ) : (
+              <div className="cds--text-input-wrapper">
+                <input className="cds--text-input" placeholder="Search facilities, then Select"
+                  onChange={() => {}} />
+              </div>
+            )}
+            <p className="help">
+              {facility
+                ? 'Bound to the order. Read-only until you choose Edit details.'
+                : 'Type a name and press Search, then Select a result.'}
+            </p>
+            {!facility && (
+              <button className="cds--btn cds--btn--tertiary cds--btn--sm" style={{ marginTop:'.5rem' }}
+                onClick={() => { setFacility('Mulago National Referral Hospital'); touch(); }}>
+                Select "Mulago National Referral Hospital"
+              </button>
+            )}
+          </div>
+          <div className="fld">
+            <WardCombo facility={facility} value={ward} onChange={w => { setWard(w); touch(); }} />
+          </div>
+          <div className="fld">
+            <label className="lbl req">Ordering Provider</label>
+            <div className="bound"><span>Dr. Okello, Peter</span>
+              <button className="cds--btn cds--btn--ghost cds--btn--sm">Edit details</button></div>
+            <p className="help">Required. OpenELIS cannot route results downstream without it.</p>
+          </div>
+          <div className="fld">
+            <label className="lbl" htmlFor="prio">Priority</label>
+            <div className="cds--select">
+              <select id="prio" className="cds--select-input" onChange={touch} defaultValue="ROUTINE">
+                <option value="ROUTINE">Routine</option>
+                <option value="STAT">STAT (Urgent)</option>
+                <option value="ASAP">ASAP</option>
+                <option value="TIMED">Timed</option>
+              </select>
+            </div>
+            <p className="help">Routine unless the clinician marked otherwise.</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="sect">
+        <h3>Samples and tests <span style={{ fontWeight:400, color:'#6f6f6f' }}>— optional at this stage</span></h3>
+        <table className="mini">
+          <thead><tr><th>Sample</th><th>Type</th><th>Panels and tests</th></tr></thead>
+          <tbody>
+            <tr>
+              <td style={{ fontFamily:"'IBM Plex Mono',monospace" }}>{LAB_NO}-1</td>
+              <td>Serum</td>
+              <td><div className="tests">
+                <span className="cds--tag cds--tag--teal">Glucose</span>
+                <span className="cds--tag cds--tag--teal">Creatinine</span>
+                <span className="cds--tag cds--tag--teal">Liver Function Panel</span>
+              </div></td>
+            </tr>
+          </tbody>
+        </table>
+        <p className="note">
+          Pre-population only. The collector confirms, edits or adds at Collect, and is the
+          authority on what was actually drawn. An order can be saved with none of this filled in —
+          it just cannot progress to testing until it has a sample and a test.
+        </p>
+        <button className="cds--btn cds--btn--tertiary cds--btn--sm" style={{ marginTop:'.75rem' }} onClick={touch}>
+          Add Sample
+        </button>
+      </div>
+
+      <div className="actionbar">
+        <button className="cds--btn cds--btn--primary" onClick={() => persist('next')}>Save &amp; Next</button>
+        <button className="cds--btn cds--btn--secondary" onClick={() => persist('exit')}>Save &amp; Exit</button>
+        <div className="spacer" />
+        <button className="cds--btn cds--btn--ghost" onClick={() => setDiscardOpen(true)}>Discard</button>
+      </div>
+      <p className="note" style={{ marginTop:'.75rem' }}>
+        Three actions, three outcomes: persist and continue, persist and leave, leave without
+        persisting. There is no automatic save &mdash; nothing reaches the server until one of these
+        is pressed.
+      </p>
+
+      {discardOpen && (
+        <div className="modal-back" onMouseDown={e => { if (e.target.className === 'modal-back') setDiscardOpen(false); }}>
+          <div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="dh">
+            <div className="modal-h" id="dh">Discard this order?</div>
+            <div className="modal-b">
+              This order will not be saved. Lab number <strong style={{ fontFamily:"'IBM Plex Mono',monospace" }}>{LAB_NO}</strong>
+              {' '}is already in use and will not be reused.
+            </div>
+            <div className="modal-f">
+              <button className="cds--btn cds--btn--secondary" onClick={() => setDiscardOpen(false)}>Keep editing</button>
+              <button className="cds--btn cds--btn--danger" onClick={() => { setDiscardOpen(false); setToast(null);
+                setDirty(false); setSaved(false); }}>Discard order</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
