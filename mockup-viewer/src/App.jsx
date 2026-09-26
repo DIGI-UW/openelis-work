@@ -2399,6 +2399,18 @@ export const MOCKUP_REGISTRY = [
     tags: ['help', 'documentation', 'UI', 'navigation', 'contextual-help', 'search', 'slide-over', 'global'],
   },
   {
+    name: 'Navigation Redesign',
+    category: 'system',
+    component: null,
+    description: 'Information-architecture redesign of the main side menu and the Admin sidebar (FRS v0.1, approved 2026-09-24). The main menu reads in the order of a lab\'s day under six section headings (Orders & Patients, Samples & Supplies, Testing, Quality, Reports, Administration) with Home and Alerts pinned; nothing deeper than three levels, one entry per destination (220 rows to 119, 7 duplicates to 0), dead rows retired under a three-tier rule and every removed URL redirected. The hard-coded Admin sidebar regroups into five buckets (Config, Organization, Resources, Automation, Compliance). No page is redesigned. Builds on the section/icon capability from #4315 (OGC-479). Interactive HTML preview, handoff JSX (target MENU and ADMIN trees + icon registry) and the row-by-row inventory data.',
+    specPath: 'designs/system/navigation-redesign.md',
+    htmlUrl: 'designs/system/navigation-redesign-preview.html',
+    added: '2026-09-26',
+    status: 'draft',
+    jira: ['OGC-1241'],
+    tags: ['navigation', 'menu', 'side-nav', 'admin', 'information-architecture', 'menu-configuration', 'redesign', 'system'],
+  },
+  {
     name: 'Analyzer Results Import (v2 redesign)',
     category: 'system',
     component: React.lazy(() => import('@designs/system/analyzer-import-redesign-v2.jsx')),

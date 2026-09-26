@@ -213,6 +213,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | FHIR Publication Settings | [fhir-publication-settings.jsx](designs/system/fhir-publication-settings.jsx) | — |
 | Lab Management Dashboard | [lab-management-dashboard.html](designs/system/lab-management-dashboard.html) | [lab-management-dashboard.md](designs/system/lab-management-dashboard.md) |
 | Catalyst Lab Data Assistant | [Figma](https://www.figma.com/make/poDXKSr2IBgKbbjB1Fh9Sj/OpenELIS-Global-Template--Copy-?node-id=0-1) | — |
+| Navigation Redesign | [preview](designs/system/navigation-redesign-preview.html) · [navigation-redesign-mockup.jsx](designs/system/navigation-redesign-mockup.jsx) | [navigation-redesign.md](designs/system/navigation-redesign.md) · [inventory data](designs/system/navigation-redesign-data/) |
 | Electronic Signature | [electronic-signature.jsx](designs/system/electronic-signature.jsx) | [electronic-signature.md](designs/system/electronic-signature.md) |
 
 ## Patient
