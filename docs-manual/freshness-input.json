@@ -1,16 +1,16 @@
 {
-  "generated": "2026-09-20",
+  "generated": "2026-09-27",
   "counts": {
-    "total": 70,
+    "total": 73,
     "by_maturity": {
-      "production": 46,
+      "production": 47,
       "planned": 4,
-      "in-development": 11,
-      "beta": 4,
+      "in-development": 8,
+      "beta": 9,
       "available": 5
     },
     "with_manual_page": 24,
-    "shipped_without_manual": 31
+    "shipped_without_manual": 36
   },
   "capabilities": [
     {
@@ -28,8 +28,8 @@
       ],
       "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/261423127",
       "manual_status": null,
-      "last_change_release": "3.2.2.0",
-      "last_change_date": "2026-08-18"
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "results-entry",
@@ -49,8 +49,8 @@
       ],
       "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/278626329",
       "manual_status": null,
-      "last_change_release": "3.2.2.0",
-      "last_change_date": "2026-08-18"
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "result-validation",
@@ -64,12 +64,17 @@
       "since": "v3.1",
       "jira": [
         "OGC-291",
-        "OGC-343"
+        "OGC-343",
+        "OGC-817",
+        "OGC-1027",
+        "OGC-1028",
+        "OGC-1029",
+        "OGC-1030"
       ],
       "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/284196875",
       "manual_status": null,
-      "last_change_release": "3.2.2.0",
-      "last_change_date": "2026-08-18"
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "electronic-lab-notebook",
@@ -104,8 +109,8 @@
       ],
       "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1242759175",
       "manual_status": null,
-      "last_change_release": "3.2.1.5",
-      "last_change_date": "2026-04-11"
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "informed-consent",
@@ -139,8 +144,8 @@
       ],
       "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1189642248",
       "manual_status": "draft",
-      "last_change_release": "3.2.1.8",
-      "last_change_date": "2026-05-04"
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "sample-storage-management",
@@ -155,8 +160,8 @@
       "jira": [],
       "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1047658526",
       "manual_status": null,
-      "last_change_release": "3.2.2.0",
-      "last_change_date": "2026-08-18"
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "sample-shipment-referral",
@@ -174,8 +179,26 @@
       ],
       "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1046118450",
       "manual_status": null,
-      "last_change_release": "3.2.1.5",
-      "last_change_date": "2026-04-11"
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
+    },
+    {
+      "id": "inventory-management",
+      "name": "Inventory & supplies management",
+      "area": "Sample & Storage",
+      "domain": [
+        "cross-cutting"
+      ],
+      "maturity": "production",
+      "since": "3.2.1.x",
+      "jira": [
+        "OGC-64",
+        "OGC-438"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "partial-sample-usage",
@@ -208,8 +231,8 @@
       ],
       "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1188429833",
       "manual_status": "draft",
-      "last_change_release": "3.2.1.7",
-      "last_change_date": "2026-05-01"
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "eqa",
@@ -248,8 +271,8 @@
       ],
       "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/278888457",
       "manual_status": null,
-      "last_change_release": "3.2.1.5",
-      "last_change_date": "2026-04-11"
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "audit-trail",
@@ -282,8 +305,8 @@
       ],
       "manual_page": null,
       "manual_status": null,
-      "last_change_release": null,
-      "last_change_date": null
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "batch-workplan-reagent-qc",
@@ -300,8 +323,29 @@
       ],
       "manual_page": null,
       "manual_status": null,
-      "last_change_release": null,
-      "last_change_date": null
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
+    },
+    {
+      "id": "qa-workspace",
+      "name": "Quality Assurance workspace & quality indicators",
+      "area": "Quality & Compliance",
+      "domain": [
+        "clinical",
+        "cross-cutting"
+      ],
+      "maturity": "beta",
+      "since": "3.2.3.0",
+      "jira": [
+        "OGC-682",
+        "OGC-683",
+        "OGC-684",
+        "OGC-688"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "domain-aware-labs",
@@ -377,8 +421,8 @@
       ],
       "manual_page": null,
       "manual_status": null,
-      "last_change_release": null,
-      "last_change_date": null
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "vector-collection",
@@ -483,8 +527,8 @@
       ],
       "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1186365449",
       "manual_status": null,
-      "last_change_release": "3.2.1.7",
-      "last_change_date": "2026-05-01"
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "analyzer-file-import",
@@ -603,15 +647,15 @@
       "domain": [
         "cross-cutting"
       ],
-      "maturity": "in-development",
-      "since": null,
+      "maturity": "beta",
+      "since": "3.2.3.0",
       "jira": [
         "OGC-479"
       ],
       "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1189576725",
       "manual_status": "draft",
-      "last_change_release": "3.2.1.4",
-      "last_change_date": "2026-03-31"
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "positivity-rate",
@@ -734,8 +778,8 @@
       "jira": [],
       "manual_page": null,
       "manual_status": null,
-      "last_change_release": "3.2.1.5",
-      "last_change_date": "2026-04-11"
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "hie-deployment",
@@ -804,12 +848,14 @@
         "OGC-1142",
         "OGC-1145",
         "OGC-1153",
-        "OGC-760"
+        "OGC-760",
+        "OGC-1193",
+        "OGC-1194"
       ],
       "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/257228825",
       "manual_status": null,
-      "last_change_release": "3.2.2.0",
-      "last_change_date": "2026-08-18"
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "range-editor",
@@ -863,8 +909,8 @@
       ],
       "manual_page": null,
       "manual_status": null,
-      "last_change_release": "3.2.2.0",
-      "last_change_date": "2026-08-18"
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "organizations-management",
@@ -956,8 +1002,27 @@
       ],
       "manual_page": null,
       "manual_status": null,
-      "last_change_release": null,
-      "last_change_date": null
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
+    },
+    {
+      "id": "programs-management",
+      "name": "Programs & order questionnaires",
+      "area": "Test Catalog & Admin",
+      "domain": [
+        "clinical",
+        "environmental",
+        "vector"
+      ],
+      "maturity": "beta",
+      "since": "3.2.3.0",
+      "jira": [
+        "OGC-781"
+      ],
+      "manual_page": null,
+      "manual_status": null,
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "rbac",
@@ -982,15 +1047,15 @@
       "domain": [
         "clinical"
       ],
-      "maturity": "in-development",
-      "since": null,
+      "maturity": "beta",
+      "since": "3.2.3.0",
       "jira": [
         "OGC-782"
       ],
       "manual_page": null,
       "manual_status": null,
-      "last_change_release": null,
-      "last_change_date": null
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "micro-case-workbench",
@@ -999,15 +1064,15 @@
       "domain": [
         "clinical"
       ],
-      "maturity": "in-development",
-      "since": null,
+      "maturity": "beta",
+      "since": "3.2.3.0",
       "jira": [
         "OGC-782"
       ],
       "manual_page": null,
       "manual_status": null,
-      "last_change_release": null,
-      "last_change_date": null
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "ihc-case-view",
@@ -1021,8 +1086,8 @@
       "jira": [],
       "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/279248897",
       "manual_status": null,
-      "last_change_release": null,
-      "last_change_date": null
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "cytology-case-view",
@@ -1099,8 +1164,8 @@
       "jira": [],
       "manual_page": null,
       "manual_status": null,
-      "last_change_release": "3.2.2.0",
-      "last_change_date": "2026-08-18"
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "security-hardening",
@@ -1116,8 +1181,8 @@
       ],
       "manual_page": null,
       "manual_status": null,
-      "last_change_release": "3.2.2.0",
-      "last_change_date": "2026-08-18"
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "live-logging",
@@ -1146,8 +1211,8 @@
       "jira": [],
       "manual_page": null,
       "manual_status": null,
-      "last_change_release": "3.2.2.0",
-      "last_change_date": "2026-08-18"
+      "last_change_release": "3.2.3.0",
+      "last_change_date": "2026-09-26"
     },
     {
       "id": "blood-bank-component-types",
