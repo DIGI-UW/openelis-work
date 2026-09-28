@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Locations & Organizations - OpenELIS Preview v0.1</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif; }
+    .preview-banner { background: #0f62fe; color: #fff; padding: 6px 1rem; font-size: 12px; font-family: monospace; }
+    .shell { display: flex; min-height: calc(100vh - 28px); }
+    .snav { width: 256px; background: #fff; border-right: 1px solid #e0e0e0; flex: none; padding-top: .5rem; }
+    .snav .grp { font-size: .75rem; color: #6f6f6f; padding: .75rem 1rem .25rem; text-transform: uppercase; letter-spacing: .32px; }
+    .snav .parent { padding: .75rem 1rem; font-size: .875rem; font-weight: 600; color: #161616; }
+    .snav a { display: block; padding: .5rem 1rem .5rem 2rem; font-size: .875rem; color: #525252; text-decoration: none; border-left: 3px solid transparent; cursor: pointer; }
+    .snav a:hover { background: #e8e8e8; color: #161616; }
+    .snav a.active { background: #e0e0e0; color: #161616; border-left-color: #0f62fe; font-weight: 600; }
+    .snav .muted { padding: .5rem 1rem; font-size: .875rem; color: #a8a8a8; }
+    .main { flex: 1; padding: 1rem 2rem 3rem; min-width: 0; }
+    .crumbs { font-size: .875rem; color: #525252; margin-bottom: .25rem; }
+    .crumbs a { color: #0f62fe; text-decoration: none; }
+    .route { font-family: monospace; font-size: .75rem; color: #6f6f6f; }
+    .page-title { font-size: 1.75rem; font-weight: 400; margin: .5rem 0 1rem; }
+    .toolbar { background: #fff; display: flex; gap: .75rem; align-items: flex-end; padding: .75rem 1rem; flex-wrap: wrap; border-bottom: 1px solid #e0e0e0; }
+    .toolbar .grow { flex: 1 1 280px; }
+    .fld label { display: block; font-size: .75rem; color: #525252; margin-bottom: .25rem; }
+    .inp { height: 40px; border: none; border-bottom: 1px solid #8d8d8d; background: #f4f4f4; padding: 0 1rem; font-size: .875rem; width: 100%; box-sizing: border-box; font-family: inherit; }
+    .inp.white { background: #fff; }
+    .inp:focus { outline: 2px solid #0f62fe; outline-offset: -2px; }
+    .inp.err { outline: 2px solid #da1e28; outline-offset: -2px; }
+    select.inp { padding-right: 2rem; }
+    .ms { position: relative; min-width: 240px; }
+    .ms-btn { height: 40px; background: #f4f4f4; border: none; border-bottom: 1px solid #8d8d8d; width: 100%; text-align: left; padding: 0 1rem; cursor: pointer; font-size: .875rem; font-family: inherit; }
+    .ms-menu { position: absolute; z-index: 20; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.3); width: 100%; max-height: 260px; overflow: auto; }
+    .ms-menu input.inp { background: #fff; border-bottom: 1px solid #e0e0e0; }
+    .ms-opt { display: flex; gap: .5rem; align-items: center; padding: .5rem 1rem; font-size: .875rem; cursor: pointer; }
+    .ms-opt:hover { background: #e8e8e8; }
+    .chips { display: flex; gap: .25rem; flex-wrap: wrap; align-items: center; background: #fff; padding: .5rem 1rem 0; }
+    .tbl-wrap { background: #fff; }
+    table.dt { width: 100%; border-collapse: collapse; font-size: .875rem; }
+    table.dt th { background: #e0e0e0; text-align: left; font-weight: 600; padding: .75rem 1rem; height: 48px; box-sizing: border-box; }
+    table.dt td { padding: .625rem 1rem; border-top: 1px solid #e0e0e0; vertical-align: middle; }
+    table.dt tr.row:hover td { background: #e8e8e8; cursor: pointer; }
+    table.dt tr.expanded td { background: #f4f4f4; }
+    table.dt tr.hl td { background: #edf5ff; }
+    .code { font-family: 'IBM Plex Mono', monospace; font-size: .8125rem; }
+    .sub { font-size: .75rem; color: #6f6f6f; }
+    .expand-cell { padding: 0 !important; background: #f4f4f4; }
+    .form { padding: 1rem 1.5rem 1.25rem 3rem; }
+    .sec { margin-bottom: 1.25rem; }
+    .sec h4 { font-size: .875rem; font-weight: 600; margin: 0 0 .5rem; padding-bottom: .25rem; border-bottom: 1px solid #c6c6c6; }
+    .grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: .75rem 1rem; }
+    .span2 { grid-column: span 2; } .span4 { grid-column: span 4; }
+    .helper { font-size: .75rem; color: #6f6f6f; margin-top: .25rem; }
+    .errtxt { font-size: .75rem; color: #da1e28; margin-top: .25rem; }
+    .warntxt { font-size: .75rem; color: #8e6a00; margin-top: .25rem; }
+    .actions { display: flex; gap: .5rem; margin-top: .5rem; }
+    .units td { background: #fff; }
+    .units tr.hlrow td { background: #edf5ff; }
+    .units { width: 100%; border-collapse: collapse; font-size: .875rem; background: #fff; }
+    .units th { background: #e8e8e8; text-align: left; padding: .5rem .75rem; font-weight: 600; font-size: .8125rem; }
+    .units td { padding: .375rem .75rem; border-top: 1px solid #e0e0e0; }
+    .overflow { position: relative; }
+    .ov-menu { position: absolute; right: 0; top: 100%; z-index: 30; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.3); min-width: 180px; }
+    .ov-menu div { padding: .625rem 1rem; font-size: .875rem; cursor: pointer; }
+    .ov-menu div:hover { background: #e8e8e8; }
+    .ov-btn { background: none; border: none; cursor: pointer; font-size: 1.25rem; line-height: 1; padding: .25rem .5rem; }
+    .batch { background: #0f62fe; color: #fff; display: flex; align-items: center; gap: 1rem; padding: 0 1rem; height: 48px; font-size: .875rem; }
+    .batch button { background: none; border: none; color: #fff; cursor: pointer; font-size: .875rem; font-family: inherit; padding: 0 .75rem; height: 48px; }
+    .batch button:hover { background: #0353e9; }
+    .pager { display: flex; justify-content: space-between; align-items: center; background: #fff; border-top: 1px solid #e0e0e0; padding: 0 1rem; height: 48px; font-size: .875rem; color: #525252; }
+    .empty { background: #fff; text-align: center; padding: 3rem 1rem; color: #525252; }
+    .modal-bg { position: fixed; inset: 0; background: rgba(22,22,22,.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
+    .modal { background: #fff; width: 560px; max-width: 92vw; }
+    .modal .hd { padding: 1rem 1rem .5rem; } .modal .hd h3 { margin: 0; font-size: 1.25rem; font-weight: 400; }
+    .modal .bd { padding: 0 1rem 1.5rem; font-size: .875rem; }
+    .modal .ft { display: flex; }
+    .modal .ft button { flex: 1; height: 64px; border: none; text-align: left; padding: 0 1rem; font-size: .875rem; cursor: pointer; font-family: inherit; }
+    .ft .sec-b { background: #393939; color: #fff; } .ft .pri-b { background: #0f62fe; color: #fff; } .ft .dan-b { background: #da1e28; color: #fff; }
+    .ft button:disabled { background: #c6c6c6; color: #8d8d8d; cursor: not-allowed; }
+    .panel { background: #fff; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+    .panel h3 { font-size: 1rem; font-weight: 600; margin: 0 0 .75rem; }
+    .drop { border: 1px dashed #8d8d8d; padding: 1.5rem; text-align: center; color: #525252; font-size: .875rem; background: #f4f4f4; cursor: pointer; }
+    .radio-card { border: 1px solid #c6c6c6; padding: .75rem 1rem; cursor: pointer; flex: 1; background: #fff; }
+    .radio-card.sel { border: 2px solid #0f62fe; padding: calc(.75rem - 1px) calc(1rem - 1px); }
+    .radio-card b { font-size: .875rem; }
+    .tiles { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 1px; background: #e0e0e0; margin-bottom: 1rem; }
+    .tile { background: #fff; padding: .75rem 1rem; cursor: pointer; }
+    .tile.sel { box-shadow: inset 0 -3px 0 #0f62fe; }
+    .tile .n { font-size: 1.75rem; font-weight: 300; } .tile .l { font-size: .75rem; color: #525252; }
+    .diff-old { color: #a2191f; text-decoration: line-through; } .diff-new { color: #0e6027; font-weight: 600; }
+    .switcher { display: inline-flex; border: 1px solid #161616; margin-bottom: 1rem; }
+    .switcher button { background: #fff; border: none; padding: .5rem 1rem; font-size: .875rem; cursor: pointer; font-family: inherit; }
+    .switcher button.sel { background: #161616; color: #fff; }
+    .sticky-bar { position: sticky; bottom: 0; z-index: 10; background: #f4f4f4; border-top: 1px solid #c6c6c6; box-shadow: 0 -2px 6px rgba(0,0,0,.08); display: flex; gap: .5rem; padding: .75rem 0; margin-top: .5rem; }
+    tr[role=row]:focus { outline: 2px solid #0f62fe; outline-offset: -2px; }
+    .notes { margin-top: 2rem; font-size: .8rem; color: #525252; background: #e8e8e8; padding: .75rem 1rem; }
+    .fence { border: 1px dashed #8a3ffc; padding: .5rem .75rem; font-size: .75rem; color: #6929c4; background: #f6f2ff; margin-bottom: .75rem; }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">Visual Preview: Locations & Organizations | OpenELIS Design Mockup v0.1 | Route: /MasterListsPage/locations/* | Not a live application</div>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useMemo, useEffect } = React;
+    // Route: /MasterListsPage/locations  (/facilities, /sites, /areas, /import)
+    // SideNav: Admin → Locations & Organizations → Organizations | Sampling Sites | Geographic Areas | Import / Export
+    const t = (key, fallback) => fallback || key;
+
+    // ---------- Mock data (Papua New Guinea, matching the FRS CSV example) ----------
+    const AREA_LEVELS = [
+      { level: 1, name: 'Region' }, { level: 2, name: 'Province' },
+      { level: 3, name: 'District' }, { level: 4, name: 'LLG' },
+    ];
+    const TYPES = [
+      { id: 'rc', name: 'referring clinic', label: 'Referring clinic', kind: 'facility' },
+      { id: 'rl', name: 'referral lab', label: 'Referral lab', kind: 'facility' },
+      { id: 'dept', name: 'dept', label: 'Ward / Dept', kind: 'unit' },
+      { id: 'ss', name: 'sampling site', label: 'Sampling site', kind: 'site' },
+      ...AREA_LEVELS.map(l => ({ id: 'L' + l.level, name: l.name, label: l.name, kind: 'area', level: l.level })),
+    ];
+    const typeById = Object.fromEntries(TYPES.map(x => [x.id, x]));
+
+    let seq = 500;
+    const A = (id, name, code, level, parent, active = true) => ({ id, name, code, types: ['L' + level], parent, active, inUse: 0 });
+    const INITIAL = [
+      A('a1', 'Southern Region', 'R-SOU', 1, null), A('a2', 'Momase Region', 'R-MOM', 1, null),
+      A('a3', 'Highlands Region', 'R-HIG', 1, null), A('a4', 'Islands Region', 'R-ISL', 1, null),
+      A('a5', 'National Capital District', 'P-NCD', 2, 'a1'), A('a6', 'Central Province', 'P-CEN', 2, 'a1'),
+      A('a7', 'Morobe Province', 'P-MOR', 2, 'a2'), A('a8', 'Madang Province', 'P-MAD', 2, 'a2'),
+      A('a9', 'Eastern Highlands Province', 'P-EHP', 2, 'a3'), A('a10', 'Western Highlands Province', 'P-WHP', 2, 'a3'),
+      A('a11', 'East New Britain Province', 'P-ENB', 2, 'a4'),
+      A('a12', 'Moresby South', 'NCD-MS', 3, 'a5'), A('a13', 'Moresby North-East', 'NCD-MNE', 3, 'a5'), A('a14', 'Moresby North-West', 'NCD-MNW', 3, 'a5'),
+      A('a15', 'Kairuku-Hiri', 'CEN-KH', 3, 'a6'), A('a16', 'Lae', 'MOR-LAE', 3, 'a7'), A('a17', 'Huon Gulf', 'MOR-HG', 3, 'a7'),
+      A('a18', 'Madang', 'MAD-MAD', 3, 'a8'), A('a19', 'Goroka', 'EHP-GKA', 3, 'a9'), A('a20', 'Mount Hagen', 'WHP-HAG', 3, 'a10'),
+      A('a21', 'Kokopo', 'ENB-KOK', 3, 'a11'),
+      A('a22', 'Lae Urban', 'LLG-LAEU', 4, 'a16'), A('a23', 'Ahi Rural', 'LLG-AHI', 4, 'a16'), A('a24', 'Wampar Rural', 'LLG-WAM', 4, 'a17'),
+      A('a25', 'Hiri Rural', 'LLG-HIRI', 4, 'a15'), A('a26', 'Goroka Urban', 'LLG-GKAU', 4, 'a19'), A('a27', 'Hagen Urban', 'LLG-HAGU', 4, 'a20'),
+      A('a28', 'Kokopo-Vunamami Urban', 'LLG-KOKU', 4, 'a21'), A('a29', 'Madang Urban', 'LLG-MADU', 4, 'a18'),
+      A('a30', 'Bitapaka Rural', 'LLG-BITA', 4, 'a21', false),
+      { id: 'f1', ids: [{ label: 'National facility code', value: 'NCD-0001' }, { label: 'DHIS2 ID', value: 'Rp1k2mPqH3x' }], cat: 'National referral hospital', own: 'Government', name: 'Port Moresby General Hospital', code: 'PMGH', types: ['rc'], parent: 'a12', active: true, inUse: 18412, open: 146, city: 'Port Moresby', street: 'Taurama Road, Boroko', phone: '+675 324 8200', contact: 'Dr. Anna Kila', email: 'lab@pmgh.gov.pg', lat: '-9.4705', lng: '147.1597' },
+      { id: 'f2', ids: [{ label: 'National facility code', value: 'MOR-0001' }, { label: 'DHIS2 ID', value: 'Qw8LmZa21Ks' }], cat: 'Provincial hospital', own: 'Government', ref: { status: 'Approved', body: 'PNG Medical Laboratory Accreditation', num: 'ML-014', expiry: '2027-06-30', last: '2026-03-12', next: '2027-03-12', notes: 'TB culture and DST referrals.' }, name: 'Angau Memorial General Hospital', code: 'ANGAU', types: ['rc', 'rl'], parent: 'a22', active: true, inUse: 9240, open: 71, city: 'Lae', street: 'Markham Road', phone: '+675 472 1400', contact: 'Peter Sine', email: 'pathology@angau.gov.pg', lat: '-6.7224', lng: '146.9960' },
+      { id: 'f3', ids: [{ label: 'National facility code', value: 'NCD-0107' }], cat: 'Urban clinic', own: 'Government', name: 'Tokarara Clinic', code: '', types: ['rc'], parent: 'a14', active: true, inUse: 402, open: 3, city: 'Port Moresby' },
+      { id: 'f4', ids: [{ label: 'DHIS2 ID', value: 'Hj3Ks9Pw0Zb' }], cat: 'District hospital', own: 'Government', name: 'Gerehu General Hospital', code: '', types: ['rc'], parent: 'a14', active: true, inUse: 2310, open: 19, city: 'Port Moresby', lat: '-9.4050', lng: '147.1650' },
+      { id: 'f5', ids: [], cat: 'Urban clinic', own: 'Church', name: 'Kilakila Clinic', code: 'NCD-KKC', types: ['rc'], parent: 'a12', active: false, inUse: 188, open: 0, city: 'Port Moresby' },
+      { id: 'f6', ids: [{ label: 'National facility code', value: 'NCD-LAB-01' }, { label: 'DHIS2 ID', value: 'Lb7Nm2Qa9Xc' }], cat: 'Laboratory', own: 'Government', ref: { status: 'Approved', body: 'ISO 15189 (NATA)', num: '12391', expiry: '2026-11-30', last: '2025-08-30', next: '2026-08-30', notes: 'National reference lab. Viral load, HIV DNA PCR, influenza.' }, name: 'Central Public Health Laboratory', code: 'CPHL', types: ['rl'], parent: 'a12', active: true, inUse: 5120, open: 38, city: 'Port Moresby', contact: 'Lab Manager', phone: '+675 301 3700', lat: '-9.4712', lng: '147.1605' },
+      { id: 'f7', ids: [{ label: 'National facility code', value: 'WHP-0001' }], cat: 'Provincial hospital', own: 'Government', name: 'Mount Hagen Provincial Hospital', code: 'MHPH', types: ['rc'], parent: 'a27', active: true, inUse: 6011, open: 44, city: 'Mount Hagen', registry: true, lat: '-5.8580', lng: '144.2300' },
+      { id: 'f8', ids: [{ label: 'National facility code', value: 'NCD-0112' }], cat: 'Urban clinic', own: 'Church', formerNames: ['Nine Mile Clinic'], name: '9 Mile Urban Clinic', code: 'NCD-9MC', types: ['rc'], parent: 'a13', active: true, inUse: 1377, open: 12, city: 'Port Moresby', lat: '-9.4000', lng: '147.2250' },
+      { id: 'f9', ids: [{ label: 'National facility code', value: 'EHP-0001' }], cat: 'Provincial hospital', own: 'Government', name: 'Goroka Provincial Hospital', code: 'GPH', types: ['rc'], parent: 'a26', active: true, inUse: 4880, open: 30, city: 'Goroka', lat: '-6.0830', lng: '145.3860' },
+      { id: 'f10', ids: [], cat: 'Urban clinic', own: 'Church', name: '9 Mile  Urban Clinic', code: '', types: ['rc'], parent: 'a13', active: true, inUse: 26, open: 1, city: 'Port Moresby', phone: '+675 325 1190' },
+      { id: 'u1', svc: 'Outpatient', name: 'Outpatient Department', code: 'PMGH-OPD', contact: 'Sister Ruth Moi', phone: '+675 324 8210', email: 'opd@pmgh.gov.pg', types: ['dept'], parent: 'f1', active: true, inUse: 7120, open: 52 },
+      { id: 'u2', svc: 'Maternity', name: 'Maternity Ward', code: 'PMGH-MAT', contact: 'Sister Grace Tau', phone: '+675 324 8233', types: ['dept'], parent: 'f1', active: true, inUse: 3301, open: 29 },
+      { id: 'u3', svc: 'Inpatient', name: 'Paediatric Ward', code: 'PMGH-PAED', types: ['dept'], parent: 'f1', active: true, inUse: 2654, open: 21 },
+      { id: 'u4', svc: 'Inpatient', name: 'Medical Ward 3 (closed)', code: '', types: ['dept'], parent: 'f1', active: false, inUse: 410, open: 0 },
+      { id: 'u5', svc: 'Emergency', name: 'Emergency Department', code: 'ANGAU-ED', contact: 'Dr. Mark Kaupa', phone: '+675 472 1411', email: 'ed@angau.gov.pg', types: ['dept'], parent: 'f2', active: true, inUse: 2890, open: 24 },
+      { id: 'u6', svc: 'Inpatient', name: "Children's Ward", code: 'ANGAU-CW', types: ['dept'], parent: 'f2', active: true, inUse: 1702, open: 15 },
+      { id: 'u7', svc: 'Inpatient', name: 'Medical Ward', code: 'ANGAU-MW', types: ['dept'], parent: 'f2', active: true, inUse: 2215, open: 18 },
+      { id: 'u8', svc: 'Outpatient', name: 'TB Clinic', code: 'ANGAU-TB', types: ['dept'], parent: 'f2', active: true, inUse: 980, open: 14 },
+      { id: 'u10', svc: 'Outpatient', name: 'Dental Clinic', code: 'PMGH-DEN', types: ['dept'], parent: 'f1', active: true, inUse: 512, open: 4 },
+      { id: 'u11', svc: 'Outpatient', name: 'Kundiawa Road Outreach Clinic', code: 'MHPH-OUT', types: ['dept'], parent: 'f7', active: true, inUse: 220, open: 2, lat: '-5.9012', lng: '144.2760', contact: 'Sister Kila Pup' },
+      { id: 'u9', svc: 'Outpatient', name: 'Antenatal Clinic', code: '', types: ['dept'], parent: 'f8', active: true, inUse: 640, open: 6 },
+      { id: 's1', name: 'Bumbu Settlement light trap', code: 'VT-LAE-03', types: ['ss'], parent: 'a22', active: true, inUse: 112, open: 4, siteType: 'Vector trap', subtype: 'CDC light trap', zone: 'Peri-urban settlement', contact: 'John Wari', phone: '+675 7123 4567', lat: '-6.7160', lng: '147.0010', desc: 'Weekly Anopheles collection, overnight trap by the river bank.' },
+      { id: 's2', name: 'Butibam village BG trap', code: 'VT-LAE-07', types: ['ss'], parent: 'a22', active: true, inUse: 64, open: 2, siteType: 'Vector trap', subtype: 'BG-Sentinel', zone: 'Coastal village', contact: 'Mary Kasu', lat: '-6.7320', lng: '147.0240' },
+      { id: 's3', name: 'Laloki River intake', code: 'WS-CEN-01', types: ['ss'], parent: 'a25', active: true, inUse: 58, open: 1, siteType: 'Water source', subtype: 'River intake', zone: 'Rural river', lat: '-9.3560', lng: '147.2710' },
+      { id: 's4', name: 'Goroka market soil plot', code: 'SO-GKA-01', types: ['ss'], parent: 'a26', active: false, inUse: 4, open: 0, siteType: 'Soil/sediment', subtype: 'Market ground', zone: 'Urban market' },
+      { id: 's5', name: 'Waigani air monitor', code: 'AM-NCD-01', types: ['ss'], parent: 'a14', active: true, inUse: 20, open: 0, siteType: 'Air monitoring', subtype: 'PM2.5 station', zone: 'Urban roadside', lat: '-9.4270', lng: '147.1800' },
+      { id: 's6', name: 'Nine Mile community water tank', code: 'WS-NCD-04', types: ['ss'], parent: 'a13', active: true, inUse: 31, open: 1, siteType: 'Water source', subtype: 'Storage tank', zone: 'Urban settlement', contact: 'Ward councillor', lat: '-9.3990', lng: '147.2270' },
+    ];
+    const kindOf = r => typeById[r.types[0]].kind;
+    const SITE_TYPES = ['Water source', 'Air monitoring', 'Vector trap', 'Soil/sediment', 'Other'];
+    const CATEGORIES = ['National referral hospital', 'Provincial hospital', 'District hospital', 'Health centre', 'Urban clinic', 'Aid post', 'Laboratory'];
+    const OWNERSHIP = ['Government', 'Church', 'Private', 'NGO', 'Other'];
+    const SERVICE_TYPES = ['Inpatient', 'Outpatient', 'Intensive care', 'Emergency', 'Maternity', 'Laboratory', 'Other'];
+    const labelSuggestions = data => [...new Set(['Code', 'CLIA', ...data.flatMap(r => (r.ids || []).map(i => i.label))].filter(Boolean))];
+    const REF_STATUSES = ['Approved', 'Under evaluation', 'Suspended', 'Not approved'];
+    const TODAY = '2026-09-27';
+    const refOverdue = r => r.ref && r.ref.next && r.ref.next < TODAY;
+    const refExpired = r => r.ref && r.ref.expiry && r.ref.expiry < TODAY;
+    // Seeded history (the live preview adds to it as you change things)
+    const SEED_HISTORY = {
+      f1: [{ when: '2026-09-03 09:12', who: 'admin.ndoh', action: 'Edited', changes: [['Phone', '+675 325 6200', '+675 324 8200']] }],
+      f3: [{ when: '2026-05-02 14:20', who: 'admin.ndoh', action: 'Edited', changes: [['Location', 'Moresby North-East', 'Moresby North-West']] }],
+      f6: [{ when: '2025-08-30 11:05', who: 'q.manager', action: 'Referral review', changes: [['Last review date', '2024-08-28', '2025-08-30'], ['Next review due', '2025-08-28', '2026-08-30']] }],
+      f7: [{ when: '2026-09-15 02:00', who: 'Registry sync', action: 'Updated from registry', changes: [['Name', 'Mt Hagen General Hospital', 'Mount Hagen Provincial Hospital']] }],
+      f8: [{ when: '2025-11-20 10:31', who: 'admin.ndoh', action: 'Renamed', changes: [['Name', 'Nine Mile Clinic', '9 Mile Urban Clinic']] }],
+    };
+    const createdEntry = r => ({ when: '2026-08-19 15:40', who: 'Import run #12', action: 'Created', changes: [], note: 'organizations-png-2026-08.csv' });
+
+    const VIEWS = {
+      facilities: { label: t('sidenav.label.admin.locations.organizations', 'Organizations'), route: '/MasterListsPage/locations', kinds: ['facility'] },
+      sites: { label: t('sidenav.label.admin.locations.sites', 'Sampling Sites'), route: '/MasterListsPage/locations/sites', kinds: ['site'] },
+      areas: { label: t('sidenav.label.admin.locations.areas', 'Geographic Areas'), route: '/MasterListsPage/locations/areas', kinds: ['area'] },
+      import: { label: t('sidenav.label.admin.locations.import', 'Import / Export'), route: '/MasterListsPage/locations/import' },
+    };
+
+    const Tag = ({ kind = 'gray', children, onClose }) => (
+      <span className={`cds--tag cds--tag--${kind}`} style={{ margin: '0 .25rem .25rem 0' }}>
+        <span className="cds--tag__label">{children}</span>
+        {onClose && <button className="cds--tag__close-icon" onClick={onClose} aria-label="remove" style={{ border: 'none', background: 'none', cursor: 'pointer', marginLeft: 4 }}>×</button>}
+      </span>
+    );
+    const INACTIVE_HELP = t('help.locations.status.inactive', 'Inactive records are hidden from order entry and other pickers. They still appear on existing orders and reports.');
+    const Status = ({ r }) => r.active ? <Tag kind="green">{t('label.locations.status.active', 'Active')}</Tag> : <span title={INACTIVE_HELP}><Tag kind="gray">{t('label.locations.status.inactive', 'Inactive')} ⓘ</Tag></span>;
+    function Toggle({ on, onChange, label, name }) {
+      return <label style={{ display: 'inline-flex', alignItems: 'center', gap: '.5rem', cursor: 'pointer', fontSize: '.875rem' }}>
+        <span role="switch" aria-checked={on} aria-label={name ? `Active, ${name}` : 'Active'} tabIndex={0} onClick={() => onChange(!on)} onKeyDown={e => (e.key === ' ' || e.key === 'Enter') && onChange(!on)}
+          style={{ width: 48, height: 24, borderRadius: 12, background: on ? '#24a148' : '#8d8d8d', position: 'relative', transition: 'background .1s' }}>
+          <span style={{ position: 'absolute', top: 3, left: on ? 27 : 3, width: 18, height: 18, borderRadius: 9, background: '#fff', transition: 'left .1s' }} /></span>
+        <span>{label}</span></label>;
+    }
+    const REG_HELP = 'Comes from the facility registry. The registry is the source of truth for this record.';
+    // Location: full path, top-down, most specific in bold, with its level
+    const pathIds = (byId, id) => { const p = []; let c = byId[id]; while (c) { p.unshift(c.id); c = byId[c.parent]; } return p; };
+    const pathText = (byId, id) => pathIds(byId, id).map(x => byId[x].name).join(' / ');
+    function LocationCell({ byId, id }) {
+      if (!id) return <span className="sub">not set</span>;
+      const ids = pathIds(byId, id); const last = byId[ids[ids.length - 1]];
+      return <div title={pathText(byId, id)}>
+        <div><b>{last.name}</b> <span className="sub">· {typeById[last.types[0]].label}</span></div>
+        {ids.length > 1 && <div className="sub">{ids.slice(0, -1).map(x => byId[x].name).join(' / ')}</div>}
+      </div>;
+    }
+    const Btn = ({ kind = 'primary', size = 'sm', children, ...p }) => <button className={`cds--btn cds--btn--${kind} cds--btn--${size}`} {...p}>{children}</button>;
+
+    function MultiSelect({ label, options, value, onChange, placeholder }) {
+      const [open, setOpen] = useState(false); const [q, setQ] = useState('');
+      const shown = options.filter(o => o.label.toLowerCase().includes(q.toLowerCase()));
+      return (
+        <div className="fld ms">
+          <label>{label}</label>
+          <button className="ms-btn" onClick={() => setOpen(!open)}>{value.length ? `${label} (${value.length})` : placeholder} <span style={{ float: 'right' }}>▾</span></button>
+          {open && <div className="ms-menu" onMouseLeave={() => setOpen(false)}>
+            <input className="inp" placeholder="Filter types" value={q} onChange={e => setQ(e.target.value)} autoFocus />
+            {shown.map(o => <label key={o.id} className="ms-opt"><input type="checkbox" checked={value.includes(o.id)} onChange={() => onChange(value.includes(o.id) ? value.filter(v => v !== o.id) : [...value, o.id])} />{o.label}</label>)}
+          </div>}
+        </div>
+      );
+    }
+
+    function ComboBox({ label, options, value, onChange, placeholder, invalid, helper }) {
+      const cur = options.find(o => o.id === value);
+      const [q, setQ] = useState(cur ? cur.label : ''); const [open, setOpen] = useState(false);
+      useEffect(() => { setQ(cur ? cur.label : ''); }, [value]);
+      const shown = options.filter(o => (o.label + ' ' + (o.sub || '')).toLowerCase().includes(q.toLowerCase())).slice(0, 8);
+      return (
+        <div className="fld ms" style={{ minWidth: 0 }}>
+          <label>{label}</label>
+          <input className={`inp white ${invalid ? 'err' : ''}`} value={q} placeholder={placeholder} onFocus={() => setOpen(true)} onChange={e => { setQ(e.target.value); setOpen(true); }} onBlur={() => setTimeout(() => setOpen(false), 150)} />
+          {open && <div className="ms-menu">{shown.length ? shown.map(o => <div key={o.id} className="ms-opt" onMouseDown={() => { onChange(o.id); setQ(o.label); setOpen(false); }}><div>{o.label}<div className="sub">{o.sub}</div></div></div>) : <div className="ms-opt sub">No matches</div>}</div>}
+          {invalid ? <div className="errtxt">{invalid}</div> : helper && <div className="helper">{helper}</div>}
+        </div>
+      );
+    }
+
+    function Overflow({ items }) {
+      const [open, setOpen] = useState(false);
+      return <div className="overflow" onClick={e => e.stopPropagation()}>
+        <button className="ov-btn" onClick={() => setOpen(!open)} aria-label="actions">⋮</button>
+        {open && <div className="ov-menu" onMouseLeave={() => setOpen(false)}>{items.map(i => <div key={i.label} onClick={() => { setOpen(false); i.onClick(); }} style={i.danger ? { color: '#da1e28' } : {}}>{i.label}</div>)}</div>}
+      </div>;
+    }
+
+
+    // ---------- Page explainers ----------
+    const INTRO = {
+      facilities: t('help.locations.page.organizations', 'Organizations are the health facilities and laboratories your lab works with: the hospitals, clinics and health centres that send you patient samples, and the laboratories you refer samples to. Wards and departments inside an organization are listed under it. Organizations appear in order entry as the requesting site and in referrals as the destination lab.'),
+      sites: t('help.locations.page.sites', 'Sampling sites are fixed places in the environment where samples are collected that do not come from a patient: a water source, a mosquito trap, an air monitor, a soil plot. A site does not order tests. It records where a sample was taken, so results can be compared over time at the same spot. Each site sits in a geographic area and can have its own GPS point and contact person.'),
+      areas: t('help.locations.page.areas', 'Geographic areas are the administrative divisions of the country, for example Region, Province, District and LLG. They are used for patient addresses and to say where each organization and sampling site is. Most deployments load them once from the national list, then add or correct areas here. To add an area inside another one, use the + button on the parent row: "+ District" on Morobe Province adds a district in Morobe. Use "+ Add Region" at the top for a new top-level area.'),
+      import: t('help.locations.page.import', 'Load or update organizations, wards / depts, sampling sites and geographic areas from CSV files, in the same format the system uses at installation. Nothing is saved until you review the preview and apply it.'),
+    };
+    function PageIntro({ view, go }) {
+      const [open, setOpen] = useState(false);
+      const showCompare = view === 'facilities' || view === 'sites';
+      return <div style={{ maxWidth: 960, marginBottom: '1rem' }}>
+        <p style={{ fontSize: '.875rem', lineHeight: 1.5, color: '#393939', margin: 0 }}>{INTRO[view]}</p>
+        {showCompare && <button className="cds--btn cds--btn--ghost cds--btn--sm" style={{ paddingLeft: 0 }} onClick={() => setOpen(!open)}>{open ? '▾' : '▸'} {t('label.locations.page.compare', 'Organization or sampling site: which do I need?')}</button>}
+        {showCompare && open && <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: '#e0e0e0', fontSize: '.875rem', marginTop: '.25rem' }}>
+          <div style={{ background: '#fff', padding: '1rem' }}>
+            <div style={{ fontWeight: 600, marginBottom: '.5rem' }}>Add an organization when...</div>
+            <ul style={{ listStyle: 'disc', marginLeft: '1.25rem', lineHeight: 1.6 }}>
+              <li>samples come from <b>people</b> seen at that place</li>
+              <li>it orders tests, receives reports, or receives referred samples</li>
+              <li>it has wards or departments that request tests</li>
+            </ul>
+            <div className="sub" style={{ marginTop: '.5rem' }}>Examples: Port Moresby General Hospital, 9 Mile Urban Clinic, Central Public Health Laboratory</div>
+          </div>
+          <div style={{ background: '#fff', padding: '1rem' }}>
+            <div style={{ fontWeight: 600, marginBottom: '.5rem' }}>Add a sampling site when...</div>
+            <ul style={{ listStyle: 'disc', marginLeft: '1.25rem', lineHeight: 1.6 }}>
+              <li>samples come from the <b>environment</b>: water, soil, air, or insects</li>
+              <li>you collect at the same fixed spot again and again</li>
+              <li>you want results for that spot over time, on a map</li>
+            </ul>
+            <div className="sub" style={{ marginTop: '.5rem' }}>Examples: Bumbu Settlement light trap, Laloki River intake, Waigani air monitor</div>
+          </div>
+          <div style={{ background: '#f4f4f4', padding: '.75rem 1rem', gridColumn: 'span 2' }} className="sub">
+            A water tank at a hospital is still a sampling site: the hospital is an organization, and the tank is a site placed in the same area. {view === 'facilities' ? <a href="#" onClick={e => { e.preventDefault(); go('sites'); }}>Go to Sampling Sites</a> : <a href="#" onClick={e => { e.preventDefault(); go('facilities'); }}>Go to Organizations</a>}
+          </div>
+        </div>}
+      </div>;
+    }
+
+    // ---------- App ----------
+    function App() {
+      const [view, setView] = useState('facilities');
+      const [data, setData] = useState(INITIAL);
+      const [toast, setToast] = useState(null);
+      const [importArea, setImportArea] = useState(null);
+      const byId = useMemo(() => Object.fromEntries(data.map(r => [r.id, r])), [data]);
+      const toastTimer = React.useRef(null);
+      const notify = (msg, kind = 'success', action = null) => { setToast({ msg, kind, action }); clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToast(null), action ? 10000 : 5000); };
+      const [log, setLog] = useState([]);
+      const audit = (ids, action, changes = [], reason = '') => { const when = '2026-09-27 ' + new Date().toTimeString().slice(0, 5); setLog(l => [...[].concat(ids).map(id => ({ id, when, who: 'casey', action, changes, reason })), ...l]); };
+      const historyOf = id => [...log.filter(e => e.id === id), ...(SEED_HISTORY[id] || []), createdEntry(byId[id])];
+      const go = (v, area) => { setView(v); if (area) setImportArea(area); };
+      return (
+        <div className="shell">
+          <nav className="snav">
+            <div className="grp">Admin</div>
+            <div className="muted">Test Management</div>
+            <div className="muted">Lab Units</div>
+            <div className="muted">Provider Management</div>
+            <div className="parent">{t('sidenav.label.admin.locations', 'Locations & Organizations')}</div>
+            {Object.entries(VIEWS).map(([k, v]) => <a key={k} className={view === k ? 'active' : ''} onClick={() => setView(k)}>{v.label}</a>)}
+            <div className="muted">User Management</div>
+            <div className="muted">Vector Surveillance Setup</div>
+          </nav>
+          <main className="main">
+            <div className="crumbs"><a href="#">Home</a> / <a href="#">Admin Management</a> / <a href="#" onClick={() => setView('facilities')}>Locations & Organizations</a> / {VIEWS[view].label}</div>
+            <div className="route">{VIEWS[view].route}</div>
+            <h1 className="page-title" style={{ marginBottom: '.5rem' }}>{VIEWS[view].label}</h1>
+            <PageIntro view={view} go={go} />
+            {toast && <div role="status" aria-live="polite" className={`cds--inline-notification cds--inline-notification--${toast.kind}`} style={{ maxWidth: '100%', marginBottom: '1rem', position: 'sticky', top: 0, zIndex: 50 }}><div className="cds--inline-notification__details" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}><div className="cds--inline-notification__text-wrapper"><div className="cds--inline-notification__subtitle">{toast.msg}</div></div>{toast.action && <button className="cds--btn cds--btn--ghost cds--btn--sm" style={{ textDecoration: 'underline' }} onClick={() => { toast.action.fn(); setToast(null); }}>{toast.action.label}</button>}</div></div>}
+            {view === 'import'
+              ? <ImportPage data={data} setData={setData} byId={byId} notify={notify} presetArea={importArea} audit={audit} />
+              : view === 'areas' ? <AreasTree data={data} setData={setData} byId={byId} notify={notify} go={go} audit={audit} historyOf={historyOf} />
+              : <ListView key={view} view={view} data={data} setData={setData} byId={byId} notify={notify} go={go} audit={audit} historyOf={historyOf} />}
+            <div className="notes">
+              <b>Preview notes.</b> Open an organization to see Identifiers (type any label, or pick one already used), History, and the sticky Save bar; open Central Public Health Laboratory (Review overdue) for the referral-lab section; switch a toggle off and use Undo; on Geographic Areas, use the keyboard (arrows, Enter). Merge, import undo, the GPS check, bulk edit and other-language names are deferred (see the FRS). Mock data is Papua New Guinea (Region / Province / District / LLG) so it lines up with the FRS CSV example. Try: sort by Location, or filter Location = Morobe Province; search "PMGH" or "Maternity" (a ward: its hospital opens with the ward highlighted); expand Port Moresby General Hospital and add a ward; search "Bumbu" here to see the cross-view hint; switch off Angau's Active toggle (in use, has wards / depts) to see the guard; expand Mount Hagen Provincial Hospital (Registry) to see the sync warning; on Geographic Areas search "Lae Urban", or click "+ District" on Morobe Province; open Import / Export, keep Replace mode and click Preview to see the decision queue and the deactivation list. "Registry" marks records from the external facility-list sync, which Replace never deactivates.
+            </div>
+          </main>
+        </div>
+      );
+    }
+
+    // ---------- List view ----------
+    function ListView({ view, data, setData, byId, notify, go, audit, historyOf }) {
+      const cfg = VIEWS[view];
+      const [q, setQ] = useState('');
+      const [types, setTypes] = useState([]);
+      const [cats, setCats] = useState([]);
+      const [owns, setOwns] = useState([]);
+      const [overdueOnly, setOverdueOnly] = useState(false);
+      const [status, setStatus] = useState('active');
+      const [expanded, setExpanded] = useState(null);
+      const [adding, setAdding] = useState(false);
+      const [sel, setSel] = useState([]);
+      const [guard, setGuard] = useState(null);
+      const [locFilter, setLocFilter] = useState('');
+      const [sortBy, setSortBy] = useState('name');
+      useEffect(() => {
+        if (view !== 'facilities' || !q.trim()) return;
+        const ql2 = q.trim().toLowerCase();
+        const w = data.find(r => kindOf(r) === 'unit' && [r.name, r.code].some(v => v && v.toLowerCase().includes(ql2)));
+        const directHit = data.some(r => kindOf(r) === 'facility' && [r.name, r.code].some(v => v && v.toLowerCase().includes(ql2)));
+        if (w && !directHit) setExpanded(w.parent);
+      }, [q]);
+
+      const typeOptions = TYPES.filter(x => cfg.kinds.includes(x.kind));
+      const ql = q.trim().toLowerCase();
+      const has = v => v && v.toLowerCase().includes(ql);
+      // Why a record matched: name/code first, then identifiers, former names, other-language names
+      const matchNote = r => {
+        if (!ql || has(r.name) || has(r.code) || has(r.shortName)) return null;
+        const id = (r.ids || []).find(i => has(i.value)); if (id) return `${id.label} ${id.value}`;
+        const fn = (r.formerNames || []).find(has); if (fn) return t('label.locations.history.formerly', `Formerly ${fn}`);
+        return null;
+      };
+      const matches = r => !ql || has(r.name) || has(r.code) || has(r.shortName) || !!matchNote(r);
+      const statusOk = r => status === 'all' || (status === 'active' ? r.active : !r.active);
+      const childrenOf = id => data.filter(r => r.parent === id);
+      const unitsOf = id => data.filter(r => r.parent === id && kindOf(r) === 'unit');
+
+      let rows = data.filter(r => {
+        const k = kindOf(r);
+        if (!cfg.kinds.includes(k)) return false;
+        if (types.length && !r.types.some(x => types.includes(x))) return false;
+        if (cats.length && !cats.includes(r.cat)) return false;
+        if (owns.length && !owns.includes(r.own)) return false;
+        if (overdueOnly && !(refOverdue(r) || refExpired(r))) return false;
+        if (!statusOk(r)) return false;
+        if (locFilter && !pathIds(byId, r.parent).includes(locFilter)) return false;
+        if (view === 'facilities' && ql) return matches(r) || unitsOf(r.id).some(matches);
+        return matches(r);
+      });
+      const exact = r => ql && ((r.code || '').toLowerCase() === ql || (r.ids || []).some(i => i.value.toLowerCase() === ql)) ? 1 : 0;
+      rows.sort((a, b) => exact(b) - exact(a) || (sortBy === 'location' ? pathText(byId, a.parent).localeCompare(pathText(byId, b.parent)) : 0) || a.name.localeCompare(b.name));
+
+      const update = (id, patch) => setData(d => d.map(r => r.id === id ? { ...r, ...patch } : r));
+      const setActive = (ids, on) => setData(d => d.map(r => ids.includes(r.id) ? { ...r, active: on } : r));
+      // Every deactivation gets an Undo link (FR-E4)
+      const deactivateWithUndo = (ids, label) => {
+        setActive(ids, false); audit(ids, 'Deactivated', [['Active', 'Yes', 'No']]);
+        notify(t('message.locations.undo.deactivated', `${label} deactivated.`), 'success', { label: t('button.locations.undo', 'Undo'), fn: () => { setActive(ids, true); audit(ids, 'Reactivated (undo)', [['Active', 'No', 'Yes']]); } });
+      };
+      const askDeactivate = r => {
+        const kids = childrenOf(r.id).filter(c => c.active);
+        if ((r.open || 0) > 0 || kids.length) { setGuard({ r, kids }); } else deactivateWithUndo([r.id], r.name);
+      };
+      const reactivate = r => {
+        const p = byId[r.parent];
+        if (p && !p.active) return notify(t('error.locations.reactivate.parentInactive', `Reactivate ${p.name} first.`), 'error');
+        update(r.id, { active: true }); audit(r.id, 'Reactivated', [['Active', 'No', 'Yes']]); notify(`${r.name} reactivated.`);
+      };
+      const colsExtra = view === 'sites' ? 'siteType' : 'units';
+      const nCols = 8;
+      const kidLabel = r => kindOf(r) === 'facility' ? 'wards / depts' : 'records';
+      const selRecs = sel.map(id => byId[id]).filter(Boolean);
+
+      return (
+        <div>
+          <div className="toolbar">
+            <div className="fld grow"><label>{t('label.locations.search', 'Search')}</label><input className="inp" placeholder={t('placeholder.locations.search', 'Search by name, code or any identifier')} value={q} onChange={e => setQ(e.target.value)} /></div>
+            <MultiSelect label={t('label.locations.filter.type', 'Type')} placeholder="All types" options={typeOptions} value={types} onChange={setTypes} />
+            <div style={{ width: 240 }}><ComboBox label={t('label.locations.filter.location', 'Location (includes areas beneath)')} placeholder="Any area" value={locFilter} onChange={setLocFilter}
+              options={data.filter(r => kindOf(r) === 'area' && r.active).map(r => ({ id: r.id, label: r.name, sub: `${typeById[r.types[0]].label} · ${pathText(byId, r.parent) || 'top level'}` }))} /></div>
+            {view === 'facilities' && <>
+              <MultiSelect label={t('label.locations.field.category', 'Category')} placeholder="All categories" options={CATEGORIES.map(c => ({ id: c, label: c }))} value={cats} onChange={setCats} />
+              <MultiSelect label={t('label.locations.field.ownership', 'Ownership')} placeholder="All ownership" options={OWNERSHIP.map(c => ({ id: c, label: c }))} value={owns} onChange={setOwns} />
+            </>}
+            <div className="fld" style={{ width: 130 }}><label>{t('label.locations.filter.status', 'Status')}</label>
+              <select className="inp" value={status} onChange={e => setStatus(e.target.value)}>
+                <option value="active">Active</option><option value="inactive">Inactive</option><option value="all">All</option></select></div>
+          </div>
+          <div className="toolbar" style={{ paddingTop: 0, borderBottom: '1px solid #e0e0e0' }}>
+            {view === 'facilities' && <label style={{ display: 'flex', gap: '.5rem', alignItems: 'center', fontSize: '.875rem' }}><input type="checkbox" checked={overdueOnly} onChange={e => setOverdueOnly(e.target.checked)} />Referral labs overdue for review or with expired accreditation only</label>}
+            <span style={{ flex: 1 }} />
+            <Btn kind="tertiary" size="md" onClick={() => go('import', 'organizations')}>{t('button.locations.import', 'Import')}</Btn>
+            <Btn kind="tertiary" size="md" onClick={() => notify(`Exported ${rows.length} records as organizations CSV (import format).`, 'info')}>{t('button.locations.export', 'Export')}</Btn>
+            <Btn size="md" onClick={() => { setAdding(true); setExpanded(null); }}>+ {t('button.locations.add', 'Add')}</Btn>
+          </div>
+          {status !== 'active' && <div className="helper" style={{ background: '#fff', padding: '.5rem 1rem 0', margin: 0 }}>ⓘ {INACTIVE_HELP}</div>}
+          {(types.length > 0 || cats.length > 0 || owns.length > 0 || overdueOnly || locFilter || status !== 'active' || q) && <div className="chips">
+            {types.map(id => <Tag key={id} kind="high-contrast" onClose={() => setTypes(types.filter(x => x !== id))}>Type: {typeById[id].label}</Tag>)}
+            {cats.map(c => <Tag key={c} kind="high-contrast" onClose={() => setCats(cats.filter(x => x !== c))}>Category: {c}</Tag>)}
+            {owns.map(c => <Tag key={c} kind="high-contrast" onClose={() => setOwns(owns.filter(x => x !== c))}>Ownership: {c}</Tag>)}
+            {overdueOnly && <Tag kind="high-contrast" onClose={() => setOverdueOnly(false)}>Review overdue or accreditation expired</Tag>}
+            {locFilter && <Tag kind="high-contrast" onClose={() => setLocFilter('')}>Location: {pathText(byId, locFilter)} (and beneath)</Tag>}
+            {status !== 'active' && <Tag kind="high-contrast" onClose={() => setStatus('active')}>Status: {status === 'all' ? 'All' : 'Inactive'}</Tag>}
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => { setTypes([]); setCats([]); setOwns([]); setOverdueOnly(false); setLocFilter(''); setStatus('active'); setQ(''); }}>{t('label.locations.filter.clear', 'Clear filters')}</button>
+          </div>}
+          {sel.length > 0 && <div className="batch"><span>{sel.length} selected: {selRecs.slice(0, 3).map(r => r.name).join(', ')}{sel.length > 3 ? ` and ${sel.length - 3} more` : ''}</span><span style={{ flex: 1 }} />
+            <button onClick={() => { deactivateWithUndo([...sel], `${sel.length} records`); setSel([]); }}>{t('button.locations.deactivate', 'Deactivate')}</button>
+            <button onClick={() => { setActive(sel, true); audit(sel, 'Reactivated', [['Active', 'No', 'Yes']]); notify(`${sel.length} records reactivated.`); setSel([]); }}>{t('button.locations.reactivate', 'Reactivate')}</button>
+            <button onClick={() => { notify(`Exported ${sel.length} selected records.`, 'info'); setSel([]); }}>{t('button.locations.exportSelected', 'Export selected')}</button>
+            <button onClick={() => setSel([])}>Cancel</button></div>}
+          <div className="tbl-wrap">
+            <table className="dt">
+              <thead><tr>
+                <th style={{ width: 40 }}><input type="checkbox" aria-label="Select all rows" checked={rows.length > 0 && sel.length === rows.length} onChange={e => setSel(e.target.checked ? rows.map(r => r.id) : [])} /></th>
+                <th>{t('label.locations.column.name', 'Name')}</th><th>{t('label.locations.column.code', 'Code')}</th>
+                <th>{t('label.locations.column.type', 'Type')}</th>
+                <th style={{ cursor: 'pointer' }} onClick={() => setSortBy(sortBy === 'location' ? 'name' : 'location')} aria-sort={sortBy === 'location' ? 'ascending' : 'none'}>{t('label.locations.column.location', 'Location')} {sortBy === 'location' ? '▲' : <span className="sub">⇅</span>}</th>
+                <th>{colsExtra === 'siteType' ? t('label.locations.column.siteType', 'Site type') : t('label.locations.column.wards', 'Wards / Depts')}</th>
+                <th>{t('label.locations.column.inUse', 'In use')}</th><th style={{ width: 130 }}>{t('label.locations.column.active', 'Active')}</th><th style={{ width: 80 }}>{t('label.locations.column.actions', 'Actions')}</th>
+              </tr></thead>
+              <tbody>
+                {adding && <tr><td colSpan={nCols + 1} className="expand-cell"><RecordForm isNew kind={view === 'sites' ? 'site' : 'facility'} data={data} byId={byId} notify={notify}
+                  onCancel={() => setAdding(false)} onSave={rec => { const id = 'n' + (seq++); setData(d => [{ ...rec, id, inUse: 0, open: 0 }, ...d]); audit(id, 'Created'); setAdding(false); setExpanded(id); notify(`${rec.name} added.`); }} /></td></tr>}
+                {rows.map(r => {
+                  const isExp = expanded === r.id;
+                  const k = kindOf(r);
+                  const units = unitsOf(r.id);
+                  const note = matchNote(r);
+                  return (
+                    <React.Fragment key={r.id}>
+                      <tr className={`${isExp ? 'expanded' : ''}`}>
+                        <td><input type="checkbox" aria-label={`Select ${r.name}`} checked={sel.includes(r.id)} onChange={() => setSel(sel.includes(r.id) ? sel.filter(x => x !== r.id) : [...sel, r.id])} /></td>
+                        <td>{r.name} {r.registry && <span title={REG_HELP}><Tag kind="cyan">{t('label.locations.source.registry', 'Registry')} ⓘ</Tag></span>}
+                          {refOverdue(r) && <Tag kind="red">{t('label.locations.referral.overdue', 'Review overdue')}</Tag>}
+                          {refExpired(r) && <Tag kind="warm-gray">{t('label.locations.referral.expired', 'Accreditation expired')}</Tag>}
+                          {note && <div className="sub">{note}</div>}</td>
+                        <td className="code">{r.code || <span className="sub">none</span>}</td>
+                        <td>{r.types.map(x => <Tag key={x} kind={typeById[x].kind === 'site' ? 'teal' : 'blue'}>{typeById[x].label}</Tag>)}{r.cat && <div className="sub">{r.cat}{r.own ? ` · ${r.own}` : ''}</div>}</td>
+                        <td><LocationCell byId={byId} id={r.parent} /></td>
+                        <td>{colsExtra === 'siteType' ? r.siteType : units.filter(u => u.active).length}</td>
+                        <td>{r.inUse ? <span>{r.inUse.toLocaleString()} <span className="sub">({r.open || 0} open)</span></span> : <span className="sub">0</span>}</td>
+                        <td title={r.active ? '' : INACTIVE_HELP}><Toggle name={r.name} on={r.active} label={r.active ? 'Active' : 'Inactive'} onChange={on => on ? reactivate(r) : askDeactivate(r)} /></td>
+                        <td><Btn kind="ghost" aria-label={`${isExp ? 'Close' : 'Edit'} ${r.name}`} aria-expanded={isExp} onClick={() => { setExpanded(isExp ? null : r.id); setAdding(false); }}>{isExp ? t('button.close', 'Close') : t('button.edit', 'Edit')}</Btn></td>
+                      </tr>
+                      {isExp && <tr><td colSpan={nCols + 1} className="expand-cell">
+                        <RecordForm rec={r} kind={k} data={data} byId={byId} highlight={ql} statusFilter={status} history={historyOf(r.id)}
+                          onCancel={() => setExpanded(null)}
+                          onSave={(rec, changes) => { update(r.id, rec); if (changes.length) audit(r.id, 'Edited', changes); setExpanded(null); notify(`${rec.name} saved.`); }}
+                          onUnits={(fn) => setData(fn)} notify={notify} audit={audit} askDeactivate={askDeactivate} reactivate={reactivate} />
+                      </td></tr>}
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+            {rows.length === 0 && !adding && <div className="empty">
+              <p>{data.some(r => cfg.kinds.includes(kindOf(r))) ? t('message.locations.empty.filtered', 'No records match these filters.') : t('message.locations.empty.none', 'No records yet. Add one, or import a file.')}</p>
+              {ql && (() => { const other = Object.entries(VIEWS).filter(([k, v]) => k !== view && v.kinds).map(([k, v]) => [k, v, data.filter(r => v.kinds.includes(kindOf(r)) && matches(r)).length]).filter(x => x[2] > 0);
+                return other.map(([k, v, n]) => <p key={k} style={{ marginTop: '.5rem' }}><a href="#" onClick={e => { e.preventDefault(); go(k); }}>{t('message.locations.search.elsewhere', `${n} match${n > 1 ? 'es' : ''} in ${v.label}`)}</a></p>); })()}
+              <div style={{ marginTop: '1rem' }}><Btn kind="ghost" onClick={() => { setTypes([]); setCats([]); setOwns([]); setOverdueOnly(false); setStatus('active'); setQ(''); setLocFilter(''); }}>{t('label.locations.filter.clear', 'Clear filters')}</Btn></div>
+            </div>}
+            <div className="pager"><span>Items per page: 25 &nbsp;|&nbsp; 1 to {rows.length} of {rows.length} records</span><span>Page 1 of 1 &nbsp; ‹ ›</span></div>
+          </div>
+          {guard && <div className="modal-bg"><div className="modal" role="dialog" aria-modal="true" aria-labelledby="guard-title">
+            <div className="hd"><div className="sub">Deactivate</div><h3 id="guard-title">Deactivate {guard.r.name}?</h3></div>
+            <div className="bd">
+              <p>{t('message.locations.deactivate.inUse', `${guard.r.name} has ${guard.r.open || 0} open orders and ${guard.kids.length} active ${kidLabel(guard.r)}.`)}</p>
+              {guard.kids.length > 0 && <ul style={{ margin: '.75rem 0 .75rem 1.25rem', listStyle: 'disc' }}>{guard.kids.map(c => <li key={c.id}>{c.name} <span className="sub">({c.open || 0} open orders)</span></li>)}</ul>}
+              {guard.r.registry && <p className="warntxt" style={{ marginBottom: '.5rem' }}>This record comes from the facility registry. The next sync may reactivate it; to close it for good, update the registry.</p>}
+              <p className="sub">Open orders keep their {guard.r.name} reference. It stops appearing in order entry and other pickers. Nothing is deleted, and it can be reactivated.</p>
+            </div>
+            <div className="ft">
+              <button className="sec-b" onClick={() => setGuard(null)}>Cancel</button>
+              <button className="sec-b" onClick={() => { deactivateWithUndo([guard.r.id], guard.r.name); setGuard(null); }}>{t('button.locations.deactivate.only', `Deactivate ${guard.r.name} only`)}</button>
+              {guard.kids.length > 0 && <button className="dan-b" onClick={() => { deactivateWithUndo([guard.r.id, ...guard.kids.map(c => c.id)], `${guard.r.name} and ${guard.kids.length} ${kidLabel(guard.r)}`); setGuard(null); }}>{t('button.locations.deactivate.withChildren', `Deactivate it and its ${guard.kids.length} ${kidLabel(guard.r)}`)}</button>}
+            </div>
+          </div></div>}
+        </div>
+      );
+    }
+
+    // ---------- Geographic Areas: nested tree table ----------
+    function AreasTree({ data, setData, byId, notify, go, audit, historyOf }) {
+      const areas = data.filter(r => kindOf(r) === 'area');
+      const lvl = r => typeById[r.types[0]].level;
+      const kids = id => areas.filter(r => r.parent === id).sort((a, b) => a.name.localeCompare(b.name));
+      const placed = id => data.filter(r => r.parent === id && kindOf(r) !== 'area' && kindOf(r) !== 'unit');
+      const [open, setOpen] = useState(new Set(areas.filter(r => lvl(r) === 1).map(r => r.id)));
+      const [q, setQ] = useState('');
+      const [status, setStatus] = useState('active');
+      const [focus, setFocus] = useState(null);
+      const [editing, setEditing] = useState(null);
+      const [adding, setAdding] = useState(null);
+      const [nf, setNf] = useState({ name: '', code: '' });
+      const ql = q.trim().toLowerCase();
+      const statusOk = r => status === 'all' || (status === 'active' ? r.active : !r.active);
+      const hit = r => ql && [r.name, r.code, ...(r.formerNames || [])].some(v => v && v.toLowerCase().includes(ql));
+      const ancestors = id => { const out = []; let c = byId[id]; while (c && c.parent) { out.push(c.parent); c = byId[c.parent]; } return out; };
+      const subtreeSize = id => kids(id).reduce((n, c) => n + 1 + subtreeSize(c.id), 0);
+      // When searching: show matches plus their ancestors, ancestors expanded
+      const visibleSet = useMemo(() => {
+        if (!ql) return null;
+        const v = new Set();
+        areas.filter(r => hit(r) && statusOk(r)).forEach(r => { v.add(r.id); ancestors(r.id).forEach(a => v.add(a)); });
+        return v;
+      }, [ql, data, status]);
+      const isOpen = id => visibleSet ? visibleSet.has(id) : open.has(id);
+      const toggle = id => { const n = new Set(open); n.has(id) ? n.delete(id) : n.add(id); setOpen(n); };
+      const roots = focus ? [byId[focus]] : areas.filter(r => lvl(r) === 1);
+      const rows = [];
+      const walk = (r, depth) => {
+        if (visibleSet && !visibleSet.has(r.id)) return;
+        if (!visibleSet && !statusOk(r) && depth > 0) return;
+        rows.push({ r, depth });
+        if (isOpen(r.id)) kids(r.id).forEach(c => walk(c, depth + 1));
+      };
+      roots.forEach(r => walk(r, 0));
+      const path = focus ? [...ancestors(focus).reverse(), focus] : [];
+      const update = (id, patch) => setData(d => d.map(r => r.id === id ? { ...r, ...patch } : r));
+      const deactivate = r => {
+        const ch = kids(r.id).filter(c => c.active).length, pl = placed(r.id).filter(c => c.active).length;
+        if (ch || pl) return notify(`${r.name} still has ${ch} active areas inside it and ${pl} active organizations or sites placed in it. Deactivate or move those first.`, 'warning');
+        update(r.id, { active: false }); audit(r.id, 'Deactivated', [['Active', 'Yes', 'No']]);
+        notify(`${r.name} deactivated.`, 'success', { label: 'Undo', fn: () => { update(r.id, { active: true }); audit(r.id, 'Reactivated (undo)', [['Active', 'No', 'Yes']]); } });
+      };
+      const canExpandAll = (focus ? subtreeSize(focus) : areas.length) < 500;
+      const hl = txt => { if (!ql) return txt; const i = txt.toLowerCase().indexOf(ql); if (i < 0) return txt; return <>{txt.slice(0, i)}<mark style={{ background: '#d0e2ff' }}>{txt.slice(i, i + ql.length)}</mark>{txt.slice(i + ql.length)}</>; };
+
+      return (
+        <div>
+          <div className="fence">Geographic areas are the same records the address-hierarchy loader creates. Patient address entry and every Location field read from them.</div>
+          <div className="toolbar">
+            <div className="fld grow"><label>Search</label><input className="inp" placeholder="Search areas by name or code" value={q} onChange={e => setQ(e.target.value)} /></div>
+            <div className="fld" style={{ width: 150 }}><label>Status</label>
+              <select className="inp" value={status} onChange={e => setStatus(e.target.value)}><option value="active">Active</option><option value="inactive">Inactive</option><option value="all">All</option></select></div>
+            <div style={{ display: 'flex', gap: '.5rem' }}>
+              <Btn kind="ghost" size="md" disabled={!canExpandAll} title={canExpandAll ? '' : 'Too many areas: focus on a smaller branch first'} onClick={() => setOpen(new Set(areas.map(r => r.id)))}>{t('button.locations.area.expandAll', 'Expand all')}</Btn>
+              <Btn kind="ghost" size="md" onClick={() => setOpen(new Set())}>{t('button.locations.area.collapseAll', 'Collapse all')}</Btn>
+              <Btn kind="tertiary" size="md" onClick={() => go('import', 'values')}>Import</Btn>
+              <Btn kind="tertiary" size="md" onClick={() => notify(`Exported ${focus ? subtreeSize(focus) + 1 : areas.length} areas as address-hierarchy values CSV (Name%Code).`, 'info')}>Export</Btn>
+              <Btn size="md" onClick={() => { setAdding(focus || 'root'); setNf({ name: '', code: '' }); }}>+ Add {focus ? AREA_LEVELS[Math.min(lvl(byId[focus]), 3)].name : 'Region'}</Btn>
+            </div>
+          </div>
+          <div style={{ background: '#fff', padding: '.5rem 1rem', fontSize: '.875rem', borderBottom: '1px solid #e0e0e0' }}>
+            <span className="sub" style={{ float: 'right' }}>Levels: {AREA_LEVELS.map(l => l.name).join(' > ')}</span>
+          </div>
+          <div className="tbl-wrap">
+            <table className="dt" role="treegrid" aria-label="Geographic areas" onKeyDown={e => {
+                const rowsEl = [...e.currentTarget.querySelectorAll('tr[role=row][data-id]')]; const i = rowsEl.indexOf(document.activeElement); if (i < 0) return;
+                const id = rowsEl[i].dataset.id;
+                if (e.key === 'ArrowDown' && rowsEl[i + 1]) { e.preventDefault(); rowsEl[i + 1].focus(); }
+                if (e.key === 'ArrowUp' && rowsEl[i - 1]) { e.preventDefault(); rowsEl[i - 1].focus(); }
+                if (e.key === 'ArrowRight' && kids(id).length && !isOpen(id)) { e.preventDefault(); toggle(id); }
+                if (e.key === 'ArrowLeft') { e.preventDefault(); if (isOpen(id) && kids(id).length) toggle(id); else { const p = byId[id].parent; const pe = rowsEl.find(r => r.dataset.id === p); if (pe) pe.focus(); } }
+                if (e.key === 'Enter') { e.preventDefault(); setEditing(editing === id ? null : id); }
+              }}>
+              <thead><tr role="row"><th>Name</th><th>Code</th><th>Level</th><th>Child areas</th><th style={{ width: 140 }}>{t('label.locations.column.active', 'Active')}</th><th style={{ width: 200 }}>{t('label.locations.column.actions', 'Actions')}</th></tr></thead>
+              <tbody>
+                {adding === 'root' && <AddAreaRow depth={0} level={1} nf={nf} setNf={setNf} onCancel={() => setAdding(null)} onSave={() => { setData(d => [...d, { id: 'n' + (seq++), name: nf.name, code: nf.code, types: ['L1'], parent: null, active: true, inUse: 0 }]); setAdding(null); notify(`${nf.name} added.`); }} />}
+                {rows.map(({ r, depth }) => {
+                  const ch = kids(r.id), pl = placed(r.id), L = lvl(r);
+                  return <React.Fragment key={r.id}>
+                    <tr className="row" role="row" data-id={r.id} tabIndex={0} aria-level={L} aria-expanded={ch.length ? isOpen(r.id) : undefined} aria-label={`${r.name}, ${typeById[r.types[0]].label}${r.active ? '' : ', inactive'}`} style={hit(r) ? { background: '#edf5ff' } : {}} onClick={() => ch.length && !visibleSet && toggle(r.id)}>
+                      <td style={{ paddingLeft: `${1 + depth * 1.5}rem` }}>
+                        <span style={{ display: 'inline-block', width: 18, color: ch.length ? '#161616' : 'transparent' }}>{isOpen(r.id) ? '▾' : '▸'}</span>
+                        {depth > 0 && <span style={{ color: '#c6c6c6', marginRight: 6 }}>└</span>}
+                        <span style={L === 1 ? { fontWeight: 600 } : {}}>{hl(r.name)}</span>
+                      </td>
+                      <td className="code">{r.code ? hl(r.code) : <span className="sub">none</span>}</td>
+                      <td><Tag kind="warm-gray">{L}. {typeById[r.types[0]].label}</Tag></td>
+                      <td>{ch.length || <span className="sub">0</span>}</td>
+                      <td onClick={e => e.stopPropagation()}><Toggle name={r.name} on={r.active} label={r.active ? 'Active' : 'Inactive'} onChange={on => on
+                        ? (() => { const p = byId[r.parent]; if (p && !p.active) return notify(`Reactivate ${p.name} first.`, 'error'); update(r.id, { active: true }); notify(`${r.name} reactivated.`); })()
+                        : deactivate(r)} /></td>
+                      <td onClick={e => e.stopPropagation()}><span style={{ display: 'flex', gap: '.25rem' }}>
+                        {L < 4 && r.active && <Btn kind="ghost" title={`Add a ${AREA_LEVELS[L].name} inside ${r.name}`} onClick={() => { setAdding(r.id); setNf({ name: '', code: '' }); const n = new Set(open); n.add(r.id); setOpen(n); }}>+ {AREA_LEVELS[L].name}</Btn>}
+                        <Btn kind="ghost" aria-label={`Edit ${r.name}`} onClick={() => setEditing(editing === r.id ? null : r.id)}>{t('button.edit', 'Edit')}</Btn>
+                      </span></td>
+                    </tr>
+                    {editing === r.id && <tr><td colSpan={7} className="expand-cell"><RecordForm rec={r} kind="area" data={data} byId={byId} notify={notify} audit={audit} history={historyOf(r.id)} onCancel={() => setEditing(null)} onSave={(rec, ch) => { update(r.id, rec); if (ch.length) audit(r.id, 'Edited', ch); setEditing(null); notify(`${rec.name} saved.${rec.formerNames && rec.formerNames.length > (r.formerNames || []).length ? ' The old name is kept in history and still matches in search.' : ''}`); }} /></td></tr>}
+                    {adding === r.id && <AddAreaRow depth={depth + 1} level={L + 1} nf={nf} setNf={setNf} parentName={r.name} onCancel={() => setAdding(null)} onSave={() => { setData(d => [...d, { id: 'n' + (seq++), name: nf.name, code: nf.code, types: ['L' + (L + 1)], parent: r.id, active: true, inUse: 0 }]); setAdding(null); notify(`${nf.name} added under ${r.name}.`); }} />}
+                  </React.Fragment>;
+                })}
+              </tbody>
+            </table>
+            {rows.length === 0 && <div className="empty"><p>No areas match "{q}".</p></div>}
+            <div className="pager"><span>{ql ? `${areas.filter(r => hit(r) && statusOk(r)).length} matches, shown with the areas they sit in` : `${areas.length} areas across ${AREA_LEVELS.length} levels. Children load when a row is expanded.`}</span><span></span></div>
+          </div>
+        </div>
+      );
+    }
+    function AddAreaRow({ depth, level, nf, setNf, onCancel, onSave, parentName }) {
+      return <tr><td colSpan={7} style={{ background: '#f4f4f4', paddingLeft: `${1 + depth * 1.5}rem` }}>
+        <div style={{ display: 'flex', gap: '.75rem', alignItems: 'flex-end' }}>
+          <div className="fld" style={{ width: 280 }}><label>New {AREA_LEVELS[level - 1].name}{parentName ? ` in ${parentName}` : ''} *</label><input className="inp white" autoFocus value={nf.name} onChange={e => setNf({ ...nf, name: e.target.value })} /></div>
+          <div className="fld" style={{ width: 160 }}><label>Code</label><input className="inp white code" value={nf.code} onChange={e => setNf({ ...nf, code: e.target.value })} /></div>
+          <Btn disabled={!nf.name.trim()} onClick={onSave}>Save</Btn><Btn kind="ghost" onClick={onCancel}>Cancel</Btn>
+        </div></td></tr>;
+    }
+
+    // ---------- History (audit trail) ----------
+    function HistoryPanel({ name, entries }) {
+      const [f, setF] = useState('all');
+      const actions = [...new Set(entries.map(e => e.action))];
+      const shown = f === 'all' ? entries : entries.filter(e => e.action === f);
+      return <div className="sec" style={{ background: '#fff', padding: '1rem', border: '1px solid #e0e0e0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '.5rem' }}><h4 style={{ margin: 0, border: 'none' }}>{t('label.locations.history.title', `History of ${name}`)}</h4>
+          <select className="inp" style={{ width: 220, height: 32 }} value={f} onChange={e => setF(e.target.value)} aria-label="Filter history by action"><option value="all">All changes</option>{actions.map(a => <option key={a}>{a}</option>)}</select>
+          <span className="sub">Read-only. Kept for as long as the record exists.</span></div>
+        <ol style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+          {shown.map((e, i) => <li key={i} style={{ borderLeft: '2px solid #0f62fe', padding: '.25rem 0 .75rem 1rem', position: 'relative' }}>
+            <div style={{ fontSize: '.875rem' }}><b>{e.action}</b> <span className="sub">· {e.when} · {e.who}{e.note ? ` · ${e.note}` : ''}</span></div>
+            {e.changes && e.changes.length > 0 && <table className="units" style={{ marginTop: '.25rem', width: 'auto' }}><tbody>{e.changes.map((c, j) => <tr key={j}><td style={{ paddingLeft: 0 }}>{c[0]}</td><td className="diff-old">{c[1] || '(empty)'}</td><td>→</td><td className="diff-new">{c[2] || '(empty)'}</td></tr>)}</tbody></table>}
+          </li>)}
+        </ol>
+      </div>;
+    }
+
+    // ---------- Record form (inline expansion) ----------
+    const FIELD_LABELS = { name: 'Name', code: 'Code', shortName: 'Short name', desc: 'Description', parent: 'Location', street: 'Street address', city: 'City', state: 'State / Province', lat: 'GPS latitude', lng: 'GPS longitude', contact: 'Contact name', phone: 'Phone', email: 'Email', web: 'Website', cat: 'Category', own: 'Ownership', siteType: 'Site type', subtype: 'Subtype', zone: 'Environmental zone' };
+    function diffRecord(a, b, byId) {
+      const out = [];
+      Object.keys(FIELD_LABELS).forEach(k => { if ((a[k] || '') !== (b[k] || '')) out.push([FIELD_LABELS[k], k === 'parent' ? (a[k] ? byId[a[k]].name : '') : a[k], k === 'parent' ? (b[k] ? byId[b[k]].name : '') : b[k]]); });
+      if (JSON.stringify(a.ids || []) !== JSON.stringify(b.ids || [])) out.push(['Identifiers', (a.ids || []).map(i => `${i.label} ${i.value}`).join(', '), (b.ids || []).map(i => `${i.label} ${i.value}`).join(', ')]);
+      if (JSON.stringify(a.ref || {}) !== JSON.stringify(b.ref || {})) Object.keys({ ...(a.ref || {}), ...(b.ref || {}) }).forEach(k => { if (((a.ref || {})[k] || '') !== ((b.ref || {})[k] || '')) out.push([`Referral: ${k}`, (a.ref || {})[k], (b.ref || {})[k]]); });
+      return out;
+    }
+    function RecordForm({ rec, isNew, kind, areaLevel, data, byId, onCancel, onSave, onUnits, notify, audit, highlight, statusFilter, askDeactivate, reactivate, history }) {
+      const [f, setF] = useState(rec ? { ...rec, ids: [...(rec.ids || [])], ref: rec.ref ? { ...rec.ref } : undefined } : { name: '', code: '', ids: [], types: kind === 'site' ? ['ss'] : kind === 'area' ? ['L' + areaLevel] : ['rc'], parent: null, active: true });
+      const [tried, setTried] = useState(false);
+      const [showHist, setShowHist] = useState(false);
+      const set = k => e => setF({ ...f, [k]: e && e.target ? (e.target.type === 'checkbox' ? e.target.checked : e.target.value) : e });
+      const setRef = k => e => setF({ ...f, ref: { ...(f.ref || {}), [k]: e.target.value } });
+      const areaOpts = data.filter(r => kindOf(r) === 'area').map(r => ({ id: r.id, label: r.name, sub: `${typeById[r.types[0]].label}${r.code ? ' · ' + r.code : ''}` }));
+      const lvl = kind === 'area' ? typeById[f.types[0]].level : null;
+      const parentOpts0 = kind === 'area' ? areaOpts.filter(o => typeById[byId[o.id].types[0]].level === lvl - 1) : areaOpts.filter(o => byId[o.id].active);
+      const parentOpts = parentOpts0.map(o => ({ ...o, sub: `${o.sub} · ${pathText(byId, byId[o.id].parent) || 'top level'}` }));
+      // Identifiers: reporting code is f.code; others in f.ids
+      const allIds = [{ label: f.codeLabel || 'Code', value: f.code || '', reporting: true }, ...(f.ids || []).map(i => ({ ...i, reporting: false }))];
+      const same = (a, b) => (a || '').trim().toLowerCase() === (b || '').trim().toLowerCase();
+      const idClash = i => i.value && data.find(r => r.id !== f.id && kindOf(r) === kind && ((same(i.label, r.codeLabel || 'Code') && same(r.code, i.value)) || (r.ids || []).some(x => same(x.label, i.label) && same(x.value, i.value))));
+      const suggestions = labelSuggestions(data);
+      const dupName = f.name && data.find(r => r.id !== f.id && r.active && r.name.toLowerCase() === f.name.trim().toLowerCase() && r.types.some(x => f.types.includes(x)) && r.parent === f.parent);
+      const badLat = f.lat && (isNaN(+f.lat) || +f.lat < -90 || +f.lat > 90);
+      const badLng = f.lng && (isNaN(+f.lng) || +f.lng < -180 || +f.lng > 180);
+      const clashes = allIds.map(idClash).filter(Boolean);
+      const errs = { name: !f.name.trim() && 'Name is required', ids: clashes.length > 0, lat: badLat && 'Latitude must be -90 to 90', lng: badLng && 'Longitude must be -180 to 180', parent: kind === 'area' && lvl > 1 && !f.parent && 'Choose the parent area', ref: f.types.includes('rl') && !(f.ref && f.ref.status) && 'Choose an approval status' };
+      const ok = !Object.values(errs).some(Boolean);
+      const typeOpts = TYPES.filter(x => kind === 'facility' ? x.kind === 'facility' : x.id === f.types[0]);
+      const isRef = kind === 'facility' && f.types.includes('rl');
+
+      const [newUnits, setNewUnits] = useState([]);
+      const units = rec && kind === 'facility' ? data.filter(r => r.parent === rec.id && kindOf(r) === 'unit' && (statusFilter !== 'active' || r.active)) : [];
+      const [moving, setMoving] = useState(null);
+      const [editing, setEditing] = useState(null);
+      const [wf, setWf] = useState({});
+      const save = () => { setTried(true); if (!ok) return; const out = { ...f, name: f.name.trim() }; if (rec && rec.name !== out.name) out.formerNames = [...(rec.formerNames || []), rec.name]; const ch = rec ? diffRecord(rec, out, byId) : []; onSave(out, ch); };
+      const secs = [['identity', 'Identity'], ...(kind !== 'area' ? [['identifiers', 'Identifiers']] : []), ['location', 'Location'], ...((kind === 'facility' || kind === 'site') ? [['contact', 'Contact']] : []), ...(isRef ? [['referral', 'Referral laboratory']] : []), ...(kind === 'site' ? [['site', 'Site details']] : []), ...(kind === 'facility' && !isNew ? [['wards', 'Wards / Depts']] : [])];
+      const sid = s => `sec-${(rec && rec.id) || 'new'}-${s}`;
+      const regMark = rec && rec.registry && <span className="sub" style={{ color: '#0072c3' }}> · From registry</span>;
+
+      return (
+        <div className="form" onClick={e => e.stopPropagation()}>
+          {rec && rec.registry && <div className="cds--inline-notification cds--inline-notification--warning" style={{ maxWidth: '100%', marginBottom: '1rem' }}><div className="cds--inline-notification__details"><div className="cds--inline-notification__text-wrapper"><div className="cds--inline-notification__subtitle">{t('warning.locations.registry.edit', 'This record comes from the facility registry. Changes to fields the registry supplies (marked "From registry") will be overwritten on the next sync. To change them for good, update the registry. Wards / depts and other local details you add here are kept.')}</div></div></div></div>}
+          {secs.length > 3 && <nav aria-label="Form sections" style={{ fontSize: '.8125rem', marginBottom: '.75rem' }}><span className="sub">{t('label.locations.form.jump', 'Jump to')}: </span>{secs.map(([k, l], i) => <span key={k}>{i > 0 && ' · '}<a href={'#' + sid(k)} onClick={e => { e.preventDefault(); document.getElementById(sid(k)).scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>{l}</a></span>)}</nav>}
+
+          <div className="sec" id={sid('identity')}><h4>{t('label.locations.section.identity', 'Identity')}</h4>
+            <div className="grid">
+              <div className="fld span2"><label>Name *{regMark}</label><input className={`inp white ${tried && errs.name ? 'err' : ''}`} value={f.name} onChange={set('name')} />{tried && errs.name ? <div className="errtxt">{errs.name}</div> : dupName && <div className="warntxt">{t('warning.locations.name.duplicate', `Another active record named "${dupName.name}" exists here.`)}</div>}
+</div>
+              {kind === 'area' ? <div className="fld"><label>Code{regMark}</label><input className="inp white code" value={f.code || ''} onChange={set('code')} /></div>
+                : <div className="fld"><label>Short name</label><input className="inp white" value={f.shortName || ''} onChange={set('shortName')} /></div>}
+              <div />
+              {kind !== 'area' && <div className="span2">
+                {kind === 'facility'
+                  ? <><MultiSelect label="Organization type(s) *" placeholder="Choose types" options={typeOpts} value={f.types} onChange={v => setF({ ...f, types: v.length ? v : f.types })} />
+                      <div style={{ marginTop: '.25rem' }}>{f.types.map(x => <Tag key={x} kind="blue" onClose={f.types.length > 1 ? () => setF({ ...f, types: f.types.filter(y => y !== x) }) : null}>{typeById[x].label}</Tag>)}</div></>
+                  : <div className="fld"><label>Type</label><div style={{ paddingTop: '.5rem' }}><Tag kind="teal">{typeById[f.types[0]].label}</Tag></div></div>}
+              </div>}
+              {kind === 'facility' && <>
+                <div className="fld"><label>{t('label.locations.field.category', 'Category')}</label><select className="inp white" value={f.cat || ''} onChange={set('cat')}><option value="">Choose</option>{CATEGORIES.map(c => <option key={c}>{c}</option>)}</select></div>
+                <div className="fld"><label>{t('label.locations.field.ownership', 'Ownership')}</label><select className="inp white" value={f.own || ''} onChange={set('own')}><option value="">Choose</option>{OWNERSHIP.map(c => <option key={c}>{c}</option>)}</select></div>
+              </>}
+              {kind !== 'area' && <div className="fld span4"><label>{t('label.locations.field.description', 'Description')}</label><input className="inp white" value={f.desc || ''} onChange={set('desc')} placeholder={kind === 'site' ? t('help.locations.field.siteDescription', 'Include directions so someone else can find the exact spot') : ''} /></div>}
+            </div></div>
+
+          {kind !== 'area' && <div className="sec" id={sid('identifiers')}><h4>{t('label.locations.section.identifiers', 'Identifiers')}</h4>
+            <datalist id={`idlabels-${f.id || 'new'}`}>{suggestions.map(x => <option key={x} value={x} />)}</datalist>
+            <table className="units" style={{ maxWidth: 760 }}><thead><tr><th>{t('label.locations.identifier.label', 'Label')}</th><th>{t('label.locations.identifier.value', 'Value')}</th><th>{t('label.locations.identifier.reporting', 'Reporting code')}</th><th></th></tr></thead><tbody>
+              {allIds.map((i, n) => { const clash = idClash(i); const setField = (k, v) => i.reporting ? setF({ ...f, [k === 'label' ? 'codeLabel' : 'code']: v }) : setF({ ...f, ids: f.ids.map((x, j) => j === n - 1 ? { ...x, [k]: v } : x) }); return <tr key={n}>
+                <td><input className={`inp ${i.label ? '' : 'err'}`} list={`idlabels-${f.id || 'new'}`} value={i.label} placeholder="e.g. DHIS2 ID" aria-label="Identifier label" onChange={e => setField('label', e.target.value)} /></td>
+                <td><input className={`inp code ${clash ? 'err' : ''}`} value={i.value} aria-label={`${i.label || 'Identifier'} value`} onChange={e => setField('value', e.target.value)} />{clash && <div className="errtxt">{t('error.locations.identifier.duplicate', `${i.label} ${i.value} is already used by ${clash.name}`)}</div>}</td>
+                <td><input type="radio" name={`rep-${f.id || 'new'}`} checked={i.reporting} aria-label={`Use ${i.label || 'this identifier'} as reporting code`} onChange={() => { const others = allIds.filter((_, j) => j !== n).map(x => ({ label: x.label, value: x.value })).filter(x => x.value); setF({ ...f, code: i.value, codeLabel: i.label, ids: others }); }} /></td>
+                <td>{!i.reporting && <Btn kind="ghost" onClick={() => setF({ ...f, ids: f.ids.filter((_, j) => j !== n - 1) })}>Remove</Btn>}</td></tr>; })}
+            </tbody></table>
+            <div className="actions"><Btn kind="ghost" onClick={() => setF({ ...f, ids: [...(f.ids || []), { label: '', value: '' }] })}>+ {t('button.locations.identifier.add', 'Add identifier')}</Btn>
+              <span className="helper" style={{ alignSelf: 'center' }}>Type any label, or pick one already used. The reporting code shows as Code in lists, exports and reports. Every identifier is searchable and used to match import rows. US labs add their CLIA number here.</span></div>
+          </div>}
+
+          <div className="sec" id={sid('location')}><h4>{t('label.locations.section.location', 'Location')}</h4>
+            <div className="grid">
+              <div className="span2"><ComboBox label={kind === 'area' ? `Parent area${lvl > 1 ? ' *' : ''}` : t('label.locations.field.location', 'Location')} placeholder="Search areas by name or code" value={f.parent} onChange={set('parent')} options={parentOpts} invalid={tried && errs.parent} helper={kind !== 'area' ? (f.parent ? `${pathText(byId, f.parent)} (${typeById[byId[f.parent].types[0]].label}). ` : '') + t('help.locations.field.location', "Pick the most specific area you know. A district is fine if you don't know the LLG.") : null} /></div>
+              {kind !== 'area' && <>
+                <div className="fld span2"><label>Street address{regMark}</label><input className="inp white" value={f.street || ''} onChange={set('street')} /></div>
+                <div className="fld"><label>City</label><input className="inp white" value={f.city || ''} onChange={set('city')} /></div>
+                <div className="fld"><label>State / Province</label><input className="inp white" value={f.state || ''} onChange={set('state')} /></div>
+                <div className="fld"><label>{t('label.locations.field.gpsLatitude', 'GPS latitude')}</label><input className={`inp white ${badLat ? 'err' : ''}`} value={f.lat || ''} onChange={set('lat')} placeholder="-9.4705" />{badLat ? <div className="errtxt">{errs.lat}</div> : <div className="helper">Decimal degrees, WGS84</div>}</div>
+                <div className="fld"><label>{t('label.locations.field.gpsLongitude', 'GPS longitude')}</label><input className={`inp white ${badLng ? 'err' : ''}`} value={f.lng || ''} onChange={set('lng')} placeholder="147.1597" />{badLng && <div className="errtxt">{errs.lng}</div>}</div>
+              </>}
+            </div></div>
+
+          {kind !== 'area' && <div className="sec" id={sid('contact')}><h4>{t('label.locations.section.contact', 'Contact')}</h4>
+            <div className="grid">
+              <div className="fld"><label>{t('label.locations.field.contactName', 'Contact name')}</label><input className="inp white" value={f.contact || ''} onChange={set('contact')} /></div>
+              <div className="fld"><label>Phone</label><input className="inp white" value={f.phone || ''} onChange={set('phone')} /></div>
+              <div className="fld"><label>Email</label><input className="inp white" value={f.email || ''} onChange={set('email')} /></div>
+              <div className="fld"><label>Website</label><input className="inp white" value={f.web || ''} onChange={set('web')} /></div>
+            </div></div>}
+
+          {isRef && <div className="sec" id={sid('referral')}><h4>{t('label.locations.section.referral', 'Referral laboratory')} <span className="sub" style={{ fontWeight: 400 }}>· ISO 15189 clause 6.8: choose, evaluate and review referral labs</span></h4>
+            {f.ref && f.ref.next && f.ref.next < TODAY && <p className="errtxt" style={{ marginBottom: '.5rem' }}>Review overdue since {f.ref.next}. Record the review below, or change the approval status.</p>}
+            <div className="grid">
+              <div className="fld"><label>{t('label.locations.referral.approval', 'Approval status')} *</label><select className={`inp white ${tried && errs.ref ? 'err' : ''}`} value={(f.ref || {}).status || ''} onChange={setRef('status')}><option value="">Choose</option>{REF_STATUSES.map(x => <option key={x}>{x}</option>)}</select>{tried && errs.ref && <div className="errtxt">{errs.ref}</div>}</div>
+              <div className="fld"><label>{t('label.locations.referral.accreditationBody', 'Accreditation body')}</label><input className="inp white" value={(f.ref || {}).body || ''} onChange={setRef('body')} /></div>
+              <div className="fld"><label>{t('label.locations.referral.accreditationNumber', 'Accreditation number')}</label><input className="inp white" value={(f.ref || {}).num || ''} onChange={setRef('num')} /></div>
+              <div className="fld"><label>{t('label.locations.referral.accreditationExpiry', 'Accreditation expiry')}</label><input type="date" className="inp white" value={(f.ref || {}).expiry || ''} onChange={setRef('expiry')} /></div>
+              <div className="fld"><label>{t('label.locations.referral.lastReview', 'Last review date')}</label><input type="date" className="inp white" value={(f.ref || {}).last || ''} onChange={setRef('last')} /></div>
+              <div className="fld"><label>{t('label.locations.referral.nextReview', 'Next review due')}</label><input type="date" className={`inp white ${f.ref && f.ref.next && f.ref.next < TODAY ? 'err' : ''}`} value={(f.ref || {}).next || ''} onChange={setRef('next')} /></div>
+              <div className="fld span2"><label>{t('label.locations.referral.notes', 'Review notes')}</label><input className="inp white" value={(f.ref || {}).notes || ''} onChange={setRef('notes')} /></div>
+            </div>
+            <div className="helper">When staff refer a sample, a lab that is not Approved, overdue for review or with expired accreditation shows a warning in the referral lab picker. Suspended and Not approved labs are hidden unless they tick "Show all".</div>
+          </div>}
+
+          {kind === 'site' && <div className="sec" id={sid('site')}><h4>{t('label.locations.section.site', 'Site details')}</h4>
+            <div className="grid">
+              <div className="fld"><label>Site type</label><select className="inp white" value={f.siteType || ''} onChange={set('siteType')}><option value="">Choose</option>{SITE_TYPES.map(s => <option key={s}>{s}</option>)}</select></div>
+              <div className="fld"><label>Subtype</label><input className="inp white" value={f.subtype || ''} onChange={set('subtype')} placeholder="e.g. Dug well, BG-Sentinel" /></div>
+              <div className="fld span2"><label>Environmental zone</label><input className="inp white" value={f.zone || ''} onChange={set('zone')} /></div>
+            </div></div>}
+
+          {kind === 'facility' && !isNew && <div className="sec" id={sid('wards')}><h4>{t('label.locations.section.wards', 'Wards / Depts')} ({units.filter(u => u.active).length} active)</h4><div className="helper" style={{ marginTop: '-.25rem', marginBottom: '.5rem' }}>{t('help.locations.ward', 'Wards, departments or clinics inside this organization')}. Service type feeds AMR (WHONET / GLASS) reporting. GPS is optional: leave it blank to use {rec.name}'s location{rec.lat ? ` (${rec.lat}, ${rec.lng})` : ''}. Address is always {rec.name}'s.</div>
+            <table className="units"><thead><tr><th>Name</th><th>Code</th><th>{t('label.locations.field.serviceType', 'Service type')}</th><th>Contact name</th><th>Phone</th><th>Email</th><th>GPS</th><th>In use</th><th>Active</th><th style={{ width: 90 }}>Actions</th></tr></thead>
+              <tbody>
+                {units.map(u => editing === u.id
+                  ? <tr key={u.id}>
+                      <td><input className="inp" value={wf.name || ''} onChange={e => setWf({ ...wf, name: e.target.value })} aria-label="Ward / dept name" /></td>
+                      <td><input className="inp code" value={wf.code || ''} onChange={e => setWf({ ...wf, code: e.target.value })} aria-label="Code" /></td>
+                      <td><select className="inp" value={wf.svc || ''} onChange={e => setWf({ ...wf, svc: e.target.value })} aria-label="Service type">{SERVICE_TYPES.map(x => <option key={x}>{x}</option>)}</select></td>
+                      {['contact', 'phone', 'email'].map(k => <td key={k}><input className="inp" value={wf[k] || ''} onChange={e => setWf({ ...wf, [k]: e.target.value })} aria-label={k} /></td>)}
+                      <td style={{ minWidth: 150 }}><input className="inp" style={{ marginBottom: 4 }} placeholder={rec.lat ? `${rec.lat} (inherited)` : 'Latitude'} value={wf.lat || ''} onChange={e => setWf({ ...wf, lat: e.target.value })} aria-label="GPS latitude" /><input className="inp" placeholder={rec.lng ? `${rec.lng} (inherited)` : 'Longitude'} value={wf.lng || ''} onChange={e => setWf({ ...wf, lng: e.target.value })} aria-label="GPS longitude" /></td>
+                      <td>{u.inUse.toLocaleString()}</td><td><Status r={u} /></td>
+                      <td><span style={{ display: 'flex', gap: '.25rem', flexWrap: 'wrap' }}><Btn kind="secondary" disabled={!(wf.name || '').trim()} onClick={() => { onUnits(d => d.map(r => r.id === u.id ? { ...r, ...wf, name: wf.name.trim() } : r)); audit(u.id, 'Edited', diffRecord(u, wf, byId).concat(u.svc !== wf.svc ? [['Service type', u.svc, wf.svc]] : [])); setEditing(null); notify(`${wf.name} saved.`); }}>Save</Btn><Btn kind="ghost" onClick={() => setEditing(null)}>Cancel</Btn><Btn kind="ghost" title="Move this ward / dept to another organization" onClick={() => { setEditing(null); setMoving(u.id); }}>{t('button.locations.moveWard', 'Move')}</Btn></span></td>
+                    </tr>
+                  : <tr key={u.id} className={highlight && (u.name.toLowerCase().includes(highlight) || (u.code || '').toLowerCase().includes(highlight)) ? 'hlrow' : ''}>
+                  <td>{u.name}</td><td className="code">{u.code || <span className="sub">none</span>}</td><td>{u.svc || <span className="errtxt">not set</span>}</td>
+                  <td>{u.contact || <span className="sub">none</span>}</td><td>{u.phone || <span className="sub">none</span>}</td><td>{u.email || <span className="sub">none</span>}</td>
+                  <td>{u.lat ? <span>{u.lat}, {u.lng}</span> : rec.lat ? <span className="sub" title={`Inherited from ${rec.name}`}>{rec.lat}, {rec.lng}<br />inherited</span> : <span className="sub">not set</span>}</td>
+                  <td>{u.inUse.toLocaleString()} <span className="sub">({u.open || 0} open)</span></td><td title={u.active ? '' : INACTIVE_HELP}><Toggle name={u.name} on={u.active} label={u.active ? 'Active' : 'Inactive'} onChange={on => on ? reactivate(u) : askDeactivate(u)} /></td>
+                  <td>{moving === u.id
+                    ? <ComboBox label="" placeholder="Move to organization" value={null} options={data.filter(r => kindOf(r) === 'facility' && r.active && r.id !== rec.id).map(r => ({ id: r.id, label: r.name, sub: r.code }))} onChange={fid => { onUnits(d => d.map(r => r.id === u.id ? { ...r, parent: fid } : r)); audit(u.id, 'Moved', [['Organization', rec.name, byId[fid].name]]); setMoving(null); notify(`${u.name} moved to ${byId[fid].name}. ${u.lat ? 'It keeps its own GPS' : "It now inherits that organization's GPS"} and uses its address; its order history moves with it.`); }} />
+                    : <Btn kind="ghost" aria-label={`Edit ${u.name}`} onClick={() => { setEditing(u.id); setWf({ ...u }); }}>Edit</Btn>}</td>
+                </tr>)}
+                {newUnits.map((u, i) => <tr key={'nu' + i}>
+                  <td><input className="inp" autoFocus={i === newUnits.length - 1} placeholder="Ward / dept name" value={u.name} onChange={e => setNewUnits(newUnits.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} aria-label="New ward / dept name" /></td>
+                  <td><input className="inp code" placeholder="Code (optional)" value={u.code} onChange={e => setNewUnits(newUnits.map((x, j) => j === i ? { ...x, code: e.target.value } : x))} aria-label="New code" /></td>
+                  <td><select className={`inp ${u.svc ? '' : 'err'}`} value={u.svc} onChange={e => setNewUnits(newUnits.map((x, j) => j === i ? { ...x, svc: e.target.value } : x))} aria-label="New service type"><option value="">Service type *</option>{SERVICE_TYPES.map(x => <option key={x}>{x}</option>)}</select></td>
+                  {[['contact', 'Contact (optional)'], ['phone', 'Phone (optional)'], ['email', 'Email (optional)']].map(([k, ph]) => <td key={k}><input className="inp" placeholder={ph} value={u[k]} onChange={e => setNewUnits(newUnits.map((x, j) => j === i ? { ...x, [k]: e.target.value } : x))} aria-label={ph} /></td>)}
+                  <td className="sub">{rec.lat ? 'inherits' : ''}</td><td className="sub">new</td><td><Tag kind="blue">Draft</Tag></td>
+                  <td><Btn kind="ghost" onClick={() => setNewUnits(newUnits.filter((_, j) => j !== i))}>Remove</Btn></td></tr>)}
+              </tbody></table>
+            <div className="actions">
+              <Btn kind="ghost" onClick={() => setNewUnits([...newUnits, { name: '', code: '', svc: '', contact: '', phone: '', email: '' }])}>+ {t('button.locations.addWard', 'Add ward / dept')}</Btn>
+              {newUnits.length > 0 && <Btn kind="secondary" disabled={newUnits.some(u => !u.name.trim() || !u.svc)} onClick={() => { const created = newUnits.map(u => ({ id: 'n' + (seq++), name: u.name.trim(), code: u.code.trim(), svc: u.svc, contact: u.contact.trim(), phone: u.phone.trim(), email: u.email.trim(), types: ['dept'], parent: rec.id, active: true, inUse: 0, open: 0 })); onUnits(d => [...d, ...created]); audit(created.map(c => c.id), 'Created'); notify(`${newUnits.length} ward / dept record(s) added to ${rec.name}.`); setNewUnits([]); }}>Save {newUnits.length} new ward / dept{newUnits.length > 1 ? 's' : ''}</Btn>}
+            </div></div>}
+
+          {showHist && history && <HistoryPanel name={rec.name} entries={history} />}
+
+          <div className="sticky-bar">
+            <Btn onClick={save}>{t('button.save', 'Save')}</Btn>
+            <Btn kind="ghost" onClick={onCancel}>{t('button.cancel', 'Cancel')}</Btn>
+            {!isNew && history && <Btn kind="ghost" aria-expanded={showHist} onClick={() => setShowHist(!showHist)}>{showHist ? 'Hide history' : `${t('button.locations.history', 'History')} (${history.length})`}</Btn>}
+            {tried && !ok && <span className="errtxt" style={{ alignSelf: 'center' }}>Fix the highlighted fields to save.</span>}
+            {!isNew && <span className="sub" style={{ alignSelf: 'center', marginLeft: 'auto' }}>Internal id {rec.id} · FHIR UUID kept on every change</span>}
+          </div>
+        </div>
+      );
+    }
+
+    // ---------- Import / Export ----------
+    const PREVIEW_ROWS = [
+      { line: 2, outcome: 'updated', type: 'referring clinic', code: 'PMGH', name: 'Port Moresby General Hospital', match: 'code', target: 'f1', diffs: [['Phone', '+675 324 8200', '+675 324 8248'], ['Contact name', 'Dr. Anna Kila', 'Dr. Joseph Tamu']] },
+      { line: 3, outcome: 'unchanged', type: 'dept', code: 'PMGH-OPD', name: 'Outpatient Department', match: 'code', target: 'u1' },
+      { line: 4, outcome: 'new', type: 'dept', code: 'PMGH-EYE', name: 'Eye Clinic', parent: 'PMGH' },
+      { line: 5, outcome: 'updated', type: 'referring clinic', code: 'ANGAU', name: 'Angau Memorial General Hospital', match: 'code', target: 'f2', diffs: [['GPS latitude', '-6.7224', '-6.72238'], ['Contact name', 'Peter Sine', 'Dr. Lucy Aisi']] },
+      { line: 6, outcome: 'new', type: 'referring clinic', code: 'LAE-BHC', name: 'Butibam Health Centre', parent: 'Lae Urban (LLG)' },
+      { line: 7, outcome: 'updated', type: 'referring clinic', code: 'GGH', name: 'Gerehu General Hospital', match: 'name', target: 'f4', diffs: [['Code', '(none)', 'GGH']] },
+      { line: 8, outcome: 'reactivated', type: 'referring clinic', code: 'NCD-KKC', name: 'Kilakila Clinic', match: 'code', target: 'f5' },
+      { line: 9, outcome: 'decision', type: 'dept', code: '', name: 'Outpatient Department', parent: 'GGH', candidates: ['c1', 'c2'] },
+      { line: 10, outcome: 'rejected', type: 'dept', code: 'HAG-99-LAB', name: 'Laboratory', reason: 'Parent HAG-99 not found (parentCode)' },
+      { line: 11, outcome: 'decision', type: 'referring clinic', code: '', name: '9 Mile Urban Clinic', candidates: ['f8', 'c3'] },
+      { line: 12, outcome: 'rejected', type: 'referring clinic', code: 'NCD-BAD', name: 'Badili Clinic', reason: 'GPS latitude "9,47" is not decimal degrees' },
+      { line: 13, outcome: 'rename', type: 'referring clinic', code: '', name: 'Tokarara Urban Clinic', parent: 'Moresby North-West', pair: 'f3' },
+      { line: 14, outcome: 'updated', type: 'referring clinic', code: 'MHPH', name: 'Mount Hagen Provincial Hospital', match: 'code', target: 'f7', registry: true, diffs: [['Name', 'Mount Hagen Provincial Hospital', 'Mt Hagen Provincial Hospital'], ['Phone', '(none)', '+675 542 1311']] },
+    ];
+    const CANDIDATES = {
+      c1: { name: 'Outpatient Department', code: '', parent: 'Gerehu General Hospital', active: true, inUse: 1402 },
+      c2: { name: 'Outpatient department', code: 'GGH-OPD-OLD', parent: 'Gerehu General Hospital', active: false, inUse: 96 },
+      f8: { name: '9 Mile Urban Clinic', code: 'NCD-9MC', parent: 'Moresby North-East', active: true, inUse: 1377 },
+      c3: { name: '9 Mile  Urban Clinic', code: '', parent: 'Moresby North-East', active: true, inUse: 26 },
+    };
+
+    function ImportPage({ data, setData, byId, notify, presetArea, audit }) {
+      const [files, setFiles] = useState([]);
+      const [mode, setMode] = useState('replace');
+      const [stage, setStage] = useState('setup');
+      const [filter, setFilter] = useState('all');
+      const [open, setOpen] = useState(null);
+      const [dec, setDec] = useState({});
+      const [remember, setRemember] = useState({});
+      const [ack, setAck] = useState(false);
+      const [confirm, setConfirm] = useState(false);
+      const [runs, setRuns] = useState([
+        { when: '2026-09-02 10:14', who: 'admin.ndoh', files: 'png-levels.csv, png-values.csv', mode: 'Add & update', counts: '4 levels, 437 areas new' },
+        { when: '2026-08-19 15:40', who: 'admin.ndoh', files: 'organizations-png-2026-08.csv', mode: 'Add & update', counts: '862 new, 0 updated, 3 rejected' },
+      ]);
+      const addSample = () => setFiles([
+        { name: 'organizations-png-2026-09.csv', area: 'organizations', rows: 11 },
+      ]);
+      useEffect(() => { if (presetArea === 'values') setFiles([{ name: 'png-values.csv', area: 'values', rows: 412 }]); }, [presetArea]);
+
+      // Replace scope: (a) types in the file, (b) wards / depts only under organizations with ward rows in the file, (c) never registry records
+      const [ren, setRen] = useState({});
+      const inFileTypes = ['rc', 'dept'];
+      const wardParents = ['f1', 'f4']; // PMGH (lines 3-4) and Gerehu (line 9) have ward / dept rows
+      const matched = new Set(PREVIEW_ROWS.map(r => r.target).filter(Boolean).concat(['f8', 'f9', 'u2', 'u3']));
+      const renameRows = PREVIEW_ROWS.filter(r => r.outcome === 'rename');
+      const pendingPair = new Set(renameRows.filter(r => ren[r.line] !== 'different').map(r => r.pair));
+      const inScope = r => r.types.some(x => inFileTypes.includes(x)) && (kindOf(r) !== 'unit' || wardParents.includes(r.parent));
+      const toDeactivate = mode === 'replace' ? data.filter(r => r.active && inScope(r) && !matched.has(r.id) && !r.registry && !pendingPair.has(r.id)) : [];
+      const rows = PREVIEW_ROWS;
+      const counts = {
+        new: rows.filter(r => r.outcome === 'new').length + renameRows.filter(r => ren[r.line] === 'different').length,
+        updated: rows.filter(r => r.outcome === 'updated').length + renameRows.filter(r => ren[r.line] === 'same').length,
+        unchanged: rows.filter(r => r.outcome === 'unchanged').length + 38, reactivated: mode === 'replace' ? rows.filter(r => r.outcome === 'reactivated').length : 0,
+        deactivated: toDeactivate.length, decision: rows.filter(r => r.outcome === 'decision' || r.outcome === 'rename').length, rejected: rows.filter(r => r.outcome === 'rejected').length,
+      };
+      const undecided = rows.filter(r => (r.outcome === 'decision' && !dec[r.line]) || (r.outcome === 'rename' && !ren[r.line])).length;
+      const LBL = { new: 'New', updated: 'Updated', unchanged: 'Unchanged', reactivated: 'Reactivated', deactivated: 'Deactivated', decision: 'Needs decision', rejected: 'Rejected', rename: 'Possible rename' };
+      const TAGK = { new: 'green', updated: 'blue', unchanged: 'gray', reactivated: 'teal', deactivated: 'warm-gray', decision: 'purple', rejected: 'red', rename: 'magenta' };
+      const shown = filter === 'all' ? rows : filter === 'deactivated' ? [] : filter === 'decision' ? rows.filter(r => r.outcome === 'decision' || r.outcome === 'rename') : rows.filter(r => r.outcome === filter);
+      const scopeSentence = mode === 'replace'
+        ? t('label.locations.import.replaceScope', 'This file has Referring clinic and Ward / Dept rows. Referral labs, sampling sites and geographic areas will not change. Wards / depts will only be replaced at Port Moresby General Hospital and Gerehu General Hospital. Registry records are never deactivated.')
+        : 'Only records in the file are added or updated. Nothing is deactivated.';
+
+      const apply = () => {
+        const touched = ['f1', 'f4', ...(mode === 'replace' ? ['f5'] : []), ...(ren[13] === 'same' ? ['f3'] : []), ...toDeactivate.map(x => x.id)];
+        audit(touched, 'Changed by import run #14', []);
+        setData(d => d.map(r => {
+          if (toDeactivate.some(x => x.id === r.id)) return { ...r, active: false };
+          if (r.id === 'f1') return { ...r, phone: '+675 324 8248', contact: 'Dr. Joseph Tamu' };
+          if (r.id === 'f4') return { ...r, code: 'GGH' };
+          if (r.id === 'f5' && mode === 'replace') return { ...r, active: true };
+          if (r.id === 'f3' && ren[13] === 'same') return { ...r, name: 'Tokarara Urban Clinic' };
+          return r;
+        }).concat([
+          { id: 'n' + (seq++), name: 'Eye Clinic', code: 'PMGH-EYE', types: ['dept'], parent: 'f1', active: true, inUse: 0, open: 0 },
+          { id: 'n' + (seq++), name: 'Butibam Health Centre', code: 'LAE-BHC', types: ['rc'], parent: 'a22', active: true, inUse: 0, open: 0 },
+        ]));
+        setRuns([{ no: 14, when: '2026-09-27 14:02', who: 'casey', undoable: true, files: files.map(f => f.name).join(', '), mode: mode === 'replace' ? 'Replace' : 'Add & update', counts: `${counts.new} new, ${counts.updated} updated, ${counts.reactivated} reactivated, ${counts.deactivated} deactivated, ${counts.rejected} rejected` }, ...runs]);
+        setConfirm(false); setStage('done');
+      };
+
+      if (stage === 'done') return (
+        <div>
+          <div className="panel">
+            <h3>Import complete</h3>
+            <p style={{ fontSize: '.875rem' }}>{counts.new} created, {counts.updated} updated, {counts.reactivated} reactivated, {counts.deactivated} deactivated, {counts.rejected} rows skipped. Decisions on {counts.decision} rows were applied{Object.values(remember).some(Boolean) ? ', and remembered names will resolve automatically next time' : ''}.</p>
+            <div className="actions"><Btn kind="tertiary">{t('button.locations.import.report', 'Download result report')}</Btn><Btn kind="ghost" onClick={() => { setStage('setup'); setFiles([]); setDec({}); setAck(false); }}>Start another import</Btn></div>
+          </div>
+          <RecentRuns runs={runs} />
+
+        </div>
+      );
+
+      return (
+        <div>
+          {stage === 'setup' && <>
+            <div className="panel">
+              <h3>1. Files</h3>
+              <div className="drop" onClick={addSample}>Drag CSV files here or click to browse (click to add the sample file)<div className="sub" style={{ marginTop: '.25rem' }}>Same formats as the configuration loader: organizations-*.csv, *-levels.csv, *-values.csv</div></div>
+              {files.length > 0 && <table className="units" style={{ marginTop: '.75rem' }}><thead><tr><th>File</th><th>{t('label.locations.import.area', 'Area')}</th><th>Rows</th><th></th></tr></thead><tbody>
+                {files.map((f, i) => <tr key={f.name}><td>{f.name}</td><td><select className="inp" style={{ height: 32 }} value={f.area} onChange={e => setFiles(files.map((x, j) => j === i ? { ...x, area: e.target.value } : x))}>
+                  <option value="organizations">{t('label.locations.import.area.organizations', 'Organizations, wards & sites')}</option><option value="levels">{t('label.locations.import.area.levels', 'Geographic levels')}</option><option value="values">{t('label.locations.import.area.values', 'Geographic areas')}</option></select></td><td>{f.rows}</td>
+                  <td><Btn kind="ghost" onClick={() => setFiles(files.filter((_, j) => j !== i))}>Remove</Btn></td></tr>)}</tbody></table>}
+              <div className="actions" style={{ marginTop: '.75rem' }}><Btn kind="ghost">{t('button.locations.template', 'Download template')}</Btn><Btn kind="ghost" onClick={() => notify('Exported 1,312 records (all kinds) as organizations CSV.', 'info')}>Export everything</Btn></div>
+            </div>
+            <div className="panel">
+              <h3>2. {t('label.locations.import.mode', 'Import mode')}</h3>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                {[['merge', t('label.locations.import.mode.merge', 'Add & update'), t('help.locations.import.mode.merge', 'Add new records and update matching ones. Nothing else changes.')],
+                  ['replace', t('label.locations.import.mode.replace', 'Replace'), t('help.locations.import.mode.replace', 'Also deactivate records of the types in this file that the file does not include. Nothing is deleted.')]].map(([k, l, h]) =>
+                  <div key={k} className={`radio-card ${mode === k ? 'sel' : ''}`} onClick={() => setMode(k)}><label style={{ display: 'flex', gap: '.5rem', alignItems: 'center' }}><input type="radio" checked={mode === k} readOnly /><b>{l}</b></label><div className="sub" style={{ marginTop: '.25rem', marginLeft: '1.25rem' }}>{h}</div></div>)}
+              </div>
+              {files.length > 0 && <div className="cds--inline-notification cds--inline-notification--info" style={{ maxWidth: '100%', marginTop: '.75rem' }}><div className="cds--inline-notification__details"><div className="cds--inline-notification__text-wrapper"><div className="cds--inline-notification__subtitle"><b>For this file:</b> {scopeSentence}</div></div></div></div>}
+              <p className="helper" style={{ marginTop: '.75rem' }}>Rows match existing records by code within type, then by name within type and parent. Matched records keep their internal identity. Blank cells leave stored values unchanged.</p>
+            </div>
+            <div className="actions"><Btn size="md" disabled={!files.length} onClick={() => setStage('preview')}>{t('button.locations.import.preview', 'Preview')}</Btn><span className="sub" style={{ alignSelf: 'center' }}>Preview saves nothing.</span></div>
+            <RecentRuns runs={runs} />
+          </>}
+
+          {stage === 'preview' && <>
+            <div className="cds--inline-notification cds--inline-notification--info" style={{ maxWidth: '100%', marginBottom: '1rem' }}><div className="cds--inline-notification__details"><div className="cds--inline-notification__text-wrapper"><div className="cds--inline-notification__subtitle">Preview of {files.map(f => f.name).join(', ')} in <b>{mode === 'replace' ? 'Replace' : 'Add & update'}</b> mode. {scopeSentence} Nothing has been saved.</div></div></div></div>
+            <div className="tiles">
+              {Object.keys(LBL).filter(k => k !== 'rename').map(k => <div key={k} className={`tile ${filter === k ? 'sel' : ''}`} onClick={() => setFilter(filter === k ? 'all' : k)}><div className="n">{counts[k]}</div><div className="l">{LBL[k]}</div></div>)}
+            </div>
+
+            {renameRows.length > 0 && <div className="panel" style={{ borderLeft: '3px solid #d02670' }}>
+              <h3>{t('label.locations.import.rename.title', 'Possible renames')} ({renameRows.filter(r => !ren[r.line]).length} left)</h3>
+              <p className="sub" style={{ marginBottom: '.75rem' }}>A new row looks like an existing record in the same place that the file does not otherwise include. If it is the same place with a new name, keep one record so its order history stays together.</p>
+              {renameRows.map(r => { const old = byId[r.pair]; return <div key={r.line} style={{ borderTop: '1px solid #e0e0e0', padding: '.75rem 0' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '1rem', alignItems: 'center', fontSize: '.875rem' }}>
+                  <div className="tile" style={{ cursor: 'default', border: '1px solid #e0e0e0' }}><div className="sub">Existing record</div><b>{old.name}</b><div className="sub">{pathText(byId, old.parent)} · code {old.code || 'none'} · {old.inUse.toLocaleString()} orders ({old.open} open)</div></div>
+                  <div className="sub">→</div>
+                  <div className="tile" style={{ cursor: 'default', border: '1px solid #e0e0e0' }}><div className="sub">Line {r.line} in the file</div><b>{r.name}</b><div className="sub">{r.parent} · code {r.code || 'none'} · new</div></div>
+                </div>
+                <div style={{ display: 'flex', gap: '1.5rem', marginTop: '.5rem', fontSize: '.875rem' }}>
+                  <label style={{ display: 'flex', gap: '.5rem', alignItems: 'center' }}><input type="radio" name={'rn' + r.line} checked={ren[r.line] === 'same'} onChange={() => setRen({ ...ren, [r.line]: 'same' })} />{t('label.locations.import.rename.same', 'Same place, renamed')} <span className="sub">(update {old.name}, keep its history)</span></label>
+                  <label style={{ display: 'flex', gap: '.5rem', alignItems: 'center' }}><input type="radio" name={'rn' + r.line} checked={ren[r.line] === 'different'} onChange={() => setRen({ ...ren, [r.line]: 'different' })} />{t('label.locations.import.rename.different', 'Different places')} <span className="sub">(create new{mode === 'replace' ? `, deactivate ${old.name}` : ''})</span></label>
+                </div>
+              </div>; })}
+            </div>}
+
+            {rows.some(r => r.outcome === 'decision') && <div className="panel" style={{ borderLeft: '3px solid #8a3ffc' }}>
+              <h3>{LBL.decision} ({rows.filter(r => r.outcome === 'decision' && !dec[r.line]).length} left)</h3>
+              <p className="sub" style={{ marginBottom: '.75rem' }}>These rows have no code and their name matches more than one existing record. Choose what each row should do.</p>
+              {rows.filter(r => r.outcome === 'decision').map(r => <div key={r.line} style={{ borderTop: '1px solid #e0e0e0', padding: '.75rem 0' }}>
+                <div style={{ fontSize: '.875rem', marginBottom: '.5rem' }}><b>Line {r.line}:</b> {r.type} "{r.name}"{r.parent ? `, parent ${r.parent}` : ''}</div>
+                <table className="units"><thead><tr><th></th><th>Candidate</th><th>Code</th><th>Parent / Location</th><th>In use</th><th>Status</th></tr></thead><tbody>
+                  {r.candidates.map(c => { const x = CANDIDATES[c]; return <tr key={c}><td><input type="radio" name={'d' + r.line} checked={dec[r.line] === c} onChange={() => setDec({ ...dec, [r.line]: c })} /></td><td>{t('label.locations.import.decision.use', 'Use this record')}: {x.name}</td><td className="code">{x.code || <span className="sub">none</span>}</td><td>{x.parent}</td><td>{x.inUse}</td><td><Status r={x} /></td></tr>; })}
+                  <tr><td><input type="radio" name={'d' + r.line} checked={dec[r.line] === 'new'} onChange={() => setDec({ ...dec, [r.line]: 'new' })} /></td><td colSpan={5}>{t('label.locations.import.decision.new', 'Create new')}</td></tr>
+                  <tr><td><input type="radio" name={'d' + r.line} checked={dec[r.line] === 'skip'} onChange={() => setDec({ ...dec, [r.line]: 'skip' })} /></td><td colSpan={5}>{t('label.locations.import.decision.skip', 'Skip row')}</td></tr>
+                </tbody></table>
+                <label style={{ display: 'flex', gap: '.5rem', alignItems: 'center', fontSize: '.8125rem', marginTop: '.5rem' }}><input type="checkbox" disabled={!dec[r.line] || ['new', 'skip'].includes(dec[r.line])} checked={!!remember[r.line]} onChange={e => setRemember({ ...remember, [r.line]: e.target.checked })} />{t('label.locations.import.decision.remember', 'Remember this name')} <span className="sub">(resolves "{r.name}" to the chosen record on future imports)</span></label>
+              </div>)}
+            </div>}
+
+            {mode === 'replace' && (filter === 'all' || filter === 'deactivated') && <div className="panel" style={{ borderLeft: '3px solid #8e6a00' }}>
+              <h3>Will be deactivated ({toDeactivate.length})</h3>
+              <p className="sub" style={{ marginBottom: '.5rem' }}>Active records in scope that no row matched: referring clinics, plus wards / depts at Port Moresby General Hospital and Gerehu General Hospital only. They stay on existing orders and reports and can be reactivated.</p>
+              <table className="units"><thead><tr><th>Name</th><th>Code</th><th>Type</th><th>Location</th><th>In use</th></tr></thead><tbody>
+                {toDeactivate.map(r => <tr key={r.id} style={r.open ? { background: '#fcf4d6' } : {}}><td>{r.name}</td><td className="code">{r.code || <span className="sub">none</span>}</td><td>{typeById[r.types[0]].label}</td><td>{kindOf(r) === 'unit' ? `Ward / dept of ${byId[r.parent].name}` : pathText(byId, r.parent)}</td><td>{r.inUse} {r.open ? <b style={{ color: '#8e6a00' }}>({r.open} open orders)</b> : ''}</td></tr>)}
+              </tbody></table>
+              <p className="helper" style={{ marginTop: '.5rem' }}>Not deactivated: registry records (Mount Hagen Provincial Hospital), wards / depts at organizations with no ward rows in this file (for example Angau's 4), and any record waiting on a rename decision.</p>
+            </div>}
+
+            {filter !== 'deactivated' && <div className="tbl-wrap"><table className="dt">
+              <thead><tr><th style={{ width: 60 }}>Line</th><th>Outcome</th><th>Type</th><th>Code</th><th>Name</th><th>Matched by / Detail</th></tr></thead>
+              <tbody>{shown.map(r => <React.Fragment key={r.line}>
+                <tr className="row" onClick={() => setOpen(open === r.line ? null : r.line)}><td>{r.line}</td><td><Tag kind={TAGK[r.outcome]}>{LBL[r.outcome]}</Tag></td><td>{r.type}</td><td className="code">{r.code || <span className="sub">none</span>}</td><td>{r.name}</td>
+                  <td className="sub">{r.outcome === 'rejected' ? <span style={{ color: '#da1e28' }}>{r.reason}</span> : r.match ? <>{`Matched by ${r.match}${r.diffs ? `, ${r.diffs.length} field(s) change` : ''}`}{r.registry && <span style={{ color: '#8e6a00' }}> · Registry record: {t('warning.locations.import.registryOverwrite', 'will be overwritten by the next registry sync')}</span>}</> : r.outcome === 'rename' ? (ren[r.line] ? (ren[r.line] === 'same' ? `Renames ${byId[r.pair].name}` : 'New, separate place') : `Looks like ${byId[r.pair].name}: waiting for decision`) : r.outcome === 'decision' ? (dec[r.line] ? 'Decided' : 'Waiting for decision') : r.parent ? `New, under ${r.parent}` : 'New'}</td></tr>
+                {open === r.line && r.diffs && <tr><td colSpan={6} className="expand-cell"><div className="form"><table className="units"><thead><tr><th>Field</th><th>Current</th><th>From file</th></tr></thead><tbody>{r.diffs.map(d => <tr key={d[0]}><td>{d[0]}</td><td className="diff-old">{d[1]}</td><td className="diff-new">{d[2]}</td></tr>)}</tbody></table></div></td></tr>}
+              </React.Fragment>)}</tbody></table></div>}
+
+            <div className="actions" style={{ marginTop: '1rem' }}>
+              <Btn size="md" disabled={undecided > 0} onClick={() => setConfirm(true)}>{t('button.locations.import.apply', 'Apply')}</Btn>
+              <Btn kind="secondary" size="md" onClick={() => setStage('setup')}>Back</Btn>
+              {undecided > 0 && <span className="sub" style={{ alignSelf: 'center' }}>Decide {undecided} row{undecided > 1 ? 's' : ''} (renames and ambiguous matches) to enable Apply.</span>}
+            </div>
+          </>}
+
+          {confirm && <div className="modal-bg"><div className="modal">
+            <div className="hd"><div className="sub">Import</div><h3>Apply this import?</h3></div>
+            <div className="bd">
+              <ul style={{ listStyle: 'disc', marginLeft: '1.25rem', lineHeight: 1.8 }}>
+                <li>{counts.new} new records created</li><li>{counts.updated} records updated</li>
+                {mode === 'replace' && <li>{counts.reactivated} reactivated, <b>{counts.deactivated} deactivated</b></li>}
+                <li>{counts.rejected} rows skipped (in the result report)</li>
+              </ul>
+              {mode === 'replace' && <label style={{ display: 'flex', gap: '.5rem', alignItems: 'center', marginTop: '1rem' }}><input type="checkbox" checked={ack} onChange={e => setAck(e.target.checked)} />{t('label.locations.import.confirm.replace', `I understand ${counts.deactivated} records will be deactivated`)}</label>}
+
+            </div>
+            <div className="ft"><button className="sec-b" onClick={() => setConfirm(false)}>Cancel</button><button className="pri-b" disabled={mode === 'replace' && !ack} onClick={apply}>{t('button.locations.import.apply', 'Apply')}</button></div>
+          </div></div>}
+        </div>
+      );
+    }
+
+    function RecentRuns({ runs, onUndo }) {
+      return <div className="panel" style={{ marginTop: '1rem' }}><h3>{t('label.locations.import.recent', 'Recent imports')}</h3>
+        <table className="units"><thead><tr><th>Run</th><th>When</th><th>By</th><th>Files</th><th>Mode</th><th>Outcome</th><th></th></tr></thead>
+          <tbody>{runs.map((r, i) => <tr key={i}><td>#{r.no || 13 - i}</td><td>{r.when}</td><td>{r.who}</td><td>{r.files}</td><td>{r.mode}</td><td>{r.counts}</td>
+            <td><a href="#">Report</a></td></tr>)}</tbody></table></div>;
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
