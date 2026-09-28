@@ -889,7 +889,7 @@ Container type, body site and category names in seed data are data, translated t
 30. **Reason lists (new data):** three short, translatable lists (cancel test, cancel order, change lab number), managed as dictionary categories in the existing Dictionary Menu, each with "Other" plus free text (FR-B21, FR-A4, FR-H3). The cancel order list is seeded with "Registered in the wrong domain" (FR-A21).
 31. **Numbering migration:** saved samples keep their existing numbers; new samples on any order use `-n` and `-n.m`. Search, scan and the label printer accept both forms. There is one aliquot level (no aliquot of an aliquot) (FR-C4).
 32. **Domains in use (new read):** a small endpoint, or a field on an existing catalog call, returning the domains that have at least one active, orderable test on an active sample type (FR-A18). *Backend.*
-33. **Lab unit domains (proposed, owned by the Lab Units FRS):** a lab unit serves one or more domains (D-094, confirmed 2026-09-27). Until it is built, the chooser's Lab unit filter lists every lab unit that has tests in the current domain. *Backend.*
+33. **Lab unit domains:** a lab unit keeps exactly **one** domain (D-120, which supersedes D-094 on 2026-09-29). Work that spans domains, such as environmental microbiology, gets its own lab unit (M-18), and staff are given more than one lab unit. The chooser's Lab unit filter lists every lab unit that has tests in the order's domain.
 
 ---
 
@@ -927,7 +927,7 @@ The highest decision ID in the repository copy was D-069 on 2026-09-25. The IDs 
 | D-083 | Product wording: "Tested elsewhere" replaces "upstream"; the optional last step is "Sample check", its action "Release for testing", its status "Ready for testing". | GLOBAL |
 | D-084 | Order entry labels are edited in one Labels section: order labels plus a sample-by-preset grid, over every active preset, with test catalog defaults and overrides within limits. | GLOBAL |
 | D-093 | Order entry has one Add Order item with a domain switcher on the dashboard and on a new order. Each domain keeps its own form and routes. Switching during entry keeps the lab number and shared fields after a confirmation; the domain is fixed at first save. The default is the user's last-used domain. | GLOBAL |
-| D-094 (Casey confirmed 2026-09-27) | A lab unit serves one or more domains; it is how the laboratory organises benches and staff, not a classification of the sample. Sample type, panel, test and sample stay single-domain (D-004). A row's domain always comes from its sample. D-030's guard becomes "the test's domain is one its lab unit serves". | GLOBAL; amends D-030, keeps D-004 |
+| D-094 (**superseded by D-120**, 2026-09-29) | A lab unit serves one or more domains; it is how the laboratory organises benches and staff, not a classification of the sample. Sample type, panel, test and sample stay single-domain (D-004). A row's domain always comes from its sample. D-030's guard becomes "the test's domain is one its lab unit serves". | GLOBAL; amends D-030, keeps D-004 |
 | D-079 | Body site is configured on the sample type (Not used, Optional, Required, allowed sites), with a test-level default. Laterality is a separate value, and both travel to reports, labels, FHIR and WHONET. | GLOBAL |
 
 ---

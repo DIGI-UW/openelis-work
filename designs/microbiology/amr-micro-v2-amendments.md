@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Version** | v2.0 draft 2 (reconciled with the full CPHL workflow breakdown) |
+| **Version** | v2.0 draft 3 (M-18 folded in; reconciled with the full CPHL workflow breakdown) |
 | **Date** | 2026-09-28 |
 | **Author** | Casey (Director of Product), drafted with Claude |
 | **Status** | Draft for review. Changes in-flight work: read the Impact summary first |
@@ -37,7 +37,7 @@ Build state was read from `develop` on 2026-09-28. "Built" means the code is on 
 | M-03 trigger resolver and the test catalog "Culture workflow" attribute | **Replaced** by Program = Microbiology plus a Lab unit dropdown (A-02) | Built (resolver); Specced (catalog attribute page) | Simplify routing to "Program chosen → case per sample"; drop the catalog attribute page from the Test Catalog v2.5 work |
 | UNASSIGNED case state, **Change workflow** (M-04 §4.9), **Set / change protocol** (§4.9a) | **Removed**; replaced by **Change lab unit** (A-02) | Built | UAT F-1 (classify returns 500) becomes moot; remove both panels |
 | M-03 Step 1 micro fields (patient origin, admission date, sets, clinical history, antibiotic exposure) | **Moved** to a Case information section on the Case view (A-03) | Built (`MicroCaseOrderDetail` written at order entry) | Order entry stops showing them; Case view edits the same record |
-| M-18 environmental micro section at order entry (purpose, replicates, derived protocol) | **Moved** to Case information (A-03) | Specced (v0.3, today) | Update M-18 FR-C1 to C4 before handoff |
+| M-18 environmental micro section at order entry (purpose, replicates, derived protocol) | **Moved** to Case information (A-03) | Specced | Done: M-18 v0.5 aligned (2026-09-29) |
 | Incubation as free text; incubation clock from `max_incubation_days` of the Method/culture setup | **Replaced** by a number + unit per inoculation, with optional check reminders (A-05) | Built (free text); Built (clock) | New structured fields; Worklist timing reads them instead of the setup |
 | Gram stain captured only by creating a preliminary isolate; preliminary release gated on an isolate Gram stain | **Replaced** by an Initial testing section on the specimen (A-06) and a release gate on any reportable result (A-11) | Built | Move direct Gram into Initial testing; change the preliminary gate |
 | Fixed per-profile sections (M-04 bacterial vs M-14 TB) | **Replaced** by one case layout where techs add tests and panels (A-07) | Built (bacterial); Specced (TB) | M-14 becomes a set of tests and panels, not a profile |
@@ -51,7 +51,7 @@ Build state was read from `develop` on 2026-09-28. "Built" means the code is on 
 | Notes | **Internal / External at case, isolate, drug** (A-13) | Built (manual note on case only) | Extend notes |
 | Tests added after AST/DST; tests kept off the report | **New** Additional testing section and reversible In lab only flag (A-15) | Not started | New section; flag on case-linked tests |
 
-**Tickets and documents to re-review:** OGC-782 family and OGC-926 (built micro module), M-18 v0.3 (today's draft), Clinical Order Entry v4 FRS (Program section), Environmental and Vector Order Entry v4 FRS (micro section), the Test Catalog micro workflow attribute page (`designs/admin-config/test-catalog-microbiology-workflow-attribute.*`), `OGC-782-amr-uat-findings*` (F-1 and the routing findings no longer apply).
+**Tickets and documents to re-review:** OGC-782 family and OGC-926 (built micro module), M-18 (now v0.5, aligned), Clinical Order Entry v4 FRS (Program section), Environmental and Vector Order Entry v4 FRS (micro section), the Test Catalog micro workflow attribute page (`designs/admin-config/test-catalog-microbiology-workflow-attribute.*`), `OGC-782-amr-uat-findings*` (F-1 and the routing findings no longer apply).
 
 ---
 
@@ -163,7 +163,7 @@ No new pages. All changes sit on existing routes.
 |---|---|
 | FR-03.1 | Order entry shows only the Program and the Lab unit rows (A-02). All other micro fields move to a **Case information** section on the Case view, edited by the technician from the request form. |
 | FR-03.2 | **Clinical cases:** patient origin, date of admission, number of sets, clinical diagnosis and reason for test, clinical history, **prior antibiotics** (agent and date, repeatable), **TB history** (new / previously treated / DR-TB contact, treatment month), specimen collection method (for example midstream, catheter, aspirate, first-void) and TB specimen number (spot / early morning). |
-| FR-03.3 | **Environmental cases:** purpose and replicates (M-18), sampling site or ward (D-101). No patient fields. |
+| FR-03.3 | **Environmental cases:** purpose and replicates (M-18; stored per order, so they apply to every Case on the order, M-18 FR-C5a), sampling site (interim) or ward (D-101, once Locations & Organizations lands). No patient fields. |
 | FR-03.4 | **Required fields are marked where they are** (Clinical Order Entry v4 FR-A8), at two levels: **required to save** (asterisk) and **required before final report** (the same marker plus the helper text "Needed before final report"). The final-report checklist (M-04 §4.6) names every missing field and links to it. |
 | FR-03.5 | Proposed levels, to confirm with CPHL: required before final report are patient origin and, when the case has a DST panel or a GeneXpert test, TB history. All other Case information fields are optional. Nothing in Case information blocks the case from opening. |
 | FR-03.6 | The existing TB Program order questions are shown in Case information for cases in the lab unit they belong to, instead of at order entry, so an order never needs both the TB Program and the Microbiology Program. |
@@ -496,7 +496,7 @@ None against an active decision. The reversals are of spec-level decisions in M-
 
 | With | Shared element | Why it matters | Severity |
 |---|---|---|---|
-| M-18 Environmental Microbiology v0.3 | env micro section at order entry, resolver, derived protocol | written today against V1; FR-C1 to C4 and AC-M18-07 now conflict | HIGH |
+| M-18 Environmental Microbiology | env micro section at order entry, resolver, derived protocol | v0.3 was written against V1; **resolved in v0.5** (FR-C1 to C5a, FR-D1, FR-D3, AC-M18-06/07; decisions D-120 to D-123) | HIGH, resolved |
 | Clinical Order Entry v4 | Program section (FR-B12), Tested elsewhere (FR-B20), required marking (FR-A8), body site (section N) | micro section shrinks to Lab unit rows; Previous report reuses FR-B20 | HIGH |
 | Environmental and Vector Order Entry v4 | micro section | same shrink as clinical | MEDIUM |
 | M-09 WHONET export, first-isolate de-duplication (D-049) | grouping by workflow type (TB vs bacterial) | must group by lab unit or organism instead | MEDIUM |
