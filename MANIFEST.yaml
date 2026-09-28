@@ -97,13 +97,16 @@
   breakdown: designs/admin-config/locations-organizations-breakdown.md
   category: admin-config
   description: >
-    Locations & Organizations FRS v0.2: one admin menu for facilities, wards and departments,
+    Locations & Organizations FRS v0.3: one admin menu for facilities, wards and departments,
     sampling sites and geographic areas, with codes, search, filters, GUI CSV import matching
     the startup loader, and deactivation instead of delete. Supersedes organizations-management.
   links:
+    jira: https://uwdigi.atlassian.net/browse/OGC-1363
+    github: https://github.com/DIGI-UW/openelis-work/issues/344
     gallery: https://digi-uw.github.io/openelis-work/#/admin-config/locations-organizations
     preview: https://digi-uw.github.io/openelis-work/designs/admin-config/locations-organizations.html
   added: "2026-09-28"
+  updated: "2026-09-28"
 
 - id: optional-sex-age
   type: spec

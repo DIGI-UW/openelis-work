@@ -14,7 +14,8 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Data Dictionary | [data-dictionary.jsx](designs/admin-config/data-dictionary.jsx) | [data-dictionary.md](designs/admin-config/data-dictionary.md) |
 | Lab Units Management | [lab-units.jsx](designs/admin-config/lab-units.jsx) | [lab-units.md](designs/admin-config/lab-units.md) |
 | Methods | [methods.jsx](designs/admin-config/methods.jsx) | [methods.md](designs/admin-config/methods.md) |
-| Organizations Management | [organizations-management.jsx](designs/admin-config/organizations-management.jsx) | [organizations-management.md](designs/admin-config/organizations-management.md) |
+| Locations & Organizations (OGC-1363; supersedes Organizations Management) | [locations-organizations.jsx](designs/admin-config/locations-organizations.jsx) · [preview](designs/admin-config/locations-organizations.html) | [locations-organizations.md](designs/admin-config/locations-organizations.md) · [slicing guide](designs/admin-config/locations-organizations-breakdown.md) |
+| Organizations Management [Archived] | [organizations-management.jsx](designs/admin-config/organizations-management.jsx) | [organizations-management.md](designs/admin-config/organizations-management.md) |
 | Additional Information Builder (contexts) | [additional-info-builder.jsx](designs/admin-config/additional-info-builder.jsx) · [preview](designs/admin-config/additional-info-builder.html) | [programs-management.md](designs/admin-config/programs-management.md) |
 | Require Requesting Provider (Order Entry) | [order-entry-require-provider.jsx](designs/admin-config/order-entry-require-provider.jsx) · [preview](designs/admin-config/order-entry-require-provider.html) | [order-entry-require-provider.md](designs/admin-config/order-entry-require-provider.md) |
 | Panel Management [Completed] | [panel.jsx](designs/admin-config/panel.jsx) | [panel.md](designs/admin-config/panel.md) |
