@@ -2967,6 +2967,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/patient/optional-sex-age.md',
     added: '2026-09-28',
     status: 'draft',
+    jira: ['OGC-1362'],
     tags: ['patient', 'order-entry', 'sex', 'age', 'reference-ranges', 'validation', 'configuration'],
   },
 
