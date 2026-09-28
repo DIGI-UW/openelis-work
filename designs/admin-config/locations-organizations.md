@@ -1,12 +1,14 @@
 # Locations & Organizations: Functional Requirements Specification
 
-**Version:** 0.2 (final-state draft for review)
-**Date:** 2026-09-27
-**Author:** Casey, Director of Product (drafted with Claude)
+**Version:** 0.3 (post-analyze, ready for handoff)
+**Date:** 2026-09-28
+**Author:** Casey Iiams-Hauser, Director of Product
 **Status:** Draft, awaiting review
 **Supersedes:** `designs/admin-config/organizations-management.md` (Region/District/Facility/Ward spec, which assumed separate tables that do not exist)
-**Related:** S-02 Sampling Site Registry (OGC-531, under OGC-527), Catalog CSV import (OGC-1194, PR #4329), Address hierarchy configuration loader
-**Preview:** `locations-organizations-preview.html`
+**Related:** S-02 Sampling Site Registry (OGC-531, under OGC-527), Catalog CSV import (OGC-1194, PR #4329), Address hierarchy configuration loader, Environmental and Vector Order Entry v4
+**Jira:** [OGC-1363](https://uwdigi.atlassian.net/browse/OGC-1363)
+**Decisions:** D-106 to D-112 (decision log)
+**Preview:** `locations-organizations.html`
 
 ---
 
@@ -29,7 +31,7 @@ Today these live in two places. Facilities, wards and geographic areas are all "
 
 ### What Changes
 
-One admin menu, **Locations & Organizations**, holds every place the lab deals with. An admin can filter by kind (facilities, wards, sampling sites, geographic areas, or any organization type) and by active or inactive status, and search by name or code. A facility's wards and departments are listed under it and added in place. Every record, whether a clinic or a mosquito trap, gets the same fuller profile: code, location, address, GPS, contact.
+One admin menu, **Locations & Organizations**, holds every place the lab deals with. An admin can move between organizations, sampling sites and geographic areas, filter by organization type, location, category and active status, and search by name, code or any identifier. A facility's wards and departments are listed under it and added in place. Every record, whether a clinic or a mosquito trap, gets the same fuller profile: code, location, address, GPS, contact.
 
 The Ministry's updated facility list is uploaded as a CSV file. OpenELIS shows exactly what will happen before anything is saved: 12 new, 31 updated, 4 to be deactivated because they are no longer on the list, 2 that need a decision because the name matches two existing records. The admin resolves those two, applies, and the closed facilities disappear from order entry the same day. History is kept, because nothing is deleted and existing records keep their internal identity, so past orders still point at the same facility. Generic-distro installs and post-install changes use the same file format the startup loader uses for configured distributions. Every change records who made it, when, and what it was before, and the referral labs the lab depends on show when their next review is due, so the ISO 15189 assessor's questions about location data and referral labs have answers on screen.
 
@@ -108,13 +110,13 @@ Items considered and deliberately left for later are listed under **Deferred** a
 |---|---|---|
 | FR-B0 | **Page explainers.** Under each page title, one short paragraph says what the page holds, in plain words (texts in the Localization table under `help.locations.page.*`). **Organizations**: the health facilities and laboratories the lab works with, which send patient samples or receive referred ones, with their wards / depts. **Sampling Sites**: fixed places in the environment where non-patient samples are collected (water source, mosquito trap, air monitor, soil plot); a site does not order tests, it records where a sample was taken. **Geographic Areas**: the country's administrative divisions, used for patient addresses and to place organizations and sites. On Organizations and Sampling Sites, a collapsed **"Organization or sampling site: which do I need?"** panel compares the two side by side (people vs environment; orders and receives reports vs fixed collection spot tracked over time), with PNG-style examples of each, the tip that a water tank at a hospital is a sampling site placed in the same area as the hospital, and a link to the other page. | Answers the most common setup question before it becomes a support ticket. |
 | FR-B1 | Each list view shows a server-paged DataTable, 25 rows by default, with page sizes 25, 50 and 100. | Replaces client-side paging over one server page. |
-| FR-B2 | Columns: **Name**, **Code** (the reporting code, section I), **Type** (tags, one per organization type, with the facility category underneath in small text), **Location**, **Wards / Depts** (Organizations view only: count of active wards / depts), **In use** (count of orders referencing the record), **Active** (toggle) and **Actions** (Edit). **Location** shows the full area path top-down in one consistent form (`Southern Region / National Capital District / Moresby South`) with the most specific area in bold and its level as a small label ("District"). Sorting by Location sorts by that full path, so records group by region, then province, then district, whatever depth each record was placed at. Sampling Sites view swaps Wards / Depts for **Site type**. Referral labs whose review is overdue show a red **Review overdue** tag next to the name (section J). | Status is always text plus colour, never colour alone, and never "Y"/"N". |
+| FR-B2 | Columns: **Name**, **Code** (the reporting code, section I), **Type** (tags, one per organization type, with the facility category underneath in small text), **Location**, **Wards / Depts** (Organizations view only: count of active wards / depts), **In use** (count of orders referencing the record), **Active** (toggle) and **Actions** (Edit). **Location** shows the full area path top-down in one consistent form (`Southern Region / National Capital District / Moresby South`) with the most specific area in bold and its level as a small label ("District"). Sorting by Location sorts by that full path, so records group by region, then province, then district, whatever depth each record was placed at. Sampling Sites view swaps Wards / Depts for **Site type**. Referral labs whose review is overdue show a red **Review overdue** tag next to the name (section J). | Active state is always text plus colour ("Active" / "Inactive" beside the toggle), never colour alone, and never "Y"/"N". |
 | FR-B3 | **Search** matches, case-insensitively, anywhere in name, reporting code, any other identifier value (section I), short name, or a former name (from history, section K). It is debounced (300 ms) and resets to page 1. An exact identifier match is listed first; a match on a former name or a non-reporting identifier says so under the row ("Formerly Nine Mile Clinic", "DHIS2 ID Rp1k2mPqH3x"). | |
 | FR-B4 | **Type filter**: a filterable MultiSelect of organization types available in the current view. Selected types show as removable tags with their names, never as a bare count. Multiple types are OR-combined, and combined with Location, Category, Ownership, Status and Search by AND. On Organizations, **Category** and **Ownership** filters (MultiSelect, section C) and a **Review overdue** quick filter (referral labs, section J) sit beside it. | Not shown on Geographic Areas, which uses the tree (FR-B7). |
 | FR-B4a | **Location filter** (Organizations and Sampling Sites): a ComboBox over geographic areas, searchable by name or code, each option showing its path and level. Choosing an area shows every record placed in that area **or anywhere beneath it** (choosing Morobe Province includes records placed at Lae district and at Lae Urban LLG). The chosen area shows as a removable tag with its path. | One filter works whatever depth records were placed at. |
 | FR-B5 | **Status filter**: Active (default), Inactive, All. Deactivated records are hidden by default (D-002). | |
 | FR-B6 | The **Organizations** page lists facilities, laboratories and other organizations as rows. Wards are never top-level rows: they appear only in their organization's expanded row (section D), and the Type filter does not offer the `dept` type. Search also matches ward names and codes and returns the parent organization, auto-expanded, with the matching ward highlighted. | Wards always belong to an organization. |
-| FR-B7 | **Geographic Areas** shows the hierarchy as a **nested tree table**. Each row is indented under its parent and shows Name, Code, Level (e.g. Province), count of child areas, and Status. Rows expand and collapse; children load on expand, so a country with tens of thousands of villages stays fast. Level 1 loads expanded one level by default. **Search** shows every match *in context*: its ancestors are expanded and shown, and the match is highlighted, so "Lae Urban" appears under Momase / Morobe / Lae. **Row actions are visible, with no overflow menu:** an **Active** toggle (turning it off deactivates the area; blocked with an explanation while active areas, organizations or sites are inside it; turning it on is blocked while its parent is inactive), **Edit** (expands the row inline to name and code; a rename is recorded in history and the old name still matches in search), and, on every active row above the lowest level, an add button named for the level below ("+ Province" on a region, "+ District" on a province, "+ LLG" on a district). The add button opens a new inline row directly under the parent, indented one level, with Name (required) and Code, and the parent expands so the new area appears in place. "+ Add Region" in the toolbar adds a top-level area. | Replaces a flat level-by-level list: the nesting is the point. |
+| FR-B7 | **Geographic Areas** shows the hierarchy as a **nested tree table**. Each row is indented under its parent and shows Name, Code, Level (e.g. Province), count of child areas, Active toggle and actions. Rows expand and collapse; children load on expand, so a country with tens of thousands of villages stays fast. Level 1 loads expanded one level by default. **Search** shows every match *in context*: its ancestors are expanded and shown, and the match is highlighted, so "Lae Urban" appears under Momase / Morobe / Lae. **Row actions are visible, with no overflow menu:** an **Active** toggle (turning it off deactivates the area; blocked with an explanation while active areas, organizations or sites are inside it; turning it on is blocked while its parent is inactive), **Edit** (expands the row inline to name and code; a rename is recorded in history and the old name still matches in search), and, on every active row above the lowest level, an add button named for the level below ("+ Province" on a region, "+ District" on a province, "+ LLG" on a district). The add button opens a new inline row directly under the parent, indented one level, with Name (required) and Code, and the parent expands so the new area appears in place. "+ Add Region" in the toolbar adds a top-level area. | Replaces a flat level-by-level list: the nesting is the point. |
 | FR-B8 | When a search finds nothing in the current view but matches records in another view, the empty state names them with links ("2 matches in Sampling Sites"), so a code lookup never needs to know the record's kind. | Replaces a separate "All" view. |
 | FR-B9 | Empty states: no records at all ("No facilities yet. Add one, or import a file."), with **Add** and **Import** actions. No matches ("No records match these filters.") with a **Clear filters** action. Loading shows a DataTable skeleton. | |
 | FR-B10 | **Row actions are visible, with no overflow menu, on every page** (Organizations, Sampling Sites, Geographic Areas, and ward / dept rows): an **Active** toggle and an **Edit** button. Turning the toggle off runs the deactivation guard (FR-E2) and offers Undo (FR-E4); turning it on is blocked while the parent is inactive (FR-E3). Edit expands the row inline (D-005). Geographic Areas rows also carry the add-sub-area button (FR-B7); **Move** for a ward / dept is offered inside its edit mode (FR-D3). Bulk actions on selected rows: **Deactivate**, **Reactivate**, **Export selected**. No Delete action exists anywhere (D-002). | One pattern across the menu. |
@@ -158,7 +160,7 @@ Items considered and deliberately left for later are listed under **Deferred** a
 | FR-F4 | **Matching** each row to an existing record, in order: (1) **Any identifier** (section I): the reporting `code`, or any `identifier:<label>` column (for example `identifier:DHIS2 ID`), when an existing record of the same kind has that label and value. (2) Otherwise **Name**, within the same type and, for wards and areas, the same parent. Case-insensitive, surrounding spaces ignored, repeated spaces collapsed. Former names (from history) and remembered aliases also match. (3) No match: a **new** record. (4) Two or more matches, or identifiers pointing at two different records: the row goes to the **decision queue** (FR-F8). A matched record keeps its internal id and FHIR UUID. | Codes are for reporting. Identity is internal. |
 | FR-F5 | Updating a matched record: a non-blank cell overwrites the stored value, and a blank cell leaves the stored value unchanged. A blank code never clears an existing code. `active=N` deactivates. In Replace mode, a matched record that is inactive and whose row does not say `active=N` is **reactivated**. | Same blank-cell rule as the catalog loader. |
 | FR-F6 | **Preview** evaluates every row against current data without saving anything and shows: totals per area (New, Updated, Unchanged, Reactivated, Deactivated, Needs decision, Rejected); a filterable row list; field-level before/after for updated rows; the full list of records Replace will deactivate, by name, code, location and in-use count, with in-use ones flagged and the ward scope restated; possible renames (FR-F12); and rejected rows with line number and reason. | The preview is the outcome, not an estimate. |
-| FR-F7 | Row rejection reasons: missing name or type; unknown organization type; a geographic-area level used as a type in an organizations file ("Geographic areas are imported with the geographic levels and areas files"); parent not found; parent of the wrong kind; invalid GPS; code duplicated inside the file for the same type; a type combination that FR-A2 forbids. A rejected row is skipped and the rest of the file can still be applied. | |
+| FR-F7 | Row rejection reasons: missing name or type; unknown organization type; a geographic-area level used as a type in an organizations file ("Geographic areas are imported with the geographic levels and areas files"); parent not found; parent of the wrong kind; invalid GPS; identifier value duplicated inside the file for the same label; a type combination that FR-A2 forbids. A rejected row is skipped and the rest of the file can still be applied. | |
 | FR-F8 | **Decision queue**: each ambiguous row shows the candidate records (name, code, location or parent, status, in use) and the choices **Use this record**, **Create new**, or **Skip row**. **Remember this name** (optional) stores the choice as an alias so the same spelling resolves automatically next time. Apply is enabled only when every queued row, and every possible rename (FR-F12), has a decision. | Reuses `unresolved_reference` / `reference_alias` from OGC-1194. |
 | FR-F12 | **Possible renames.** A row that would create a **new** record is paired with an existing record of the same type, in the same location (or under the same parent, for wards / depts), whose name is similar (after normalising case and spacing: one name contains the other, or they share at least 60% of their words) and that the file does not otherwise match. In Replace mode this catches the case where a rename would otherwise create a new record and deactivate the old one. Each pair is shown side by side with the choices **Same place, renamed** (update the existing record with the row, keeping its history; the default is not preset) or **Different places** (create the new record; in Replace mode the existing one is deactivated). In Add & update mode the same check flags possible duplicates. | Prevents splitting a facility's order history across two records. |
 | FR-F9 | **Apply** requires a confirmation that restates the counts. In Replace mode it also requires ticking "I understand N records will be deactivated". Apply saves per record, reports the final counts, and offers **Download result report** (CSV of every row with its outcome). | |
@@ -232,14 +234,14 @@ One file can hold facilities, wards and sampling sites together. Columns are add
 |---|---|---|
 | `type` | Yes | Organization type name(s), separated by `;` (e.g. `referring clinic;referral lab`, `dept`, `sampling site`) |
 | `name` | Yes | Display name |
-| `code` | No | Reporting code, unique within type |
+| `code` | No | The reporting code (an identifier labelled "Code" unless the record's reporting identifier has another label) |
 | `shortName` | No | Existing short name / prefix |
 | `parentCode`, `parentName`, `parentType` | Wards: yes; others: no | The parent. Matched by `parentCode`, else by `parentName` within `parentType`. For facilities and sites, the parent is a geographic area. |
 | `active` | No | `Y` / `N`, default `Y` for new rows |
 | `streetAddress`, `city`, `state`, `zipCode` | No | Address |
 | `gpsLatitude`, `gpsLongitude` | No | Decimal degrees |
 | `contactName`, `phone`, `email`, `internetAddress` | No | Contact |
-| `identifier:<TYPE>` | No | One column per identifier type, for example `identifier:DHIS2`, `identifier:NFC` (national facility code), `identifier:CLIA`. Used for matching and stored as identifiers (section I). |
+| `identifier:<label>` | No | One column per identifier label, for example `identifier:DHIS2 ID`, `identifier:CLIA`. Used for matching and stored as identifiers (section I). A label not yet used is created. |
 | `category`, `ownership` | No | Organizations: values from the admin-managed lists (FR-C3) |
 | `serviceType` | Wards / depts: yes for new rows | Inpatient, Outpatient, Intensive care, Emergency, Maternity, Laboratory, Other |
 | `siteType`, `subtype`, `environmentalZone`, `description` | No | Sampling sites (`description` allowed for any kind) |
@@ -294,11 +296,10 @@ Keys follow `[category].[feature].[identifier]` under the `locations` feature na
 | `sidenav.label.admin.locations.organizations` | Organizations | SideNav item, page title |
 | `help.locations.page.organizations` | Organizations are the health facilities and laboratories your lab works with: the hospitals, clinics and health centres that send you patient samples, and the laboratories you refer samples to. Wards and departments inside an organization are listed under it. Organizations appear in order entry as the requesting site and in referrals as the destination lab. | Organizations page explainer |
 | `help.locations.page.sites` | Sampling sites are fixed places in the environment where samples are collected that do not come from a patient: a water source, a mosquito trap, an air monitor, a soil plot. A site does not order tests. It records where a sample was taken, so results can be compared over time at the same spot. Each site sits in a geographic area and can have its own GPS point and contact person. | Sampling Sites page explainer |
-| `help.locations.page.areas` | Geographic areas are the administrative divisions of the country, for example Region, Province, District and LLG. They are used for patient addresses and to say where each organization and sampling site is. Most deployments load them once from the national list, then add or correct areas here. To add an area inside another one, use the + button on the parent row: "+ District" on Morobe Province adds a district in Morobe. Use "+ Add Region" at the top for a new top-level area. |
-| `label.locations.column.active` | Active | Tree column (toggle) |
-| `label.locations.column.actions` | Actions | Tree column |
+| `help.locations.page.areas` | Geographic areas are the administrative divisions of the country, for example Region, Province, District and LLG. They are used for patient addresses and to say where each organization and sampling site is. Most deployments load them once from the national list, then add or correct areas here. To add an area inside another one, use the + button on the parent row: "+ District" on Morobe Province adds a district in Morobe. Use "+ Add Region" at the top for a new top-level area. | Geographic Areas page explainer |
+| `label.locations.column.active` | Active | Column (toggle), every list |
+| `label.locations.column.actions` | Actions | Column, every list |
 | `button.locations.area.addChildLevel` | + {level} | Tree row button (level below) |
-| `label.locations.area.lowestLevel` | lowest level | Tree row, no children allowed | Geographic Areas page explainer |
 | `help.locations.page.import` | Load or update organizations, wards / depts, sampling sites and geographic areas from CSV files, in the same format the system uses at installation. Nothing is saved until you review the preview and apply it. | Import / Export page explainer |
 | `label.locations.page.compare` | Organization or sampling site: which do I need? | Collapsed comparison panel |
 | `help.locations.page.compare.org` | Add an organization when samples come from people seen there, when it orders tests or receives reports or referred samples, or when it has wards or departments that request tests. | Comparison: organization column |
@@ -335,9 +336,8 @@ Keys follow `[category].[feature].[identifier]` under the `locations` feature na
 | `label.locations.import.rename.different` | Different places | Rename choice |
 | `warning.locations.import.registryOverwrite` | Will be overwritten by the next registry sync | Preview row flag |
 | `label.locations.column.inUse` | In use | Column |
-| `label.locations.column.status` | Status | Column |
 | `label.locations.column.level` | Level | Column (areas) |
-| `label.locations.column.children` | Children | Column (areas) |
+| `label.locations.column.children` | Child areas | Column (areas) |
 | `label.locations.column.siteType` | Site type | Column (sites) |
 | `label.locations.status.active` | Active | Tag / filter |
 | `label.locations.status.inactive` | Inactive | Tag / filter |
@@ -345,10 +345,18 @@ Keys follow `[category].[feature].[identifier]` under the `locations` feature na
 | `label.locations.source.registry` | Registry | Tag for facility-registry records |
 | `label.locations.filter.type` | Type | Filter label |
 | `label.locations.filter.status` | Status | Filter label |
-| `label.locations.filter.level` | Level | Filter label (areas) |
-| `label.locations.filter.parent` | Parent area | Filter label (areas) |
 | `label.locations.filter.clear` | Clear filters | Button |
-| `placeholder.locations.search` | Search by name or code | Search |
+| `placeholder.locations.search` | Search by name, code or any identifier | Search |
+| `placeholder.locations.area.search` | Search areas by name or code | Tree search |
+| `label.locations.filter.reviewOverdue` | Referral labs overdue for review or with expired accreditation only | Quick filter (Organizations) |
+| `label.locations.filter.category.all` | All categories | Filter placeholder |
+| `label.locations.filter.ownership.all` | All ownership | Filter placeholder |
+| `button.locations.history.hide` | Hide history | Form footer |
+| `label.locations.history.allChanges` | All changes | History filter |
+| `help.locations.history.readOnly` | Read-only. Kept for as long as the record exists. | History panel |
+| `help.locations.identifiers` | Type any label, or pick one already used. The reporting code shows as Code in lists, exports and reports. Every identifier is searchable and used to match import rows. | Identifiers helper |
+| `help.locations.field.gps` | Decimal degrees, WGS84 | GPS helper |
+| `button.close` | Close | Row action while expanded (existing key) |
 | `button.locations.add` | Add | Toolbar |
 | `button.locations.import` | Import | Toolbar |
 | `button.locations.export` | Export | Toolbar |
@@ -356,7 +364,7 @@ Keys follow `[category].[feature].[identifier]` under the `locations` feature na
 | `button.locations.reactivate` | Reactivate | Row / bulk |
 | `button.locations.exportSelected` | Export selected | Bulk |
 | `button.locations.addWard` | Add ward / dept | Organization expanded row |
-| `button.locations.moveWard` | Move to facility | Ward action |
+| `button.locations.moveWard` | Move | Ward / dept edit mode |
 | `label.locations.section.identity` | Identity | Form section |
 | `label.locations.section.location` | Location | Form section |
 | `label.locations.section.contact` | Contact | Form section |
@@ -369,7 +377,6 @@ Keys follow `[category].[feature].[identifier]` under the `locations` feature na
 | `label.locations.field.description` | Description | Field |
 | (reuse) `organization.organizationName`, `organization.short.CI`, `organization.streetAddress`, `organization.city`, `organization.internetaddress` | | Existing fields |
 | (reuse) `vector.admin.samplingSite.type`, `vector.admin.samplingSite.subtype`, `vector.admin.samplingSite.addressSearch.placeholder` | | Existing site fields |
-| `error.locations.code.duplicate` | Code {code} is already used by {name} | Validation |
 | `error.locations.gps.range` | Enter decimal degrees: latitude -90 to 90, longitude -180 to 180 | Validation |
 | `error.locations.parent.kind` | A ward's parent must be a facility | Validation |
 | `warning.locations.name.duplicate` | Another active {kind} named "{name}" exists | Validation warning |
@@ -445,12 +452,12 @@ New data and capabilities, declared per design-addendum MUST A:
 1. **Organization: new attributes** `gps_latitude`, `gps_longitude`, `contact_name`, `description`. (Phone, email and address already exist.)
 2. **Organization type "Sampling site"** (new seeded type).
 3. **Sampling site → Organization link:** `vector_sampling_site.organization_id` (one-to-one), plus a migration that creates and links an Organization for each existing site. The overlapping site columns (code, name, active, contact, phone, GPS, location) move to the Organization or are kept in sync until retired. Developer's call, but reads must come from one place.
-4. **Code uniqueness within type**, enforced by the service on save and import. Organization `code` exists but is not unique today; the migration reports existing collisions for an admin to fix rather than altering data.
+4. **Identifier uniqueness within label and kind**, enforced by the service on save and import (FR-I3). Organization `code` exists but is not unique today; the migration reports existing collisions for an admin to fix rather than altering data.
 5. **Source marker for facility-registry records:** a way to tell that an Organization came from the scheduled FHIR facility-list sync (`org.openelisglobal.facilitylist.fhirstore`), so Replace can exclude it (FR-F11). Could be a stored source value or derived from the FHIR identifier system. Developer's call.
 6. **Organizations import area:** a new CSV handler on the shared catalog loader base (`AbstractCatalogCsvHandler`), reachable from startup configuration, the reload API and this page. **Replace mode** is new to the framework.
 7. **Address-hierarchy handlers on the import page:** the two existing handlers exposed through the import page's preview/apply with file-scoped reload (`ConfigurationReloadOptions`, built in #4329).
 8. **Server-side filtered paging** for organizations by type, status and search (current endpoints page but only filter by name).
-9. **CLIA number folds into Code.** The UI drops the separate CLIA field. At migration, an organization with a CLIA number and no code gets the CLIA number as its code; one that has both is listed in a migration report for an admin to reconcile. The column stays in the database until nothing reads it.
+9. **CLIA number becomes an identifier** labelled "CLIA" (FR-I4). The UI drops the separate CLIA field; the column stays in the database until nothing reads it.
 10. **"In use" counts** query (open and total orders per organization and per sampling site).
 11. **Identifiers:** an identifier table (record, label, value, reporting-code flag); migration moves each existing code in as "Code" (reporting) and each CLIA number in as "CLIA".
 12. **Category and ownership** lists (admin-managed, with code systems) and the two attributes on Organization.
@@ -464,8 +471,8 @@ New data and capabilities, declared per design-addendum MUST A:
 - **Catalog CSV import (OGC-1194):** shares the import framework, run history and decision queue. Replace mode and the organizations area are additions that must not change catalog-area behaviour.
 - **Address hierarchy loader:** GUI and startup must produce identical results for the same file.
 - **Downstream consumers of deactivation:** order entry referring site and department pickers, e-order requester lookup, patient address entry, referral organization lists, vector/environmental collection site picker, M-16 cluster detection (reads site coordinates, and gains facility coordinates), environmental dashboard.
-- **Referral workflow:** shows the approval / review warnings in its lab picker (FR-J3).
 - **M-01 / M-09 (AMR reference data, WHONET export):** consume ward / dept service type instead of a separate department mapping.
+- **Environmental and Vector Order Entry v4:** a sample's origin can be a sampling site or a location from this menu (D-101). Its standing agreements live on the requester (D-103), so this form will gain a **Standing agreement** section owned by that spec; build the form so sections can be added per organization type. Its site "system / permit ID" should be stored as an identifier (label "Permit ID") under section I rather than as a new site column.
 - **Docs:** the published Organization Management manual page must be re-captured, and the Sampling Sites manual content moved.
 
 ---
@@ -493,7 +500,7 @@ New data and capabilities, declared per design-addendum MUST A:
 18. Filtering Organizations by Location = Morobe Province lists records placed at Morobe Province, Lae district and Lae Urban LLG; sorting by Location groups them together.
 19. An organization with identifiers labelled "DHIS2 ID" and "CLIA" shows both in Identifiers, with the reporting code shown as Code in the list; searching the DHIS2 ID value finds it; typing a new label ("Provincial code") saves it and it is then suggested on other records.
 20. An import row with only `identifier:DHIS2 ID` matches the organization that has that DHIS2 ID.
-21. A referral lab with Next review due in the past shows Review overdue in the list and a warning in the referral picker.
+21. A referral lab with Next review due in the past shows Review overdue in the list, and the "overdue or expired only" filter lists it.
 22. History for a record lists every change with user, time, and old and new values; a renamed record is still found by its old name.
 23. Deactivating with the toggle shows an Undo link; Undo reactivates the record and any children deactivated with it.
 24. The Geographic Areas tree can be expanded, collapsed and navigated with the keyboard alone, and a screen reader announces each row's level and expanded state.
@@ -503,7 +510,6 @@ New data and capabilities, declared per design-addendum MUST A:
 
 ## Out of Scope
 
-- Map views of the hierarchy.
 - Editing organization types themselves (names, adding new types other than the seeded Sampling site type). Category and ownership lists are managed with the existing dictionary / list tools.
 - Locking fields on facility-registry records (they are explained, excluded from Replace deactivation, and overwritten by the next sync).
 - Map views of any kind; site photos or attachments.
