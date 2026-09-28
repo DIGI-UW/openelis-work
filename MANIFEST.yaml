@@ -3208,6 +3208,7 @@
   type: both
   path: designs/results-validation/validation-clearance-rule.jsx
   spec: designs/results-validation/validation-clearance-rule.md
+  breakdown: designs/results-validation/validation-clearance-rule-breakdown.md
   preview: designs/results-validation/validation-clearance-rule.html
   category: results-validation
   description: >
@@ -3324,6 +3325,8 @@
   type: jsx
   path: designs/results-validation/runs.jsx
   spec: designs/results-validation/runs.md
+  breakdown: designs/results-validation/runs-breakdown.md
+  crosscheck: designs/results-validation/runs-crosscheck.md
   category: results-validation
   description: "Runs — the shared unit of QC, reagent-lot provenance and result review across analyzer messages, workplan batches, and single manual entries. Every result belongs to a run; controls, reagent lot and a per-test QC verdict live on the run. Converges Analyzer Results Import onto the Results worklist as a run-filtered view (/Results?run=<id>) with a run header; run-aware worklist row states (waiting/held); per-test QC gate (a failed control holds only that test's rows). Consumption contracts for QC persistence (OGC-1147), Batch Workplan (OGC-427), QC dashboard and Validation. FRS v0.4 (2026-09-22), approved for handoff — single paginated run table on the worklist filter chips, rows expand into the Results Entry panel prefilled, Accept corrected vs D-057, Validation routed to the clearance rule."
   paired_with: designs/results-validation/runs-preview.html
@@ -4098,6 +4101,7 @@
   type: html
   path: designs/system/navigation-redesign-preview.html
   spec: designs/system/navigation-redesign.md
+  breakdown: designs/system/navigation-redesign-breakdown.md
   jsx: designs/system/navigation-redesign-mockup.jsx
   data: designs/system/navigation-redesign-data/
   preview: designs/system/navigation-redesign-preview.html
