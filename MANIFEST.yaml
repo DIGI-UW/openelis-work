@@ -616,12 +616,12 @@
   path: designs/microbiology/m-00-micro-module-parent.md
   category: microbiology
   description: >
-    M-00 spine spec: glossary, RBAC, data model overview, phase plan, OOS, v1.1 → v2 diff map. v2.1: NO_GROWTH_FINAL becomes NO_GROWTH_READY then releases to FINAL_REPORTED.
+    Amended by Microbiology v2 (2026-09-28). M-00 spine spec: glossary, RBAC, data model overview, phase plan, OOS, v1.1 → v2 diff map. v2.1: NO_GROWTH_FINAL becomes NO_GROWTH_READY then releases to FINAL_REPORTED.
   links:
     jira: ["OGC-782"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-00-microbiology-module-parent
   added: "2026-05-15"
-  updated: "2026-08-27"
+  updated: "2026-09-29"
 
 - id: m-nfr-non-functional-requirements
   type: spec
@@ -663,7 +663,7 @@
   path: designs/microbiology/m-03-order-entry-micro-hook.md
   category: microbiology
   description: >
-    M-03: Order Entry Step 1 amendment — five editable micro fields when Program =
+    Amended by Microbiology v2 (2026-09-28). M-03: Order Entry Step 1 amendment — five editable micro fields when Program =
     MICROBIOLOGY, plus a read-only derived Culture Protocol. Includes Date of Admission,
     the missing input for the WHO GLASS hospital- vs community-origin (HO/CO/UNK)
     derivation consumed by M-09. v2.2 moves the culture-protocol override to the bench
@@ -674,7 +674,7 @@
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-03-order-entry-micro-hook
     preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-03-order-entry-step1.html
   added: "2026-05-15"
-  updated: "2026-08-05"
+  updated: "2026-09-29"
 
 - id: glass-submission-console
   type: html
@@ -717,13 +717,13 @@
   path: designs/microbiology/m-04-case-workbench-core.md
   category: microbiology
   description: >
-    M-04: Case + Isolate + Timeline + Reports + state machine + amendment workflow. v2.1: release gate keys on a recorded outcome; NO_GROWTH_FINAL becomes NO_GROWTH_READY.
+    Amended by Microbiology v2 (2026-09-28). M-04: Case + Isolate + Timeline + Reports + state machine + amendment workflow. v2.1: release gate keys on a recorded outcome; NO_GROWTH_FINAL becomes NO_GROWTH_READY.
   links:
     jira: ["OGC-790"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-04-case-workbench-core-case-detail
     preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-case-workbench-prototype.html
   added: "2026-05-15"
-  updated: "2026-08-27"
+  updated: "2026-09-29"
 
 - id: m-04-isolate-modal
   type: mockup
@@ -764,12 +764,13 @@
   path: designs/microbiology/m-07-worklists.md
   category: microbiology
   description: >
-    M-07 Pending Cultures: primary morning-rounds worklist with stage-based row highlighting.
+    Amended by Microbiology v2 (2026-09-28). M-07 Pending Cultures: primary morning-rounds worklist with stage-based row highlighting.
   links:
     jira: ["OGC-792"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-07-pending-cultures-worklist
     preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-07-pending-cultures.html
   added: "2026-05-15"
+  updated: "2026-09-29"
 
 - id: m-04-case-workbench-prototype
   type: mockup
@@ -917,13 +918,13 @@
   path: designs/microbiology/m-14-mycobacteriology-tb.md
   category: microbiology
   description: >
-    M-14 Mycobacteriology / TB — M-04 Case Workbench TB profile: smear, MGIT/LJ culture,
+    Amended by Microbiology v2 (2026-09-28). M-14 Mycobacteriology / TB — M-04 Case Workbench TB profile: smear, MGIT/LJ culture,
     species ID, critical-concentration DST, molecular flags, staged interim reports, WHONET-TB. v1.1 aligns TB bench with the no-growth amendment.
   links:
     jira: ["OGC-901"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-14-mycobacteriology-tb
   added: "2026-06-08"
-  updated: "2026-08-27"
+  updated: "2026-09-29"
 
 - id: m-14-tb-case-interactive-prototype
   type: mockup
@@ -986,7 +987,7 @@
   preview: designs/microbiology/amr-micro-v2-preview.html
   category: microbiology
   description: >
-    Microbiology (AMR) v2 amendments, a delta over M-00 to M-18 reconciled with the CPHL
+    Microbiology (AMR) v2 amendments (draft 3, M-18 folded in), a delta over M-00 to M-18 reconciled with the CPHL
     workflow breakdown: declared workflow and culture protocol removed, Cases open from
     Program = Microbiology with a lab unit per sample, purpose and replicates move to the
     Case view. Supersedes the Test Catalog microbiology workflow attribute (OGC-925).
@@ -995,20 +996,24 @@
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/microbiology-v2-amendments
     preview: https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-v2-preview.html
   added: "2026-09-28"
+  updated: "2026-09-29"
 
 - id: m-18-environmental-microbiology
-  type: html
-  path: designs/microbiology/m-18-environmental-microbiology.md
+  type: jsx
+  path: designs/microbiology/m-18-environmental-microbiology.jsx
   spec: designs/microbiology/m-18-environmental-microbiology.md
   preview: designs/microbiology/m-18-environmental-microbiology.html
+  analyze: designs/microbiology/m-18-environmental-microbiology-analyze.md
+  breakdown: designs/microbiology/m-18-environmental-microbiology-breakdown.md
   category: microbiology
   description: >
-    M-18 Environmental Microbiology FRS v0.4, aligned with Microbiology v2: order-level
+    M-18 Environmental Microbiology FRS v0.5, aligned with Microbiology v2: order-level
     purpose and replicates, sampling sites for wards, investigation link moved to M-16.
   links:
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-18-environmental-microbiology
     preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-18-environmental-microbiology.html
   added: "2026-09-28"
+  updated: "2026-09-29"
 
 - id: amr-micro-narrative-v2
   type: spec
@@ -4058,7 +4063,7 @@
     gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/clinical-order-entry-v4
     preview: https://digi-uw.github.io/openelis-work/designs/sample-collection/clinical-order-entry-v4.html
   added: "2026-09-10"
-  updated: "2026-09-28"
+  updated: "2026-09-29"
 - id: environmental-order-entry-v2
   type: mockup
   path: designs/sample-collection/environmental-order-entry-v2.html

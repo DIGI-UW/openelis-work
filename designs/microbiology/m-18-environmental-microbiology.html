@@ -210,10 +210,8 @@ function EnvOrderScreen() {
     { num: '26CPHL00512-2', fid: 'IPC-0418', st: 'Surface swab', test: 'Surface swab culture', point: 'Nurse station keyboard' },
     { num: '26CPHL00512-3', fid: 'IPC-0419', st: 'Surface swab', test: 'Surface swab culture', point: 'Bed 12 rail' },
   ];
-  const PROTO = 'MRSA screen: CHROMagar MRSA + BAP · 48 h · 35 °C · aerobic';
-  const PURP = ['Routine monitoring', 'Post-cleaning check', 'Outbreak investigation', 'Complaint'];
-  const [purpose, setPurpose] = useState('Outbreak investigation');
-  const [reps, setReps] = useState(1);
+  const [units, setUnits] = useState(['Environmental Microbiology', 'Environmental Microbiology', 'Environmental Microbiology']);
+  const [extra, setExtra] = useState(false);
   const [siteQ, setSiteQ] = useState('ward');
   const [siteOpen, setSiteOpen] = useState(false);
   const [site, setSite] = useState('Medical Ward 3, Port Moresby General Hospital');
@@ -239,38 +237,40 @@ function EnvOrderScreen() {
         <table className="cds--data-table cds--data-table--sm"><thead><tr><th>Sample</th><th>Field ID</th><th>Site</th><th>Sampling point</th><th>Tests</th></tr></thead>
           <tbody>{lines.map(l => <tr key={l.num}><td className="mono">{l.num}</td><td>{l.fid}</td><td>{site}</td><td>{l.point}</td><td>{l.test}</td></tr>)}</tbody></table>
       </Fence>
+      <div className="row-flex" style={{ margin: '8px 0' }}><span className="hint" style={{ fontWeight: 600 }}>Program</span><Tag c="purple">Microbiology</Tag><span className="muted hint">(Order defaults, env v4 EV-B3a). Choosing it shows the section below.</span></div>
       <NewBlock>
         <div className="sec-h" style={{ marginTop: 0 }}>Microbiology</div>
-        <div className="muted" style={{ marginBottom: 10 }}>This order will create {lines.length} Microbiology Cases for culture and susceptibility testing.</div>
+        <div className="muted" style={{ marginBottom: 10 }}>This order will create {lines.length + (extra ? 1 : 0)} Microbiology Cases.</div>
         <table className="cds--data-table cds--data-table--md">
-          <thead><tr><th>Sample</th><th>Sample type and test</th><th>Culture protocol</th></tr></thead>
-          <tbody>{lines.map(l => (
+          <thead><tr><th>Sample</th><th>Sample type and test</th><th>Lab unit *</th><th></th></tr></thead>
+          <tbody>{lines.map((l, i) => (
             <tr key={l.num}>
               <td><div className="mono">{l.num}</div><div className="hint">Field ID {l.fid}</div></td>
               <td>{l.st}<div className="hint">{l.test}</div></td>
-              <td>{PROTO}<div className="hint">From the ordered test. Change it at the bench if the workup differs.</div></td>
-            </tr>))}</tbody>
+              <td><select className="cds--select-input" value={units[i]} onChange={e => { const u = [...units]; u[i] = e.target.value; setUnits(u); }} aria-label={'Lab unit for ' + l.num}><option>Environmental Microbiology</option><option>Water Quality</option></select><div className="hint">Default: lab unit of the first test</div></td>
+              <td>{i === 2 && !extra ? <Btn kind="ghost" onClick={() => setExtra(true)}>+ Another lab unit</Btn> : null}</td>
+            </tr>))}
+            {extra && <tr><td><div className="mono">26CPHL00512-3</div><div className="hint">second Case, same sample</div></td><td className="muted">Surface swab</td><td><select className="cds--select-input" defaultValue="Water Quality"><option>Water Quality</option><option disabled>Environmental Microbiology (already used)</option></select></td><td><Btn kind="ghost" onClick={() => setExtra(false)}>Remove</Btn></td></tr>}
+          </tbody>
         </table>
-        <div className="row-flex" style={{ gap: 24, marginTop: 14, alignItems: 'flex-end' }}>
-          <div className="field" style={{ minWidth: 260 }}><label htmlFor="purp">Purpose *</label>
-            <select id="purp" className="cds--select-input" value={purpose} onChange={e => setPurpose(e.target.value)}>{PURP.map(p => <option key={p}>{p}</option>)}</select></div>
-          <div className="field" style={{ minWidth: 120 }}><label htmlFor="reps">Replicates</label>
-            <input id="reps" className="inp" type="number" min="1" max="10" value={reps} style={{ width: 100 }} onChange={e => setReps(e.target.value)} /></div>
-          <div className="hint" style={{ flex: 1, minWidth: 220 }}>For the whole order, stored in the existing micro order detail (culture purpose, number of sets).</div>
-        </div>
-        {purpose === 'Outbreak investigation' && <div className="notif">Outbreak investigation samples are not counted by cluster detection, so swabs taken because of a signal never feed it (FR-G2).</div>}
-        <div className="hint" style={{ marginTop: 8 }}>Not asked for environmental samples: patient origin, date of admission, clinical history, antibiotic exposure.</div>
+        <div className="hint" style={{ marginTop: 10 }}>Nothing else is asked here. Purpose and replicates are entered on the Case (Microbiology v2 A-03); no culture protocol (retired). The lab unit can be changed later in Edit order or on the Case.</div>
       </NewBlock>
-      <Annot>Tests without the Culture-workflow attribute (for example Total coliforms per 100 mL) never open a Case and stay in environmental results entry with their regulatory limits (FR-C2). Linking samples to a cluster investigation is specified with M-16.</Annot>
+      <Annot>Without Program = Microbiology no Case opens. Counts such as Total coliforms per 100 mL stay in environmental results entry with their regulatory limits (FR-C2). Linking samples to a cluster investigation is specified with M-16.</Annot>
     </div>
   );
 }
 
 /* ---------- Screen 4: Case workbench, environmental subject ---------- */
 function CaseScreen() {
+  const PURP = ['Routine monitoring', 'Post-cleaning check', 'Outbreak investigation', 'Complaint'];
+  const [purpose, setPurpose] = useState('Post-cleaning check');
+  const [reps, setReps] = useState(1);
+  const [checked, setChecked] = useState(false);
+  const [labOnly, setLabOnly] = useState(true);
+  const [rep, setRep] = useState({ org: true, fox: true, pen: false });
   return (
     <div>
-      <Head route="/microbiology/case/MC-2026-00388" crumbs={['Home', 'Microbiology', 'Worklist', '26CPHL00512-3']} title="Surface swab culture" sub="Microbiology Case MC-2026-00388. Stage: Organism identification." />
+      <Head route="/microbiology/case/MC-2026-00388" crumbs={['Home', 'Microbiology', 'Worklist', '26CPHL00512-3']} title="Surface swab culture" sub="Microbiology Case MC-2026-00388 in Environmental Microbiology. Stage: Organism identification." />
       <NewBlock style={{ padding: 0 }}>
         <div className="strip">
           <div className="kv"><div className="k">Lab number</div><div className="v row-flex"><span className="mono" style={{ fontWeight: 600 }}>26CPHL00512-3</span><Tag c="teal">Environmental</Tag></div></div>
@@ -278,28 +278,68 @@ function CaseScreen() {
           <div className="kv"><div className="k">Sampling point</div><div className="v">Bed 12 rail</div></div>
           <div className="kv"><div className="k">Field ID</div><div className="v">IPC-0419</div></div>
           <div className="kv"><div className="k">Collected</div><div className="v">25/09/2026 07:40</div></div>
-          <div className="kv"><div className="k">Purpose</div><div className="v">Post-cleaning check</div></div>
+          <div className="kv"><div className="k">Lab unit</div><div className="v">Environmental Microbiology <Btn kind="ghost">Change lab unit</Btn></div></div>
           <div className="kv"><div className="k">Requester</div><div className="v">Ruth Kaupa, Infection Prevention</div></div>
         </div>
       </NewBlock>
-      <div className="muted" style={{ fontSize: 13 }}>Hidden for environmental cases (not shown empty): patient origin, department, date of admission, clinical history, antibiotic exposure.</div>
-      <Fence label="M-04 workbench sections: inoculation, incubation, growth, organism ID, AST, reporting, timeline">
-        <div className="panel-grid">
-          <div className="kv"><div className="k">Inoculation</div><div className="v">CHROMagar MRSA, BAP · 25/09 09:10 · John Wari</div></div>
-          <div className="kv"><div className="k">Growth</div><div className="v">Pink colonies on CHROMagar MRSA at 24 h</div></div>
-          <div className="kv"><div className="k">Organism</div><div className="v"><em>Staphylococcus aureus</em> (MALDI-TOF, score 2.21)</div></div>
-          <div className="kv"><div className="k">AST</div><div className="v">Cefoxitin screen positive: MRSA</div></div>
-        </div>
-      </Fence>
+      <div className="sec-h">1 Case information <span className="chip-new">v2</span></div>
+      <div className="row-flex" style={{ gap: 24, alignItems: 'flex-end' }}>
+        <div className="field" style={{ minWidth: 260 }}><label htmlFor="purp">Purpose *</label>
+          <select id="purp" className="cds--select-input" value={purpose} onChange={e => setPurpose(e.target.value)}>{PURP.map(p => <option key={p}>{p}</option>)}</select></div>
+        <div className="field" style={{ minWidth: 120 }}><label htmlFor="reps">Replicates</label>
+          <input id="reps" className="inp" type="number" min="1" max="10" value={reps} style={{ width: 100 }} onChange={e => setReps(e.target.value)} /></div>
+        <div className="hint" style={{ flex: 1, minWidth: 220 }}>Applies to all 3 Cases on this order (FR-C5a). A change is recorded on each Case's Timeline.</div>
+      </div>
+      {purpose === 'Outbreak investigation' && <div className="notif">Outbreak investigation samples are not counted by cluster detection, so swabs taken because of a signal never feed it (FR-G2).</div>}
+      <div className="hint" style={{ marginTop: 6 }}>Hidden for environmental Cases (not shown empty): patient origin, department, date of admission, clinical history, prior antibiotics, TB history.</div>
+
+      <div className="sec-h">2 Initial testing <span className="chip-new">v2</span></div>
+      <div className="muted" style={{ fontSize: 13 }}>No direct tests on this swab. <Btn kind="ghost">+ Add test or panel</Btn></div>
+
+      <div className="sec-h">3 Culture <span className="chip-new">v2 fields</span></div>
+      <div className="cds--data-table-container"><table className="cds--data-table cds--data-table--sm">
+        <thead><tr><th>Medium</th><th>Atmosphere, °C</th><th>Duration</th><th>Check every</th><th>Inoculated</th><th>Ends</th><th>State</th><th>Read log</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>CHROMagar MRSA</td><td>Aerobic, 35</td><td>48 Hours</td><td>24 Hours</td><td>25/09 09:10</td><td>27/09 09:10</td><td><Tag c="green">Growth</Tag></td><td className="hint">Day 1: significant growth, pink colonies, ++ · J. Wari</td><td></td></tr>
+          <tr><td>Blood agar</td><td>Aerobic, 35</td><td>48 Hours</td><td>24 Hours</td><td>25/09 09:10</td><td>27/09 09:10</td><td>{checked ? <Tag c="green">Growth</Tag> : <Tag c="warm-gray">Check due</Tag>}</td><td className="hint">Day 1: significant growth{checked ? '; Day 2: significant growth, S. aureus colonies · J. Wari' : ''}</td><td>{!checked && <Btn kind="ghost" onClick={() => setChecked(true)}>Record reading</Btn>}</td></tr>
+        </tbody></table></div>
+
+      <div className="sec-h">4 Growth work-up <span className="chip-new">v2</span></div>
+      <div className="panel-grid">
+        <div className="kv"><div className="k">Microscopy exam (CHROMagar, day 1)</div><div className="v">Gram: Gram-positive cocci in clusters <Tag c="gray">Internal only</Tag></div></div>
+        <div className="kv"><div className="k">Subculture</div><div className="v">Blood agar, 24 Hours, for MALDI-TOF</div></div>
+      </div>
+
+      <div className="sec-h">5 Isolates and 6 AST / DST</div>
+      <div className="panel-grid">
+        <div className="kv"><div className="k">Isolate 1</div><div className="v"><em>Staphylococcus aureus</em> (MALDI-TOF Biotyper, score 2.21, placed from Incoming results)</div></div>
+        <div className="kv"><div className="k">AST</div><div className="v">Cefoxitin screen positive: MRSA. Penicillin R</div></div>
+      </div>
+
       <div className="sec-h">Expert review <span className="muted" style={{ fontWeight: 400, fontSize: 13 }}>(M-06 rule trace)</span></div>
       <div className="cds--data-table-container"><table className="cds--data-table cds--data-table--sm">
         <thead><tr><th>Rule</th><th>Outcome</th></tr></thead>
         <tbody>
           <tr><td>Cefoxitin screen positive: report as methicillin resistant, suppress all beta-lactams</td><td><Tag c="red">Applied</Tag></td></tr>
-          <tr><td>Vancomycin MIC ≥ 4: confirm with a second method</td><td><Tag c="gray">Not triggered</Tag></td></tr>
-          <tr><td>Patient under 12 years: suppress tetracyclines on the report</td><td><span className="skip">Not applied: needs patient data</span> <span className="chip-new">new</span></td></tr>
+          <tr><td>Vancomycin MIC 4 or more: confirm with a second method</td><td><Tag c="gray">Not triggered</Tag></td></tr>
+          <tr><td>Patient under 12 years: suppress tetracyclines on the report</td><td><span className="skip">Not applied: needs patient data</span></td></tr>
         </tbody></table></div>
-      <Annot>Critical notification (M-11) goes to the order's requester contact (Ruth Kaupa) instead of a provider. The report uses the environmental layout with a site header (Report Management).</Annot>
+
+      <div className="sec-h">7 Additional testing <span className="chip-new">v2</span></div>
+      <div className="cds--data-table-container"><table className="cds--data-table cds--data-table--sm">
+        <thead><tr><th>Test</th><th>On</th><th>Result</th><th>In lab only</th></tr></thead>
+        <tbody><tr><td>spa typing</td><td>Isolate 1</td><td className="hint">Referred to the reference laboratory, sent 28/09</td><td><label className="row-flex"><input type="checkbox" checked={labOnly} onChange={e => setLabOnly(e.target.checked)} /> <span className="hint">{labOnly ? 'Not shown on the report' : 'Reportable'}</span></label></td></tr></tbody></table></div>
+
+      <div className="sec-h">8 Report</div>
+      <div className="cds--data-table-container"><table className="cds--data-table cds--data-table--sm">
+        <thead><tr><th>Report</th><th>Result</th><th>Default</th></tr></thead>
+        <tbody>
+          <tr><td><input type="checkbox" checked={rep.org} onChange={e => setRep({ ...rep, org: e.target.checked })} aria-label="Report organism" /></td><td>Isolate 1: <em>S. aureus</em>, MRSA</td><td className="hint">On (significant)</td></tr>
+          <tr><td><input type="checkbox" checked={rep.fox} onChange={e => setRep({ ...rep, fox: e.target.checked })} aria-label="Report cefoxitin" /></td><td>Cefoxitin screen positive</td><td className="hint">Always</td></tr>
+          <tr><td><input type="checkbox" checked={rep.pen} onChange={e => setRep({ ...rep, pen: e.target.checked })} aria-label="Report penicillin" /></td><td>Penicillin R</td><td className="hint">Suppressed by expert rule</td></tr>
+          {!labOnly && <tr><td><input type="checkbox" defaultChecked={false} aria-label="Report spa typing" /></td><td>spa typing (pending)</td><td className="hint">Off (was in lab only)</td></tr>}
+        </tbody></table></div>
+      <Annot>The same v2 Case layout as a patient culture, with the site in place of the patient. Critical notification (M-11) goes to the order's requester contact (Ruth Kaupa). The report uses the environmental layout with a site header (Report Management).</Annot>
     </div>
   );
 }
@@ -362,7 +402,7 @@ function LabUnitsScreen() {
         <div className="field" style={{ minWidth: 280 }}><label htmlFor="as">Lab unit</label>
           <select id="as" className="cds--select-input" value={assign} onChange={e => setAssign(e.target.value)}>{U.map(x => <option key={x.n}>{x.n}</option>)}</select></div>
       </div>
-      {ok ? <div className="notif">Surface swab culture is in Environmental Microbiology. Its Culture-workflow setting opens a Microbiology Case with a site as the subject.</div>
+      {ok ? <div className="notif">Surface swab culture is in Environmental Microbiology. With Program = Microbiology on the order, it opens a Microbiology Case with a site as the subject.</div>
         : <div className="notif warn">Surface swab culture is an Environmental test. It can only go in an Environmental lab unit, such as Environmental Microbiology (D-030 guard).</div>}
       <Annot>Staff who work both benches are given both Microbiology and Environmental Microbiology in the existing user administration (FR-A4).</Annot>
     </div>
@@ -410,7 +450,7 @@ function App() {
   const m = SCREENS[s - 1];
   return (
     <div>
-      <div className="pv-banner"><span>Visual Preview: M-18 Environmental Microbiology (FRS v0.3) | OpenELIS Design Mockup | Not a live application</span><span>Screen {s}: {m.route}</span></div>
+      <div className="pv-banner"><span>Visual Preview: M-18 Environmental Microbiology (FRS v0.5, Microbiology v2 layout) | OpenELIS Design Mockup | Not a live application</span><span>Screen {s}: {m.route}</span></div>
       <header className="app-header"><div className="brand">OpenELIS Global <span>| Central Public Health Laboratory (CPHL), Port Moresby</span></div><div>Signed in: {m.user}</div></header>
       <div className="shell">
         <aside className="rail" aria-label="Preview navigation">
