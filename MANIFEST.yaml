@@ -114,7 +114,9 @@
     Optional patient sex and age at order entry, "Gender" to "Sex" label fix, and reference-range
     behavior when sex or age is missing (FRS v0.2, Validation lane rule FR-16a). Spec only.
   links:
+    jira: ["OGC-1362"]
     gallery: https://digi-uw.github.io/openelis-work/#/patient/optional-patient-sex-and-age-at-order-entry
+    spec: https://github.com/DIGI-UW/openelis-work/blob/main/designs/patient/optional-sex-age.md
   added: "2026-09-28"
 
 - id: organizations-management

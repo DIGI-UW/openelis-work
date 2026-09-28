@@ -4,6 +4,8 @@
 |---|---|
 | **Status** | Draft v0.2, 2026-09-28 (v0.2: Validation lane rule FR-16a) |
 | **Author** | Casey (Director of Product) |
+| **Jira** | [OGC-1362](https://uwdigi.atlassian.net/browse/OGC-1362) (Story, assigned to Mozzy) |
+| **Gallery** | [Optional Patient Sex and Age at Order Entry](https://digi-uw.github.io/openelis-work/#/patient/optional-patient-sex-and-age-at-order-entry) |
 | **Domain** | Clinical order entry, patient entry, reference ranges |
 | **Mockups** | None. Settings reuse the existing Order Entry Configuration toggle pattern; patient form changes are removal of a required marker plus a warning notification. |
 | **Code read** | `DIGI-UW/OpenELIS-Global-2` `develop`, 2026-09-28 |
