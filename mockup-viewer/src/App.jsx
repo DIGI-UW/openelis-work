@@ -196,11 +196,24 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'Organizations Management',
     category: 'admin-config',
+    archived: true,
     component: React.lazy(() => import('@designs/admin-config/organizations-management.jsx')),
-    description: 'Organizations and referring facilities management',
+    description: 'Superseded by Locations & Organizations (2026-09-28), which drops the separate Region/District/Facility/Ward tables this spec assumed. Organizations and referring facilities management',
     specPath: 'designs/admin-config/organizations-management.md',
     githubIssue: 4,
+    updated: '2026-09-28',
     tags: ['organizations', 'sites', 'facilities', 'admin'],
+  },
+  {
+    name: 'Locations & Organizations',
+    category: 'admin-config',
+    component: React.lazy(() => import('@designs/admin-config/locations-organizations.jsx')),
+    description: 'Locations & Organizations FRS v0.2: one admin menu for the places a lab works with (facilities and their wards and departments, sampling sites, geographic areas) with codes, search, filters, a GUI CSV import that matches the startup loader, and deactivation instead of delete. Supersedes Organizations Management. Companion slicing guide (10 PR-sized slices).',
+    specPath: 'designs/admin-config/locations-organizations.md',
+    htmlUrl: 'designs/admin-config/locations-organizations.html',
+    added: '2026-09-28',
+    status: 'draft',
+    tags: ['locations', 'organizations', 'facilities', 'wards', 'sampling-sites', 'geography', 'csv-import', 'admin'],
   },
   {
     name: 'Require Requesting Provider (Order Entry)',
@@ -2945,6 +2958,16 @@ export const MOCKUP_REGISTRY = [
     githubIssue: 305,
     jira: ['OGC-1197', 'OGC-354'],
     tags: ['patient', 'reception', 'search', 'client-registry', 'FHIR', 'accessibility', 'PNG'],
+  },
+  {
+    name: 'Optional Patient Sex and Age at Order Entry',
+    category: 'patient',
+    component: null,
+    description: 'FRS v0.2: lets a lab make patient sex and age optional at order entry (Order Entry Configuration toggles), renames the "Gender" label to "Sex", and defines how reference ranges behave when sex or age is missing; results whose normals are age-banded or sex-differentiated land in Needs review with a Range not applied chip (FR-16a). Spec only; no mockup.',
+    specPath: 'designs/patient/optional-sex-age.md',
+    added: '2026-09-28',
+    status: 'draft',
+    tags: ['patient', 'order-entry', 'sex', 'age', 'reference-ranges', 'validation', 'configuration'],
   },
 
   // ─── Figma-only entries (no JSX mockup) ───

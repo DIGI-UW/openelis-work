@@ -89,6 +89,34 @@
     jira: ["OGC-214"]
   added: "2026-03-03"
 
+- id: locations-organizations
+  type: jsx
+  path: designs/admin-config/locations-organizations.jsx
+  spec: designs/admin-config/locations-organizations.md
+  preview: designs/admin-config/locations-organizations.html
+  breakdown: designs/admin-config/locations-organizations-breakdown.md
+  category: admin-config
+  description: >
+    Locations & Organizations FRS v0.2: one admin menu for facilities, wards and departments,
+    sampling sites and geographic areas, with codes, search, filters, GUI CSV import matching
+    the startup loader, and deactivation instead of delete. Supersedes organizations-management.
+  links:
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/locations-organizations
+    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/locations-organizations.html
+  added: "2026-09-28"
+
+- id: optional-sex-age
+  type: spec
+  path: designs/patient/optional-sex-age.md
+  spec: designs/patient/optional-sex-age.md
+  category: patient
+  description: >
+    Optional patient sex and age at order entry, "Gender" to "Sex" label fix, and reference-range
+    behavior when sex or age is missing (FRS v0.2, Validation lane rule FR-16a). Spec only.
+  links:
+    gallery: https://digi-uw.github.io/openelis-work/#/patient/optional-patient-sex-and-age-at-order-entry
+  added: "2026-09-28"
+
 - id: organizations-management
   type: mockup
   path: designs/admin-config/organizations-management.jsx
