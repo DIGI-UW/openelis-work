@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| **Version** | v0.8 (ready for /breakdown: delta /analyze of v0.7 applied) |
-| **Date** | 2026-09-25 |
+| **Version** | v0.10 (adds FR-B12a, the Microbiology program section from Microbiology v2; v0.9 added the domain switcher, FR-A17 to A22) |
+| **Date** | 2026-09-27 |
 | **Author** | Casey (Director of Product), drafted with Claude |
 | **Status** | Draft for handoff. Full /analyze on v0.4 (35 findings) and delta /analyze on v0.7 (25 findings) applied |
 | **Domain** | Clinical order entry. Environmental and vector adopt the shared parts (section L; `env-vector-order-entry-alignment.md`) |
@@ -60,7 +60,7 @@ It also reinstates the two-list test and panel chooser from the Sample Collectio
 
 | Page | SideNav | Breadcrumb | Route |
 |---|---|---|---|
-| Order dashboard | Orders & Patients → Add Clinical Order | `Home / Orders / Clinical Orders` | `/order/clinical` |
+| Order dashboard | Orders & Patients → **Add Order** (one item for every domain, FR-A17) | `Home / Orders / Clinical Orders` | `/order/clinical` |
 | 1. Enter Order | (step within the order) | `Home / Orders / Clinical Orders / Enter Order` | `/order/clinical/enter` |
 | 2. Prepare Samples | (step within the order) | `Home / Orders / Clinical Orders / Prepare Samples` | `/order/clinical/collect` |
 | 3. Sample check (optional) | (step within the order) | `Home / Orders / Clinical Orders / Sample check` | `/order/clinical/qa` |
@@ -73,6 +73,7 @@ It also reinstates the two-list test and panel chooser from the Sample Collectio
 
 Route notes:
 
+- **One Add Order item and a domain switcher.** One SideNav item, **Add Order**, replaces Add Clinical Order, Add Environmental Order and Add Vector Order (OGC-1070). It opens the dashboard of the user's last-used domain. Each domain keeps its own routes (`/order/clinical/*`, `/order/environmental/*`, `/order/vector/*`), and the switcher moves between them (FR-A17 to FR-A22). The breadcrumb names the current domain.
 - **Step URLs.** The step routes keep their current URLs. Only the step 2 label changes, from "Collect" to "Prepare Samples".
 - **Removed routes.** `/order/clinical/label` is removed (D-066 tier Remove) and redirects to `/order/clinical/collect` with `?id=` kept. The Modify Order screen is merged (FR-H3). `/SamplePatientEntry` redirects once electronic orders work in the new flow (FR-B17, Dependency 17).
 - **Opening a saved order.** A saved order opens on any step with `?id=<orderId>`.
@@ -90,6 +91,7 @@ Route notes:
 5. As a **laboratory technician**, I want to reject a bad tube, refer several tubes, or remove one with a single click, so that routine actions don't slow me down.
 6. As a **test catalog manager**, I want to set each test's expected containers and body site rules once, so that every order gets correct proposals and complete specimen details.
 7. As a **quality officer**, I want to switch the Sample check step on or off, so that small laboratories are not forced through a step they do not use.
+8. As a **reception clerk in a laboratory that takes both patient and environmental samples** (for example a microbiology unit that also cultures surface swabs and submitted objects), I want to choose the kind of order at the top of the page, so that I get the right form without going back to the menu.
 
 ---
 
@@ -115,6 +117,12 @@ Route notes:
 | FR-A14 | **Lab number.** It is reserved when Enter Order opens, so concurrent users never get the same number. Reserved numbers are never reused, and a discarded one is recorded as unused with user and time, so a gap can be explained. The field also accepts a scanned pre-printed label. Accepted formats follow the site-wide pre-printed accession setting, and `validateAccessionNumber` checks format as the number is entered. Uniqueness is checked on save; a clash names the order that holds the number. | Keeps reservation (Casey, 2026-09-25). Defects to fix: Dependency 7. |
 | FR-A15 | **New order resets.** New order, from the dashboard or after Save and finish, always opens an empty Enter Order with a new lab number. Opening a saved order with `?id=` always shows that order's saved data. The reset follows where the user came from, never leftover screen state. | OGC-1201 AR. |
 | FR-A16 | A step route that does not exist for the order redirects to the order's next unfinished step, unless a named redirect applies (Route notes, FR-H3, FR-B17). It never shows a blank page. | OGC-1050. |
+| FR-A17 | **Domain switcher.** The order dashboard and Enter Order for a new order show a Carbon `ContentSwitcher` (**Clinical**, **Environmental**, **Vector**) in the page header, below the breadcrumb and above the progress indicator. Choosing a domain opens that domain's dashboard or Enter Order route. Each domain keeps its own form, steps and required sets (FR-L3); the switcher never merges them into one form. One SideNav item, **Add Order**, replaces the three per-domain items. | Casey, 2026-09-27. Clinical and environmental workflows differ too much for one form; a microbiology unit can receive both. Finishes OGC-1070 differently. |
+| FR-A18 | **Which domains appear.** A domain appears when the active test catalog holds at least one active, orderable test whose sample type is in that domain. When only one domain qualifies, no switcher is shown and the page looks as it does today. No new setting is added. | Derived from the catalog, so a clinical-only laboratory sees no change. |
+| FR-A19 | **Default domain.** Add Order opens the domain the user last used, remembered in the browser (the same mechanism as Results Entry's sticky layout, D9). With nothing remembered, or if that domain no longer qualifies, it opens the first qualifying domain in the order Clinical, Environmental, Vector. A link to a domain route always opens that domain. | Casey, 2026-09-27. |
+| FR-A20 | **Switching during entry.** If nothing has been entered beyond the reserved lab number, the switch happens at once. Otherwise a confirmation lists what carries over and what is cleared ("Switch to Environmental? Kept: lab number, received date and time, notes. Cleared: patient, 3 tests, 2 samples."), with **Switch** and **Stay**. Carried over: the reserved lab number (it is not re-reserved, so no number is skipped), received date and time, the requester where both forms have one, and order notes. Everything else is cleared, including the patient, program, tests, panels, samples and every domain-specific section. An order opened from an electronic order cannot be switched; the switcher shows its domain read-only. | Casey, 2026-09-27. Uses the modal pattern of FR-A3. |
+| FR-A21 | **Domain is fixed at first save.** Once an order has been saved, its header shows the domain as a read-only `Tag` in place of the switcher, on every step and on the dashboard row. An order registered in the wrong domain is cancelled with a reason (FR-A4; the cancel order reason list includes "Registered in the wrong domain") and entered again in the right one. | Casey, 2026-09-27. Its sample types and tests belong to the other domain, so they cannot move with it. |
+| FR-A22 | **Accessibility and wording.** The switcher is keyboard operable (arrow keys move, Enter or Space selects) and announces the selected domain. The page heading names the domain ("New environmental order"). The domain is always shown as text, never by colour alone. | WCAG 2.2 AA. |
 
 ### B. Step 1: Enter Order
 
@@ -155,13 +163,14 @@ Route notes:
 |---|---|---|
 | FR-B11 | **Order date and time** and **Required by** sit side by side at the top. Order date and time is when the clinician ordered the tests. It defaults to now in laboratory time (FR-K8) and cannot be in the future. Required by cannot be earlier than the order date. | Existing request date and required-by fields. |
 | FR-B12 | Then **Program** with the program's additional order questions shown directly under it, **Provisional diagnosis**, and the optional **Next visit date** and **Sampling performed at** (test location code), shown only when their configuration switches are on (section M). | Additional information is its own epic (OGC-1144); this fixes only where it sits. |
+| FR-B12a | **Microbiology program (Microbiology v2).** When Program = **Microbiology**, a Microbiology section appears under it with one row per sample: sample number, sample type, tests and a required **Lab unit** dropdown (active lab units of the order's domain, defaulting to the lab unit of the first test on the sample), plus **+ Another lab unit** for a second Case on the same sample. Nothing else is asked at order entry: the micro details (patient origin, admission date, clinical history, prior antibiotics, TB history, number of sets) and the TB Program's order questions are captured on the Microbiology Case. The lab unit can be changed later in the order steps (Edit order). Saving opens one Case per sample and lab unit, inside the same all-or-nothing Save (FR-A5). | `amr-micro-v2-amendments.md` A-02, A-03; D-114, D-115. Replaces the M-03 Step 1 micro fields. |
 
 #### 5. Tests
 
 | ID | Requirement | Notes |
 |---|---|---|
 | FR-B13 | **Enter Order required levels.** **Save:** a patient (or No patient or EQA), and at least one test or panel. **Complete:** adds the facility and provider as configuration requires (`requesterRequired`, `SampleEntryReferralSiteNameRequired`, and `requireProviderEntry` once OGC-1143 adds it); the national ID of a new patient when `National ID required` is on; and receipt details when samples were received. No placeholder text ("Unknown", "null") is ever saved for a missing provider. A sample type is never required to add a test. | R-DATA-4 is met by FR-D7. |
-| FR-B14 | **Test and panel chooser.** Two lists, stacked: **Order Panels** and **Order Tests**. Each has a search box matching name, code or LOINC. Each shows a checkbox list paged on the server, 25 per page, and above it the selected items as removable chips showing their full names. Two filters apply to both lists: **Lab unit** (default All lab units) and **Sample type** (optional, only narrows). Selections stay visible as chips across pages and filters. Inactive tests, and tests of a deactivated lab unit, are never offered. | Reinstates the Sample Collection Redesign chooser (ORD-7); D-007; OGC-1068; OGC-1207. |
+| FR-B14 | **Test and panel chooser.** Two lists, stacked: **Order Panels** and **Order Tests**. Each has a search box matching name, code or LOINC. Each shows a checkbox list paged on the server, 25 per page, and above it the selected items as removable chips showing their full names. Two filters apply to both lists: **Lab unit** (default All lab units) and **Sample type** (optional, only narrows). Selections stay visible as chips across pages and filters. Inactive tests, and tests of a deactivated lab unit, are never offered. Both lists offer only tests whose sample type is in the order's domain, and the Lab unit filter lists only lab units that serve that domain. A lab unit that serves two domains, such as Microbiology taking patient swabs and environmental swabs, shows only the current domain's tests. | Reinstates the Sample Collection Redesign chooser (ORD-7); D-007; OGC-1068; OGC-1207. |
 | FR-B15 | **Add by code.** A single field above the lists accepts a test code or a panel code (Dependency 22), typed or scanned from the requisition, and adds it on Enter. It keeps focus for the next code, and gives an inline message for a code that matches nothing or matches an inactive test. | Keyboard-first fast path. |
 | FR-B16 | **Panels.** Selecting a panel adds its member tests to the order, shown as belonging to that panel. Removing a panel also removes the member tests that came only from it, with an Undo notification. Tests also chosen on their own stay. Choosing a single test never attaches the panel it belongs to. The save records, for each test, the panel it came from, if any, and the order reloads with the same split. | Casey, 2026-09-25. R-DATA-2, TC-OEW-03; the fix replaces panel inference in the save (Dependency 15). |
 | FR-B16a | **Panel integrity.** Removing a single member test from a selected panel keeps the panel, now marked modified. Everywhere the order is shown, a panel shows its full membership, never only its name or a chip: the ordered tests table, the summary strip, the Sample check step, results entry, validation and the patient report. The panel header reads "Liver Function Panel, 4 of 5 tests" with a **Modified** Tag. The removed member stays listed, struck through, with who removed it and when ("ALP, removed by Mary Kila 10:14"). The chooser's chip reads "Liver Function Panel 4/5". Before the order is saved, removing a member needs no reason. After save, it is a cancel with a required reason (FR-B21). The save records which members were deselected and by whom. | Casey, 2026-09-26. |
@@ -391,7 +400,7 @@ Every existing setting that affects order entry keeps its effect. Settings the c
 | `24 hour clock` | Site Information | Time entry and display follow it | FR-K8 |
 | Laboratory time zone (new) | Distribution configuration | Clock for all defaults | FR-K8a |
 | `Patient ID required`, `supportPatientNationality` | Patient Entry | Have no effect anywhere today; removed with a migration note | Dependency 18 |
-| `orderEntryWorkflowType` | Order Entry | Not exposed today; replaced by the per-domain menu (OGC-1070) | Out of scope |
+| `orderEntryWorkflowType` | Order Entry | Not exposed today; replaced by the single Add Order item and domain switcher (FR-A17, OGC-1070) | Out of scope |
 
 ### N. Body site and laterality (configure, capture, use)
 
@@ -501,6 +510,8 @@ Keys follow constitution Principle VII (Key Reuse & Hygiene). REUSE keys are ver
 | `common.requester` | Requester | Section | REUSE |
 | `common.priority` | Priority | Order section | REUSE |
 | `common.program` | Program | Request details | REUSE |
+| `micro.order.labUnit` | Lab unit | Microbiology section (FR-B12a) | NEW (owned by Microbiology v2) |
+| `micro.order.anotherLabUnit` | Another lab unit | Microbiology section (FR-B12a) | NEW (owned by Microbiology v2) |
 | `common.provider` | Provider | Requester | REUSE |
 | `common.labNumber` | Lab number | Order section | REUSE |
 | `common.printLabel` | Print label | Row icon | REUSE |
@@ -557,6 +568,22 @@ Keys follow constitution Principle VII (Key Reuse & Hygiene). REUSE keys are ver
 | `order.save.noTests` | {sample} has no test. Assign a test or remove the sample. | Save check (R-DATA-4) | NEW |
 | `order.nav.discard.order` | Discard order | Modal primary, unsaved order | NEW |
 | `order.nav.discard.changes` | Discard changes | Modal primary, saved order | NEW |
+| `order.nav.addOrder` | Add Order | SideNav | NEW |
+| `order.domain.switcher.label` | Order type | Switcher, accessible name | NEW |
+| `order.domain.clinical` | Clinical | Switcher, Tag | NEW (check `label.domain.clinical` first) |
+| `order.domain.environmental` | Environmental | Switcher, Tag | NEW (check existing domain label first) |
+| `order.domain.vector` | Vector | Switcher, Tag | NEW (check existing domain label first) |
+| `order.domain.heading.new` | New {domain} order | Page heading | NEW |
+| `order.domain.switch.title` | Switch to {domain}? | Modal | NEW |
+| `order.domain.switch.kept` | Kept: {fields} | Modal | NEW |
+| `order.domain.switch.cleared` | Cleared: {items} | Modal | NEW |
+| `order.domain.switch.keptList` | lab number {labNo}, received date and time, requester, notes | Modal, kept list | NEW |
+| `order.domain.switch.clearedClinical` | patient, program, tests and panels, samples, billing and notification choices | Modal, cleared list (each domain adds its own `clearedEnvironmental`, `clearedVector`) | NEW |
+| `order.domain.switch.confirm` | Switch | Modal primary | NEW |
+| `order.domain.switch.stay` | Stay | Modal secondary | NEW |
+| `order.domain.locked` | The order type is fixed once the order is saved. To change it, cancel the order and enter it again. | Tag tooltip | NEW |
+| `order.domain.eorder` | Electronic orders keep the order type they arrived with. | Switcher tooltip | NEW |
+| `order.cancel.reason.wrongDomain` | Registered in the wrong domain | Cancel order reason list | NEW |
 | `order.save.problems` | Fix these before saving: {problems} | Pre-save check | NEW |
 | `order.save.restored` | Unsaved entries from {time} were restored. | Restored work | NEW |
 | `order.continue.heading` | To continue to {step} | Checklist | NEW |
@@ -859,8 +886,10 @@ Container type, body site and category names in seed data are data, translated t
 27. **Checklist item to field mapping (new data):** each sample acceptance checklist item can name the sample field it checks (identity, container, quantity, collection time, received time, holding time, body site, condition), so Sample check shows the evidence beside it (FR-F3b). It is set in Admin → Compliance → Sample Acceptance Checklist. Checklist answers are recorded per sample; if the existing S-09 responses are per order, per-sample responses are new data.
 28. **Attachment deactivation (new data):** active flag, reason, who and when on each order attachment (FR-B31). The attachments component gains a "Show removed" view; that is a change to it.
 29. **Per-aliquot label default (new data):** each label preset gains an optional per-aliquot default; the existing aliquot label default count migrates into it (FR-I5a).
-30. **Reason lists (new data):** three short, translatable lists (cancel test, cancel order, change lab number), managed as dictionary categories in the existing Dictionary Menu, each with "Other" plus free text (FR-B21, FR-A4, FR-H3).
+30. **Reason lists (new data):** three short, translatable lists (cancel test, cancel order, change lab number), managed as dictionary categories in the existing Dictionary Menu, each with "Other" plus free text (FR-B21, FR-A4, FR-H3). The cancel order list is seeded with "Registered in the wrong domain" (FR-A21).
 31. **Numbering migration:** saved samples keep their existing numbers; new samples on any order use `-n` and `-n.m`. Search, scan and the label printer accept both forms. There is one aliquot level (no aliquot of an aliquot) (FR-C4).
+32. **Domains in use (new read):** a small endpoint, or a field on an existing catalog call, returning the domains that have at least one active, orderable test on an active sample type (FR-A18). *Backend.*
+33. **Lab unit domains (proposed, owned by the Lab Units FRS):** a lab unit serves one or more domains (D-094, confirmed 2026-09-27). Until it is built, the chooser's Lab unit filter lists every lab unit that has tests in the current domain. *Backend.*
 
 ---
 
@@ -897,6 +926,8 @@ The highest decision ID in the repository copy was D-069 on 2026-09-25. The IDs 
 | D-082 | Clinical sample numbers are `{labNo}-{n}`; aliquots are `{labNo}-{n}.{m}`, one aliquot level. One scheme on every clinical screen, label and report; environmental and vector follow once their alignment decides pool numbering. | FEATURE |
 | D-083 | Product wording: "Tested elsewhere" replaces "upstream"; the optional last step is "Sample check", its action "Release for testing", its status "Ready for testing". | GLOBAL |
 | D-084 | Order entry labels are edited in one Labels section: order labels plus a sample-by-preset grid, over every active preset, with test catalog defaults and overrides within limits. | GLOBAL |
+| D-093 | Order entry has one Add Order item with a domain switcher on the dashboard and on a new order. Each domain keeps its own form and routes. Switching during entry keeps the lab number and shared fields after a confirmation; the domain is fixed at first save. The default is the user's last-used domain. | GLOBAL |
+| D-094 (Casey confirmed 2026-09-27) | A lab unit serves one or more domains; it is how the laboratory organises benches and staff, not a classification of the sample. Sample type, panel, test and sample stay single-domain (D-004). A row's domain always comes from its sample. D-030's guard becomes "the test's domain is one its lab unit serves". | GLOBAL; amends D-030, keeps D-004 |
 | D-079 | Body site is configured on the sample type (Not used, Optional, Required, allowed sites), with a test-level default. Laterality is a separate value, and both travel to reports, labels, FHIR and WHONET. | GLOBAL |
 
 ---
@@ -1068,7 +1099,7 @@ Applied 2026-09-26 under Epic OGC-1266. Tickets with code in flight are never cl
 | OGC-1171, OGC-1135, OGC-1215 | Backlog | Keep, link (fix now) | Dependency 15 |
 | OGC-1227, OGC-1219, OGC-1218, OGC-1217 | Backlog | Keep, link as blockers | Dependency 14 |
 | OGC-1221, OGC-1191 Edit Order defects | In Review | Finish and close; behaviour carried | FR-H3 |
-| OGC-1070 Per-domain navigation | In Review | Finish and close | Navigation |
+| OGC-1070 Per-domain navigation | In Review | Finish, then follow with the single Add Order item and domain switcher (slice M13) | Navigation, FR-A17 to A22 |
 | OGC-1222 Program deletion white-screens | In Review | Finish and close; Program deactivate follow-up has no ticket yet | FR-K2 |
 | OGC-1051, OGC-1050, OGC-1049, OGC-1060, OGC-1161, OGC-1182, OGC-1192 | Various | Keep; environmental and vector alignment | section L |
 | OGC-1073 External orders queue | Icebox | Keep, out of scope | Out of Scope |

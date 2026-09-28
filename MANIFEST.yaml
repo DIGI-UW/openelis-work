@@ -234,8 +234,10 @@
   spec: designs/admin-config/test-catalog-microbiology-workflow-attribute.md
   preview: designs/admin-config/test-catalog-microbiology-workflow-attribute.html
   category: admin-config
+  status: superseded
+  superseded_by: microbiology-v2-amendments
   description: >
-    Test Catalog Basic Info microbiology workflow attribute: a nullable culture_workflow_type
+    Superseded by Microbiology v2 Amendments (2026-09-28). Test Catalog Basic Info microbiology workflow attribute: a nullable culture_workflow_type
     enum (Bacteriology / Mycobacteriology-TB) orthogonal to Domain and the AMR flag; drives
     micro case routing (M-03/M-04). Foldable into Test Catalog v2.5 section 2.1 Basic Info.
   links:
@@ -943,6 +945,37 @@
     preview: designs/microbiology/m-16-cluster-detection-preview.html
   added: "2026-09-04"
   updated: "2026-09-04"
+
+- id: microbiology-v2-amendments
+  type: html
+  path: designs/microbiology/amr-micro-v2-amendments.md
+  spec: designs/microbiology/amr-micro-v2-amendments.md
+  preview: designs/microbiology/amr-micro-v2-preview.html
+  category: microbiology
+  description: >
+    Microbiology (AMR) v2 amendments, a delta over M-00 to M-18 reconciled with the CPHL
+    workflow breakdown: declared workflow and culture protocol removed, Cases open from
+    Program = Microbiology with a lab unit per sample, purpose and replicates move to the
+    Case view. Supersedes the Test Catalog microbiology workflow attribute (OGC-925).
+  links:
+    jira: ["OGC-782"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/microbiology-v2-amendments
+    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-v2-preview.html
+  added: "2026-09-28"
+
+- id: m-18-environmental-microbiology
+  type: html
+  path: designs/microbiology/m-18-environmental-microbiology.md
+  spec: designs/microbiology/m-18-environmental-microbiology.md
+  preview: designs/microbiology/m-18-environmental-microbiology.html
+  category: microbiology
+  description: >
+    M-18 Environmental Microbiology FRS v0.4, aligned with Microbiology v2: order-level
+    purpose and replicates, sampling sites for wards, investigation link moved to M-16.
+  links:
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-18-environmental-microbiology
+    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-18-environmental-microbiology.html
+  added: "2026-09-28"
 
 - id: amr-micro-narrative-v2
   type: spec
@@ -3979,7 +4012,7 @@
   preview: designs/sample-collection/clinical-order-entry-v4.html
   category: vector-surveillance
   description: >
-    Clinical Order Entry v4 (FRS v0.8). Enter Order + Prepare Samples (+ optional Sample check),
+    Clinical Order Entry v4 (FRS v0.10: domain switcher FR-A17 to A22, Microbiology program section FR-B12a). Enter Order + Prepare Samples (+ optional Sample check),
     whole-step all-or-nothing saves, Container Types and Body Sites in the test catalog, shared
     ordered-tests / samples tables and summary strip, search-first creation, lab time zone,
     working labels. Two-phase plan. Supersedes the 2026-09-10 Enter Order preview and OGC-1066.
@@ -3989,7 +4022,7 @@
     gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/clinical-order-entry-v4
     preview: https://digi-uw.github.io/openelis-work/designs/sample-collection/clinical-order-entry-v4.html
   added: "2026-09-10"
-  updated: "2026-09-26"
+  updated: "2026-09-28"
 - id: environmental-order-entry-v2
   type: mockup
   path: designs/sample-collection/environmental-order-entry-v2.html

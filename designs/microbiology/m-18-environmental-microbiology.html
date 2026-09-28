@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Environmental Microbiology Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  body { margin: 0; font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif; background: #fff; color: #161616; }
+  .pv-banner { position: sticky; top: 0; z-index: 60; background: #0043ce; color: #fff; font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 6px 16px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .app-header { height: 48px; background: #161616; color: #f4f4f4; display: flex; align-items: center; padding: 0 16px; justify-content: space-between; font-size: 14px; }
+  .app-header .brand { font-weight: 600; } .app-header .brand span { font-weight: 400; color: #c6c6c6; }
+  .shell { display: flex; min-height: calc(100vh - 77px); }
+  .rail { width: 250px; flex: none; background: #f4f4f4; border-right: 1px solid #e0e0e0; padding: 16px 0; }
+  .rail h4 { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .5px; text-transform: uppercase; color: #525252; margin: 0 16px 12px; }
+  .rail .grp { font-size: 11px; text-transform: uppercase; color: #6f6f6f; margin: 14px 16px 4px; letter-spacing: .4px; }
+  .nav-item { display: flex; gap: 10px; width: 100%; text-align: left; border: 0; background: none; padding: 7px 16px; font: inherit; font-size: 14px; cursor: pointer; color: #161616; border-left: 3px solid transparent; }
+  .nav-item.active { background: #e0e0e0; border-left-color: #0f62fe; font-weight: 600; }
+  .nav-item .num { color: #6f6f6f; width: 16px; flex: none; }
+  .main { flex: 1; padding: 20px 32px 48px; min-width: 0; max-width: 1280px; }
+  .page-route { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #525252; margin-bottom: 4px; }
+  .page-title { font-size: 28px; font-weight: 400; margin: 12px 0 4px; }
+  .page-sub { color: #525252; margin: 0 0 16px; font-size: 14px; }
+  .newb { border-left: 3px solid #0f62fe; background: #edf5ff; padding: 12px 14px; position: relative; margin: 12px 0; }
+  .chip-new { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase; background: #0f62fe; color: #fff; border-radius: 8px; padding: 1px 6px; margin-left: 6px; vertical-align: middle; line-height: 14px; font-family: 'IBM Plex Mono', monospace; }
+  .newb > .chip-new.abs { position: absolute; top: 6px; right: 8px; }
+  .fence { border: 2px dashed #8d8d8d; padding: 10px 12px; margin: 12px 0; position: relative; }
+  .fence-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #525252; margin-bottom: 6px; }
+  .annot { border: 1px dashed #b28600; background: #fcf4d6; font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 8px 10px; margin: 8px 0; color: #3d2e00; }
+  .pvc { border: 1px dashed #b28600; background: #fffbeb; padding: 8px 12px; margin: 8px 0 14px; font-size: 13px; display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
+  .pvc b { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 12px; color: #3d2e00; }
+  .muted { color: #525252; } .mono { font-family: 'IBM Plex Mono', monospace; }
+  .row-flex { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .fbtn { cursor: pointer; height: 28px; border: 1px solid transparent; }
+  .fbtn.on { border-color: #0f62fe; }
+  table.cds--data-table td, table.cds--data-table th { vertical-align: top; }
+  .subj-acc { font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: #0043ce; }
+  .subj-sub { font-size: 12px; color: #525252; margin-top: 2px; }
+  .avatar { width: 28px; height: 28px; border-radius: 50%; background: #d0e2ff; color: #002d9c; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  .subj { display: flex; gap: 8px; align-items: flex-start; }
+  .expanded td { background: #f4f4f4; }
+  .panel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px 24px; padding: 8px 4px; }
+  .kv .k { font-size: 12px; color: #525252; } .kv .v { font-size: 14px; margin-top: 2px; }
+  .strip { display: flex; gap: 24px; flex-wrap: wrap; background: #f4f4f4; padding: 12px 16px; border-bottom: 1px solid #e0e0e0; }
+  .sec-h { font-size: 16px; font-weight: 600; margin: 20px 0 8px; display: flex; align-items: center; gap: 8px; }
+  .field { display: flex; flex-direction: column; gap: 4px; min-width: 180px; }
+  .field label { font-size: 12px; color: #525252; }
+  .inp { height: 40px; border: 0; border-bottom: 1px solid #8d8d8d; background: #fff; padding: 0 12px; font: inherit; font-size: 14px; }
+  .inp[readonly] { background: transparent; border-bottom-color: #c6c6c6; }
+  .dd { position: relative; }
+  .dd-list { position: absolute; top: 42px; left: 0; right: 0; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.3); z-index: 20; }
+  .dd-item { padding: 10px 12px; border-bottom: 1px solid #e0e0e0; cursor: pointer; font-size: 14px; }
+  .dd-item:hover { background: #e8e8e8; }
+  .dd-kind { font-size: 12px; color: #525252; }
+  .notif { display: flex; gap: 12px; align-items: center; background: #edf5ff; border-left: 3px solid #0f62fe; padding: 10px 14px; margin: 10px 0; font-size: 14px; }
+  .notif.warn { background: #fcf4d6; border-left-color: #f1c21b; }
+  .skip { color: #6f6f6f; font-style: italic; }
+  .hint { font-size: 12px; color: #525252; }
+  .cbx { display: flex; gap: 8px; align-items: center; cursor: pointer; font-size: 14px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState } = React;
+const t = (k, f) => f;
+
+/* ---------- small shared pieces (Carbon CSS classes on plain elements) ---------- */
+function Tag({ c = 'gray', children }) { return <span className={'cds--tag cds--tag--sm cds--tag--' + c} style={{ margin: 0 }}>{children}</span>; }
+function DomainTag({ d }) { return d === 'ENVIRONMENTAL' ? <Tag c="teal">Environmental</Tag> : d === 'VECTOR' ? <Tag c="green">Vector</Tag> : <Tag c="blue">Clinical</Tag>; }
+function NewBlock({ children, style }) { return <div className="newb" style={style}><span className="chip-new abs">new</span>{children}</div>; }
+function Fence({ label, children }) { return <div className="fence"><div className="fence-label">Existing component, reuse | {label}</div>{children}</div>; }
+function Annot({ children }) { return <div className="annot">{children}</div>; }
+function Crumbs({ items }) {
+  return (<nav aria-label="Breadcrumb"><ol className="cds--breadcrumb">{items.map((it, i) => (
+    <li key={i} className={'cds--breadcrumb-item' + (i === items.length - 1 ? ' cds--breadcrumb-item--current' : '')}>
+      {i === items.length - 1 ? <span aria-current="page">{it}</span> : <a href="#" className="cds--link" onClick={e => e.preventDefault()}>{it}</a>}
+    </li>))}</ol></nav>);
+}
+function Head({ route, crumbs, title, sub }) {
+  return <div><div className="page-route">Route: {route}</div><Crumbs items={crumbs} /><h1 className="page-title">{title}</h1>{sub && <p className="page-sub">{sub}</p>}</div>;
+}
+function Cbx({ label, checked, onChange }) {
+  return <label className="cbx"><input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} />{label}</label>;
+}
+function Btn({ kind = 'primary', children, ...rest }) { return <button type="button" className={'cds--btn cds--btn--sm cds--btn--' + kind} {...rest}>{children}</button>; }
+const initials = n => n.split(' ').map(x => x[0]).join('').slice(0, 2);
+
+/* ---------- mock data (CPHL Port Moresby) ---------- */
+const UNITS = { 'Microbiology': 'CLINICAL', 'Environmental Microbiology': 'ENVIRONMENTAL', 'Water Quality': 'ENVIRONMENTAL', 'Hematology': 'CLINICAL' };
+/* Only tests that are NOT linked to a Microbiology Case appear on Results and Validation (FR-B1) */
+const ROWS = [
+  { id: 'r1', d: 'CLINICAL', unit: 'Microbiology', acc: '26CPHL00471-3', pat: 'Kila Morea', info: 'F · 38 y', test: 'Cryptococcal antigen (lateral flow)', sample: 'Serum', range: 'Negative', result: '', status: 'Not started' },
+  { id: 'r2', d: 'ENVIRONMENTAL', unit: 'Environmental Microbiology', acc: '26CPHL00512-4', site: 'Medical Ward 3, Port Moresby General Hospital', kind: 'Sampling site', point: 'Bed 12 rail', fid: 'IPC-0420', test: 'ATP surface hygiene', sample: 'Surface swab', range: '< 250 RLU (IPC target)', result: '', status: 'Not started' },
+  { id: 'r3', d: 'ENVIRONMENTAL', unit: 'Water Quality', acc: '26CPHL00520-1', site: 'Eda Ranu Waigani treatment plant', kind: 'Sampling site', point: 'Clear-water tank outlet', fid: 'ER-0931', test: 'E. coli per 100 mL (membrane filtration)', sample: 'Drinking water', range: '0 per 100 mL (PNG Drinking Water Standard 2018)', result: '', status: 'Not started' },
+  { id: 'r4', d: 'CLINICAL', unit: 'Hematology', acc: '26CPHL00471-1', pat: 'Kila Morea', info: 'F · 38 y', test: 'Full blood count', sample: 'Whole blood EDTA', range: 'Hb 120-155 g/L', result: '', status: 'Not started' },
+];
+const CULTURES_IN_CASES = { 'Microbiology': 2, 'Environmental Microbiology': 3, 'Water Quality': 0, 'Hematology': 0 };
+
+function Subject({ r, mixed }) {
+  if (r.d === 'CLINICAL') return (
+    <div className="subj"><span className="avatar">{initials(r.pat)}</span><div><div className="subj-acc">{r.acc}</div><div className="subj-sub">{r.pat} · {r.info}</div></div></div>
+  );
+  return (
+    <div><div className="row-flex"><span className="subj-acc">{r.acc}</span>{mixed && <DomainTag d={r.d} />}</div>
+      <div className="subj-sub">{r.site}</div><div className="subj-sub">{r.point}{r.fid ? ' · Field ID ' + r.fid : ''}</div></div>
+  );
+}
+function TagFilter({ label, options, value, onChange }) {
+  return (
+    <div className="row-flex" role="group" aria-label={label}>
+      <span className="hint" style={{ fontWeight: 600 }}>{label}</span>
+      {options.map(([k, l, n]) => (
+        <button key={k} type="button" aria-pressed={value === k} onClick={() => onChange(k)} className={'cds--tag fbtn ' + (value === k ? 'on cds--tag--blue' : 'cds--tag--cool-gray')}>{l} <strong style={{ marginLeft: 6 }}>{n}</strong></button>
+      ))}
+      <span className="chip-new">new</span>
+    </div>
+  );
+}
+
+/* ---------- Screen 1 and 2: Results and Validation ---------- */
+function ResultsScreen({ validation }) {
+  const [unit, setUnit] = useState('Environmental Microbiology');
+  const [dom, setDom] = useState('ALL');
+  const [open, setOpen] = useState('r2');
+  const all = unit === 'All';
+  const base = ROWS.filter(r => all || r.unit === unit).map(r => validation ? { ...r, result: r.id === 'r2' ? '612 RLU' : r.id === 'r3' ? '3 per 100 mL' : r.id === 'r1' ? 'Negative' : 'Hb 131 g/L', status: 'Awaiting validation' } : r);
+  const rows = base.filter(r => !all || dom === 'ALL' || r.d === dom);
+  const ds = [...new Set(base.map(r => r.d))];
+  const mixed = all && ds.length > 1;
+  const pageDom = all ? (new Set(rows.map(r => r.d)).size > 1 ? 'MIXED' : rows[0] && rows[0].d) : UNITS[unit];
+  const subjH = pageDom === 'MIXED' ? 'Patient or site' : pageDom === 'ENVIRONMENTAL' ? 'Site' : 'Patient';
+  const rangeH = pageDom === 'MIXED' ? 'Range or limit' : pageDom === 'ENVIRONMENTAL' ? 'Regulatory limit' : 'Reference range';
+  const cult = all ? Object.values(CULTURES_IN_CASES).reduce((a, b) => a + b, 0) : CULTURES_IN_CASES[unit];
+  const lbl = { CLINICAL: 'Clinical', ENVIRONMENTAL: 'Environmental', VECTOR: 'Vector' };
+  return (
+    <div>
+      <Head route={validation ? '/Validation' : '/Results'} crumbs={validation ? ['Home', 'Validation'] : ['Home', 'Workplan', 'Results']} title={validation ? 'Validation' : 'Results'}
+        sub={validation ? 'Results awaiting release. Culture tests are released in their Microbiology Case, not here.' : 'Pending analyses. Culture tests are worked in their Microbiology Case, not here.'} />
+      <div className="pvc"><b>Preview:</b><span className="muted">Change the lab unit. Each lab unit has one domain and one layout. Culture tests never appear here.</span></div>
+      <div className="row-flex" style={{ gap: 24, marginBottom: 12, alignItems: 'flex-end' }}>
+        <div className="field" style={{ minWidth: 260 }}><label htmlFor="lu">Lab unit</label>
+          <select id="lu" className="cds--select-input" value={unit} onChange={e => { setUnit(e.target.value); setDom('ALL'); setOpen(null); }}>
+            {Object.keys(UNITS).map(u => <option key={u}>{u}</option>)}
+          </select></div>
+        {!all && <DomainTag d={UNITS[unit]} />}
+        <div className="row-flex" style={{ gap: 8 }}>{['All', 'Not started', 'In progress'].map(s => <span key={s} className={'cds--tag ' + (s === 'All' ? 'cds--tag--blue' : 'cds--tag--cool-gray')}>{s}</span>)}</div>
+      </div>
+      {cult > 0 && <NewBlock style={{ padding: '10px 14px' }}>
+        <div className="row-flex"><span>{cult} cultures {all ? 'across your lab units' : 'in this lab unit'} are worked in the Microbiology worklist.</span>
+          <a href="#" className="cds--link" onClick={e => e.preventDefault()}>Open Microbiology worklist{all ? '' : ', ' + unit}</a></div>
+        <div className="hint" style={{ marginTop: 4 }}>Tests linked to a Microbiology Case never appear on {validation ? 'Validation' : 'Results'} (FR-B1).</div>
+      </NewBlock>}
+      <div className="cds--data-table-container">
+        <table className="cds--data-table cds--data-table--md">
+          <thead><tr><th style={{ width: 32 }}></th><th>{subjH}</th><th>Test</th><th>Sample</th><th>{rangeH}</th><th>Result</th><th>Status</th></tr></thead>
+          <tbody>
+            {rows.length === 0 && <tr><td colSpan={7} className="muted">No pending tests.</td></tr>}
+            {rows.map(r => (
+              <React.Fragment key={r.id}>
+                <tr>
+                  <td><button type="button" className="cds--btn cds--btn--ghost cds--btn--sm" aria-expanded={open === r.id} aria-label={'Expand ' + r.acc} onClick={() => setOpen(open === r.id ? null : r.id)}>{open === r.id ? '▾' : '▸'}</button></td>
+                  <td><Subject r={r} mixed={mixed} /></td><td>{r.test}</td><td>{r.sample}</td><td>{r.range}</td><td>{r.result || <span className="muted">Not entered</span>}</td>
+                  <td><Tag c={r.status === 'Awaiting validation' ? 'purple' : 'gray'}>{r.status}</Tag></td>
+                </tr>
+                {open === r.id && (
+                  <tr className="expanded"><td colSpan={7}>
+                    {r.d === 'ENVIRONMENTAL' ? (
+                      <div className="panel-grid">
+                        <div className="kv"><div className="k">Site</div><div className="v">{r.site} <span className="muted">({r.kind})</span></div></div>
+                        <div className="kv"><div className="k">Sampling point</div><div className="v">{r.point}</div></div>
+                        <div className="kv"><div className="k">Field ID</div><div className="v">{r.fid}</div></div>
+                        <div className="kv"><div className="k">Regulatory limit</div><div className="v">{r.range}</div></div>
+                      </div>
+                    ) : (
+                      <div className="panel-grid">
+                        <div className="kv"><div className="k">Patient</div><div className="v">{r.pat}, {r.info}</div></div>
+                        <div className="kv"><div className="k">Reference range</div><div className="v">{r.range}</div></div>
+                        <div className="kv"><div className="k">Requester</div><div className="v">Dr Agnes Tau, Port Moresby General Hospital</div></div>
+                      </div>
+                    )}
+                    {validation && r.d === 'ENVIRONMENTAL' && <div className="notif warn">Regulatory exceedance: {r.result} against {r.range}.</div>}
+                    <Fence label={validation ? 'Validation v4 review panel (release, reject, retest)' : 'Results Entry v4 work zone (value, method, analyzer, notes, Edit / Save)'}><span className="muted">Unchanged. Abbreviated here.</span></Fence>
+                  </td></tr>
+                )}
+              </React.Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Screen 3: Environmental Enter Order, Microbiology section ---------- */
+const SITES = [
+  { n: 'Medical Ward 3, Port Moresby General Hospital', k: 'Sampling site · ward monitored by Infection Prevention' },
+  { n: 'Surgical Ward 1, Port Moresby General Hospital', k: 'Sampling site · ward monitored by Infection Prevention' },
+  { n: 'Gordons Market, stall 7', k: 'Sampling site · food' },
+  { n: 'Six Mile cooling tower', k: 'Sampling site · water' },
+];
+function EnvOrderScreen() {
+  const lines = [
+    { num: '26CPHL00512-1', fid: 'IPC-0417', st: 'Surface swab', test: 'Surface swab culture', point: 'Sink tap, bay 2' },
+    { num: '26CPHL00512-2', fid: 'IPC-0418', st: 'Surface swab', test: 'Surface swab culture', point: 'Nurse station keyboard' },
+    { num: '26CPHL00512-3', fid: 'IPC-0419', st: 'Surface swab', test: 'Surface swab culture', point: 'Bed 12 rail' },
+  ];
+  const PROTO = 'MRSA screen: CHROMagar MRSA + BAP · 48 h · 35 °C · aerobic';
+  const PURP = ['Routine monitoring', 'Post-cleaning check', 'Outbreak investigation', 'Complaint'];
+  const [purpose, setPurpose] = useState('Outbreak investigation');
+  const [reps, setReps] = useState(1);
+  const [siteQ, setSiteQ] = useState('ward');
+  const [siteOpen, setSiteOpen] = useState(false);
+  const [site, setSite] = useState('Medical Ward 3, Port Moresby General Hospital');
+  return (
+    <div>
+      <Head route="/order/environmental/enter" crumbs={['Home', 'Orders', 'Environmental Orders', 'Enter Order']} title="New environmental order"
+        sub="Environmental order 26CPHL00512. Infection prevention swabs from Medical Ward 3." />
+      <div className="row-flex" style={{ margin: '4px 0 12px' }}><span className="hint" style={{ fontWeight: 600 }}>Order type</span><Tag c="cool-gray">Clinical</Tag><Tag c="teal">Environmental</Tag><span className="muted hint">(domain switcher from Clinical Order Entry v4, FR-A17)</span></div>
+      <Fence label="Env v4 order sections: default sampling site (existing site picker), requester, compliance standard, collection conditions">
+        <div className="dd" style={{ maxWidth: 560 }}>
+          <div className="field"><label>Default sampling site *</label>
+            <input className="inp" value={siteOpen ? siteQ : site} onFocus={() => setSiteOpen(true)} onChange={e => { setSiteQ(e.target.value); setSiteOpen(true); }} aria-label="Search sampling sites" /></div>
+          {siteOpen && <div className="dd-list">
+            {SITES.filter(s => (s.n + s.k).toLowerCase().includes(siteQ.toLowerCase())).map(s => (
+              <div key={s.n} className="dd-item" onClick={() => { setSite(s.n); setSiteOpen(false); }}><div>{s.n}</div><div className="dd-kind">{s.k}</div></div>
+            ))}
+            <div className="dd-item muted" onClick={() => setSiteOpen(false)}>Close</div>
+          </div>}
+        </div>
+        <div className="hint" style={{ marginTop: 6 }}>Unchanged picker. Wards the lab monitors are set up as sampling sites (FR-C9). Try "ward" or "market".</div>
+      </Fence>
+      <Fence label="Env v4 samples table (site, sampling point, field ID, collection, tests, holding time, storage)">
+        <table className="cds--data-table cds--data-table--sm"><thead><tr><th>Sample</th><th>Field ID</th><th>Site</th><th>Sampling point</th><th>Tests</th></tr></thead>
+          <tbody>{lines.map(l => <tr key={l.num}><td className="mono">{l.num}</td><td>{l.fid}</td><td>{site}</td><td>{l.point}</td><td>{l.test}</td></tr>)}</tbody></table>
+      </Fence>
+      <NewBlock>
+        <div className="sec-h" style={{ marginTop: 0 }}>Microbiology</div>
+        <div className="muted" style={{ marginBottom: 10 }}>This order will create {lines.length} Microbiology Cases for culture and susceptibility testing.</div>
+        <table className="cds--data-table cds--data-table--md">
+          <thead><tr><th>Sample</th><th>Sample type and test</th><th>Culture protocol</th></tr></thead>
+          <tbody>{lines.map(l => (
+            <tr key={l.num}>
+              <td><div className="mono">{l.num}</div><div className="hint">Field ID {l.fid}</div></td>
+              <td>{l.st}<div className="hint">{l.test}</div></td>
+              <td>{PROTO}<div className="hint">From the ordered test. Change it at the bench if the workup differs.</div></td>
+            </tr>))}</tbody>
+        </table>
+        <div className="row-flex" style={{ gap: 24, marginTop: 14, alignItems: 'flex-end' }}>
+          <div className="field" style={{ minWidth: 260 }}><label htmlFor="purp">Purpose *</label>
+            <select id="purp" className="cds--select-input" value={purpose} onChange={e => setPurpose(e.target.value)}>{PURP.map(p => <option key={p}>{p}</option>)}</select></div>
+          <div className="field" style={{ minWidth: 120 }}><label htmlFor="reps">Replicates</label>
+            <input id="reps" className="inp" type="number" min="1" max="10" value={reps} style={{ width: 100 }} onChange={e => setReps(e.target.value)} /></div>
+          <div className="hint" style={{ flex: 1, minWidth: 220 }}>For the whole order, stored in the existing micro order detail (culture purpose, number of sets).</div>
+        </div>
+        {purpose === 'Outbreak investigation' && <div className="notif">Outbreak investigation samples are not counted by cluster detection, so swabs taken because of a signal never feed it (FR-G2).</div>}
+        <div className="hint" style={{ marginTop: 8 }}>Not asked for environmental samples: patient origin, date of admission, clinical history, antibiotic exposure.</div>
+      </NewBlock>
+      <Annot>Tests without the Culture-workflow attribute (for example Total coliforms per 100 mL) never open a Case and stay in environmental results entry with their regulatory limits (FR-C2). Linking samples to a cluster investigation is specified with M-16.</Annot>
+    </div>
+  );
+}
+
+/* ---------- Screen 4: Case workbench, environmental subject ---------- */
+function CaseScreen() {
+  return (
+    <div>
+      <Head route="/microbiology/case/MC-2026-00388" crumbs={['Home', 'Microbiology', 'Worklist', '26CPHL00512-3']} title="Surface swab culture" sub="Microbiology Case MC-2026-00388. Stage: Organism identification." />
+      <NewBlock style={{ padding: 0 }}>
+        <div className="strip">
+          <div className="kv"><div className="k">Lab number</div><div className="v row-flex"><span className="mono" style={{ fontWeight: 600 }}>26CPHL00512-3</span><Tag c="teal">Environmental</Tag></div></div>
+          <div className="kv"><div className="k">Site</div><div className="v">Medical Ward 3 <span className="muted">(Sampling site, Port Moresby General Hospital)</span></div></div>
+          <div className="kv"><div className="k">Sampling point</div><div className="v">Bed 12 rail</div></div>
+          <div className="kv"><div className="k">Field ID</div><div className="v">IPC-0419</div></div>
+          <div className="kv"><div className="k">Collected</div><div className="v">25/09/2026 07:40</div></div>
+          <div className="kv"><div className="k">Purpose</div><div className="v">Post-cleaning check</div></div>
+          <div className="kv"><div className="k">Requester</div><div className="v">Ruth Kaupa, Infection Prevention</div></div>
+        </div>
+      </NewBlock>
+      <div className="muted" style={{ fontSize: 13 }}>Hidden for environmental cases (not shown empty): patient origin, department, date of admission, clinical history, antibiotic exposure.</div>
+      <Fence label="M-04 workbench sections: inoculation, incubation, growth, organism ID, AST, reporting, timeline">
+        <div className="panel-grid">
+          <div className="kv"><div className="k">Inoculation</div><div className="v">CHROMagar MRSA, BAP · 25/09 09:10 · John Wari</div></div>
+          <div className="kv"><div className="k">Growth</div><div className="v">Pink colonies on CHROMagar MRSA at 24 h</div></div>
+          <div className="kv"><div className="k">Organism</div><div className="v"><em>Staphylococcus aureus</em> (MALDI-TOF, score 2.21)</div></div>
+          <div className="kv"><div className="k">AST</div><div className="v">Cefoxitin screen positive: MRSA</div></div>
+        </div>
+      </Fence>
+      <div className="sec-h">Expert review <span className="muted" style={{ fontWeight: 400, fontSize: 13 }}>(M-06 rule trace)</span></div>
+      <div className="cds--data-table-container"><table className="cds--data-table cds--data-table--sm">
+        <thead><tr><th>Rule</th><th>Outcome</th></tr></thead>
+        <tbody>
+          <tr><td>Cefoxitin screen positive: report as methicillin resistant, suppress all beta-lactams</td><td><Tag c="red">Applied</Tag></td></tr>
+          <tr><td>Vancomycin MIC ≥ 4: confirm with a second method</td><td><Tag c="gray">Not triggered</Tag></td></tr>
+          <tr><td>Patient under 12 years: suppress tetracyclines on the report</td><td><span className="skip">Not applied: needs patient data</span> <span className="chip-new">new</span></td></tr>
+        </tbody></table></div>
+      <Annot>Critical notification (M-11) goes to the order's requester contact (Ruth Kaupa) instead of a provider. The report uses the environmental layout with a site header (Report Management).</Annot>
+    </div>
+  );
+}
+
+/* ---------- Screen 5: Micro worklist ---------- */
+function WorklistScreen() {
+  const [lu, setLu] = useState('ALL');
+  const W = [
+    { d: 'CLINICAL', unit: 'Microbiology', acc: '26CPHL00480-1', pat: 'Tau Gabi', info: 'M · 52 y', spec: 'Blood culture', stage: 'Positive signal', due: 'Gram stain now', pri: 'STAT' },
+    { d: 'ENVIRONMENTAL', unit: 'Environmental Microbiology', acc: '26CPHL00512-3', site: 'Medical Ward 3, Port Moresby General Hospital', point: 'Bed 12 rail', fid: 'IPC-0419', spec: 'Surface swab', stage: 'Organism ID', due: 'Confirm MRSA', pri: 'Routine' },
+    { d: 'CLINICAL', unit: 'Microbiology', acc: '26CPHL00471-2', pat: 'Kila Morea', info: 'F · 38 y', spec: 'Wound swab', stage: 'Incubating', due: 'Read at 24 h (14:00)', pri: 'Routine' },
+    { d: 'ENVIRONMENTAL', unit: 'Environmental Microbiology', acc: '26CPHL00515-1', site: 'Six Mile cooling tower', point: 'Basin outlet', fid: 'EDA-CT-07', spec: 'Cooling tower water', stage: 'Incubating', due: 'Read BCYE at day 3', pri: 'Routine' },
+    { d: 'ENVIRONMENTAL', unit: 'Environmental Microbiology', acc: '26CPHL00514-1', site: 'Gordons Market, stall 7', point: 'Raw chicken, complaint sample', fid: 'NCD-FS-2231', spec: 'Food', stage: 'Received', due: 'Pre-enrich in buffered peptone', pri: 'Routine' },
+  ];
+  const rows = W.filter(r => lu === 'ALL' || r.unit === lu);
+  const units = ['Microbiology', 'Environmental Microbiology'];
+  return (
+    <div>
+      <Head route="/microbiology/worklist" crumbs={['Home', 'Microbiology', 'Worklist']} title="Microbiology worklist" sub="Cultures view. Cases from every micro lab unit you are assigned to: Microbiology and Environmental Microbiology." />
+      <div className="row-flex" style={{ gap: 8, marginBottom: 8 }}><span className="cds--tag cds--tag--blue">Cultures</span><span className="cds--tag cds--tag--cool-gray">AST runs</span></div>
+      <NewBlock style={{ padding: '10px 14px' }}>
+        <TagFilter label="Lab unit" value={lu} onChange={setLu} options={[['ALL', 'All', W.length], ...units.map(u => [u, u, W.filter(r => r.unit === u).length])]} />
+        <div className="hint" style={{ marginTop: 4 }}>Shown only to users assigned to more than one micro lab unit (FR-E1a).</div>
+      </NewBlock>
+      <div className="cds--data-table-container"><table className="cds--data-table cds--data-table--md">
+        <thead><tr><th>Patient or site <span className="chip-new">new</span></th><th>Lab unit</th><th>Specimen</th><th>Stage</th><th>Due action</th><th>Priority</th></tr></thead>
+        <tbody>{rows.map(r => (
+          <tr key={r.acc}><td><Subject r={r} mixed={true} /></td><td>{r.unit}</td><td>{r.spec}</td><td><Tag c="blue">{r.stage}</Tag></td><td>{r.due}</td><td>{r.pri === 'STAT' ? <Tag c="red">STAT</Tag> : 'Routine'}</td></tr>))}</tbody>
+      </table></div>
+      <Annot>Case search also matches site name, site code and sampling point (FR-E3).</Annot>
+    </div>
+  );
+}
+
+/* ---------- Screen 6: Lab Units ---------- */
+function LabUnitsScreen() {
+  const [assign, setAssign] = useState('Microbiology');
+  const U = [
+    { n: 'Hematology', desc: 'Full blood counts, coagulation', tests: 38, d: 'CLINICAL' },
+    { n: 'Chemistry', desc: 'Clinical chemistry and immunoassay', tests: 112, d: 'CLINICAL' },
+    { n: 'Microbiology', desc: 'Patient culture, identification and susceptibility', tests: 39, d: 'CLINICAL' },
+    { n: 'Environmental Microbiology', desc: 'Surface, food, water and object cultures', tests: 7, d: 'ENVIRONMENTAL', isNew: true },
+    { n: 'Water Quality', desc: 'Drinking and recreational water', tests: 21, d: 'ENVIRONMENTAL' },
+    { n: 'Entomology', desc: 'Vector identification and pool testing', tests: 9, d: 'VECTOR' },
+  ];
+  const ok = assign === 'Environmental Microbiology';
+  return (
+    <div>
+      <Head route="/admin/TestCatalogList?entity=labunits" crumbs={['Home', 'Admin Management', 'Test Catalog Management', 'Lab Units']} title="Lab Units" sub="Each lab unit has one domain. Environmental culture work gets its own lab unit." />
+      <div className="cds--data-table-container"><table className="cds--data-table cds--data-table--md">
+        <thead><tr><th>Name</th><th>Description</th><th>Domain</th><th>Tests</th><th>Status</th></tr></thead>
+        <tbody>{U.map(x => (
+          <tr key={x.n} style={{ background: x.isNew ? '#edf5ff' : undefined }}>
+            <td><a href="#" className="cds--link" onClick={e => e.preventDefault()}>{x.n}</a>{x.isNew && <span className="chip-new">new</span>}</td><td>{x.desc}</td>
+            <td><DomainTag d={x.d} /></td><td>{x.tests}</td><td><Tag c="green">Active</Tag></td></tr>))}</tbody>
+      </table></div>
+      <div className="sec-h">Test editor: Surface swab culture <span className="muted" style={{ fontWeight: 400, fontSize: 13 }}>(Basic Info, abbreviated)</span></div>
+      <div className="row-flex" style={{ gap: 24, alignItems: 'flex-end' }}>
+        <div className="kv"><div className="k">Domain</div><div className="v"><DomainTag d="ENVIRONMENTAL" /></div></div>
+        <div className="field" style={{ minWidth: 280 }}><label htmlFor="as">Lab unit</label>
+          <select id="as" className="cds--select-input" value={assign} onChange={e => setAssign(e.target.value)}>{U.map(x => <option key={x.n}>{x.n}</option>)}</select></div>
+      </div>
+      {ok ? <div className="notif">Surface swab culture is in Environmental Microbiology. Its Culture-workflow setting opens a Microbiology Case with a site as the subject.</div>
+        : <div className="notif warn">Surface swab culture is an Environmental test. It can only go in an Environmental lab unit, such as Environmental Microbiology (D-030 guard).</div>}
+      <Annot>Staff who work both benches are given both Microbiology and Environmental Microbiology in the existing user administration (FR-A4).</Annot>
+    </div>
+  );
+}
+
+/* ---------- Screen 7: WHONET export ---------- */
+function WhonetScreen() {
+  const [env, setEnv] = useState(false);
+  return (
+    <div>
+      <Head route="/reports/whonet-export" crumbs={['Home', 'Reports', 'WHONET export']} title="WHONET export" sub="Finalized isolates for the national reference laboratory." />
+      <Fence label="M-09 export form: period, organisms, origin, first-isolate rule, destination">
+        <div className="panel-grid">
+          <div className="kv"><div className="k">Period</div><div className="v">01/07/2026 to 30/09/2026</div></div>
+          <div className="kv"><div className="k">Destination</div><div className="v">PNG National Reference Laboratory, WHONET 2024</div></div>
+          <div className="kv"><div className="k">First isolate per patient</div><div className="v">On (M-09)</div></div>
+        </div>
+      </Fence>
+      <NewBlock>
+        <Cbx label="Include environmental isolates" checked={env} onChange={setEnv} />
+        <div className="hint" style={{ marginLeft: 24 }}>Coded as environmental, never as patient isolates. Off by default. Your choice is recorded in the export history.</div>
+        {env && <div style={{ marginTop: 10 }}>
+          <div className="notif">17 environmental isolates will be added, coded with the environmental origin and specimen codes from the WHONET dictionary. First-isolate de-duplication does not apply to them.</div>
+          <div className="notif warn">1 environmental specimen type has no WHONET code: Cooling tower water. Its 2 isolates are held back until it is mapped in Code Mapping.</div>
+        </div>}
+      </NewBlock>
+      <Annot>The antibiogram and GLASS never include environmental isolates; there is no option there (FR-F1, FR-F2).</Annot>
+    </div>
+  );
+}
+
+const SCREENS = [
+  { n: 1, g: 'Results and validation', label: 'Results: cultures stay in the Case', route: '/Results', user: 'John Wari (Laboratory technician)', C: () => <ResultsScreen /> },
+  { n: 2, label: 'Validation: same rules', route: '/Validation', user: 'Grace Pokana (Validator)', C: () => <ResultsScreen validation /> },
+  { n: 3, g: 'Order entry', label: 'Environmental order: Microbiology section', route: '/order/environmental/enter', user: 'Mary Kila (Reception)', C: () => <EnvOrderScreen /> },
+  { n: 4, g: 'Microbiology', label: 'Environmental Case workbench', route: '/microbiology/case/MC-2026-00388', user: 'John Wari (Laboratory technician)', C: () => <CaseScreen /> },
+  { n: 5, label: 'Worklist: patient or site', route: '/microbiology/worklist', user: 'John Wari (Laboratory technician)', C: () => <WorklistScreen /> },
+  { n: 6, g: 'Test catalog', label: 'Lab Units: Environmental Microbiology', route: '/admin/TestCatalogList?entity=labunits', user: 'Admin (Test Catalog Manager)', C: () => <LabUnitsScreen /> },
+  { n: 7, g: 'Surveillance', label: 'WHONET export option', route: '/reports/whonet-export', user: 'Grace Pokana (Microbiology Supervisor)', C: () => <WhonetScreen /> },
+];
+
+function App() {
+  const [s, setS] = useState(1);
+  const m = SCREENS[s - 1];
+  return (
+    <div>
+      <div className="pv-banner"><span>Visual Preview: M-18 Environmental Microbiology (FRS v0.3) | OpenELIS Design Mockup | Not a live application</span><span>Screen {s}: {m.route}</span></div>
+      <header className="app-header"><div className="brand">OpenELIS Global <span>| Central Public Health Laboratory (CPHL), Port Moresby</span></div><div>Signed in: {m.user}</div></header>
+      <div className="shell">
+        <aside className="rail" aria-label="Preview navigation">
+          <h4>Preview navigation (not part of the product)</h4>
+          {SCREENS.map(x => (<React.Fragment key={x.n}>{x.g && <div className="grp">{x.g}</div>}
+            <button type="button" className={'nav-item' + (x.n === s ? ' active' : '')} onClick={() => { setS(x.n); window.scrollTo(0, 0); }}><span className="num">{x.n}</span><span>{x.label}</span></button></React.Fragment>))}
+          <div style={{ margin: '16px', fontSize: 12 }} className="muted">
+            <div style={{ fontWeight: 600, marginBottom: 6, color: '#161616' }}>Legend</div>
+            <div style={{ marginBottom: 6 }}>Blue left border and <span className="chip-new">new</span>: what this design adds.</div>
+            <div style={{ marginBottom: 6 }}>Dashed gray fence: shipped or specified UI, abbreviated.</div>
+            <div>Dashed yellow: preview controls and notes, not product UI.</div>
+          </div>
+        </aside>
+        <main className="main" key={s}><m.C /></main>
+      </div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
