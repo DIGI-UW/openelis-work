@@ -1561,13 +1561,13 @@
   html: designs/reports/report-print-queue.html
   category: reports
   description: >
-    Report-type-agnostic print queue (v1.3): auto-surfaces validated-but-unprinted reports;
-    completeness indicators, print recording via existing report tracking. reportType
-    discriminator maps to ReportTrackingService.ReportType enum. Generation lifecycle:
-    QUEUED → GENERATING → READY → PRINTED / FAILED. r3 filter bar redesign — Facility / Ward /
-    Requestor multi-select typeahead (server-side), Lab No first-class toolbar lookup, inline
-    Search by Patient, and exclusive targeted search (suspends browse filters, FR-2-005).
-    Supersedes patient-report-print-queue. OGC-1031 / OGC-431 / OGC-899.
+    Report-type-agnostic print queue (r4, FRS v2.2, 2026-09-29): rebuilt on the shipped
+    Compliance Report page — /LaporanHasil merges into /ReportPrintQueue. Three report types in
+    one list (patient, environmental, vector certificates); report state Partial / Final /
+    Amended with a separate Print status filter; every released version archived with SHA-256
+    (reprints return the archived file); inline reissue-with-correction; Custom Data Export jobs
+    appear as a row type. Slicing guide: designs/reports/report-print-queue-breakdown.md.
+    Supersedes r3 (v1.3) and patient-report-print-queue. OGC-1031 / OGC-431 / OGC-899.
   links:
     jira: ["OGC-1031"]
     gallery: https://digi-uw.github.io/openelis-work/#/reports/report-print-queue
@@ -1577,6 +1577,7 @@
     - print-queue
     - PNG
   added: "2026-06-10"
+  updated: "2026-09-29"
   status: draft
 
 - id: patient-report-redesign-spec
@@ -2269,7 +2270,7 @@
   path: designs/reports/custom-data-export.jsx
   spec: designs/reports/custom-data-export.md
   category: reports
-  description: 3-step CSV report builder wizard with grain-family variable selection, filters, and sync/async routing — plus async My Report Queue and Saved Export Configurations. v1.2 (2026-09-10) — OpenELIS-owned reporting MVP with fictional virology CSV, retained choices, fresh-date saved configurations and queue recovery
+  description: 3-step CSV report builder wizard with grain-family variable selection, filters, and sync/async routing — plus async My Report Queue and Saved Export Configurations. v1.2 (2026-09-10) — OpenELIS-owned reporting MVP with fictional virology CSV, retained choices, fresh-date saved configurations and queue recovery. My Report Queue (FR-6) now renders inside Report Print Queue r4 as the Data export type
   links:
     github: https://github.com/DIGI-UW/openelis-work/issues/70
     jira: https://uwdigi.atlassian.net/browse/OGC-479
@@ -3900,7 +3901,8 @@
     validated environmental orders. Dual e-signature, batch ZIP download, shared Report Print
     Configuration admin page. Amended 2026-04-28 for multi-regulation + multi-component rendering.
     Amended 2026-06-15 with §7a Domain Variants cross-reference to S06c (Environmental LHU) and
-    S06d (Vector LHU) sibling specs.
+    S06d (Vector LHU) sibling specs. List page (§5.2) and batch (§5.5) superseded by Report
+    Print Queue r4.
   links:
     jira: ["OGC-552", "OGC-527"]
     gallery: https://digi-uw.github.io/openelis-work/#/reports/s06-laporan-hasil-compliance-report
