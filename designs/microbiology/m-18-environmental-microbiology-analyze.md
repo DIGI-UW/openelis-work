@@ -1,6 +1,6 @@
 # Spec Analysis: M-18 Environmental Microbiology (FRS v0.5)
 
-**Date:** 2026-09-29. **Artifacts checked:** `m-18-environmental-microbiology-frs.md` v0.5, `m-18-environmental-microbiology-preview.html`, against `amr-micro-v2-amendments.md` (draft 3), the decision log (to D-123) and the spec registry.
+**Date:** 2026-09-29. **Artifacts checked:** `m-18-environmental-microbiology-frs.md` v0.5, `m-18-environmental-microbiology-preview.html`, against `amr-micro-v2-amendments.md` (draft 6), the decision log (to D-123) and the spec registry.
 
 ## Summary
 

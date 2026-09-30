@@ -36,6 +36,9 @@
   table.t { width:100%; border-collapse:collapse; font-size:14px; }
   table.t th { text-align:left; background:#e0e0e0; padding:8px; font-weight:600; font-size:13px; }
   table.t td { padding:8px; border-bottom:1px solid #e0e0e0; vertical-align:top; }
+  .cds--tag { white-space:nowrap; }
+  tr.sub td:first-child { padding-left:28px; }
+  tr.sub td { background:#fafafa; }
   .row-actions { display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.75rem; }
   .muted { color:#6f6f6f; font-size:12px; }
   .hdr { background:#fff; border:1px solid #e0e0e0; padding:1rem; margin-bottom:1rem; display:flex; gap:2rem; flex-wrap:wrap; align-items:flex-start; }
@@ -43,6 +46,14 @@
   .incoming { border-left:4px solid #f1c21b; }
   .note-box { background:#f2f4f8; padding:.75rem; font-size:13px; border-left:3px solid #8d8d8d; }
   .inline-panel { background:#f4f4f4; padding:1rem; margin-top:.75rem; }
+  table.rt { table-layout:fixed; }
+  table.rt td { word-wrap:break-word; }
+  .seg { display:inline-flex; border:1px solid #8d8d8d; }
+  .seg button { background:#fff; border:0; border-right:1px solid #e0e0e0; padding:4px 10px; font-size:13px; cursor:pointer; }
+  .seg button.on { background:#0f62fe; color:#fff; }
+  .menu { position:absolute; right:0; top:100%; z-index:5; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.3); display:flex; flex-direction:column; min-width:190px; }
+  .menu button { background:#fff; border:0; text-align:left; padding:8px 12px; font-size:14px; cursor:pointer; }
+  .menu button:hover { background:#e8e8e8; }
   .cds--btn { min-height:32px; padding:6px 14px; }
   .cds--tag { margin:0 4px 0 0; }
   .card-row { display:flex; gap:1rem; margin-bottom:1rem; flex-wrap:wrap; }
@@ -53,7 +64,7 @@
 </style>
 </head>
 <body>
-<div class="preview-banner">Visual Preview: Microbiology v2 amendments | Route: /microbiology/case/:caseId, /microbiology/worklist?status=attention | OpenELIS Design Mockup | Not a live application</div>
+<div class="preview-banner">Visual Preview: Microbiology v2 amendments | Route: /Microbiology/cases/:caseId, /Microbiology/worklist?status=attention | OpenELIS Design Mockup | Not a live application</div>
 <div id="root"></div>
 <script type="text/babel">
 const { useState } = React;
@@ -65,7 +76,7 @@ function Field({ label, req, final, missing, children }) {
   return <div className={`field ${missing ? 'missing' : ''}`}>
     <label>{label}{req && <span className="req">*</span>}{final && <span className="req">◆</span>}</label>
     {children}
-    {final && <div className={`helper ${missing ? 'warn' : ''}`}>{missing ? t('micro.case.requiredBeforeFinal', 'Needed before final report') + ' (missing)' : t('micro.case.requiredBeforeFinal', 'Needed before final report')}</div>}
+    {final && <div className={`helper ${missing ? 'warn' : ''}`}>{missing ? t('microbiology.case.requiredBeforeFinal', 'Needed before final report') + ' (missing)' : t('microbiology.case.requiredBeforeFinal', 'Needed before final report')}</div>}
   </div>;
 }
 function Section({ n, title, isNew, tags, children, open = true, cls = '' }) {
@@ -80,35 +91,236 @@ function Section({ n, title, isNew, tags, children, open = true, cls = '' }) {
 }
 
 /* ---------- CASE VIEW ---------- */
+/* ---------- One result entry pattern for every case test row (FR-06.5) ---------- */
+const GRADES = ['None', 'Rare', 'Few', 'Moderate', 'Many'];
+function GradedRows({ rows }) {
+  const [list, setList] = useState(rows);
+  return <div>
+    <table className="t" style={{ background: '#fff' }}><thead><tr><th style={{ width: '45%' }}>Observed</th><th>Grade</th><th></th></tr></thead>
+      <tbody>{list.map((r, i) => <tr key={i}>
+        <td><select value={r.what} onChange={e => { const l = [...list]; l[i] = { ...r, what: e.target.value }; setList(l); }} style={{ width: '100%' }}>
+          {['Gram-positive cocci in clusters', 'Gram-positive cocci in chains', 'Gram-negative bacilli', 'Gram-positive bacilli', 'Gram-negative diplococci', 'Yeasts', 'Pus cells', 'Epithelial cells'].map(o => <option key={o}>{o}</option>)}</select></td>
+        <td><div className="seg">{GRADES.map(g => <button key={g} className={r.grade === g ? 'on' : ''} onClick={() => { const l = [...list]; l[i] = { ...r, grade: g }; setList(l); }}>{g}</button>)}</div></td>
+        <td><Btn kind="ghost" onClick={() => setList(list.filter((_, j) => j !== i))}>Remove</Btn></td></tr>)}</tbody></table>
+    <Btn kind="ghost" onClick={() => setList([...list, { what: 'Gram-negative bacilli', grade: 'Few' }])}>+ Add observation</Btn>
+  </div>;
+}
+function ComponentRows({ rows }) {
+  return <table className="t" style={{ background: '#fff' }}><thead><tr><th style={{ width: '35%' }}>Component</th><th>Result</th><th>Flag</th></tr></thead>
+    <tbody>{rows.map(r => <tr key={r.c}><td>{r.c}</td><td><select defaultValue={r.v} style={{ width: '100%' }}>{r.opts.map(o => <option key={o}>{o}</option>)}</select></td><td>{r.flag ? <Tag kind="red">{r.flag}</Tag> : <span className="muted">none</span>}</td></tr>)}</tbody></table>;
+}
+const NotesCtx = React.createContext(null);
+const NOTE_SEED = {
+  gram: [{ d: '23 Sep 09:12', a: 'J. Kaupa', type: 'I', body: 'Thick smear; re-stained once before reading.' }],
+  'MGIT-004812-A': [{ d: '28 Sep 08:40', a: 'R. Opa', type: 'E', body: 'Positive signal on day 5; purity subculture set up.' }],
+  'ISO-1': [{ d: '28 Sep 10:05', a: 'R. Opa', type: 'I', body: 'MPT64 read at 15 minutes; clear band.' }],
+};
+function NotesPanel({ id, printable = true, bare, underCulture }) {
+  const { notes, addNote } = React.useContext(NotesCtx);
+  const list = notes[id] || [];
+  const [adding, setAdding] = useState(false);
+  const [type, setType] = useState('I');
+  const [body, setBody] = useState('');
+  const save = () => { if (!body.trim()) return; addNote(id, { d: '30 Sep ' + '09:30', a: 'J. Kaupa', type, body: body.trim() }); setBody(''); setType('I'); setAdding(false); };
+  return <div style={{ background: '#fff', border: '1px solid #e0e0e0', padding: '.75rem', marginTop: bare ? 0 : '.75rem' }}>
+    <div style={{ fontWeight: 600, marginBottom: '.4rem' }}>{t('microbiology.case.notes.title', 'Notes')}</div>
+    {list.length ? <table className="t"><thead><tr><th style={{ width: '16%' }}>Date/time</th><th style={{ width: '14%' }}>Author</th><th style={{ width: '18%' }}>Type</th><th>Note</th></tr></thead>
+      <tbody>{list.map((n, i) => <tr key={i}><td>{n.d}</td><td>{n.a}</td><td>{n.type === 'E' ? <Tag kind="blue">{t('label.results.notes.sendWithResult', 'Send with Result')}</Tag> : <Tag kind="gray">{t('label.results.notes.inLabOnly', 'In Lab Only')}</Tag>}</td><td style={{ whiteSpace: 'normal' }}>{n.body}</td></tr>)}</tbody></table>
+      : <div className="muted">No notes yet.</div>}
+    {adding ? <div style={{ marginTop: '.5rem' }}>
+      <div style={{ display: 'flex', gap: 16, marginBottom: 6, fontSize: 14 }}>
+        <label><input type="radio" name={'nt-' + id} checked={type === 'I'} onChange={() => setType('I')} style={{ width: 'auto', marginRight: 4 }} />{t('label.results.notes.inLabOnly', 'In Lab Only')}</label>
+        <label><input type="radio" name={'nt-' + id} checked={type === 'E'} onChange={() => setType('E')} style={{ width: 'auto', marginRight: 4 }} />{t('label.results.notes.sendWithResult', 'Send with Result')}</label></div>
+      {underCulture && type === 'E' && <div className="helper" style={{ marginBottom: 6 }}>{t('microbiology.case.notes.printsUnderCulture', 'Prints under the culture result on the report.')}</div>}
+      <div className="field"><textarea rows={3} value={body} onChange={e => setBody(e.target.value)} placeholder="Note text" style={{ width: '100%' }} /></div>
+      {type === 'E' && !printable && <div className="note-box" style={{ margin: '.4rem 0' }}>{t('microbiology.case.notes.notPrinted', 'This result is not on the report, so this note will not print')}</div>}
+      <div className="row-actions"><Btn onClick={save}>{t('microbiology.case.notes.save', 'Save note')}</Btn><Btn kind="ghost" onClick={() => setAdding(false)}>Cancel</Btn></div>
+    </div> : <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '.4rem' }}><Btn kind="tertiary" onClick={() => setAdding(true)}>{t('button.results.notes.newNote', 'New Note')}</Btn></div>}
+  </div>;
+}
+function NoteCount({ id }) { const { notes } = React.useContext(NotesCtx); const n = (notes[id] || []).length; return n ? <span className="muted" style={{ fontSize: 12 }}> · {n} note{n > 1 ? 's' : ''}</span> : null; }
+
+function ResultEditor({ row, onClose, printable }) {
+  const [prev, setPrev] = useState(!!row.external);
+  return <div className="inline-panel" style={{ marginTop: 0 }}>
+    <div style={{ fontWeight: 600, marginBottom: '.5rem' }}>{row.test} <span className="muted" style={{ fontWeight: 400 }}>· result type: {row.type === 'graded' ? 'graded observations' : row.type === 'components' ? 'several components' : row.type === 'numeric' ? 'number with unit' : 'coded list'} (from the test catalog)</span></div>
+    {row.type === 'coded' && <Field label="Result" req><select defaultValue={row.result || ''} style={{ maxWidth: 520 }}><option value="">Select</option>{(row.opts || []).map(o => <option key={o}>{o}</option>)}</select></Field>}
+    {row.type === 'graded' && <GradedRows rows={row.graded || [{ what: 'Gram-positive cocci in clusters', grade: 'Few' }]} />}
+    {row.type === 'components' && <ComponentRows rows={row.components} />}
+    {row.type === 'numeric' && <div className="grid" style={{ gridTemplateColumns: '200px 120px 1fr' }}><Field label="Result" req><input defaultValue={row.result} /></Field><Field label="Unit"><input disabled defaultValue={row.unit} /></Field><div className="muted" style={{ alignSelf: 'end' }}>Reference range {row.range}</div></div>}
+    <div className="grid" style={{ marginTop: '.75rem' }}>
+      <div className="field"><label>&nbsp;</label><label style={{ color: '#161616', fontSize: 14 }}><input type="checkbox" style={{ width: 'auto', marginRight: 6 }} checked={prev} onChange={e => setPrev(e.target.checked)} />{t('microbiology.case.previousReport', 'Previous report')} <span className="muted">(done earlier or elsewhere)</span></label></div>
+      {prev && <Field label={t('microbiology.case.performedBy', 'Performed by')} req><input list="orgs" defaultValue={row.external ? 'Goroka Provincial Hospital Laboratory' : ''} placeholder="Search the Organizations list or a user" /><datalist id="orgs"><option value="Goroka Provincial Hospital Laboratory" /><option value="Mount Hagen Provincial Hospital Laboratory" /><option value="J. Kaupa (user)" /></datalist></Field>}
+      {prev && <Field label={t('microbiology.case.datePerformed', 'Date performed')} req><input defaultValue="22/09/2026" /></Field>}
+      {!prev && <Field label="Reagent lot" req={row.lotRequired}><select defaultValue={row.lot || ''}><option value="">Select lot</option><option>ZN stain kit, lot 22071, exp 03/2027</option><option>Xpert MTB/RIF Ultra cartridges, lot 1000-2231</option><option>Gram stain kit, lot 44120</option></select></Field>}
+    </div>
+    <NotesPanel id={row.id} printable={printable} />
+    <p className="muted" style={{ margin: '.5rem 0' }}>Flags (High, Low, Abnormal, Critical) are applied from the test catalog as on Results Entry. Saving records the result as Entered; a validator validates it.</p>
+    <div className="row-actions"><Btn onClick={onClose}>Save result</Btn><Btn kind="ghost" onClick={onClose}>Cancel</Btn></div>
+  </div>;
+}
+function CaseTestTable({ rows, labOnly, setLabOnly, showOn }) {
+  const [open, setOpen] = useState(null);
+  const [menu, setMenu] = useState(null);
+  const cols = showOn ? 7 : 7;
+  return <table className="t rt">
+    <colgroup><col style={{ width: '19%' }} /><col style={{ width: '29%' }} /><col style={{ width: '8%' }} /><col style={{ width: '15%' }} /><col style={{ width: '11%' }} /><col style={{ width: '8%' }} /><col style={{ width: '10%' }} /></colgroup>
+    <thead><tr><th>Test</th><th>Result</th><th>Flag</th><th>{t('microbiology.case.performedBy', 'Performed by')}</th><th>Reagent lot</th><th>Status</th><th></th></tr></thead>
+    <tbody>{rows.map(r => <React.Fragment key={r.id}>
+      <tr>
+        <td>{r.test}<NoteCount id={r.id} />{r.on && <div className="muted">On {r.on}</div>}
+          <div>{r.external && <Tag kind="gray">{t('microbiology.case.external', 'External result')}</Tag>}{labOnly[r.id] && <Tag kind="purple">{t('microbiology.case.inLabOnly', 'In lab only')}</Tag>}</div></td>
+        <td style={{ whiteSpace: 'normal' }}>{r.display ? r.display : <span className="muted">Not entered</span>}</td>
+        <td>{r.flag ? <Tag kind="red">{r.flag}</Tag> : <span className="muted">none</span>}</td>
+        <td>{r.by || <span className="muted">n/a</span>}</td>
+        <td className="muted">{r.lot || (r.external ? 'n/a (external)' : 'n/a')}</td>
+        <td><Tag kind={r.state === 'Validated' ? 'green' : r.state === 'Entered' ? 'warm-gray' : 'gray'}>{r.state}</Tag></td>
+        <td style={{ whiteSpace: 'nowrap', position: 'relative' }}>
+          <Btn kind="ghost" onClick={() => setOpen(open === r.id ? null : r.id)}>{r.display ? 'Edit' : 'Enter'}</Btn>
+          <Btn kind="ghost" onClick={() => setMenu(menu === r.id ? null : r.id)}>⋯</Btn>
+          {menu === r.id && <div className="menu"><button onClick={() => { setLabOnly({ ...labOnly, [r.id]: !labOnly[r.id] }); setMenu(null); }}>{labOnly[r.id] ? 'Turn off In lab only' : 'Mark In lab only'}</button><button onClick={() => setMenu(null)}>{t('microbiology.case.moveResult', 'Move result')}</button><button onClick={() => setMenu(null)}>Cancel test (reason)</button></div>}
+        </td>
+      </tr>
+      {open === r.id && <tr><td colSpan={cols} style={{ padding: 0 }}><ResultEditor row={r} onClose={() => setOpen(null)} printable={!labOnly[r.id]} /></td></tr>}
+    </React.Fragment>)}</tbody></table>;
+}
+
+const MEDIA_SEED = [
+  { name: 'BBL MGIT 7 mL tube', tracked: true, unit: 'tube', atm: 'Aerobic (ambient air)', temp: 37, lots: [{ n: '5327611', exp: '01/2027', left: 212 }, { n: '5311020', exp: '08/2026', why: 'Expired' }] },
+  { name: 'Löwenstein-Jensen slope', tracked: true, unit: 'slope', atm: 'Aerobic (ambient air)', temp: 37, lots: [{ n: 'LJ-2609 (prepared in-house)', exp: '11/2026', left: 40 }, { n: 'LJ-2608', exp: '10/2026', why: 'QC failed' }] },
+  { name: 'Blood agar (sheep) plate', tracked: true, unit: 'plate', atm: 'CO₂-enriched (5 to 10%)', temp: 35, lots: [{ n: 'BA-26-117', exp: '10/2026', left: 64 }] },
+  { name: 'Chocolate agar plate', tracked: true, unit: 'plate', atm: 'CO₂-enriched (5 to 10%)', temp: 35, lots: [{ n: 'CA-26-052', exp: '10/2026', left: 18 }] },
+  { name: 'MacConkey agar plate', tracked: true, unit: 'plate', atm: 'Aerobic (ambient air)', temp: 35, lots: [{ n: 'MAC-26-090', exp: '11/2026', left: 51 }] },
+  { name: 'CLED agar plate', tracked: true, unit: 'plate', atm: 'Aerobic (ambient air)', temp: 35, lots: [{ n: 'CLED-26-201', exp: '11/2026', left: 88 }] },
+  { name: 'Selenite F broth', tracked: true, unit: 'tube', atm: 'Aerobic (ambient air)', temp: 35, lots: [{ n: 'SEL-26-014', exp: '12/2026', left: 30 }] },
+  { name: 'BACTEC Plus Aerobic/F bottle', tracked: false, atm: 'Aerobic (ambient air)', temp: 35 },
+  { name: 'BACTEC Lytic/10 Anaerobic/F bottle', tracked: false, atm: 'Anaerobic', temp: 35 },
+  { name: 'Middlebrook 7H11 agar (from QMRL)', tracked: false, atm: 'CO₂-enriched (5 to 10%)', temp: 37 },
+];
+const ATMS = ['Aerobic (ambient air)', 'CO₂-enriched (5 to 10%)', 'Candle jar', 'Anaerobic', 'Microaerophilic'];
+const MediaCtx = React.createContext(null);
+
+function MediumPicker({ onPrefill, initial }) {
+  const { media, setMedia } = React.useContext(MediaCtx);
+  const [q, setQ] = useState(initial || '');
+  const [open, setOpen] = useState(false);
+  const [picked, setPicked] = useState(initial ? media.find(m => m.name === initial) : null);
+  const [lot, setLot] = useState('');
+  const hits = media.filter(m => m.name.toLowerCase().includes(q.toLowerCase()));
+  const exact = media.some(m => m.name.toLowerCase() === q.trim().toLowerCase());
+  const pick = m => { setPicked(m); setQ(m.name); setOpen(false); const first = (m.lots || []).find(l => !l.why); setLot(first ? first.n : ''); onPrefill && onPrefill(m); };
+  const addNew = () => { const n = q.trim(); if (!n) return; const m = { name: n, tracked: false, atm: 'Aerobic (ambient air)', temp: 35 }; setMedia([...media, m]); pick(m); };
+  return <>
+    <Field label={t('microbiology.case.inoc.medium', 'Medium')} req>
+      <div style={{ position: 'relative' }}>
+        <input value={q} placeholder={t('microbiology.case.inoc.searchMedium', 'Search media')} onFocus={() => setOpen(true)} onChange={e => { setQ(e.target.value); setOpen(true); setPicked(null); }} />
+        {open && <div className="menu" style={{ left: 0, right: 'auto', width: '100%' }}>
+          {hits.map(m => <button key={m.name} onClick={() => pick(m)}>{m.name} {m.tracked ? <Tag kind="teal">{t('microbiology.case.inoc.tracked', 'Tracked')}</Tag> : <Tag kind="warm-gray">{t('microbiology.case.inoc.notTrackedTag', 'Not tracked')}</Tag>}</button>)}
+          {q.trim() && !exact && <button onMouseDown={e => e.preventDefault()} onClick={addNew} style={{ color: '#0f62fe' }}>+ {t('microbiology.case.inoc.addMedium', 'Add new')}: "{q.trim()}" <span className="muted">(created not tracked)</span></button>}
+        </div>}
+      </div>
+      <div className="helper">{t('microbiology.case.inoc.mediumHelp', 'Microbiology medium items. Tracked media need a lot; not tracked media have none.')}</div>
+    </Field>
+    {picked && !picked.tracked ? <Field label={t('microbiology.case.inoc.lot', 'Lot')}><div style={{ paddingTop: 6 }}><Tag kind="warm-gray">{t('microbiology.case.inoc.notTrackedTag', 'Not tracked')}</Tag></div><div className="helper">No lot and no stock change; the Timeline records it.</div></Field>
+    : <Field label={t('microbiology.case.inoc.lot', 'Lot')} req>
+      <select value={lot} onChange={e => setLot(e.target.value)} disabled={!picked}>
+        <option value="">{picked ? (picked.lots.some(l => !l.why) ? 'Select a lot' : 'No usable lot') : 'Pick a medium first'}</option>
+        {picked && picked.lots.map(l => <option key={l.n} value={l.n} disabled={!!l.why}>Lot {l.n}, exp {l.exp}{l.why ? ` (${l.why})` : `, ${l.left} ${picked.unit}s left`}</option>)}</select>
+      <div className="helper">{picked && !picked.lots.some(l => !l.why) ? t('microbiology.case.inoc.noUsableLot', 'No usable lot in Inventory. Receive a lot, or choose another medium.') : picked ? `Last lot used in this lab unit preselected. Recorded on the row; stock is not changed here.` : 'Scan a lot barcode to fill Medium and Lot.'}</div>
+    </Field>}
+  </>;
+}
+
+const TEMPLATE_TB = { name: 'Sputum, TB culture', rows: [
+  { medium: 'BBL MGIT 7 mL tube', atm: 'Aerobic (ambient air)', temp: 37, dur: 42, every: 7 },
+  { medium: 'Löwenstein-Jensen slope', atm: 'Aerobic (ambient air)', temp: 37, dur: 56, every: 7 } ] };
+function TemplateProposal({ onApply }) {
+  const { media } = React.useContext(MediaCtx);
+  const [on, setOn] = useState(TEMPLATE_TB.rows.map(() => true));
+  return <div style={{ background: '#fff', border: '1px solid #e0e0e0', padding: '.75rem', marginBottom: '.75rem' }}>
+    <div style={{ fontWeight: 600, marginBottom: '.4rem' }}>{t('microbiology.case.inoc.applyTemplate', 'Apply template: {name}').replace('{name}', TEMPLATE_TB.name)} <span className="new">v2</span> <span className="muted" style={{ fontWeight: 400 }}>from Admin › Plating templates; a suggestion, not a gate</span></div>
+    <table className="t"><thead><tr><th style={{ width: 30 }}></th><th>Medium</th><th>Lot</th><th>Atmosphere · °C</th><th>Incubation</th></tr></thead>
+      <tbody>{TEMPLATE_TB.rows.map((r, i) => { const m = media.find(x => x.name === r.medium) || {}; return <tr key={i}>
+        <td><input type="checkbox" checked={on[i]} onChange={() => { const c = [...on]; c[i] = !c[i]; setOn(c); }} style={{ width: 'auto' }} /></td>
+        <td>{r.medium} {m.tracked ? <Tag kind="teal">Tracked</Tag> : <Tag kind="warm-gray">Not tracked</Tag>}</td>
+        <td>{m.tracked ? <select defaultValue={(m.lots.find(l => !l.why) || {}).n}>{m.lots.map(l => <option key={l.n} value={l.n} disabled={!!l.why}>Lot {l.n}{l.why ? ` (${l.why})` : ''}</option>)}</select> : <span className="muted">n/a</span>}</td>
+        <td>{r.atm} · {r.temp} °C</td><td>{r.dur} Days, check every {r.every} Days</td></tr>; })}</tbody></table>
+    <div className="row-actions"><Btn onClick={() => onApply(on.filter(Boolean).length)}>Add {on.filter(Boolean).length} rows</Btn><Btn kind="ghost">{t('microbiology.case.printLabels', 'Print labels')}</Btn><span className="muted" style={{ alignSelf: 'center' }}>Container identifiers are generated (lab number, medium code, sequence) and can be edited.</span></div>
+  </div>;
+}
+
+function PatientHistory() {
+  const rows = [
+    ['12 Jun 2026', 'CPHL26-002981', 'Sputum, lower respiratory tract', 'Mycobacteriology', 'MTB detected (Xpert), rifampicin resistance not detected', 'Final'],
+    ['03 Mar 2026', 'CPHL26-000884', 'Urine, midstream', 'Bacteriology', 'E. coli ≥10⁵ CFU/mL, ESBL', 'Final'],
+  ];
+  return <div className="inline-panel" style={{ background: '#fff', border: '1px solid #e0e0e0', marginTop: '-0.5rem', marginBottom: '1rem' }}>
+    <div style={{ fontWeight: 600, marginBottom: '.4rem' }}>{t('microbiology.case.patientHistory', 'Patient history')} <span className="new">v2</span> <span className="muted" style={{ fontWeight: 400 }}>earlier micro cases for Kila Nou, any order, lab units you hold rights in</span></div>
+    <table className="t"><thead><tr><th>Date</th><th>Case</th><th>Specimen</th><th>Culture type</th><th>Organisms and key resistance</th><th>State</th></tr></thead>
+      <tbody>{rows.map(r => <tr key={r[1]}><td>{r[0]}</td><td><a href="#" style={{ color: '#0f62fe' }}>{r[1]}</a></td><td>{r[2]}</td><td>{r[3]}</td><td>{r[4].includes('ESBL') ? <>{r[4].replace(', ESBL', '')} <Tag kind="red">ESBL</Tag></> : r[4]}</td><td><Tag kind="green">{r[5]}</Tag></td></tr>)}</tbody></table>
+    <p className="muted" style={{ marginTop: '.4rem' }}>For a Treatment follow-up case this panel also shows the baseline TB case and the follow-up smear, Xpert and culture results by treatment month.</p>
+  </div>;
+}
+
 function CaseView() {
   const [labUnit, setLabUnit] = useState('TB');
+  const [notes, setNotes] = useState(NOTE_SEED);
+  const addNote = (id, n) => setNotes(prev => ({ ...prev, [id]: [...(prev[id] || []), n] }));
+  const [notesOpen, setNotesOpen] = useState(null);
+  const [media, setMedia] = useState(MEDIA_SEED);
+  const [histOpen, setHistOpen] = useState(false);
+  const [cultTest, setCultTest] = useState(false);
+  const [micro, setMicro] = useState([{ id: 'MIC-1', from: 'MGIT-004812-A', stain: 'Ziehl-Neelsen', obs: 'Acid-fast bacilli seen; serpentine cording', at: '28 Sep 08:50', by: 'R. Opa' }]);
+  const [microFor, setMicroFor] = useState(null);
+  const [microStain, setMicroStain] = useState('Ziehl-Neelsen');
+  const [subPurpose, setSubPurpose] = useState('');
+  const [inocAtm, setInocAtm] = useState('Aerobic (ambient air)');
+  const [inocTemp, setInocTemp] = useState('37');
+  const [subAtm, setSubAtm] = useState('Aerobic (ambient air)');
   const [changingLU, setChangingLU] = useState(false);
   const [incoming, setIncoming] = useState([
-    { id: 1, test: 'Xpert MTB/XDR', value: 'INH resistance detected (katG); FQ resistance not detected', source: 'Referral return: CPHL', at: '28 Sep 09:12', dest: 'AST / DST (Isolate 1)', alt: 'Initial testing' },
-    { id: 2, test: 'NTM species ID (MALDI-TOF Biotyper)', value: 'No NTM identified; consistent with MTBC', source: 'MALDI-TOF Biotyper (MB-01)', at: '28 Sep 10:40', dest: 'Isolate 1 identification', alt: 'Initial testing' },
+    { id: 1, test: 'Xpert MTB/XDR', value: 'INH resistance detected (katG); FQ resistance not detected', source: 'GeneXpert GX-02', at: '28 Sep 09:12' },
+    { id: 2, test: 'Species ID (MALDI-TOF Biotyper)', value: 'Mycobacterium tuberculosis complex', source: 'MALDI-TOF Biotyper (MB-01)', at: '28 Sep 10:40' },
+    { id: 3, test: 'Moxifloxacin (MGIT, 0.25 µg/mL)', value: 'S', source: 'Referral return: QMRL Brisbane', at: '29 Sep 08:05' },
   ]);
   const [initial, setInitial] = useState([
-    { test: 'AFB smear (Ziehl-Neelsen)', result: '2+', by: 'J. Kaupa (this lab)', prev: false, report: true, tag: ['red', 'Critical'] },
-    { test: 'GeneXpert MTB/RIF Ultra', result: 'MTB detected, medium; Rif resistance detected', by: 'Goroka Provincial Hospital lab, 22 Sep 2026', prev: true, report: true, tag: ['red', 'Critical'] },
+    { id: 'smear', test: 'AFB smear (Ziehl-Neelsen)', type: 'coded', opts: ['Negative', 'Scanty (1 to 9 AFB per 100 fields)', '1+', '2+', '3+'], result: '2+', display: '2+ (10 to 99 AFB per 100 fields)', flag: 'Critical', by: 'J. Kaupa (this lab)', lot: 'ZN stain kit, lot 22071', lotRequired: true, state: 'Validated' },
+    { id: 'xpert', test: 'Xpert MTB/RIF Ultra', type: 'components', components: [{ c: 'MTB', v: 'Detected, medium', opts: ['Not detected', 'Trace', 'Detected, very low', 'Detected, low', 'Detected, medium', 'Detected, high'] }, { c: 'Rifampicin resistance', v: 'Detected', opts: ['Not detected', 'Detected', 'Indeterminate'], flag: 'Critical' }], display: 'MTB detected, medium; rifampicin resistance detected', flag: 'Critical', by: 'Goroka Provincial Hospital Laboratory, 22 Sep 2026', external: true, state: 'Validated' },
+    { id: 'gram', test: 'Gram stain (direct)', type: 'graded', graded: [{ what: 'Pus cells', grade: 'Many' }, { what: 'Gram-positive cocci in clusters', grade: 'Few' }], display: 'Pus cells: many; Gram-positive cocci in clusters: few', flag: '', by: 'J. Kaupa (this lab)', lot: 'Gram stain kit, lot 44120', state: 'Entered' },
+    { id: 'wet', test: 'Wet preparation', type: 'graded', graded: [{ what: 'Pus cells', grade: 'Few' }], display: '', flag: '', by: '', state: 'Pending' },
   ]);
+  const additional = [
+    { id: 'wgs', test: 'Whole genome sequencing (MTB)', on: 'isolate sample CPHL26-004812-1.1 (ISO-1)', type: 'components', components: [{ c: 'Lineage', v: 'Lineage 2 (Beijing)', opts: ['Lineage 1', 'Lineage 2 (Beijing)', 'Lineage 4'] }, { c: 'Rifampicin (rpoB)', v: 'Resistant (S450L)', opts: ['Susceptible', 'Resistant (S450L)'], flag: 'Critical' }], display: '', flag: '', by: 'QMRL Brisbane (referred)', state: 'Pending' },
+    { id: 'lpa', test: 'Line probe assay MTBDRsl', on: 'ISO-1', type: 'components', components: [{ c: 'Fluoroquinolones (gyrA, gyrB)', v: 'No mutation detected', opts: ['No mutation detected', 'Mutation detected'] }, { c: 'Second-line injectables (rrs, eis)', v: 'No mutation detected', opts: ['No mutation detected', 'Mutation detected'] }], display: 'No fluoroquinolone or injectable resistance mutations', flag: '', by: 'R. Opa (this lab)', lot: 'GenoType MTBDRsl kit, lot 8830', state: 'Validated' },
+  ];
   const [adding, setAdding] = useState(null);
+  const [bp, setBp] = useState('WHO critical concentrations 2024');
+  const [mode, setMode] = useState('Analyzer');
   const [prevOn, setPrevOn] = useState(false);
   const [inoc, setInoc] = useState([
-    { medium: 'MGIT liquid', atm: 'Aerobic', temp: 37, dur: 42, unit: 'Days', every: 7, eunit: 'Days', start: '23 Sep 08:30', ends: '04 Nov 08:30', next: '30 Sep 08:30', state: 'Growth', log: ['Day 5: positive signal, TTD 4.8 d (MGIT 960)'] },
-    { medium: 'Löwenstein-Jensen slope', atm: 'Aerobic', temp: 37, dur: 56, unit: 'Days', every: 7, eunit: 'Days', start: '23 Sep 08:30', ends: '18 Nov 08:30', next: '28 Sep 08:30', state: 'Check due', log: ['Day 1 (24 Sep): no growth'] },
+    { cid: 'MGIT-004812-A', from: '', medium: 'BBL MGIT 7 mL tube', lot: 'Lot 5327611', atm: 'Aerobic (ambient air)', temp: 37, dur: 42, unit: 'Days', every: 7, eunit: 'Days', start: '23 Sep 08:30', ends: '04 Nov 08:30', next: 'n/a', state: 'Positive', day: 5, log: ['Day 5 (28 Sep): positive signal, TTD 4.8 d (MGIT 960, matched by container ID)'] },
+    { cid: 'LJ-004812-B', from: '', medium: 'Löwenstein-Jensen slope', lot: 'Lot LJ-2609 (prepared in-house)', atm: 'Aerobic (ambient air)', temp: 37, dur: 56, unit: 'Days', every: 7, eunit: 'Days', start: '23 Sep 08:30', ends: '18 Nov 08:30', next: '28 Sep 08:30', state: 'Check due', day: 5, log: ['Day 1 (24 Sep): no growth'] },
+    { cid: 'LJ-SUB-004812-A1', from: 'MGIT-004812-A', medium: 'Middlebrook 7H11 agar (from QMRL)', nt: true, atm: 'Aerobic (ambient air)', temp: 37, dur: 28, unit: 'Days', every: 7, eunit: 'Days', start: '28 Sep 11:00', ends: '26 Oct 11:00', next: '05 Oct 11:00', state: 'Incubating', day: 1, log: [] },
   ]);
-  const [labOnly, setLabOnly] = useState({ wgs: true, lpa: false });
+  const setOutcome = (i, v) => { const c = [...inoc]; c[i] = { ...c[i], state: v, next: 'n/a', log: [...c[i].log, 'Day ' + c[i].day + ': marked ' + v.toLowerCase() + ' · J. Kaupa'] }; setInoc(c); };
+  const [subForm, setSubForm] = useState(false);
+  const [subFrom, setSubFrom] = useState('');
+  const addSub = () => { if (!subFrom) return; setInoc([...inoc, { cid: 'BA-SUB-004812-A2', from: subFrom, medium: 'Blood agar (sheep) plate', lot: 'Lot BA-26-117', atm: 'Aerobic (ambient air)', temp: 37, dur: 48, unit: 'Hours', every: 24, eunit: 'Hours', start: '29 Sep 09:00', ends: '01 Oct 09:00', next: '30 Sep 09:00', state: 'Incubating', day: 1, log: [] }]); setSubForm(false); setSubFrom(''); };
+  const ordered = (() => { const out = []; const walk = (parent, depth) => inoc.forEach((r, i) => { if ((r.from || '') === parent) { out.push({ r, i, depth }); walk(r.cid, depth + 1); } }); walk('', 0); return out; })();
+  const [isoForm, setIsoForm] = useState(false);
+  const [referOpen, setReferOpen] = useState(false);
+  const [labOnly, setLabOnly] = useState({ wgs: true, lpa: false, smear: false, xpert: false, gram: false, wet: false });
   const [reportSel, setReportSel] = useState({ smear: true, xpert: true, iso: true, rif: true, inh: true, emb: false, pza: false, lpa: true, wgs: false });
 
   const accept = (id, where) => {
     const it = incoming.find(i => i.id === id);
-    if (where.startsWith('Initial')) setInitial([...initial, { test: it.test, result: it.value, by: it.source, prev: false, report: true, tag: ['blue', 'Placed from incoming'] }]);
+    if (where.startsWith('Initial')) setInitial([...initial, { id: 'inc' + id, test: it.test, type: 'coded', opts: [it.value], result: it.value, display: it.value, flag: '', by: it.source, state: 'Entered' }]);
     setIncoming(incoming.filter(i => i.id !== id));
   };
   const [reading, setReading] = useState(null);
-  const markChecked = (i, v) => { const c = [...inoc]; c[i] = { ...c[i], state: 'Incubating', next: '05 Oct 08:30', log: [...c[i].log, 'Day 5 (28 Sep): ' + v.toLowerCase() + ' · J. Kaupa'] }; setInoc(c); setReading(null); };
+  const markChecked = (i, v) => { const c = [...inoc]; c[i] = { ...c[i], state: v === 'Significant growth' ? 'Positive' : 'Incubating', next: v === 'Significant growth' ? 'n/a' : '05 Oct 08:30', log: [...c[i].log, 'Day ' + c[i].day + ' (28 Sep): ' + v.toLowerCase() + ' · J. Kaupa'] }; setInoc(c); setReading(null); };
 
-  return <div>
+  return <MediaCtx.Provider value={{ media, setMedia }}><NotesCtx.Provider value={{ notes, addNote }}><div>
     <div className="crumbs"><a href="#">Home</a> / <a href="#">Microbiology</a> / <a href="#">Worklist</a> / Case CPHL26-004812</div>
     <h1>Case CPHL26-004812</h1>
 
@@ -116,38 +328,45 @@ function CaseView() {
       <div><b>Patient</b>Kila Nou, M, 34 y · UHID 88120034</div>
       <div><b>Sample</b>CPHL26-004812-1 · Sputum</div>
       <div><b>Body site</b>Lower respiratory tract <span className="muted">(D-079)</span></div>
-      <div><b>{t('common.labUnit', 'Lab unit')}</b>{labUnit} <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => setChangingLU(!changingLU)}>{t('micro.case.changeLabUnit', 'Change lab unit')}</button></div>
-      <div><b>Stage</b><Tag kind="purple">Referred</Tag><Tag kind="blue">AST/DST in progress</Tag></div>
-      <div><b>Related case</b><a href="#" style={{ color: '#0f62fe' }}>CPHL26-004812 · Microbiology</a></div>
-      <div className="row-actions" style={{ marginTop: 0 }}><Btn kind="secondary">Log critical notification</Btn><Btn kind="tertiary">Report NCE</Btn></div>
+      <div><b>{t('microbiology.case.cultureType', 'Culture type')}</b>TB culture <span className="muted">(Mycobacteriology, from the generic culture test)</span></div>
+      <div><b>{t('microbiology.case.labUnit', 'Lab unit')}</b>{labUnit} <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => setChangingLU(!changingLU)}>{t('microbiology.case.changeLabUnit', 'Change lab unit')}</button></div>
+      <div><b>Stage</b><Tag kind="blue">AST / DST in progress</Tag><Tag kind="purple">Referred</Tag></div>
+      <div><b>{t('microbiology.case.relatedOnSpecimen', 'Also on this specimen')}</b><a href="#" style={{ color: '#0f62fe' }}>Bacterial culture · Microbiology (switch)</a></div>
+      <div className="row-actions" style={{ marginTop: 0 }}><Btn kind="secondary">Log critical notification</Btn><Btn kind="tertiary">Report NCE</Btn><Btn kind="ghost">{t('microbiology.case.changeCultureType', 'Change culture type')} (reason)</Btn><Btn kind="tertiary" onClick={() => setHistOpen(!histOpen)}>{t('microbiology.case.patientHistory', 'Patient history')} (2)</Btn></div>
     </div>
+    {histOpen && <PatientHistory />}
     {changingLU && <div className="inline-panel" style={{ marginTop: '-0.5rem', marginBottom: '1rem', background: '#fff', border: '1px solid #e0e0e0' }}>
-      <div className="grid"><Field label="New lab unit" req><select value={labUnit} onChange={e => setLabUnit(e.target.value)}><option>TB</option><option disabled>Microbiology (case already open for this specimen)</option><option>Environmental Microbiology</option></select></Field>
-        <div className="muted" style={{ alignSelf: 'end' }}>Moves the case to that lab unit's Worklist. Recorded on the Timeline; no reason needed.</div></div>
+      <div className="grid"><Field label="New lab unit" req><select value={labUnit} onChange={e => setLabUnit(e.target.value)}><option>TB</option><option>Microbiology</option></select></Field>
+        <div className="muted" style={{ alignSelf: 'end' }}>Relabels the case: it moves to that lab unit's Worklist and edit rights follow that lab unit. The culture type and tests do not change. Clinical lab units only (D-120). Recorded on the Timeline; no reason needed; not available after final release.</div></div>
       <div className="row-actions"><Btn onClick={() => setChangingLU(false)}>Save</Btn><Btn kind="ghost" onClick={() => setChangingLU(false)}>Cancel</Btn></div>
     </div>}
 
-    {incoming.length > 0 && <Section n="!" title={t('micro.case.section.incoming', 'Incoming results')} isNew cls="incoming" tags={<Tag kind="warm-gray">{incoming.length} waiting</Tag>}>
-      <p className="muted" style={{ marginBottom: '.75rem' }}>Results for tests not yet on this case. Nothing is placed until you accept it. A result for a test already on the case goes straight to its row.</p>
-      <table className="t"><thead><tr><th>Test</th><th>Value</th><th>Source</th><th>Received</th><th>Suggested destination</th><th></th></tr></thead>
-        <tbody>{incoming.map(i => <tr key={i.id}><td>{i.test}</td><td>{i.value}</td><td>{i.source}</td><td>{i.at}</td><td><Tag kind="blue">{i.dest}</Tag></td>
-          <td style={{ whiteSpace: 'nowrap' }}><Btn onClick={() => accept(i.id, i.dest)}>{t('micro.case.incoming.accept', 'Accept')}</Btn> <Btn kind="ghost" onClick={() => accept(i.id, i.alt)}>{t('micro.case.incoming.placeElsewhere', 'Place elsewhere')}: {i.alt}</Btn></td></tr>)}</tbody></table>
+    {incoming.length > 0 && <Section n="!" title={t('microbiology.case.section.incoming', 'Incoming results')} isNew cls="incoming" tags={<Tag kind="warm-gray">{incoming.length} waiting</Tag>}>
+      <p className="muted" style={{ marginBottom: '.75rem' }}>Results for tests not yet on this case. One click places a result where you choose; the system does not guess. Placed in the wrong place? Use Move result. A result for a test already on the case goes straight to its row.</p>
+      <table className="t"><thead><tr><th>Test</th><th>Value</th><th>Source</th><th>Received</th><th>{t('microbiology.case.incoming.placeIn', 'Place in')}</th></tr></thead>
+        <tbody>{incoming.map(i => { const opts = ['Initial testing', 'Isolate: ISO-1', 'AST / DST: ISO-1', 'Additional testing'];
+          return <tr key={i.id}><td>{i.test}</td><td>{i.value}</td><td>{i.source}</td><td>{i.at}</td>
+          <td><div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{opts.map(o => <Btn key={o} kind="tertiary" onClick={() => accept(i.id, o)}>{o}</Btn>)}</div></td></tr>; })}</tbody></table>
     </Section>}
 
-    <Section n="1" title={t('micro.case.section.caseInfo', 'Case information')} isNew tags={<span className="muted">&nbsp;moved from order entry · ◆ = needed before final report</span>}>
+    <Section n="1" title={t('microbiology.case.section.caseInfo', 'Case information')} isNew tags={<span className="muted">&nbsp;moved from order entry · ◆ = needed before final report</span>}>
       <div className="grid">
+        <Field label={t('microbiology.case.purpose', 'Culture purpose')} req><select defaultValue="Diagnostic"><option>Diagnostic</option><option>Screening</option><option>Treatment follow-up</option><option>Survey or study</option><option>EQA / proficiency</option></select><div className="helper">Default Diagnostic. Only Diagnostic counts in the antibiogram and GLASS.</div></Field>
         <Field label="Patient origin" final><select defaultValue="Outpatient"><option>Outpatient</option><option>Inpatient</option><option>ICU</option><option>Emergency</option></select></Field>
         <Field label="Date of admission"><input disabled placeholder="Outpatients are not admitted" /></Field>
         <Field label="Clinical diagnosis / reason for test"><input defaultValue="Presumptive DR-TB, cough 6 weeks" /></Field>
-        <Field label={t('micro.case.tbHistory', 'TB history')} final missing><select defaultValue=""><option value="">Select</option><option>New</option><option>Previously treated</option><option>DR-TB contact</option></select></Field>
-        <Field label={t('micro.case.treatmentMonth', 'Treatment month')}><input placeholder="e.g. 2" /></Field>
-        <Field label={t('micro.case.specimenNumber', 'Specimen number')}><select defaultValue="Early morning"><option>Spot</option><option>Early morning</option></select></Field>
-        <Field label={t('micro.case.collectionMethod', 'Collection method')}><select defaultValue="Expectorated"><option>Expectorated</option><option>Induced</option><option>Aspirate</option></select></Field>
-        <Field label="Body site" req><select defaultValue="lrt"><option value="lrt">Lower respiratory tract</option></select></Field>
-        <Field label="Priority"><select defaultValue="Urgent"><option>Routine</option><option>Urgent</option></select></Field>
+        <Field label={t('microbiology.case.tbHistory', 'TB history')} final missing><select defaultValue=""><option value="">Select</option><option>New</option><option>Previously treated</option><option>DR-TB contact</option></select></Field>
+        <Field label={t('microbiology.case.treatmentMonth', 'Treatment month')}><input placeholder="e.g. 2" /></Field>
+        <Field label={t('microbiology.case.specimenNumber', 'Specimen number')}><input defaultValue="TB-2026-0417/2" /></Field>
+        <Field label={t('microbiology.case.collectionTiming', 'Collection timing')}><select defaultValue="Early morning"><option>Spot</option><option>Early morning</option></select></Field>
+        <Field label={t('microbiology.case.collectionMethod', 'Collection method')}><select defaultValue="Expectorated"><option>Expectorated</option><option>Induced</option><option>Aspirate</option></select></Field>
+        <Field label="Body site" req><input list="body-sites" defaultValue="Lower respiratory tract" placeholder={t('microbiology.case.bodySite.search', 'Search body sites')} /><datalist id="body-sites">{['Lower respiratory tract', 'Upper respiratory tract', 'Bronchoalveolar lavage', 'Pleural fluid', 'Cerebrospinal fluid', 'Wound, lower leg', 'Wound, forearm', 'Urethra', 'Cervix', 'Nasopharynx', 'Throat', 'Ear, middle'].map(b => <option key={b} value={b} />)}</datalist><div className="helper">Type to search; hundreds of sites. A correction saves to the order's sample (D-077).</div></Field>
+        <Field label="Number of sets"><input defaultValue="1" /></Field>
+        <div className="field" style={{ gridColumn: '1 / -1' }}><label>{t('microbiology.orderDetail.clinicalHistory', 'Clinical history')}</label><textarea rows={6} maxLength={4000} defaultValue={"Cough 6 weeks, weight loss 6 kg, night sweats. Previously treated for drug-susceptible TB in 2025 (completed 6 months HRZE at Gerehu clinic). Household contact of a confirmed RR-TB case (brother, diagnosed August 2026). HIV negative, tested July 2026."} style={{ width: '100%', background: '#fff', border: 0, borderBottom: '1px solid #8d8d8d', padding: 8, fontFamily: 'inherit', fontSize: 14 }} /><div className="helper" style={{ textAlign: 'right' }}>296 of 4000 characters</div></div>
       </div>
+      <div className="muted" style={{ marginTop: '.5rem' }}>{t('microbiology.case.appliesToOrder', 'Applies to all 2 cases on this order')}: patient origin, admission date, diagnosis, clinical history, prior antibiotics and TB history. Priority comes from the order.</div>
       <div style={{ marginTop: '1rem' }}>
-        <label className="muted">{t('micro.case.priorAntibiotics', 'Prior antibiotics')}</label>
+        <label className="muted">{t('microbiology.case.priorAntibiotics', 'Prior antibiotics')}</label>
         <table className="t" style={{ marginTop: 4 }}><thead><tr><th>Agent</th><th>Date started</th><th></th></tr></thead>
           <tbody><tr><td>Amoxicillin</td><td>10 Sep 2026</td><td><Btn kind="ghost">Remove</Btn></td></tr>
             <tr><td>Rifampicin / isoniazid (HRZE)</td><td>02 Jun 2025</td><td><Btn kind="ghost">Remove</Btn></td></tr></tbody></table>
@@ -155,83 +374,193 @@ function CaseView() {
       </div>
     </Section>
 
-    <Section n="2" title={t('micro.case.section.initialTesting', 'Initial testing')} isNew>
-      <table className="t"><thead><tr><th>Test</th><th>Result</th><th>Performed by</th><th>Status</th><th></th></tr></thead>
-        <tbody>{initial.map((r, i) => <tr key={i}><td>{r.test}{r.prev && <div className="muted">{t('micro.case.previousReport', 'Previous report')}</div>}</td><td>{r.result}</td><td>{r.by}</td><td><Tag kind={r.tag[0]}>{r.tag[1]}</Tag></td><td><Btn kind="ghost">{t('micro.case.moveResult', 'Move result')}</Btn></td></tr>)}
-          <tr><td>Wet preparation</td><td className="muted">Not started</td><td className="muted">n/a</td><td><Tag kind="gray">Pending</Tag></td><td><Btn kind="ghost">Enter result</Btn></td></tr></tbody></table>
+    <Section n="2" title={t('microbiology.case.section.initialTesting', 'Initial testing')} isNew>
+      <CaseTestTable rows={initial} labOnly={labOnly} setLabOnly={setLabOnly} />
+      <div className="muted" style={{ marginTop: '.4rem' }}>Every row enters its result the same way: Enter or Edit opens the full-width editor for the test's result type (coded list, graded observations, several components, or a number with unit). The same editor is used in Additional testing. Reagent lot is required when the test's M-12 link is Required.</div>
       {adding === 'initial' ? <div className="inline-panel">
-        <div className="grid">
-          <Field label="Test or panel" req><input defaultValue="Gram stain (direct)" /></Field>
-          <Field label="Result"><select><option>Select</option><option>Gram-positive cocci in clusters</option><option>Gram-negative bacilli</option><option>No organisms seen</option></select></Field>
-          <div className="field"><label>&nbsp;</label><label style={{ color: '#161616', fontSize: 14 }}><input type="checkbox" style={{ width: 'auto', marginRight: 6 }} checked={prevOn} onChange={e => setPrevOn(e.target.checked)} />{t('micro.case.previousReport', 'Previous report')} <span className="muted">(result produced earlier or elsewhere)</span></label></div>
-          {prevOn && <Field label={t('micro.case.performedBy', 'Performed by')} req><input defaultValue="Goroka Provincial Hospital lab" /></Field>}
-          {prevOn && <Field label={t('micro.case.datePerformed', 'Date performed')} req><input defaultValue="22/09/2026" /></Field>}
+        <div className="muted" style={{ marginBottom: '.5rem' }}>The normal OpenELIS test and panel chooser (same component as order entry), pre-filtered to Sputum. TB lab unit listed first. <label style={{ marginLeft: 8 }}><input type="checkbox" /> Show all lab units</label></div>
+        <div className="grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+          <div style={{ background: '#fff', padding: '.75rem', border: '1px solid #e0e0e0' }}>
+            <b style={{ fontSize: 13 }}>Order Panels</b>
+            <div className="field" style={{ margin: '.5rem 0' }}><input placeholder="Search name, code or LOINC" /></div>
+            {['TB direct microscopy panel (ZN + auramine)', 'TB molecular panel (Xpert MTB/RIF Ultra + MTB/XDR)'].map(x => <label key={x} style={{ display: 'block', fontSize: 14, padding: '4px 0' }}><input type="checkbox" style={{ marginRight: 6 }} />{x}</label>)}
+            <div className="muted">1 to 2 of 2</div>
+          </div>
+          <div style={{ background: '#fff', padding: '.75rem', border: '1px solid #e0e0e0' }}>
+            <b style={{ fontSize: 13 }}>Order Tests</b>
+            <div className="field" style={{ margin: '.5rem 0' }}><input placeholder="Search name, code or LOINC" defaultValue="stain" /></div>
+            {[['Gram stain (direct)', true], ['Auramine (LED fluorescence) smear', false], ['India ink stain', false]].map(([x, c]) => <label key={x} style={{ display: 'block', fontSize: 14, padding: '4px 0' }}><input type="checkbox" defaultChecked={c} style={{ marginRight: 6 }} />{x}</label>)}
+            <div className="muted">1 to 3 of 3</div>
+          </div>
         </div>
-        <p className="muted" style={{ marginTop: '.5rem' }}>Search covers the whole catalog; tests and panels of the TB lab unit are listed first.</p>
+        <div style={{ margin: '.75rem 0' }}><Tag kind="blue">Gram stain (direct) ✕</Tag></div>
+        <p className="muted" style={{ marginTop: '.5rem' }}>Added tests appear as rows above. Enter each result in its row, with the same editor as every other row (including Previous report).</p>
         <div className="row-actions"><Btn onClick={() => setAdding(null)}>Add</Btn><Btn kind="ghost" onClick={() => setAdding(null)}>Cancel</Btn></div>
-      </div> : <div className="row-actions"><Btn kind="tertiary" onClick={() => setAdding('initial')}>+ {t('micro.case.addTestOrPanel', 'Add test or panel')}</Btn></div>}
+      </div> : <div className="row-actions"><Btn kind="tertiary" onClick={() => setAdding('initial')}>+ {t('microbiology.case.addTestOrPanel', 'Add test or panel')}</Btn></div>}
     </Section>
 
-    <Section n="3" title="Referral point" isNew cls="ref">
-      <div className="note-box">Referred to <b>CPHL Port Moresby, TB reference lab</b> on 23 Sep 2026: TB culture, MTB identification, first-line DST. Results return to <b>Incoming results</b> on this case. A preliminary report with the local smear and GeneXpert was released on 23 Sep.</div>
-      <div className="row-actions"><Btn kind="secondary">{t('micro.case.referRemaining', 'Refer remaining work')}</Btn><span className="muted" style={{ alignSelf: 'center' }}>Used by sites that do microscopy only. Keeps this case open as Referred.</span></div>
-    </Section>
-
-    <Section n="4" title={t('micro.case.section.culture', 'Culture')} tags={<span className="new">v2 fields</span>}>
-      <table className="t"><thead><tr><th>Medium</th><th>Atmosphere · °C</th><th>{t('micro.case.inoc.duration', 'Incubation duration')}</th><th>{t('micro.case.inoc.checkEvery', 'Check every')}</th><th>Inoculated</th><th>{t('micro.case.inoc.ends', 'Incubation ends')}</th><th>{t('micro.case.inoc.nextCheck', 'Next check')}</th><th>State</th><th>Read log</th><th></th></tr></thead>
-        <tbody>{inoc.map((r, i) => <tr key={i}><td>{r.medium}</td><td>{r.atm} · {r.temp}</td><td>{r.dur} {r.unit}</td><td>{r.every} {r.eunit}</td><td>{r.start}</td><td>{r.ends}<div className="muted">Day 5 of {r.dur}</div></td><td>{r.next}</td>
-          <td>{r.state === 'Check due' ? <Tag kind="warm-gray">{t('micro.case.inoc.checkDue', 'Check due')}</Tag> : r.state === 'Growth' ? <Tag kind="green">Growth · day 5</Tag> : <Tag kind="blue">Incubating</Tag>}</td>
-          <td className="muted">{r.log.map((l, j) => <div key={j}>{l}</div>)}</td><td>{r.state === 'Check due' && (reading === i ? <div><select onChange={e => markChecked(i, e.target.value)} defaultValue=""><option value="" disabled>Reading</option><option>No growth</option><option>Normal flora</option><option>Mixed growth</option><option>Significant growth</option></select></div> : <Btn kind="ghost" onClick={() => setReading(i)}>{t('micro.case.inoc.recordReading', 'Record reading')}</Btn>)}</td></tr>)}</tbody></table>
-      <div className="inline-panel">
-        <div className="muted" style={{ marginBottom: '.5rem' }}>+ Start inoculation (pre-filled from the previous row; no protocol defaults)</div>
+    <Section n="3" title="Referral point" isNew cls="ref" tags={<span className="muted">&nbsp;existing component (Clinical Order Entry v4 Refer out, built): reuse, do not re-implement. v2 adds only what to refer</span>}>
+      <p className="muted" style={{ marginBottom: '.5rem' }}>Same Refer out section, form, fields and statuses as order entry. Saved referrals are dispatched from Sample Shipment.</p>
+      <table className="t"><thead><tr><th>Sample</th><th>Sample type</th><th>Tests</th><th>Reference laboratory</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>CPHL26-004812-1.1 <div className="muted">isolate sample (ISO-1)</div></td><td>Isolate</td><td>TB second-line DST (phenotypic)</td><td>QMRL Brisbane</td><td><Tag kind="teal">Received</Tag></td><td><Btn kind="ghost">Edit</Btn></td></tr>
+          {referOpen === 'saved' && <tr><td>CPHL26-004812-1</td><td>Sputum</td><td>Xpert MTB/XDR</td><td>CPHL Port Moresby, TB reference laboratory</td><td><Tag kind="blue">Requested</Tag></td><td style={{ whiteSpace: 'nowrap' }}><Btn kind="ghost">Edit</Btn><Btn kind="ghost">Dispatch</Btn></td></tr>}
+        </tbody></table>
+      {referOpen === true ? <div className="inline-panel">
         <div className="grid">
-          <Field label="Medium" req><select><option>MGIT liquid</option><option>Löwenstein-Jensen slope</option><option>Blood agar</option><option>MacConkey agar</option></select></Field>
-          <Field label="Atmosphere" req><select><option>Aerobic</option><option>CO₂</option><option>Anaerobic</option><option>Microaerophilic</option></select></Field>
-          <Field label="Temperature (°C)"><input defaultValue="37" /></Field>
-          <Field label={t('micro.case.inoc.duration', 'Incubation duration')} req><div style={{ display: 'flex', gap: 8 }}><input defaultValue="42" style={{ width: '40%' }} /><select style={{ width: '60%' }}><option>Days</option><option>Hours</option></select></div></Field>
-          <Field label={t('micro.case.inoc.checkEvery', 'Check every') + ' (optional)'}><div style={{ display: 'flex', gap: 8 }}><input defaultValue="7" style={{ width: '40%' }} /><select style={{ width: '60%' }}><option>Days</option><option>Hours</option></select></div></Field>
+          <Field label="Reference laboratory" req><input list="ref-labs" defaultValue="CPHL Port Moresby, TB reference laboratory" /><datalist id="ref-labs"><option value="CPHL Port Moresby, TB reference laboratory" /><option value="QMRL Brisbane" /><option value="PNG Institute of Medical Research" /></datalist></Field>
+          <Field label="Reason for referral" req><select defaultValue="Test not available"><option>Test not available</option><option>Confirmation</option><option>Quality control</option><option>Equipment failure</option></select></Field>
+          <Field label="Referrer"><input list="refr" defaultValue="J. Kaupa" /><datalist id="refr"><option value="J. Kaupa" /><option value="R. Opa" /></datalist></Field>
+          <Field label="Hand-off date"><input defaultValue="29/09/2026" /></Field>
+          <Field label="Hand-off time"><input defaultValue="10:30" /></Field>
+          <Field label="Expected return date"><input defaultValue="06/10/2026" /></Field>
+        </div>
+        <div style={{ marginTop: '.75rem' }}><label className="muted">Tests to refer</label>
+          <div><label style={{ marginRight: 16 }}><input type="checkbox" defaultChecked /> Xpert MTB/XDR</label><label style={{ marginRight: 16 }}><input type="checkbox" /> TB culture</label><label><input type="checkbox" /> TB first-line DST</label></div>
+          <div className="note-box" style={{ marginTop: '.5rem' }}>Tests not referred stay here, but this tube leaves the laboratory. <Btn kind="ghost">Aliquot first</Btn></div></div>
+        <Field label="Notes"><input placeholder="Optional" /></Field>
+        <div className="row-actions"><Btn onClick={() => setReferOpen('saved')}>Save referral</Btn><Btn kind="ghost" onClick={() => setReferOpen(false)}>Cancel</Btn></div>
+      </div>
+      : <div className="row-actions"><Btn kind="secondary" onClick={() => setReferOpen(true)}>{t('microbiology.case.referRemaining', 'Refer remaining work')}</Btn><span className="muted" style={{ alignSelf: 'center' }}>Opens the same Refer out panel as order entry with this case's tests ticked. A single test or an isolate is referred from its row menu.</span></div>}
+    </Section>
+
+    <Section n="4" title={t('microbiology.case.section.culture', 'Culture')} tags={<span className="new">v2 fields</span>}>
+      <p className="muted" style={{ marginBottom: '.5rem' }}>Each culture is marked positive or no growth on its own. The case stage rolls up from the rows: Growth detected once any row is positive; No growth only when every row is.</p>
+      <table className="t"><thead><tr><th>Container</th><th>Medium · lot · atmosphere · °C</th><th>Incubation</th><th>Inoculated → {t('microbiology.case.inoc.ends', 'Incubation ends')}</th><th>{t('microbiology.case.inoc.nextCheck', 'Next check')}</th><th>State</th><th>Read log</th><th></th></tr></thead>
+        <tbody>{ordered.map(({ r, i, depth }) => <React.Fragment key={r.cid}><tr className={depth ? 'sub' : ''}>
+          <td style={depth ? { paddingLeft: 12 + depth * 20 } : {}}>{depth ? <span className="muted">↳ Subculture </span> : null}<span className="muted">{r.cid}</span></td>
+          <td>{r.medium}<div className="muted">{r.nt ? <Tag kind="warm-gray">{t('microbiology.case.inoc.notTrackedTag', 'Not tracked')}</Tag> : r.lot} · {r.atm} · {r.temp} °C</div></td>
+          <td>{r.dur} {r.unit}<div className="muted">{t('microbiology.case.inoc.checkEvery', 'Check every')} {r.every} {r.eunit}</div></td>
+          <td>{r.start} → {r.ends}<div className="muted">{t('microbiology.case.inoc.dayOf', 'Day')} {r.day} of {r.dur}</div></td><td>{r.next}</td>
+          <td>{r.state === 'Check due' ? <Tag kind="warm-gray">{t('microbiology.case.inoc.checkDue', 'Check due')}</Tag> : r.state === 'Positive' ? <Tag kind="green">Positive · day {r.day}</Tag> : r.state === 'No growth' ? <Tag kind="gray">No growth</Tag> : <Tag kind="blue">Incubating</Tag>}</td>
+          <td className="muted" style={{ maxWidth: 220 }}>{r.log.map((l, j) => <div key={j}>{l}</div>)}</td>
+          <td>{r.state === 'Check due' && (reading === i ? <div><select onChange={e => markChecked(i, e.target.value)} defaultValue=""><option value="" disabled>Reading</option><option>No growth</option><option>Normal flora</option><option>Mixed growth</option><option>Significant growth</option></select></div> : <Btn kind="ghost" onClick={() => setReading(i)}>{t('microbiology.case.inoc.recordReading', 'Record reading')}</Btn>)}
+            {(r.state === 'Check due' || r.state === 'Incubating') && <div><Btn kind="ghost" onClick={() => setOutcome(i, 'Positive')}>{t('microbiology.case.inoc.markPositive', 'Mark positive')}</Btn><Btn kind="ghost" onClick={() => setOutcome(i, 'No growth')}>{t('microbiology.case.inoc.markNoGrowth', 'Mark no growth')}</Btn></div>}
+            <div><Btn kind="ghost" onClick={() => { setMicroFor(r.cid); setMicroStain(r.cid.startsWith('MGIT') || r.cid.startsWith('LJ') ? 'Ziehl-Neelsen' : 'Gram'); }}>+ {t('microbiology.case.microscopy.add', 'Microscopy exam')}</Btn></div>
+            <div><Btn kind="ghost">{t('microbiology.case.printLabel', 'Print label')}</Btn></div>
+            <div><Btn kind="ghost" onClick={() => setNotesOpen(notesOpen === r.cid ? null : r.cid)}>{t('microbiology.case.notes.count', 'Notes ({count})').replace('{count}', (notes[r.cid] || []).length)}</Btn></div></td></tr>
+          {micro.filter(m => m.from === r.cid).map(m => <tr key={m.id} className="sub">
+            <td style={{ paddingLeft: 12 + (depth + 1) * 20 }}><span className="muted">↳ {t('microbiology.case.microscopy', 'Microscopy')} </span><span className="muted">{m.id}</span></td>
+            <td colSpan={3}>{m.stain}<div className="muted">{m.obs}</div></td>
+            <td className="muted">{m.at}</td>
+            <td><Tag kind="gray">{t('microbiology.case.growth.internalOnly', 'Internal only, not reported')}</Tag></td>
+            <td className="muted">{m.by}</td>
+            <td><Btn kind="ghost" onClick={() => setNotesOpen(notesOpen === m.id ? null : m.id)}>{t('microbiology.case.notes.count', 'Notes ({count})').replace('{count}', (notes[m.id] || []).length)}</Btn></td></tr>)}
+          </React.Fragment>)}</tbody></table>
+      {microFor && <div className="inline-panel">
+        <div style={{ fontWeight: 600, marginBottom: '.5rem' }}>+ {t('microbiology.case.microscopy.add', 'Microscopy exam')} on {microFor} <span className="new">v2</span> <span className="muted" style={{ fontWeight: 400 }}>internal only; listed under its culture like a subculture</span></div>
+        <div className="grid">
+          <Field label={t('microbiology.case.microscopy.stain', 'Stain or preparation')} req><select value={microStain} onChange={e => setMicroStain(e.target.value)}>{['Gram', 'Ziehl-Neelsen', 'Auramine', 'Lactophenol cotton blue', 'India ink', 'Wet mount', 'Motility'].map(x => <option key={x}>{x}</option>)}</select></Field>
+          <Field label={t('microbiology.case.microscopy.readAt', 'Read at')}><input disabled value="Save time (server clock)" /></Field>
+          <Field label="Reagent lot"><select><option>ZN stain kit, lot 22071, exp 03/2027</option><option>Gram stain kit, lot 44120</option></select></Field>
+        </div>
+        <div style={{ marginTop: '.5rem' }}><GradedRows rows={microStain === 'Gram' ? [{ what: 'Gram-positive cocci in clusters', grade: 'Many' }] : [{ what: 'Gram-positive bacilli', grade: 'Few' }]} /></div>
+        <div className="row-actions"><Btn onClick={() => { setMicro([...micro, { id: 'MIC-' + (micro.length + 1), from: microFor, stain: microStain, obs: microStain === 'Gram' ? 'Gram-positive cocci in clusters: many' : 'Acid-fast bacilli seen', at: '30 Sep 09:40', by: 'J. Kaupa' }]); setMicroFor(null); }}>Save microscopy exam</Btn><Btn kind="ghost" onClick={() => setMicroFor(null)}>Cancel</Btn></div>
+        <div className="muted" style={{ marginTop: '.4rem' }}>A reportable result from a positive culture (the Gram stain from a positive blood culture bottle) is added with + Test on this culture in Growth work-up instead.</div>
+      </div>}
+      {notesOpen && micro.some(m => m.id === notesOpen) && <div><div className="muted" style={{ marginTop: '.5rem' }}>Notes on microscopy exam {notesOpen}</div><NotesPanel id={notesOpen} bare underCulture /></div>}
+      {notesOpen && inoc.some(r => r.cid === notesOpen) && <div><div className="muted" style={{ marginTop: '.5rem' }}>Notes on culture row {notesOpen}</div><NotesPanel id={notesOpen} bare underCulture /></div>}
+      <p className="muted" style={{ marginTop: '.4rem' }}>Subcultures and microscopy exams are listed under the culture they were taken from.</p>
+      <div className="inline-panel">
+        <div className="muted" style={{ marginBottom: '.5rem' }}>+ Start inoculation</div>
+        <TemplateProposal onApply={() => {}} />
+        <div className="muted" style={{ marginBottom: '.5rem' }}>Or add one row (pre-filled from the previous row):</div>
+        <div className="grid">
+          <MediumPicker onPrefill={m => { setInocAtm(m.atm); setInocTemp(String(m.temp)); }} />
+          <Field label="Atmosphere" req><select value={inocAtm} onChange={e => setInocAtm(e.target.value)}>{ATMS.map(a => <option key={a}>{a}</option>)}</select><div className="helper">Pre-filled from the medium's usual atmosphere when Inventory records one</div></Field>
+          <Field label="Container identifier" req><input defaultValue="MGIT-004812-C" /></Field>
+          <Field label="Temperature (°C)"><input value={inocTemp} onChange={e => setInocTemp(e.target.value)} /></Field>
+          <Field label={t('microbiology.case.inoc.duration', 'Incubation duration')} req><div style={{ display: 'flex', gap: 8 }}><input defaultValue="42" style={{ width: '40%' }} /><select style={{ width: '60%' }}><option>Days</option><option>Hours</option></select></div></Field>
+          <Field label={t('microbiology.case.inoc.checkEvery', 'Check every') + ' (optional)'}><div style={{ display: 'flex', gap: 8 }}><input defaultValue="7" style={{ width: '40%' }} /><select style={{ width: '60%' }}><option>Days</option><option>Hours</option></select></div></Field>
         </div>
       </div>
     </Section>
 
-    <Section n="5" title={t('micro.case.section.growthWorkup', 'Growth work-up')} isNew>
+    <Section n="5" title={t('microbiology.case.section.growthWorkup', 'Growth work-up')} isNew>
       <table className="t"><thead><tr><th>From</th><th>Item</th><th>Detail</th><th>Visibility</th></tr></thead>
-        <tbody><tr><td>MGIT liquid, day 5</td><td>{t('micro.case.growth.microscopyExam', 'Microscopy exam')}</td><td>ZN stain: acid-fast bacilli, cording seen. <i>Note: purity check on blood agar, no contaminants.</i></td><td><Tag kind="gray">{t('micro.case.growth.internalOnly', 'Internal only, not reported')}</Tag></td></tr>
-          <tr><td>MGIT liquid, day 5</td><td>Subculture</td><td>Löwenstein-Jensen slope · 37 °C · 28 Days</td><td><Tag kind="blue">Incubating</Tag></td></tr></tbody></table>
-      <div className="row-actions"><Btn kind="tertiary">+ Microscopy exam</Btn><Btn kind="tertiary">+ Subculture</Btn></div>
+        <tbody><tr><td>MGIT-004812-A</td><td>{t('microbiology.case.growth.microscopyExam', 'Microscopy exam')} (MIC-1, also under its culture)</td><td>ZN stain: acid-fast bacilli, cording seen. <i>Note: purity check on blood agar, no contaminants.</i></td><td><Tag kind="gray">{t('microbiology.case.growth.internalOnly', 'Internal only, not reported')}</Tag></td></tr>
+          <tr><td>MGIT-004812-A</td><td>Subculture</td><td>LJ-SUB-004812-A1, Middlebrook 7H11 agar (not tracked) · 37 °C · 28 Days (its own row in Culture)</td><td><Tag kind="blue">Incubating</Tag></td></tr></tbody></table>
+      <div style={{ marginTop: '.75rem', fontWeight: 600 }}>{t('microbiology.case.growth.testOnCulture', 'Tests on a positive culture')} <span className="new">v2</span> <span className="muted" style={{ fontWeight: 400 }}>reportable: preliminary report and critical rules apply (for example the Gram stain from a positive blood culture bottle)</span></div>
+      <CaseTestTable rows={cultTest ? [{ id: 'xpert-mgit', test: 'Xpert MTB/RIF Ultra', on: 'MGIT-004812-A (from culture)', type: 'components', components: [{ c: 'MTB', v: 'Detected, high', opts: ['Not detected', 'Detected, low', 'Detected, medium', 'Detected, high'] }, { c: 'Rifampicin resistance', v: 'Not detected', opts: ['Not detected', 'Detected', 'Indeterminate'] }], display: 'MTB detected, high; rifampicin resistance not detected', flag: '', by: 'R. Opa (this lab)', lot: 'Xpert MTB/RIF Ultra cartridges, lot 1000-2231', state: 'Entered' }] : []} labOnly={labOnly} setLabOnly={setLabOnly} showOn />
+      {!cultTest && <p className="muted">No tests on a culture yet.</p>}
+      {subForm ? <div className="inline-panel"><div className="grid">
+        <Field label={t('microbiology.case.subculture.fromCulture', 'From culture')} req><select value={subFrom} onChange={e => setSubFrom(e.target.value)}>
+          <option value="" disabled>Select a culture</option>
+          {[...inoc.filter(r => r.state === 'Positive'), ...inoc.filter(r => r.state !== 'Positive')].map(r => <option key={r.cid} value={r.cid}>{r.cid}, {r.medium}, {r.state === 'Positive' ? 'positive day ' + r.day : r.state.toLowerCase()}</option>)}</select><div className="helper">Positive cultures first; any culture can be subcultured</div></Field>
+        {subFrom && (inoc.find(r => r.cid === subFrom) || {}).state !== 'Positive' && <Field label={t('microbiology.case.subculture.purpose', 'Purpose')} req><select value={subPurpose} onChange={e => setSubPurpose(e.target.value)}><option value="" disabled>Select</option><option>Enrichment</option><option>Blind or terminal subculture</option><option>Purity</option><option>Other</option></select><div className="helper">Asked when the culture has no growth</div></Field>}
+        <MediumPicker onPrefill={m => setSubAtm(m.atm)} />
+        <Field label="Atmosphere" req><select value={subAtm} onChange={e => setSubAtm(e.target.value)}>{ATMS.map(a => <option key={a}>{a}</option>)}</select></Field>
+        <Field label="Container identifier" req><input defaultValue="BA-SUB-004812-A2" /></Field></div>
+        <div className="row-actions"><Btn onClick={addSub}>Add subculture</Btn><Btn kind="ghost" onClick={() => setSubForm(false)}>Cancel</Btn></div></div>
+      : <div className="row-actions"><Btn kind="tertiary" onClick={() => setCultTest(true)}>+ {t('microbiology.case.growth.testOnCulture', 'Test on this culture')}</Btn><Btn kind="tertiary" onClick={() => setMicroFor((inoc.find(r => r.state === 'Positive') || inoc[0]).cid)}>+ Microscopy exam</Btn><Btn kind="tertiary" onClick={() => setSubForm(true)}>+ Subculture</Btn></div>}
     </Section>
 
-    <Section n="6" title="Isolates">
-      <table className="t"><thead><tr><th>Isolate</th><th>Organism</th><th>Method</th><th>Significance</th></tr></thead>
-        <tbody><tr><td>1</td><td><i>Mycobacterium tuberculosis</i> complex</td><td>MPT64 antigen, 27 Sep (CPHL)</td><td><Tag kind="green">Significant</Tag></td></tr></tbody></table>
+    <Section n="6" title="Isolates" tags={<span className="muted">&nbsp;existing component (M-04, built): reuse, do not re-implement. Drawing abbreviated; v2 additions only as listed (A-16)</span>}>
+      <table className="t"><thead><tr><th>Isolate</th><th>{t('microbiology.case.isolate.pickedFrom', 'Picked from')}</th><th>Gram / morphology</th><th>Organism</th><th>ID method · confidence</th><th>Significance</th><th></th></tr></thead>
+        <tbody><tr><td>ISO-1 <Tag kind="green">Identified</Tag></td><td className="muted">MGIT-004812-A (positive day 5)</td><td>AFB, cording · rough buff colonies on LJ</td><td><i>Mycobacterium tuberculosis</i> complex</td><td>MPT64 antigen (placed from Incoming results) · 99%</td><td><Tag kind="green">Clinically significant</Tag></td>
+          <td style={{ whiteSpace: 'nowrap' }}><Btn kind="ghost">Re-identify</Btn><Btn kind="ghost">Log critical</Btn><Btn kind="ghost">{t('microbiology.case.printLabel', 'Print label')}</Btn><Btn kind="ghost" onClick={() => setNotesOpen(notesOpen === 'ISO-1' ? null : 'ISO-1')}>{t('microbiology.case.notes.count', 'Notes ({count})').replace('{count}', (notes['ISO-1'] || []).length)} <span className="new">v2</span></Btn></td></tr></tbody></table>
+      {notesOpen === 'ISO-1' && <NotesPanel id="ISO-1" />}
+      <div className="note-box" style={{ marginTop: '.75rem' }}><b>Example from a bacterial urine case:</b> ISO-1 <i>E. coli</i> · <Tag kind="warm-gray">{t('microbiology.case.repeatIsolate', 'Same organism on {labNumber}, {days} days ago, AST done').replace('{labNumber}', 'CPHL26-004655').replace('{days}', '6')}</Tag> <Btn kind="ghost">{t('microbiology.case.referPreviousAst', 'Refer to previous susceptibility')}</Btn><div className="muted">Removes the organism default panel with that reason; the report prints "Susceptibility as reported on CPHL26-004655 (24/09/2026)". A panel can still be added.</div></div>
+      {isoForm ? <div className="inline-panel"><div className="grid">
+        <Field label={t('microbiology.case.isolate.pickedFrom', 'Picked from')} req><select defaultValue=""><option value="" disabled>Select a culture with growth</option>{inoc.filter(r => r.state === 'Positive').map(r => <option key={r.cid}>{r.cid}, {r.medium}</option>)}</select><div className="helper">One positive culture can give several isolates</div></Field>
+        <Field label="Label" req><input defaultValue="ISO-2" /></Field>
+        <Field label="Gram stain" req><select><option>AFB</option><option>Gram-positive cocci</option><option>Gram-negative bacilli</option></select></Field>
+        <Field label="Significance" req><select><option>Unknown</option><option>Clinically significant</option><option>Contaminant</option><option>Normal flora</option></select></Field></div>
+        <div className="row-actions"><Btn onClick={() => setIsoForm(false)}>Create isolate</Btn><Btn kind="ghost" onClick={() => setIsoForm(false)}>Cancel</Btn></div></div>
+      : <div className="row-actions"><Btn kind="tertiary" onClick={() => setIsoForm(true)}>+ Add isolate</Btn></div>}
+      <div className="muted" style={{ marginTop: '.5rem' }}>Identification history: none. Create and Identify forms unchanged: label, gram stain, colony morphology, significance (Unknown, Clinically significant, Contaminant, Normal flora), organism, ID method (MALDI-TOF, VITEK 2, manual biochemistry, PCR), confidence, reason during an amendment.</div>
     </Section>
 
-    <Section n="7" title={t('micro.case.section.astDst', 'AST / DST')} tags={<span className="new">v2 add panel</span>}>
-      <table className="t"><thead><tr><th>Isolate</th><th>Panel</th><th>Drug</th><th>Method</th><th>Raw</th><th>Interpretation</th><th>Standard</th></tr></thead>
+    <Section n="7" title={t('microbiology.case.section.astDst', 'AST / DST')} tags={<span className="new">v2 add panel</span>}>
+      <table className="t" style={{ marginBottom: '.75rem' }}><thead><tr><th>Panels on ISO-1</th><th>Added</th><th>Method · standard</th><th>Run</th><th>Validation</th></tr></thead>
+        <tbody><tr><td>TB first-line DST v3</td><td><Tag kind="teal">Organism default</Tag> <span className="muted">(also requested by rule: RR on Xpert; one copy only)</span></td><td>MGIT 960 · WHO critical concentrations 2024</td><td>Run 1, results in</td><td><Tag kind="warm-gray">Entered</Tag></td></tr>
+          <tr><td>TB second-line DST v2</td><td>Added with the chooser</td><td>MGIT 960 · WHO critical concentrations 2024</td><td>Not started</td><td className="muted">n/a</td></tr></tbody></table>
+      <p className="muted" style={{ marginBottom: '.75rem' }}>Each panel is its own run. One positive culture can give several isolates, and one isolate several panels (for a bacterial isolate, for example the VITEK card plus a disk diffusion supplement). When two runs test the same agent, the report uses the run marked Use for reporting for that agent.</p>
+      <div className="grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: '.75rem' }}>
+        <Field label="Isolate" req><select><option>ISO-1 M. tuberculosis complex</option></select></Field>
+        <Field label="Panel" req><select><option>TB first-line DST v3 (organism default)</option><option>TB second-line DST v2</option></select><div className="helper" style={{ color: '#0f62fe' }}>Adjust panel (reason required if changed)</div></Field>
+        <Field label="Method" req><select defaultValue="MGIT"><option>MGIT 960 (critical concentration)</option><option>VITEK 2</option><option>Phoenix</option><option>Etest</option><option>Broth microdilution</option><option>Disk diffusion (zone)</option></select></Field>
+        <Field label="Breakpoint standard" req><select value={bp} onChange={e => setBp(e.target.value)}><option>WHO critical concentrations 2024</option><option>CLSI M100 36th ed. (2026)</option><option>EUCAST v15.0 (2025)</option></select><div className="helper">Default from the panel's interpretation model (TB critical concentrations); another standard needs a reason</div></Field>
+        <Field label="Entry mode"><select value={mode} onChange={e => setMode(e.target.value)}><option>Analyzer</option><option>Manual</option></select></Field>
+        {mode === 'Analyzer' && <Field label="Analyzer" req><select><option>BD MGIT 960 (TB-01)</option></select></Field>}
+        {mode === 'Analyzer' && <Field label="Card / tube set ID" req><input defaultValue="MGIT-2609-0441" /></Field>}
+        <Field label="Reagent lot"><select><option>BACTEC MGIT SIRE kit, lot 6214803, exp 03/2027 (FEFO)</option></select></Field>
+      </div>
+      <div className="note-box" style={{ marginBottom: '.75rem' }}>Run 1 (Original) <Tag kind="blue">Results in</Tag> from BD MGIT 960 TB-01, tube set MGIT-2609-0441, software 5.07. QC passed. Expert flags: 1 unacknowledged <Btn kind="ghost">Acknowledge flags (reason)</Btn></div>
+      <table className="t"><thead><tr><th>Drug</th><th>Method</th><th>Raw</th><th>Source</th><th>Matched by</th><th>Interpretation</th><th></th></tr></thead>
         <tbody>
-          <tr><td>1</td><td>TB first-line DST</td><td>Rifampicin</td><td>MGIT</td><td>1.0 µg/mL</td><td><Tag kind="red">R</Tag></td><td>WHO critical conc. 2024</td></tr>
-          <tr><td>1</td><td>TB first-line DST</td><td>Isoniazid</td><td>MGIT</td><td>0.1 µg/mL</td><td><Tag kind="red">R</Tag></td><td>WHO critical conc. 2024</td></tr>
-          <tr><td>1</td><td>TB first-line DST</td><td>Ethambutol</td><td>MGIT</td><td>5.0 µg/mL</td><td><Tag kind="green">S</Tag></td><td>WHO critical conc. 2024</td></tr>
-          <tr><td>1</td><td>TB first-line DST</td><td>Pyrazinamide</td><td>MGIT PZA</td><td>100 µg/mL</td><td><Tag kind="purple">Pending</Tag></td><td>WHO critical conc. 2024</td></tr>
+          <tr><td>Rifampicin</td><td>MGIT</td><td>1.0 µg/mL</td><td>Analyzer</td><td>{bp}</td><td><Tag kind="red">R</Tag></td><td><Btn kind="ghost">Override</Btn></td></tr>
+          <tr><td>Isoniazid</td><td>MGIT</td><td>0.1 µg/mL</td><td>Analyzer</td><td>{bp}</td><td><Tag kind="red">R</Tag></td><td><Btn kind="ghost">Override</Btn></td></tr>
+          <tr><td>Ethambutol</td><td>MGIT</td><td>5.0 µg/mL</td><td><Tag kind="warm-gray">Override</Tag></td><td>{bp}</td><td><Tag kind="green">S</Tag> <span className="muted">(instrument: I)</span></td><td><Btn kind="ghost">Revert override</Btn></td></tr>
+          <tr><td>Pyrazinamide</td><td>MGIT PZA</td><td className="muted">awaiting</td><td></td><td></td><td><Tag kind="purple">Pending</Tag></td><td></td></tr>
         </tbody></table>
-      <div style={{ marginTop: '.75rem' }}><Tag kind="teal">{t('micro.case.addedByRule', 'Added by rule')}: RR detected on Xpert</Tag><span className="muted">TB first-line DST panel added automatically on 23 Sep; cancel like any added test.</span></div>
-      <div style={{ marginTop: '.75rem' }}><span className="muted">{t('micro.case.tbClassification', 'Resistance classification')} (derived): </span><Tag kind="red">MDR-TB</Tag><span className="muted">rifampicin R + isoniazid R; second-line pending</span></div>
-      <div className="row-actions"><Btn kind="tertiary">+ {t('micro.case.addTestOrPanel', 'Add test or panel')}</Btn><span className="muted" style={{ alignSelf: 'center' }}>e.g. TB second-line DST panel; breakpoints follow the panel, test or antibiotic.</span></div>
+      <div className="row-actions"><Btn kind="secondary">Record reading</Btn><button className="cds--btn cds--btn--primary cds--btn--sm" disabled>Validate run: Accept results (1 reading and 1 flag outstanding)</button><Btn kind="ghost">New attempt (Repeat or Retest)</Btn></div>
+      <table className="t" style={{ marginTop: '.5rem' }}><thead><tr><th>Attempt</th><th>Method</th><th>Status</th><th>Reporting</th></tr></thead>
+        <tbody><tr><td>1 <Tag kind="gray">Original</Tag></td><td>MGIT 960, critical concentration</td><td>Results in</td><td>Included</td></tr></tbody></table>
+      <div className="muted" style={{ marginTop: '.5rem' }}>Kept as built (A-16): QC failed handling (invalidate and repeat, or override QC with reason), organism mismatch warning, no-breakpoint warning, override history with show original, review gating, Use for reporting across attempts.</div>
+      <div style={{ marginTop: '.75rem' }}><Tag kind="teal">{t('microbiology.case.addedByRule', 'Added by rule')}: RR detected on Xpert</Tag><span className="muted">Xpert MTB/XDR added automatically on 23 Sep; cancel like any added test.</span></div>
+      <div style={{ marginTop: '.75rem' }}><span className="muted">{t('microbiology.case.tbClassification', 'Resistance classification')} (derived): </span><Tag kind="red">MDR-TB</Tag><span className="muted">rifampicin R + isoniazid R; second-line pending. Molecular and phenotypic rifampicin agree (no discordance).</span></div>
+      <div className="row-actions"><Btn kind="tertiary">+ {t('microbiology.case.addTestOrPanel', 'Add test or panel')}</Btn><span className="muted" style={{ alignSelf: 'center' }}>e.g. TB second-line DST panel; breakpoints follow the panel, test or antibiotic.</span></div>
     </Section>
 
-    <Section n="8" title={t('micro.case.section.additionalTesting', 'Additional testing')} isNew>
-      <table className="t"><thead><tr><th>Test</th><th>On</th><th>Result</th><th>Performed by</th><th>{t('micro.case.inLabOnly', 'In lab only')}</th></tr></thead>
-        <tbody>
-          <tr><td>Whole genome sequencing (MTB)</td><td>Isolate 1</td><td className="muted">Referred to QMRL, sent 28 Sep</td><td>QMRL Brisbane</td><td><label><input type="checkbox" checked={labOnly.wgs} onChange={e => setLabOnly({ ...labOnly, wgs: e.target.checked })} /> <span className="muted">{labOnly.wgs ? 'Not shown on the patient report' : 'Reportable'}</span></label></td></tr>
-          <tr><td>Line probe assay MTBDRsl</td><td>Isolate 1</td><td>No fluoroquinolone or injectable resistance mutations</td><td>R. Opa (this lab)</td><td><label><input type="checkbox" checked={labOnly.lpa} onChange={e => setLabOnly({ ...labOnly, lpa: e.target.checked })} /> <span className="muted">{labOnly.lpa ? 'Not shown on the patient report' : 'Reportable'}</span></label></td></tr>
-        </tbody></table>
-      <div className="row-actions"><Btn kind="tertiary">+ {t('micro.case.addTestOrPanel', 'Add test or panel')}</Btn><span className="muted" style={{ alignSelf: 'center' }}>Any catalog test, on the specimen or an isolate. In lab only can be set on any added test and turned off again; changes go to the Timeline.</span></div>
+    <Section n="8" title={t('microbiology.case.section.additionalTesting', 'Additional testing')} isNew>
+      <CaseTestTable rows={additional} labOnly={labOnly} setLabOnly={setLabOnly} showOn />
+      <div className="row-actions"><Btn kind="tertiary">+ {t('microbiology.case.addTestOrPanel', 'Add test or panel')}</Btn><span className="muted" style={{ alignSelf: 'center' }}>Any catalog test, on the specimen or an isolate. In lab only can be set on any added test and turned off again; changes go to the Timeline.</span></div>
     </Section>
 
-    <Section n="9" title="Report" tags={<span className="new">v2 per-result choice</span>}>
+    <Section n="9" title="Critical communication" open={false} tags={<span className="muted">&nbsp;existing component (M-04, built): reuse, do not re-implement. Drawing abbreviated; v2 additions only as listed (A-16)</span>}>
+      <table className="t"><thead><tr><th>Target</th><th>Recipient</th><th>Method</th><th>Message</th><th>{t('microbiology.case.critical.outcome', 'Outcome')}</th><th>Status</th><th></th></tr></thead>
+        <tbody><tr><td>Result: GeneXpert RIF</td><td>Dr. Wari, Chest Clinic (ext. 4412)</td><td>Phone</td><td>Rifampicin resistance detected</td><td>Read back confirmed</td><td><Tag kind="blue">Acknowledged</Tag></td><td><Btn kind="ghost">Close (resolution note)</Btn></td></tr>
+          <tr><td>Case: RR-TB</td><td>National TB Programme, DR-TB desk</td><td>Email</td><td>New RR-TB, CPHL26-004812</td><td>Reached, no read-back</td><td><Tag kind="warm-gray">Open</Tag></td><td><Btn kind="ghost">Acknowledge</Btn></td></tr></tbody></table>
+      <div className="muted" style={{ marginTop: '.5rem' }}>Each call also writes a row in the shared critical callback log, so it prints under the result on the patient report and counts in the callback reports.</div>
+    </Section>
+    <Section n="10" title="Nonconformance" open={false} tags={<span className="muted">&nbsp;existing component (M-04, built): reuse, do not re-implement. Drawing abbreviated; v2 additions only as listed (A-16)</span>}>
+      <div className="muted">No NCE on this case. Report NCE and Mark specimen lost keep their fields (category, type, reporting unit, severity, description, immediate action) and dispositions (Flag only, Reject tests, Retest a run or one antibiotic).</div>
+    </Section>
+    <Section n="11" title="Report" tags={<span className="new">v2 per-result choice</span>}>
       <div className="grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
         <div>
-          <table className="t"><thead><tr><th>{t('micro.case.report.include', 'Report')}</th><th>Result</th><th>Default</th></tr></thead>
+          <table className="t"><thead><tr><th>{t('microbiology.case.report.include', 'Report')}</th><th>Result</th><th>Default</th></tr></thead>
             <tbody>
               {[['smear', 'Initial testing', 'AFB smear: 2+', 'On'], ['xpert', 'Initial testing', 'GeneXpert: MTB detected, Rif resistance detected (previous report, Goroka)', 'On'], ['iso', 'Isolate 1', 'M. tuberculosis complex', 'On (significant)'], ['rif', 'DST', 'Rifampicin R', 'Always'], ['inh', 'DST', 'Isoniazid R', 'Always'], ['emb', 'DST', 'Ethambutol S', 'Cascade: hidden by rule'], ['pza', 'DST', 'Pyrazinamide (pending)', 'Not final'], ...(labOnly.lpa ? [] : [['lpa', 'Additional testing', 'MTBDRsl: no FQ or injectable resistance', 'On']]), ...(labOnly.wgs ? [] : [['wgs', 'Additional testing', 'Whole genome sequencing (pending)', 'Off (was in lab only)']])].map(([k, sec, lbl, d]) =>
                 <tr key={k}><td><input type="checkbox" checked={reportSel[k]} onChange={e => setReportSel({ ...reportSel, [k]: e.target.checked })} /></td><td><span className="muted">{sec}</span><br />{lbl}</td><td className="muted">{d}</td></tr>)}
@@ -239,75 +568,188 @@ function CaseView() {
           <p className="muted" style={{ marginTop: '.5rem' }}>Growth work-up exams and In lab only tests are never listed. Changing a default is recorded on the Timeline.</p>
         </div>
         <div>
-          <div className="note-box"><b>Final report checklist</b><br />✓ All isolates identified<br />✗ Pyrazinamide DST pending<br />✗ <a href="#" style={{ color: '#0f62fe' }}>TB history</a> is needed before final report</div>
+          <div className="note-box"><b>Final report checklist</b><br />✗ Culture outcome: LJ-004812-B and LJ-SUB-004812-A1 still incubating<br />✓ All isolates identified<br />✗ DST run 1 not validated<br />✗ Pyrazinamide DST pending<br />✗ <a href="#" style={{ color: '#0f62fe' }}>TB history</a> is needed before final report</div>
           <table className="t" style={{ marginTop: '1rem' }}><thead><tr><th>Version</th><th>Released</th></tr></thead>
             <tbody><tr><td>Preliminary (smear, GeneXpert)</td><td>23 Sep 2026 · J. Kaupa</td></tr><tr><td>Interim (MTBC growth, DST to follow)</td><td>28 Sep 2026 · R. Opa</td></tr></tbody></table>
-          <div className="row-actions"><Btn kind="secondary">Release interim</Btn><button className="cds--btn cds--btn--primary cds--btn--sm" disabled>Release final (2 blocking)</button></div>
+          <div style={{ marginTop: '1rem', border: '1px solid #161616', padding: '.5rem', fontFamily: 'IBM Plex Sans', fontSize: 12, background: '#fff' }}>
+            <div style={{ fontWeight: 700, borderBottom: '1px solid #161616', marginBottom: 4 }}>TB</div>
+            <div>AFB smear (Sputum) <span style={{ float: 'right' }}><b>2+</b></span></div>
+            <div>Xpert MTB/RIF Ultra † <i style={{ color: '#595959' }}>Performed by Goroka Provincial Hospital Laboratory</i><span style={{ float: 'right' }}><b>MTB detected, RIF resistance detected</b></span></div>
+            <div>TB culture <span style={{ float: 'right' }}><i>In progress (day 5 of 56)</i></span></div>
+            <div style={{ fontWeight: 700, marginTop: 4 }}>Isolate 1: Mycobacterium tuberculosis complex</div>
+            <div style={{ paddingLeft: 10, borderLeft: '2px solid #161616' }}>Rifampicin <span style={{ float: 'right' }}><b>R</b> · WHO critical concentration 1.0 µg/mL</span></div>
+            <div style={{ paddingLeft: 10, borderLeft: '2px solid #161616' }}>Isoniazid <span style={{ float: 'right' }}><b>R</b> · 0.1 µg/mL</span></div>
+            <div>Resistance classification <span style={{ float: 'right' }}><b>MDR-TB</b></span></div>
+            <div style={{ color: '#595959', fontStyle: 'italic' }}>Callback: Dr. Wari, 23/09/2026 10:40, by J. Kaupa. Read back confirmed.</div>
+            <div className="muted" style={{ marginTop: 4 }}>How it prints inside the patient report (OGC-1111 §7.4), black and white.</div>
+          </div>
+          <div className="row-actions"><Btn kind="secondary">Release interim</Btn><button className="cds--btn cds--btn--primary cds--btn--sm" disabled>Release final (4 blocking)</button></div>
         </div>
       </div>
     </Section>
 
-    <Section n="10" title="Timeline" open={false}>
+    <Section n="12" title="Amendment" open={false} tags={<span className="muted">&nbsp;existing component (M-04, built): reuse, do not re-implement. Drawing abbreviated; v2 additions only as listed (A-16)</span>}>
+      <div className="muted">Available after final release: Open amendment (reason), Cancel amendment (reason), Release amended report; history and report versions with "corrects version N".</div>
+    </Section>
+    <Section n="13" title="Timeline" open={false}>
       <table className="t"><tbody>
         <tr><td className="muted">28 Sep 10:02</td><td>Lab unit changed from Microbiology to TB · R. Opa</td></tr>
-        <tr><td className="muted">28 Sep 08:40</td><td>Reading, Day 1: Löwenstein-Jensen slope, no growth · J. Kaupa</td></tr>
-        <tr><td className="muted">23 Sep 11:15</td><td>Referred to CPHL Port Moresby · J. Kaupa</td></tr>
+        <tr><td className="muted">28 Sep 11:00</td><td>Subculture LJ-SUB-004812-A1 from MGIT-004812-A · J. Kaupa</td></tr>
+        <tr><td className="muted">28 Sep 09:12</td><td>MGIT-004812-A marked positive by analyzer signal (TTD 4.8 d) · MGIT 960</td></tr>
+        <tr><td className="muted">24 Sep 08:40</td><td>Reading, Day 1: LJ-004812-B, no growth · J. Kaupa</td></tr>
+        <tr><td className="muted">28 Sep 11:15</td><td>ISO-1 referred to QMRL Brisbane (second-line DST) · J. Kaupa</td></tr>
       </tbody></table>
     </Section>
-  </div>;
+  </div></NotesCtx.Provider></MediaCtx.Provider>;
 }
 
 /* ---------- WORKLIST ---------- */
+function BenchView() {
+  const [mode, setMode] = useState('plate');
+  const [sel, setSel] = useState({ a: true, b: true, c: true, d: false });
+  const [reads, setReads] = useState({});
+  const [saved, setSaved] = useState('');
+  const cases = [['a', 'CPHL26-004820', 'Urine, midstream'], ['b', 'CPHL26-004821', 'Urine, catheter'], ['c', 'CPHL26-004823', 'Urine, midstream'], ['d', 'CPHL26-004826', 'Urine, midstream']];
+  const due = [['CPHL26-004790-CLED-1', 'CPHL26-004790', 'CLED agar plate', 'Day 1'], ['CPHL26-004790-BA-1', 'CPHL26-004790', 'Blood agar (sheep) plate', 'Day 1'], ['CPHL26-004801-CLED-1', 'CPHL26-004801', 'CLED agar plate', 'Day 1'], ['CPHL26-004802-CLED-1', 'CPHL26-004802', 'CLED agar plate', 'Day 1'], ['CPHL26-004777-BA-1', 'CPHL26-004777', 'Blood agar (sheep) plate', 'Day 1']];
+  const n = Object.values(sel).filter(Boolean).length;
+  return <div>
+    <div className="note-box" style={{ marginBottom: '.75rem' }}><b>Proposed (D-167), for review.</b> Batch work for the bench: one plating template, one lot per medium and one set of labels for many cases; then one pass to read every due plate, changing only the exceptions. Each case still gets its own rows and Timeline entries, tagged with the batch number. Lots are recorded; inventory stock is never changed from here.</div>
+    <div className="seg" style={{ marginBottom: '.75rem' }}><button className={mode === 'plate' ? 'on' : ''} onClick={() => { setMode('plate'); setSaved(''); }}>{t('microbiology.worklist.plateBatch', 'Plate a batch')}</button><button className={mode === 'read' ? 'on' : ''} onClick={() => { setMode('read'); setSaved(''); }}>{t('microbiology.worklist.readPlates', 'Read plates')}</button></div>
+    {mode === 'plate' ? <div className="sec"><div className="sec-b">
+      <div className="grid" style={{ marginBottom: '.75rem' }}><Field label="Sample type"><select><option>Urine</option><option>Sputum</option><option>Stool</option></select></Field><Field label="Scan labels"><input placeholder="Scan a sample label to tick it" /></Field><Field label="Plating template"><select><option>Urine (CLED agar plate, blood agar plate)</option></select></Field></div>
+      <table className="t"><thead><tr><th style={{ width: 30 }}></th><th>Lab number</th><th>Specimen</th><th>Rows to create</th></tr></thead>
+        <tbody>{cases.map(([k, lab, spec]) => <tr key={k}><td><input type="checkbox" checked={sel[k]} onChange={() => setSel({ ...sel, [k]: !sel[k] })} style={{ width: 'auto' }} /></td><td>{lab}</td><td>{spec}</td><td className="muted">{lab}-CLED-1, {lab}-BA-1</td></tr>)}</tbody></table>
+      <div className="grid" style={{ marginTop: '.75rem' }}><Field label="Lot for CLED agar plate (tracked)" req><select><option>Lot CLED-26-201, exp 11/2026</option></select></Field><Field label="Lot for Blood agar (sheep) plate (tracked)" req><select><option>Lot BA-26-117, exp 10/2026</option></select></Field><Field label="Inoculated at"><input disabled value="Save time (server clock)" /></Field></div>
+      <div className="row-actions"><Btn onClick={() => setSaved(t('microbiology.worklist.batchSaved', '{count} cases saved in batch {batch}').replace('{count}', n).replace('{batch}', 'B-2610-07') + `: ${n * 2} rows, lots recorded, no stock change.`)}>Save batch ({n} cases, {n * 2} rows)</Btn><Btn kind="tertiary">{t('microbiology.case.printLabels', 'Print labels')} ({n * 2})</Btn></div>
+      {saved && <div className="note-box" style={{ marginTop: '.5rem' }}>{saved}</div>}
+    </div></div> : <div className="sec"><div className="sec-b">
+      <p className="muted" style={{ marginBottom: '.5rem' }}>Rows with Check due or Incubation complete, grouped by medium. Every row starts at No growth; change only the exceptions.</p>
+      <table className="t"><thead><tr><th>Container</th><th>Case</th><th>Medium</th><th>Read</th><th>Reading</th><th></th></tr></thead>
+        <tbody>{due.map(([cid, lab, med, day]) => <tr key={cid}><td className="muted">{cid}</td><td>{lab}</td><td>{med}</td><td>{day}</td>
+          <td><select value={reads[cid] || 'No growth'} onChange={e => setReads({ ...reads, [cid]: e.target.value })}><option>No growth</option><option>Normal flora</option><option>Mixed growth</option><option>Significant growth</option><option>Contaminated</option></select>
+            {reads[cid] === 'Significant growth' && <input placeholder="Quantity, e.g. ≥10⁵ CFU/mL" style={{ marginTop: 4 }} />}</td>
+          <td><a href="#" style={{ color: '#0f62fe' }}>Open case</a></td></tr>)}</tbody></table>
+      <div className="row-actions"><Btn onClick={() => setSaved(`${due.length} readings saved; ${Object.values(reads).filter(v => v === 'Significant growth').length} marked positive and listed under Needs attention (Work up growth).`)}>Save {due.length} readings</Btn></div>
+      {saved && <div className="note-box" style={{ marginTop: '.5rem' }}>{saved}</div>}
+    </div></div>}
+  </div>;
+}
+
 function Worklist() {
   const [card, setCard] = useState('attention');
+  const [tab, setTab] = useState('attention');
+  const [neg, setNeg] = useState(false);
   const [rows, setRows] = useState([
     { lab: 'CPHL26-004812', who: 'Kila Nou', lu: 'TB', spec: 'Sputum', reasons: ['Check due', 'Incoming results'], day: 'Day 5 of 56' },
     { lab: 'CPHL26-004790', who: 'Mary Siune', lu: 'Microbiology', spec: 'Urine', reasons: ['Incubation complete'], day: 'Day 2 of 2' },
     { lab: 'CPHL26-004777', who: 'Ward 4 surfaces (site)', lu: 'Environmental Microbiology', spec: 'Surface swab', reasons: ['Check due'], day: 'Day 1 of 2' },
     { lab: 'CPHL26-004702', who: 'Tau Morea', lu: 'TB', spec: 'Sputum', reasons: ['Referral returned'], day: 'Referred' },
+    { lab: 'CPHL26-004795', who: 'Ruth Kaupa', lu: 'Microbiology', spec: 'Blood culture, 2 sets', reasons: ['Instrument negative to confirm'], day: 'Day 5 of 5' },
   ]);
   const check = (i) => { const r = [...rows]; r[i] = { ...r[i], reasons: r[i].reasons.filter(x => x !== 'Check due') }; setRows(r.filter(x => x.reasons.length)); };
   return <div>
     <div className="crumbs"><a href="#">Home</a> / <a href="#">Microbiology</a> / Worklist</div>
     <h1>Worklist</h1>
+    <div className="seg" style={{ marginBottom: '.75rem' }}><button className={tab === 'attention' ? 'on' : ''} onClick={() => setTab('attention')}>Cultures</button><button>AST</button><button className={tab === 'bench' ? 'on' : ''} onClick={() => setTab('bench')}>{t('microbiology.worklist.bench', 'Bench')} (proposed)</button></div>
+    {tab === 'bench' ? <BenchView /> : <>
     <div className="card-row">
-      {[['attention', t('micro.worklist.card.attention', 'Needs attention'), rows.length], ['incubating', 'Incubating', 31], ['positive', 'Growth detected', 9], ['ast', 'AST / DST in progress', 14], ['ready', 'Ready to finalize', 6]].map(([k, l, n]) =>
+      {[['attention', t('microbiology.worklist.card.attention', 'Needs attention'), rows.length], ['incubating', 'Incubating', 31], ['positive', 'Growth detected', 9], ['ast', 'AST / DST in progress', 14], ['ready', 'Ready to finalize', 6]].map(([k, l, n]) =>
         <div key={k} className={`card ${card === k ? 'on' : ''}`} onClick={() => setCard(k)}><div className="muted">{l}</div><div className="n">{n}</div></div>)}
     </div>
     <div style={{ display: 'flex', gap: '1rem', marginBottom: '.75rem' }}>
+      <div className="field" style={{ width: 200 }}><label>{t('microbiology.worklist.filter.cultureType', 'Culture type')}</label><select><option>All</option><option>Bacteriology</option><option>Mycobacteriology (TB)</option><option>Mycology</option></select></div>
       <div className="field" style={{ width: 260 }}><label>Lab unit</label><select><option>All (TB, Microbiology, Environmental Microbiology)</option><option>TB</option><option>Microbiology</option><option>Environmental Microbiology</option></select></div>
     </div>
     <div className="sec"><table className="t"><thead><tr><th>Lab number</th><th>Patient or site</th><th>Lab unit</th><th>Specimen</th><th>Why it needs attention</th><th>Incubation</th><th></th></tr></thead>
       <tbody>{rows.map((r, i) => <tr key={r.lab}><td><a href="#" style={{ color: '#0f62fe' }}>{r.lab}</a></td><td>{r.who}</td><td>{r.lu}</td><td>{r.spec}</td>
         <td>{r.reasons.map(x => <Tag key={x} kind={x === 'Incubation complete' ? 'red' : x === 'Check due' ? 'warm-gray' : 'purple'}>{x}</Tag>)}</td><td>{r.day}</td>
-        <td>{r.reasons.includes('Check due') && <Btn kind="ghost" onClick={() => check(i)}>{t('micro.case.inoc.markChecked', 'Mark checked')}</Btn>}</td></tr>)}</tbody></table></div>
-    <p className="muted">Mark checked records who and when on the case Timeline and sets the next check. Incubation complete stays until Growth or No growth is recorded.</p>
+        <td>{r.reasons.includes('Check due') && <Btn kind="ghost" onClick={() => check(i)}>{t('microbiology.case.inoc.markChecked', 'Mark checked')}</Btn>}
+          {r.reasons.includes('Instrument negative to confirm') && (neg ? <span className="muted">BC-004795-A to -D: No growth, protocol complete, confirmed by J. Kaupa</span> : <div><span className="muted">BACTEC FX: 4 bottles negative, protocol complete</span> <Btn kind="ghost" onClick={() => setNeg(true)}>{t('microbiology.case.inoc.confirm', 'Confirm')}</Btn></div>)}</td></tr>)}</tbody></table></div>
+    <p className="muted">Mark checked records a "No change" reading with who and when on the case Timeline and sets the next check (disabled offline). Incubation complete stays until each row's outcome is recorded. An instrument negative is only a proposal until a person confirms it.</p>
+    </>}
+  </div>;
+}
+
+function CatalogFieldDemo() {
+  const [mc, setMc] = useState('Mycobacteriology (TB)');
+  return <div className="sec" style={{ marginBottom: '1.5rem' }}><div className="sec-b">
+    <div style={{ fontWeight: 600, marginBottom: '.5rem' }}>Test catalog: Xpert MTB/RIF Ultra <span className="muted" style={{ fontWeight: 400 }}>(Basic Info, abbreviated; the rest of the test editor is unchanged)</span> <span className="new">v2</span></div>
+    <div className="grid">
+      <Field label={t('catalog.test.microbiologyCase', 'Microbiology case')}><select value={mc} onChange={e => setMc(e.target.value)}><option>None</option><option>Bacteriology</option><option>Mycobacteriology (TB)</option><option>Mycology</option></select><div className="helper">{t('catalog.test.microbiologyCase.help', 'None: results go through Results as usual. Any other value: the test opens or joins a Microbiology case of that type.')}</div></Field>
+      {mc !== 'None' && <Field label={t('catalog.test.caseRole', 'Case role')}><select defaultValue="Direct"><option>Direct</option><option>Culture</option></select><div className="helper">Culture marks the test that holds the culture result</div></Field>}
+      {mc !== 'None' && <Field label={t('catalog.test.collectedInSets', 'Collected in sets')}><select defaultValue="No"><option>No</option><option>Yes</option></select><div className="helper">Yes for blood culture: every bottle on the order joins one case</div></Field>}
+    </div>
+  </div></div>;
+}
+
+function PlatingTemplatesAdmin() {
+  const rows = [['Urine', 'Any', 'CLED agar plate; Blood agar (sheep) plate', 'Aerobic (ambient air), 35 °C, 24 Hours, check every 24 Hours', 'Active'],
+    ['Sputum', 'Bacterial culture', 'Blood agar (sheep) plate; Chocolate agar plate; MacConkey agar plate', 'CO₂-enriched for blood and chocolate, 35 °C, 48 Hours', 'Active'],
+    ['Sputum', 'TB culture', 'BBL MGIT 7 mL tube; Löwenstein-Jensen slope', 'Aerobic (ambient air), 37 °C, 42 Days and 56 Days, check every 7 Days', 'Active'],
+    ['Stool', 'Any', 'XLD agar; MacConkey agar plate; Selenite F broth', 'Aerobic (ambient air), 35 °C, 24 Hours (broth subcultured at 18 Hours)', 'Active'],
+    ['Blood, aerobic bottle', 'Blood culture', 'BACTEC Plus Aerobic/F bottle', 'Aerobic, 35 °C, 5 Days on the instrument', 'Active']];
+  return <div>
+    <div className="crumbs"><a href="#">Home</a> / <a href="#">Admin Management</a> / Microbiology Reference Data / Plating templates</div>
+    <CatalogFieldDemo />
+    <h1>{t('microbiology.admin.platingTemplates', 'Plating templates')} <span className="new">v2</span></h1>
+    <p className="muted" style={{ marginBottom: '.75rem' }}>The laboratory's standard plating per sample type. Start inoculation and Plate a batch propose these rows; nothing on a case depends on them (no protocol is stored).</p>
+    <div className="row-actions" style={{ marginBottom: '.5rem' }}><Btn>+ Add template</Btn></div>
+    <div className="sec"><table className="t"><thead><tr><th>Sample type</th><th>Culture test</th><th>Media (in order)</th><th>Atmosphere, temperature, incubation</th><th>Status</th><th></th></tr></thead>
+      <tbody>{rows.map(r => <tr key={r[0] + r[1]}><td>{r[0]}</td><td>{r[1]}</td><td>{r[2]}</td><td className="muted">{r[3]}</td><td><Tag kind="green">{r[4]}</Tag></td><td><Btn kind="ghost">Edit</Btn><Btn kind="ghost">Deactivate</Btn></td></tr>)}</tbody></table></div>
   </div>;
 }
 
 /* ---------- ORDER ENTRY ---------- */
 function OrderEntry() {
-  const [prog, setProg] = useState('Microbiology');
-  const [extra, setExtra] = useState(false);
+  const [q, setQ] = useState('');
+  const [open, setOpen] = useState(false);
+  const [samples, setSamples] = useState([
+    { id: '-1', type: 'Sputum', site: 'Lower respiratory tract', time: '28 Sep 07:10', tests: ['Xpert MTB/RIF Ultra'] },
+    { id: '-2', type: 'Blood, aerobic bottle', site: 'Venous blood, left arm', time: '28 Sep 07:25', tests: ['Blood culture'] },
+    { id: '-3', type: 'Blood, anaerobic bottle', site: 'Venous blood, left arm', time: '28 Sep 07:25', tests: ['Blood culture'] },
+    { id: '-4', type: 'Blood, aerobic bottle', site: 'Venous blood, right arm', time: '28 Sep 07:31', tests: ['Blood culture'] },
+    { id: '-5', type: 'Blood, anaerobic bottle', site: 'Venous blood, right arm', time: '28 Sep 07:31', tests: ['Blood culture'] },
+    { id: '-6', type: 'Serum', site: '', time: '28 Sep 07:25', tests: ['RPR'] },
+  ]);
+  const catalog = [['Bacterial culture', 'Microbiology', 'test'], ['TB culture', 'TB', 'test'], ['TB investigation', 'TB culture, AFB smear, Xpert MTB/RIF Ultra', 'panel'], ['Fungal culture', 'Microbiology', 'test'], ['Gram stain', 'Microbiology', 'test'], ['AFB smear (ZN)', 'TB', 'test']];
+  const hits = catalog.filter(c => q && c[0].toLowerCase().includes(q.toLowerCase()));
+  const add = name => { const c = [...samples]; if (!c[0].tests.includes(name)) c[0] = { ...c[0], tests: [...c[0].tests, name] }; setSamples(c); setQ(''); setOpen(false); };
+  const remove = (si, name) => { const c = [...samples]; c[si] = { ...c[si], tests: c[si].tests.filter(x => x !== name) }; setSamples(c); };
+  const generic = ['TB culture', 'Bacterial culture', 'Blood culture', 'Fungal culture', 'Xpert MTB/RIF Ultra', 'AFB smear (ZN)', 'Gram stain'];
+  const s1 = samples[0].tests;
+  const cases = [];
+  if (s1.some(x => ['Xpert MTB/RIF Ultra', 'AFB smear (ZN)', 'TB culture'].includes(x))) cases.push(['TB case (first micro test: ' + s1.find(x => ['Xpert MTB/RIF Ultra', 'AFB smear (ZN)', 'TB culture'].includes(x)) + ')', '-1 Sputum', 'TB', s1.includes('TB culture') ? 'Culture joins the same case' : 'No culture ordered: releases on the Xpert result; a reflex TB culture on RR joins it']);
+  if (s1.includes('Bacterial culture')) cases.push(['Bacterial culture', '-1 Sputum', 'Microbiology', 'Related case on the same specimen']);
+  if (s1.includes('Fungal culture')) cases.push(['Fungal culture', '-1 Sputum', 'Microbiology', 'Mycology: its own related case on the specimen']);
+  cases.push(['Blood culture (collected in sets)', '-2 to -5: 2 sets, 4 bottles', 'Microbiology', 'One case for the order, whatever the site; each bottle keeps its site and time; number of sets is counted. Split is on the case.']);
   return <div>
     <div className="crumbs"><a href="#">Home</a> / <a href="#">Orders &amp; Patients</a> / Enter Order</div>
-    <h1>Enter Order: Request details</h1>
+    <h1>Enter Order: Samples and tests</h1>
+    <div className="note-box" style={{ marginBottom: '1rem' }}>v2: there is no Microbiology section and no Program coupling. Micro tests (cultures and direct tests such as Xpert, AFB smear and Gram stain) are picked here like any other test (Clinical Order Entry v4 FR-B14); the first one on a sample opens its case. Blood culture: one sample per bottle, each with its own site. Program is whatever the order needs (for example the TB Program); micro never reads it (D-146).</div>
     <div className="sec"><div className="sec-b">
-      <div className="grid">
-        <Field label={t('common.program', 'Program')}><select value={prog} onChange={e => setProg(e.target.value)}><option>None</option><option>Microbiology</option><option>HIV Program</option></select></Field>
-        <Field label="Provisional diagnosis"><input defaultValue="Presumptive TB" /></Field>
+      <div className="grid" style={{ marginBottom: '1rem' }}>
+        <Field label={t('common.program', 'Program')}><select defaultValue="TB Program"><option>None</option><option>TB Program</option><option>HIV Program</option></select><div className="helper">Not read by microbiology</div></Field>
+        <Field label="Provisional diagnosis"><input defaultValue="Presumptive TB, sepsis" /></Field>
       </div>
-      {prog === 'Microbiology' && <div className="inline-panel">
-        <b style={{ fontSize: 14 }}>Microbiology</b> <span className="new">v2</span>
-        <p className="muted" style={{ margin: '.25rem 0 .75rem' }}>One case opens per sample and lab unit. Case details (clinical history, TB history, prior antibiotics) are entered on the case.</p>
-        <table className="t"><thead><tr><th>Sample</th><th>Tests</th><th>{t('micro.order.labUnit', 'Lab unit')}<span style={{ color: '#da1e28' }}>*</span></th><th></th></tr></thead>
-          <tbody>
-            <tr><td>-1 · Sputum</td><td>TB Culture & DST; AFB smear</td><td><select defaultValue="TB" style={{ background: '#fff', border: 0, borderBottom: '1px solid #8d8d8d', padding: 6 }}><option>TB</option><option>Microbiology</option><option>Environmental Microbiology</option></select><div className="muted">Default: lab unit of the first test</div></td>
-              <td>{!extra && <Btn kind="ghost" onClick={() => setExtra(true)}>+ {t('micro.order.anotherLabUnit', 'Another lab unit')}</Btn>}</td></tr>
-            {extra && <tr><td>-1 · Sputum</td><td className="muted">second case, same specimen</td><td><select defaultValue="Microbiology" style={{ background: '#fff', border: 0, borderBottom: '1px solid #8d8d8d', padding: 6 }}><option>Microbiology</option><option disabled>TB (already used)</option></select></td><td><Btn kind="ghost" onClick={() => setExtra(false)}>Remove</Btn></td></tr>}
-          </tbody></table>
-        <div className="note-box" style={{ marginTop: '.75rem' }}>Removed from order entry in v2: culture protocol, patient origin, admission date, number of sets, clinical history, antibiotic exposure, environmental purpose and replicates. The lab unit can be changed later in Edit order or on the case.</div>
-      </div>}
+      <table className="t"><thead><tr><th style={{ width: '20%' }}>Sample</th><th style={{ width: '22%' }}>Body site · collected</th><th>Tests</th></tr></thead>
+        <tbody>{samples.map((sm, si) => <tr key={sm.id}><td>{sm.id} · {sm.type}</td><td className="muted">{sm.site || 'No body site'} · {sm.time}</td>
+          <td>{sm.tests.map(x => <span key={x} style={{ marginRight: 4 }}><Tag kind={generic.includes(x) ? 'teal' : 'gray'}>{x}{si === 0 && <button onClick={() => remove(si, x)} style={{ border: 0, background: 'none', cursor: 'pointer', marginLeft: 4 }}>×</button>}</Tag></span>)}
+            {si === 0 && <div className="field" style={{ position: 'relative', marginTop: 6, maxWidth: 360 }}>
+              <input value={q} placeholder="Search tests or panels" onFocus={() => setOpen(true)} onChange={e => { setQ(e.target.value); setOpen(true); }} />
+              {open && hits.length > 0 && <div className="menu" style={{ left: 0, right: 'auto', width: '100%' }}>{hits.map(c => <button key={c[0]} onClick={() => add(c[0])}>{c[0]} <span className="muted">({c[2] === 'panel' ? 'panel: ' + c[1] : c[1]})</span></button>)}</div>}
+              <div className="helper">Try "culture" or "smear". Same picker as every other test.</div></div>}</td></tr>)}</tbody></table>
+      <div className="inline-panel">
+        <b style={{ fontSize: 14 }}>After save (not shown to reception, drawn here for review)</b>
+        <table className="t" style={{ marginTop: '.5rem' }}><thead><tr><th>Case opens for</th><th>Samples</th><th>Lab unit</th><th>Note</th></tr></thead>
+          <tbody>{cases.map(c => <tr key={c[0]}><td>{c[0]}</td><td>{c[1]}</td><td>{c[2]}</td><td className="muted">{c[3]}</td></tr>)}
+            <tr><td className="muted">No case</td><td>-6 Serum (RPR)</td><td>Microbiology (serology)</td><td className="muted">RPR has Microbiology case None in the catalog, so it stays on Results even in the micro lab unit</td></tr></tbody></table>
+        <div style={{ marginTop: '.75rem', background: '#fff', border: '1px solid #e0e0e0', padding: '.75rem' }}>
+          <div className="muted" style={{ fontSize: 12 }}>Blood culture case header</div>
+          <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}><span><b>{t('microbiology.case.cultureSet.summary', '{test}: {sets} sets, {bottles} bottles').replace('{test}', 'Blood culture').replace('{sets}', '2').replace('{bottles}', '4')}</b> <span className="muted">(left arm -2, -3; right arm -4, -5)</span></span>
+            <Btn kind="ghost">{t('microbiology.case.splitCases', 'Split into separate cases')} (reason)</Btn><span className="muted">Only a sample with no results on the case can be split off.</span></div>
+        </div>
+        <div className="note-box" style={{ marginTop: '.75rem' }}>Removed from order entry in v2: the Microbiology section, Culture rows, + Another culture, culture protocol, culture purpose, patient origin, admission date, number of sets, clinical history, antibiotic exposure. Case details are entered on the case.</div>
+      </div>
     </div></div>
   </div>;
 }
@@ -318,11 +760,13 @@ function App() {
     <div className="side">
       <h6>Microbiology</h6>
       <button className={view === 'case' ? 'on' : ''} onClick={() => setView('case')}>Case view (TB example)</button>
-      <button className={view === 'wl' ? 'on' : ''} onClick={() => setView('wl')}>Worklist: Needs attention</button>
+      <button className={view === 'wl' ? 'on' : ''} onClick={() => setView('wl')}>Worklist (Needs attention, Bench)</button>
+      <h6 style={{ marginTop: '1rem' }}>Admin</h6>
+      <button className={view === 'adm' ? 'on' : ''} onClick={() => setView('adm')}>Test catalog field, plating templates</button>
       <h6 style={{ marginTop: '1rem' }}>Orders &amp; Patients</h6>
-      <button className={view === 'oe' ? 'on' : ''} onClick={() => setView('oe')}>Enter Order: Microbiology section</button>
+      <button className={view === 'oe' ? 'on' : ''} onClick={() => setView('oe')}>Enter Order: samples and tests</button>
     </div>
-    <div className="main">{view === 'case' ? <CaseView /> : view === 'wl' ? <Worklist /> : <OrderEntry />}</div>
+    <div className="main">{view === 'case' ? <CaseView /> : view === 'wl' ? <Worklist /> : view === 'adm' ? <PlatingTemplatesAdmin /> : <OrderEntry />}</div>
   </div>;
 }
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);

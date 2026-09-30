@@ -1,6 +1,6 @@
 # Clinical Order Entry v4: Acceptance Test Scripts
 
-Date: 2026-09-26. Reviewer scripts for every slice in `order-entry-v4-implementation-plan.md`. They are written against FRS v0.8 (`clinical-order-entry-v4-frs.md`).
+Date: 2026-09-29. Reviewer scripts for every slice in `order-entry-v4-implementation-plan.md`. They are written against FRS v0.15 (`clinical-order-entry-v4-frs.md`). FR-B12a (Microbiology program section) is tested with the Microbiology v2 work.
 
 Each script names:
 - **Where** to run it: the testing instance, or the design preview for layout-only checks.
@@ -80,7 +80,7 @@ These are the QA handoff's "must keep working" cases. All must still pass.
 | Step | Action | Expected |
 |---|---|---|
 | 1 | Open Enter Order. | A notice says: "This computer's clock is 20 minutes off. Times are taken from the laboratory server." |
-| 2 | Look at the default order date and time. | It is the server's current time in Port Moresby time, not the PC time. |
+| 2 | Look at the order date and time, then switch on Samples received and look at Received date and time. | Order date is blank and optional. Received defaults to the server's current time in Port Moresby time, not the PC time. |
 | 3 | Admin → Site Information. | "Laboratory time zone: Pacific/Port_Moresby", read-only, with "Set by the distribution configuration". |
 | 4 | Set collection at 11:00 and received at 10:00. Try Save and next. | A warning on the field. Completing the step needs the "Collection time is after receipt" confirmation, and the saved value is unchanged. (TC-OEW-08) |
 | 5 | Enter a date, go Back, then forward. | The date and time are unchanged, never blank. (TC-OEW-06) |
@@ -143,9 +143,28 @@ These are the QA handoff's "must keep working" cases. All must still pass.
 |---|---|---|
 | 1 | Scan the page top to bottom. | The sections are numbered 1 to 8: Order, Patient, Requester, Request details, Tests, Samples received, Billing and notifications (only if enabled), Attachments. |
 | 2 | Find priority. | It sits beside the lab number. |
-| 3 | Find order date and required by. | They sit side by side in Request details. |
+| 3 | Find Entered, order date and required by. | They sit side by side in the Order section; Entered is read-only and says it is recorded on save. Save with the order date blank: the save succeeds. |
 | 4 | Look for the old Print Labels accordion. | It is gone. |
 | 5 | Save and finish, then choose New order. | The page is empty, with a new lab number and no previous patient. |
+
+### M13. Domain switcher (preview)
+
+Setup: the catalog has active tests on clinical and environmental sample types (for example Throat Culture on Throat swab, and Aerobic Plate Count on Surface swab, both in the Microbiology lab unit).
+
+| Step | Action | Expected |
+|---|---|---|
+| 1 | Open the SideNav under Orders & Patients. | One item, Add Order. No Add Clinical, Add Environmental or Add Vector Order items. |
+| 2 | Choose Add Order as a user who has never used it. | The Clinical dashboard opens, with a Clinical / Environmental switcher. Vector is not shown (no active vector tests). |
+| 3 | Choose Environmental. | The environmental dashboard opens. The breadcrumb reads Environmental Orders. |
+| 4 | Start a new order, then choose Clinical before entering anything. | The clinical form opens at once, with the same lab number. |
+| 5 | Add a patient and Throat Culture, then choose Environmental. | A confirmation lists what is kept (lab number, received date and time, notes) and what is cleared (patient, 1 test). Stay leaves everything as it was. |
+| 6 | Repeat and choose Switch. | The environmental form opens with the same lab number and received date and time; the patient and test are gone. |
+| 7 | In the test chooser, filter by Microbiology. | Only Aerobic Plate Count (the environmental test) is offered, not Throat Culture. |
+| 8 | Save the order, then reopen it. | The header shows an Environmental tag, not the switcher. Its tooltip explains cancel and re-enter. |
+| 9 | Cancel the order. | "Registered in the wrong domain" is in the reason list. |
+| 10 | Sign out and back in, then choose Add Order. | The environmental dashboard opens (last used). |
+| 11 | Deactivate every environmental test, then choose Add Order. | No switcher; the Clinical dashboard opens. |
+| 12 | Tab to the switcher and use the arrow keys. | Focus moves between domains; Enter selects; the selected domain is announced. |
 
 ### M8. Search first and provider title
 

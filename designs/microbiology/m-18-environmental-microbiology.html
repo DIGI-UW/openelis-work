@@ -197,7 +197,7 @@ function ResultsScreen({ validation }) {
   );
 }
 
-/* ---------- Screen 3: Environmental Enter Order, Microbiology section ---------- */
+/* ---------- Screen 3: Environmental Enter Order: culture tests like any test ---------- */
 const SITES = [
   { n: 'Medical Ward 3, Port Moresby General Hospital', k: 'Sampling site · ward monitored by Infection Prevention' },
   { n: 'Surgical Ward 1, Port Moresby General Hospital', k: 'Sampling site · ward monitored by Infection Prevention' },
@@ -210,8 +210,6 @@ function EnvOrderScreen() {
     { num: '26CPHL00512-2', fid: 'IPC-0418', st: 'Surface swab', test: 'Surface swab culture', point: 'Nurse station keyboard' },
     { num: '26CPHL00512-3', fid: 'IPC-0419', st: 'Surface swab', test: 'Surface swab culture', point: 'Bed 12 rail' },
   ];
-  const [units, setUnits] = useState(['Environmental Microbiology', 'Environmental Microbiology', 'Environmental Microbiology']);
-  const [extra, setExtra] = useState(false);
   const [siteQ, setSiteQ] = useState('ward');
   const [siteOpen, setSiteOpen] = useState(false);
   const [site, setSite] = useState('Medical Ward 3, Port Moresby General Hospital');
@@ -237,25 +235,15 @@ function EnvOrderScreen() {
         <table className="cds--data-table cds--data-table--sm"><thead><tr><th>Sample</th><th>Field ID</th><th>Site</th><th>Sampling point</th><th>Tests</th></tr></thead>
           <tbody>{lines.map(l => <tr key={l.num}><td className="mono">{l.num}</td><td>{l.fid}</td><td>{site}</td><td>{l.point}</td><td>{l.test}</td></tr>)}</tbody></table>
       </Fence>
-      <div className="row-flex" style={{ margin: '8px 0' }}><span className="hint" style={{ fontWeight: 600 }}>Program</span><Tag c="purple">Microbiology</Tag><span className="muted hint">(Order defaults, env v4 EV-B3a). Choosing it shows the section below.</span></div>
       <NewBlock>
-        <div className="sec-h" style={{ marginTop: 0 }}>Microbiology</div>
-        <div className="muted" style={{ marginBottom: 10 }}>This order will create {lines.length + (extra ? 1 : 0)} Microbiology Cases.</div>
+        <div className="sec-h" style={{ marginTop: 0 }}>After save <span className="muted" style={{ fontWeight: 400, fontSize: 13 }}>(drawn for review; reception sees nothing extra)</span></div>
         <table className="cds--data-table cds--data-table--md">
-          <thead><tr><th>Sample</th><th>Sample type and test</th><th>Lab unit *</th><th></th></tr></thead>
-          <tbody>{lines.map((l, i) => (
-            <tr key={l.num}>
-              <td><div className="mono">{l.num}</div><div className="hint">Field ID {l.fid}</div></td>
-              <td>{l.st}<div className="hint">{l.test}</div></td>
-              <td><select className="cds--select-input" value={units[i]} onChange={e => { const u = [...units]; u[i] = e.target.value; setUnits(u); }} aria-label={'Lab unit for ' + l.num}><option>Environmental Microbiology</option><option>Water Quality</option></select><div className="hint">Default: lab unit of the first test</div></td>
-              <td>{i === 2 && !extra ? <Btn kind="ghost" onClick={() => setExtra(true)}>+ Another lab unit</Btn> : null}</td>
-            </tr>))}
-            {extra && <tr><td><div className="mono">26CPHL00512-3</div><div className="hint">second Case, same sample</div></td><td className="muted">Surface swab</td><td><select className="cds--select-input" defaultValue="Water Quality"><option>Water Quality</option><option disabled>Environmental Microbiology (already used)</option></select></td><td><Btn kind="ghost" onClick={() => setExtra(false)}>Remove</Btn></td></tr>}
-          </tbody>
+          <thead><tr><th>Case opens for</th><th>Sample</th><th>Lab unit</th><th>Culture purpose</th></tr></thead>
+          <tbody>{lines.map(l => <tr key={l.num}><td>{l.test}</td><td><span className="mono">{l.num}</span> <span className="hint">{l.point}</span></td><td>Environmental Microbiology</td><td>Routine monitoring <span className="hint">(default, changed on the Case)</span></td></tr>)}</tbody>
         </table>
-        <div className="hint" style={{ marginTop: 10 }}>Nothing else is asked here. Purpose and replicates are entered on the Case (Microbiology v2 A-03); no culture protocol (retired). The lab unit can be changed later in Edit order or on the Case.</div>
+        <div className="hint" style={{ marginTop: 10 }}>No Microbiology section and no Program coupling (Microbiology v2 D-146). Surface swab culture is picked in the samples table like any test. One case per sampling point; replicate swabs from one point would share a case, which the technician can split on the Case. Purpose and replicates are entered on the Case (Microbiology v2 A-03); no culture protocol (retired).</div>
       </NewBlock>
-      <Annot>Without Program = Microbiology no Case opens. Counts such as Total coliforms per 100 mL stay in environmental results entry with their regulatory limits (FR-C2). Linking samples to a cluster investigation is specified with M-16.</Annot>
+      <Annot>An environmental culture test on the order always opens its Case; Program is not set or read. Counts such as Total coliforms per 100 mL stay in environmental results entry with their regulatory limits (FR-C2). Linking samples to a cluster investigation is specified with M-16.</Annot>
     </div>
   );
 }
@@ -313,7 +301,8 @@ function CaseScreen() {
       <div className="sec-h">5 Isolates and 6 AST / DST</div>
       <div className="panel-grid">
         <div className="kv"><div className="k">Isolate 1</div><div className="v"><em>Staphylococcus aureus</em> (MALDI-TOF Biotyper, score 2.21, placed from Incoming results)</div></div>
-        <div className="kv"><div className="k">AST</div><div className="v">Cefoxitin screen positive: MRSA. Penicillin R</div></div>
+        <div className="kv"><div className="k">AST run 1 (Original, Reviewed)</div><div className="v">Panel Staph screen v2 · Method VITEK 2 · <b>Breakpoint standard CLSI M100 36th ed. (2026)</b> · Entry mode Analyzer (VITEK 2 card 2604417) · Reagent lot AST-GP75 5521</div></div>
+        <div className="kv"><div className="k">Readings</div><div className="v">Cefoxitin screen positive (matched by CLSI M100 2026): MRSA. Penicillin R. Override and revert, QC handling, expert flags, repeat and retest attempts and Use for reporting work as built (Microbiology v2 A-16).</div></div>
       </div>
 
       <div className="sec-h">Expert review <span className="muted" style={{ fontWeight: 400, fontSize: 13 }}>(M-06 rule trace)</span></div>
@@ -358,11 +347,11 @@ function WorklistScreen() {
   const units = ['Microbiology', 'Environmental Microbiology'];
   return (
     <div>
-      <Head route="/microbiology/worklist" crumbs={['Home', 'Microbiology', 'Worklist']} title="Microbiology worklist" sub="Cultures view. Cases from every micro lab unit you are assigned to: Microbiology and Environmental Microbiology." />
+      <Head route="/Microbiology/worklist" crumbs={['Home', 'Microbiology', 'Worklist']} title="Microbiology worklist" sub="Cultures view. Cases from every micro lab unit you are assigned to: Microbiology and Environmental Microbiology." />
       <div className="row-flex" style={{ gap: 8, marginBottom: 8 }}><span className="cds--tag cds--tag--blue">Cultures</span><span className="cds--tag cds--tag--cool-gray">AST runs</span></div>
       <NewBlock style={{ padding: '10px 14px' }}>
         <TagFilter label="Lab unit" value={lu} onChange={setLu} options={[['ALL', 'All', W.length], ...units.map(u => [u, u, W.filter(r => r.unit === u).length])]} />
-        <div className="hint" style={{ marginTop: 4 }}>Shown only to users assigned to more than one micro lab unit (FR-E1a).</div>
+        <div className="hint" style={{ marginTop: 4 }}>Shown only to users with rights in more than one lab unit that has a generic culture test (FR-E1a).</div>
       </NewBlock>
       <div className="cds--data-table-container"><table className="cds--data-table cds--data-table--md">
         <thead><tr><th>Patient or site <span className="chip-new">new</span></th><th>Lab unit</th><th>Specimen</th><th>Stage</th><th>Due action</th><th>Priority</th></tr></thead>
@@ -402,7 +391,7 @@ function LabUnitsScreen() {
         <div className="field" style={{ minWidth: 280 }}><label htmlFor="as">Lab unit</label>
           <select id="as" className="cds--select-input" value={assign} onChange={e => setAssign(e.target.value)}>{U.map(x => <option key={x.n}>{x.n}</option>)}</select></div>
       </div>
-      {ok ? <div className="notif">Surface swab culture is in Environmental Microbiology. With Program = Microbiology on the order, it opens a Microbiology Case with a site as the subject.</div>
+      {ok ? <div className="notif">Surface swab culture is in Environmental Microbiology. Ordered on an environmental sample, it opens a Microbiology Case with a site as the subject.</div>
         : <div className="notif warn">Surface swab culture is an Environmental test. It can only go in an Environmental lab unit, such as Environmental Microbiology (D-030 guard).</div>}
       <Annot>Staff who work both benches are given both Microbiology and Environmental Microbiology in the existing user administration (FR-A4).</Annot>
     </div>
@@ -438,7 +427,7 @@ function WhonetScreen() {
 const SCREENS = [
   { n: 1, g: 'Results and validation', label: 'Results: cultures stay in the Case', route: '/Results', user: 'John Wari (Laboratory technician)', C: () => <ResultsScreen /> },
   { n: 2, label: 'Validation: same rules', route: '/Validation', user: 'Grace Pokana (Validator)', C: () => <ResultsScreen validation /> },
-  { n: 3, g: 'Order entry', label: 'Environmental order: Microbiology section', route: '/order/environmental/enter', user: 'Mary Kila (Reception)', C: () => <EnvOrderScreen /> },
+  { n: 3, g: 'Order entry', label: 'Environmental order: culture tests', route: '/order/environmental/enter', user: 'Mary Kila (Reception)', C: () => <EnvOrderScreen /> },
   { n: 4, g: 'Microbiology', label: 'Environmental Case workbench', route: '/microbiology/case/MC-2026-00388', user: 'John Wari (Laboratory technician)', C: () => <CaseScreen /> },
   { n: 5, label: 'Worklist: patient or site', route: '/microbiology/worklist', user: 'John Wari (Laboratory technician)', C: () => <WorklistScreen /> },
   { n: 6, g: 'Test catalog', label: 'Lab Units: Environmental Microbiology', route: '/admin/TestCatalogList?entity=labunits', user: 'Admin (Test Catalog Manager)', C: () => <LabUnitsScreen /> },
@@ -450,7 +439,7 @@ function App() {
   const m = SCREENS[s - 1];
   return (
     <div>
-      <div className="pv-banner"><span>Visual Preview: M-18 Environmental Microbiology (FRS v0.5, Microbiology v2 layout) | OpenELIS Design Mockup | Not a live application</span><span>Screen {s}: {m.route}</span></div>
+      <div className="pv-banner"><span>Visual Preview: M-18 Environmental Microbiology (FRS v0.8, Microbiology v2 draft 8 layout) | OpenELIS Design Mockup | Not a live application</span><span>Screen {s}: {m.route}</span></div>
       <header className="app-header"><div className="brand">OpenELIS Global <span>| Central Public Health Laboratory (CPHL), Port Moresby</span></div><div>Signed in: {m.user}</div></header>
       <div className="shell">
         <aside className="rail" aria-label="Preview navigation">

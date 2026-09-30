@@ -1,365 +1,392 @@
-// Route: /MasterListsPage/reportManagement
-// SideNav: Admin → Configuration → Report Management
-// FRS: report-management.md
-// Model: plugin-with-shipped-defaults — bundled default templates + per-deployment overrides,
-//        always revertible. Version-agnostic mockup (breakdown decides v1/v2).
+// Report Management: developer handoff mockup (FRS: patient-report-and-report-management-frs.md v2.1, Part B)
+// Route: /MasterListsPage/reportManagement   (old /MasterListsPage/PrintedReportsConfigurationMenu redirects here)
+// SideNav: Admin › Config › Workflow Settings › Report Management (replaces "Printed Reports", D-065 / D-090)
+// Breadcrumb: Home / Admin Management / Workflow Settings / Report Management (D-013)
+// Access: existing Admin role only (D-006). No new permission keys.
+//
+// Mock data only. Every string goes through t(key, fallback); keys are listed in FRS §13.2.
+// V2-only sections render when showV2 is true (FR-B12 to FR-B19).
+// Existing shipped components are NOT redrawn here: the Admin SideNav and page shell are reused as they ship (D-063).
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
-  Grid, Column, Stack,
-  DataTable, TableContainer, Table, TableHead, TableRow, TableHeader,
+  Grid, Column, Stack, Breadcrumb, BreadcrumbItem, Tile, Button, Link, Tag,
+  RadioButtonGroup, RadioButton, TextInput, Toggle, InlineNotification, Modal,
+  FileUploaderButton, DataTable, TableContainer, Table, TableHead, TableRow, TableHeader,
   TableBody, TableCell, TableExpandHeader, TableExpandRow, TableExpandedRow,
   TableToolbar, TableToolbarContent, TableToolbarSearch,
-  RadioButtonGroup, RadioButton, Select, SelectItem, FileUploader,
-  Button, Tag, Modal, InlineNotification, Tile, Breadcrumb, BreadcrumbItem,
 } from '@carbon/react';
-import { Document, View, Renew, Upload, WarningAltFilled } from '@carbon/icons-react';
+import { View, Reset } from '@carbon/icons-react';
 
 const t = (key, fallback) => fallback || key;
 
-// --- Mock data: the reports OpenELIS ships, seeded from the real report inventory (FR-1/FR-9). ---
-// Realistic deployment names; the patient report is the config-driven anchor.
-const INITIAL_REPORTS = [
-  {
-    key: 'patientResult',
-    name: 'Patient Result Report',
-    category: 'Clinical',
-    configurable: true,
-    source: 'SHIPPED',              // SHIPPED | CUSTOM
-    activeTemplate: 'patient_letter.jrxml',
-    activeVersion: 'v3.2 (shipped)',
-    variants: [
-      { key: 'patient_letter', label: 'Letter — accredited layout' },
-      { key: 'patient_a4', label: 'A4 — accredited layout' },
-    ],
-    activeVariant: 'patient_letter',
-    settings: { paperSize: 'LETTER', accreditationLogoPosition: 'BOTTOM' },
-    customTemplate: null,           // { filename, uploadedBy, uploadedAt } when uploaded
-    newerDefaultAvailable: false,
-  },
-  {
-    key: 'nonConformance',
-    name: 'Non-Conformance Report',
-    category: 'Quality',
-    configurable: true,
-    source: 'CUSTOM',
-    activeTemplate: 'CPHL_NCE_custom.jrxml',
-    activeVersion: 'custom · 2026-05-12',
-    variants: [{ key: 'nce_standard', label: 'Standard NCE layout' }],
-    activeVariant: 'nce_standard',
-    settings: {},
-    customTemplate: { filename: 'CPHL_NCE_custom.jrxml', uploadedBy: 'admin', uploadedAt: '2026-05-12' },
-    newerDefaultAvailable: true,    // upgrade shipped a newer default while on custom
-  },
-  {
-    key: 'workplan',
-    name: 'Workplan',
-    category: 'Operational',
-    configurable: true,
-    source: 'SHIPPED',
-    activeTemplate: 'workplan_default.jrxml',
-    activeVersion: 'v3.2 (shipped)',
-    variants: [{ key: 'workplan_default', label: 'Default workplan layout' }],
-    activeVariant: 'workplan_default',
-    settings: {},
-    customTemplate: null,
-    newerDefaultAvailable: false,
-  },
-  {
-    key: 'auditExport',
-    name: 'Audit Trail Export',
-    category: 'Administrative',
-    configurable: false,            // resolution still hard-coded — read-only row (FR-9)
-    source: 'SHIPPED',
-    activeTemplate: 'audit_export.jrxml',
-    activeVersion: 'v3.2 (shipped)',
-    variants: [],
-    activeVariant: null,
-    settings: {},
-    customTemplate: null,
-    newerDefaultAvailable: false,
-  },
+// Report list comes from the existing report configuration records (reportconfiguration.Report,
+// ReportCategory): display key, category, sort order, visibility (FR-B4). Mocked here.
+const REPORTS = [
+  { id: 'patientCILNSP_vreduit', name: 'Patient Status Report', category: 'Clinical', template: 'patient_letter / patient_a4', configurable: true, hasA4: true },
+  { id: 'patientCILNSP', name: 'Patient Report (full)', category: 'Clinical', template: 'PatientReportCDI', configurable: false },
+  { id: 'pathology', name: 'Pathology Report', category: 'Clinical', template: 'PatientPathologyReport', configurable: false },
+  { id: 'cytology', name: 'Cytology Report', category: 'Clinical', template: 'PatientCytologyReport', configurable: false },
+  { id: 'TBPatientReport', name: 'TB Patient Report', category: 'Clinical', template: 'TBPatientReport', configurable: false },
+  { id: 'activityReportByTest', name: 'Activity Report by Test', category: 'Management', template: 'ActivityReport', configurable: false },
+  { id: 'rejection', name: 'Sample Rejection Report', category: 'Quality', template: 'RejectionReport', configurable: false },
 ];
 
-const categoryTagKind = (c) =>
-  ({ Clinical: 'blue', Operational: 'teal', Quality: 'purple', Administrative: 'warm-gray' }[c] || 'gray');
+const CUSTOM_TEMPLATES = [
+  { id: 'cphl_patient_2026', label: 'cphl_patient_2026', pair: true, modified: '2026-09-20 16:02', usable: true },
+  { id: 'cphl_patient_2025.jrxml', label: 'cphl_patient_2025.jrxml', pair: false, modified: '2025-11-03 10:11', usable: true },
+  { id: 'draft_accred_footer.jrxml', label: 'draft_accred_footer.jrxml', pair: false, modified: '2026-09-25 08:47', usable: false,
+    reasons: ['Unknown parameter: accreditationFooterTitle', 'Unknown field: specimenQualityCode'] },
+];
 
-export default function ReportManagement() {
-  const [reports, setReports] = useState(INITIAL_REPORTS);
-  const [query, setQuery] = useState('');
-  const [notice, setNotice] = useState(null);          // { kind, title }
-  const [revertTarget, setRevertTarget] = useState(null);
-
-  const update = useCallback((key, patch) => {
-    setReports((prev) => prev.map((r) => (r.key === key ? { ...r, ...patch } : r)));
-  }, []);
-
-  const filtered = useMemo(
-    () => reports.filter((r) =>
-      (r.name + r.category).toLowerCase().includes(query.toLowerCase())),
-    [reports, query]
+// ---------------------------------------------------------------------------------------------
+// Print defaults (FR-B1 to FR-B3)
+// ---------------------------------------------------------------------------------------------
+function PrintDefaults() {
+  const [saved, setSaved] = useState('A4');
+  const [paper, setPaper] = useState('A4');
+  const [notice, setNotice] = useState(false);
+  return (
+    <Tile>
+      <Stack gap={5}>
+        <h4>{t('admin.reports.defaults.title', 'Print defaults')}</h4>
+        <RadioButtonGroup
+          legendText={t('admin.reports.defaults.paperSize', 'Paper size')}
+          name="paper-size"
+          valueSelected={paper}
+          onChange={setPaper}
+          helperText={t('admin.reports.defaults.paperSize.help', 'Applies to every report that has a Letter and an A4 layout.')}
+        >
+          <RadioButton id="paper-letter" value="LETTER" labelText={t('admin.reports.defaults.paperSize.letter', 'US Letter (8.5 × 11 in)')} />
+          <RadioButton id="paper-a4" value="A4" labelText={t('admin.reports.defaults.paperSize.a4', 'A4 (210 × 297 mm)')} />
+        </RadioButtonGroup>
+        <div>
+          <Button size="sm" kind="primary" disabled={paper === saved} onClick={() => { setSaved(paper); setNotice(true); }}>
+            {t('admin.reports.save', 'Save')}
+          </Button>
+        </div>
+        {notice && (
+          <InlineNotification kind="success" lowContrast onClose={() => setNotice(false)}
+            title={t('admin.reports.defaults.saved', 'Print defaults saved. New reports use them from now on.')} />
+        )}
+      </Stack>
+    </Tile>
   );
+}
+
+// ---------------------------------------------------------------------------------------------
+// Image control: square preview for logos, 4:1 for the signature (FR-B7)
+// ---------------------------------------------------------------------------------------------
+function ImageSetting({ id, label, help, shape, initial }) {
+  const [image, setImage] = useState(initial);
+  const [invalid, setInvalid] = useState(false);
+  const box = shape === 'square' ? { width: 96, height: 96 } : { width: 192, height: 48 };
+  const onFile = (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const ok = ['image/png', 'image/jpeg'].includes(f.type) && f.size <= 2 * 1024 * 1024;
+    setInvalid(!ok);
+    if (ok) setImage(URL.createObjectURL(f)); // saves at once, as today; audited (FR-B20)
+  };
+  return (
+    <Stack gap={3}>
+      <span className="cds--label">{label}</span>
+      <div style={{ ...box, border: '1px solid var(--cds-border-strong-01)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--cds-layer-01)' }}>
+        {image
+          ? <img src={image} alt={label} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+          : <span className="cds--label">{t('admin.reports.branding.none', 'No image')}</span>}
+      </div>
+      <Stack orientation="horizontal" gap={3}>
+        <FileUploaderButton id={`${id}-upload`} size="sm" buttonKind="tertiary" accept={['.png', '.jpg', '.jpeg']}
+          labelText={t('admin.reports.branding.replace', 'Replace')} disableLabelChanges onChange={onFile} />
+        <Button size="sm" kind="ghost" disabled={!image} onClick={() => setImage(null)}>{t('admin.reports.branding.remove', 'Remove')}</Button>
+      </Stack>
+      <span className="cds--form__helper-text">{help}</span>
+      {invalid && (
+        <InlineNotification kind="error" lowContrast hideCloseButton
+          title={t('admin.reports.branding.invalidImage', 'Choose a PNG or JPEG file up to 2 MB.')} />
+      )}
+    </Stack>
+  );
+}
+
+// ---------------------------------------------------------------------------------------------
+// Template registry, V2 (FR-B12 to FR-B19)
+// ---------------------------------------------------------------------------------------------
+function TemplateSection({ active, selected, setSelected, previewed, onPreview, onRevert, history }) {
+  const usable = CUSTOM_TEMPLATES.filter((c) => c.usable);
+  const unusable = CUSTOM_TEMPLATES.filter((c) => !c.usable);
+  return (
+    <Stack gap={5}>
+      <h5>{t('admin.reports.template.title', 'Template')}</h5>
+      {active !== 'shipped' && (
+        <InlineNotification kind="info" lowContrast hideCloseButton
+          title={t('admin.reports.template.newerDefault', 'A newer shipped template is available. This report uses a custom template.')}
+          actionButtonLabel={t('admin.reports.template.previewShipped', 'Preview shipped template')} />
+      )}
+      <RadioButtonGroup orientation="vertical" name="template" legendText={t('admin.reports.template.title', 'Template')}
+        valueSelected={selected} onChange={setSelected}>
+        <RadioButton id="tpl-shipped" value="shipped"
+          labelText={`${t('admin.reports.template.shippedDefault', 'Shipped default')}: patient_letter / patient_a4`} />
+        {usable.map((c) => (
+          <RadioButton key={c.id} id={`tpl-${c.id}`} value={c.id}
+            labelText={`${c.label} · ${t('admin.reports.template.meta', 'Configuration folder, modified {0}').replace('{0}', c.modified)}${c.pair ? ` · ${t('admin.reports.template.pair', 'Letter and A4 pair')}` : ''}`} />
+        ))}
+      </RadioButtonGroup>
+      {unusable.map((c) => (
+        <Stack key={c.id} gap={2}>
+          <span>{c.label} <Tag type="red" size="sm">{t('admin.reports.template.notUsable', 'Not usable')}</Tag></span>
+          {c.reasons.map((r) => <code key={r} className="cds--form-requirement" style={{ display: 'block' }}>{r}</code>)}
+        </Stack>
+      ))}
+      <span className="cds--form__helper-text">
+        {t('admin.reports.template.help', "Custom templates are placed in the server's configuration folder by the server operator. This page does not accept template uploads.")}
+      </span>
+      <Stack orientation="horizontal" gap={3}>
+        <Button size="sm" kind="tertiary" renderIcon={View} onClick={onPreview}>{t('admin.reports.template.preview', 'Preview with sample data')}</Button>
+        <Button size="sm" kind="danger--tertiary" renderIcon={Reset} disabled={active === 'shipped'} onClick={onRevert}>
+          {t('admin.reports.template.revert', 'Revert to shipped default')}
+        </Button>
+      </Stack>
+      {selected !== active && !previewed[selected] && (
+        <span className="cds--form__helper-text">{t('admin.reports.template.previewFirst', 'Preview this template before activating it.')}</span>
+      )}
+      <DataTable
+        rows={history}
+        headers={[
+          { key: 'date', header: t('admin.reports.template.history.col.date', 'Date') },
+          { key: 'user', header: t('admin.reports.template.history.col.user', 'User') },
+          { key: 'from', header: t('admin.reports.template.history.col.from', 'From') },
+          { key: 'to', header: t('admin.reports.template.history.col.to', 'To') },
+        ]}
+        size="sm"
+      >
+        {({ rows, headers, getHeaderProps, getRowProps, getTableProps }) => (
+          <TableContainer title={t('admin.reports.template.history', 'Recent template changes')}>
+            <Table {...getTableProps()}>
+              <TableHead><TableRow>{headers.map((h) => <TableHeader key={h.key} {...getHeaderProps({ header: h })}>{h.header}</TableHeader>)}</TableRow></TableHead>
+              <TableBody>{rows.map((r) => <TableRow key={r.id} {...getRowProps({ row: r })}>{r.cells.map((c) => <TableCell key={c.id}>{c.value}</TableCell>)}</TableRow>)}</TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </DataTable>
+    </Stack>
+  );
+}
+
+// ---------------------------------------------------------------------------------------------
+// Patient Status Report row expansion (FR-B7 to FR-B11, plus V2 template section)
+// ---------------------------------------------------------------------------------------------
+function PatientReportSettings({ showV2 }) {
+  const initial = { title: 'Dr.', given: 'Mary', surname: 'Kila', info: 'Port Moresby General Hospital campus, Boroko, NCD' };
+  const [saved, setSaved] = useState(initial);
+  const [form, setForm] = useState(initial);
+  const [notice, setNotice] = useState(null);
+  const [active, setActive] = useState('shipped');
+  const [selected, setSelected] = useState('shipped');
+  const [previewed, setPreviewed] = useState({ shipped: true });
+  const [revertOpen, setRevertOpen] = useState(false);
+  const [history, setHistory] = useState([
+    { id: 'h1', date: '2026-08-02 09:14', user: 'admin.kaupa', from: 'cphl_patient_2025.jrxml', to: 'Shipped default' },
+  ]);
+
+  const dirty = JSON.stringify(form) !== JSON.stringify(saved) || selected !== active;
+  const templateOk = selected === active || previewed[selected];
+  const label = (id) => (id === 'shipped' ? t('admin.reports.template.shippedDefault', 'Shipped default') : id);
+
+  const save = () => {
+    setSaved(form);
+    if (selected !== active) {
+      setHistory([{ id: `h${history.length + 1}`, date: '2026-09-30 10:20', user: 'admin.kaupa', from: label(active), to: label(selected) }, ...history]);
+      setActive(selected);
+    }
+    setNotice(t('admin.reports.saved', 'Report settings saved.'));
+  };
+
+  return (
+    <Stack gap={7} style={{ padding: '1rem 0' }}>
+      <Stack gap={5}>
+        <h5>{t('admin.reports.branding.title', 'Header and branding')}</h5>
+        <Grid narrow>
+          <Column lg={5} md={4} sm={4}>
+            <ImageSetting id="left-logo" shape="square" initial={null}
+              label={t('admin.reports.branding.leftLogo', 'Left header logo')}
+              help={t('admin.reports.branding.logoHelp', 'Square works best, at least 300 × 300 px. Other shapes are scaled to fit the square.')} />
+          </Column>
+          <Column lg={5} md={4} sm={4}>
+            <ImageSetting id="right-logo" shape="square" initial={null}
+              label={t('admin.reports.branding.rightLogo', 'Right header logo')}
+              help={t('admin.reports.branding.logoHelp', 'Square works best, at least 300 × 300 px. Other shapes are scaled to fit the square.')} />
+          </Column>
+          <Column lg={6} md={8} sm={4}>
+            <ImageSetting id="signature" shape="wide" initial={null}
+              label={t('admin.reports.branding.signature', 'Lab director signature')}
+              help={t('admin.reports.branding.signatureHelp', 'At least 800 × 200 px on a white background.')} />
+          </Column>
+        </Grid>
+      </Stack>
+
+      <Stack gap={5}>
+        <h5>{t('admin.reports.lines.title', 'Header lines')}</h5>
+        <div>
+          <span className="cds--label">{t('admin.reports.lines.siteName', 'Lab name')}</span>
+          <p>Central Public Health Laboratory <Link href="/MasterListsPage/SiteInformationMenu">{t('admin.reports.lines.siteNameLink', 'Edit in Site Information')}</Link></p>
+        </div>
+        <Grid narrow>
+          <Column lg={3} md={2} sm={4}>
+            <TextInput id="dir-title" labelText={t('admin.reports.lines.directorTitle', 'Lab director title')} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+          </Column>
+          <Column lg={5} md={3} sm={4}>
+            <TextInput id="dir-given" labelText={t('admin.reports.lines.directorGiven', 'Lab director given name')} value={form.given} onChange={(e) => setForm({ ...form, given: e.target.value })} />
+          </Column>
+          <Column lg={5} md={3} sm={4}>
+            <TextInput id="dir-surname" labelText={t('admin.reports.lines.directorSurname', 'Lab director surname')} value={form.surname} onChange={(e) => setForm({ ...form, surname: e.target.value })} />
+          </Column>
+          <Column lg={13} md={8} sm={4} style={{ marginTop: '1rem' }}>
+            <TextInput id="add-info" labelText={t('admin.reports.lines.additionalInfo', 'Additional site information line')} value={form.info} onChange={(e) => setForm({ ...form, info: e.target.value })}
+              helperText={t('admin.reports.lines.pageNumbersNote', 'Pages are always numbered "Page x of y".')} />
+          </Column>
+        </Grid>
+      </Stack>
+
+      <Stack gap={3}>
+        <h5>{t('admin.reports.accreditation.title', 'Accreditation')}</h5>
+        <p>
+          {t('admin.reports.accreditation.summary', 'Active accrediting bodies: {0}.').replace('{0}', 'ISO 15189 (PNGAS), SANAS')}{' '}
+          <Link href="#">{t('admin.reports.accreditation.link', 'Manage accreditation')}</Link>
+        </p>
+        <span className="cds--form__helper-text">{t('admin.reports.accreditation.help', 'Marks print in the report header, up to three. Results outside the accredited scope are marked with †.')}</span>
+      </Stack>
+
+      <Stack gap={3}>
+        <h5>{t('admin.reports.signatures.title', 'Signatures')}</h5>
+        {/* Filled by OGC-302 (report-level e-signatures), including esig.report.show_lab_director_signature (FR-B10) */}
+        <p>{t('admin.reports.signatures.placeholder', 'Electronic signature settings will appear here.')}</p>
+      </Stack>
+
+      {showV2 && (
+        <TemplateSection active={active} selected={selected} setSelected={setSelected} previewed={previewed} history={history}
+          onPreview={() => { setPreviewed({ ...previewed, [selected]: true }); setNotice(t('admin.reports.template.previewDone', 'Preview opened in a new tab.')); }}
+          onRevert={() => setRevertOpen(true)} />
+      )}
+
+      {notice && <InlineNotification kind="success" lowContrast title={notice} onClose={() => setNotice(null)} />}
+      <Stack orientation="horizontal" gap={3}>
+        <Button size="sm" kind="primary" disabled={!dirty || !templateOk} onClick={save}>{t('admin.reports.save', 'Save')}</Button>
+        <Button size="sm" kind="secondary" disabled={!dirty} onClick={() => { setForm(saved); setSelected(active); }}>{t('admin.reports.cancel', 'Cancel')}</Button>
+      </Stack>
+
+      <Modal open={revertOpen} danger size="sm"
+        modalHeading={t('admin.reports.template.revert.modal.title', 'Revert to shipped default?')}
+        primaryButtonText={t('admin.reports.template.revert.modal.confirm', 'Revert')}
+        secondaryButtonText={t('admin.reports.cancel', 'Cancel')}
+        onRequestClose={() => setRevertOpen(false)}
+        onRequestSubmit={() => {
+          setHistory([{ id: `h${history.length + 1}`, date: '2026-09-30 10:21', user: 'admin.kaupa', from: label(active), to: label('shipped') }, ...history]);
+          setActive('shipped'); setSelected('shipped'); setRevertOpen(false);
+        }}>
+        <p>{t('admin.reports.template.revert.modal.body', 'Revert {0} to the shipped template? The custom template stays in the configuration folder and can be selected again.').replace('{0}', 'Patient Status Report')}</p>
+      </Modal>
+    </Stack>
+  );
+}
+
+// ---------------------------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------------------------
+export default function ReportManagementPage({ showV2 = true }) {
+  const [search, setSearch] = useState('');
+  const [showAll, setShowAll] = useState(false);
+
+  const visible = useMemo(() => REPORTS.filter((r) =>
+    (showAll || r.configurable) && `${r.name} ${r.category}`.toLowerCase().includes(search.toLowerCase())), [search, showAll]);
 
   const headers = [
-    { key: 'name', header: t('admin.reports.list.column.report', 'Report') },
-    { key: 'category', header: t('admin.reports.list.column.category', 'Category') },
-    { key: 'activeTemplate', header: t('admin.reports.list.column.activeTemplate', 'Active template') },
-    { key: 'source', header: t('admin.reports.list.column.source', 'Source') },
-    { key: 'status', header: t('admin.reports.list.column.status', 'Status') },
+    { key: 'name', header: t('admin.reports.list.col.report', 'Report') },
+    { key: 'category', header: t('admin.reports.list.col.category', 'Category') },
+    { key: 'template', header: t('admin.reports.list.col.template', 'Template') },
   ];
-
-  const doRevert = () => {
-    const r = revertTarget;
-    update(r.key, {
-      source: 'SHIPPED',
-      activeTemplate: `${r.activeVariant || r.key}.jrxml`,
-      activeVersion: 'v3.2 (shipped)',
-      newerDefaultAvailable: false,
-      // customTemplate retained (D-002) — deactivated, not deleted
-    });
-    setRevertTarget(null);
-    setNotice({ kind: 'success', title: t('admin.reports.saved', 'Report settings saved') });
-  };
+  const hidden = REPORTS.filter((r) => !r.configurable).length;
 
   return (
     <Grid fullWidth>
       <Column lg={16} md={8} sm={4}>
-        <Breadcrumb noTrailingSlash style={{ marginBottom: '1rem' }}>
-          <BreadcrumbItem href="#">{t('breadcrumb.home', 'Home')}</BreadcrumbItem>
-          <BreadcrumbItem href="#">{t('breadcrumb.adminManagement', 'Admin Management')}</BreadcrumbItem>
-          <BreadcrumbItem href="#">{t('breadcrumb.configuration', 'Configuration')}</BreadcrumbItem>
+        <Breadcrumb noTrailingSlash>
+          <BreadcrumbItem href="/">{t('breadcrumb.home', 'Home')}</BreadcrumbItem>
+          <BreadcrumbItem href="/MasterListsPage">{t('breadcrumb.admin', 'Admin Management')}</BreadcrumbItem>
+          <BreadcrumbItem href="#">{t('sidenav.label.admin.workflowSettings', 'Workflow Settings')}</BreadcrumbItem>
           <BreadcrumbItem isCurrentPage>{t('admin.reports.title', 'Report Management')}</BreadcrumbItem>
         </Breadcrumb>
+        <h2 style={{ marginTop: '1rem' }}>{t('admin.reports.title', 'Report Management')}</h2>
+        <p style={{ marginBottom: '1.5rem' }}>{t('admin.reports.subtitle', 'Choose how OpenELIS prints reports for this lab.')}</p>
+      </Column>
 
-        <h2 style={{ marginBottom: '0.25rem' }}>{t('admin.reports.title', 'Report Management')}</h2>
-        <p style={{ marginBottom: '1rem', color: 'var(--cds-text-secondary)' }}>
-          Choose the template each report uses. Every report ships with a default you can always revert to;
-          upload a custom template to override it.
-        </p>
+      <Column lg={16} md={8} sm={4} style={{ marginBottom: '1.5rem' }}>
+        <PrintDefaults />
+      </Column>
 
-        {notice && (
-          <InlineNotification
-            kind={notice.kind}
-            title={notice.title}
-            lowContrast
-            onCloseButtonClick={() => setNotice(null)}
-            style={{ marginBottom: '1rem' }}
-          />
-        )}
-
-        <DataTable rows={filtered.map((r) => ({ id: r.key, ...r }))} headers={headers}>
-          {({ rows, headers, getHeaderProps, getRowProps, getExpandedRowProps, getTableProps, getExpandHeaderProps }) => (
-            <TableContainer title="" description="">
+      <Column lg={16} md={8} sm={4}>
+        <DataTable rows={visible} headers={headers}>
+          {({ rows, headers: hdrs, getHeaderProps, getRowProps, getTableProps, getExpandHeaderProps }) => (
+            <TableContainer>
               <TableToolbar>
                 <TableToolbarContent>
-                  <TableToolbarSearch
-                    persistent
-                    placeholder="Search reports"
-                    onChange={(e) => setQuery(e.target.value)}
-                  />
+                  <TableToolbarSearch persistent placeholder={t('admin.reports.list.search', 'Search reports')} onChange={(e) => setSearch(e.target ? e.target.value : '')} />
+                  <Toggle id="show-not-configurable" size="sm" labelText="" hideLabel
+                    labelA={t('admin.reports.list.showNotConfigurable', 'Show not configurable')}
+                    labelB={t('admin.reports.list.showNotConfigurable', 'Show not configurable')}
+                    toggled={showAll} onToggle={setShowAll} />
                 </TableToolbarContent>
               </TableToolbar>
               <Table {...getTableProps()}>
                 <TableHead>
                   <TableRow>
                     <TableExpandHeader {...getExpandHeaderProps()} />
-                    {headers.map((h) => (
-                      <TableHeader {...getHeaderProps({ header: h })} key={h.key}>{h.header}</TableHeader>
-                    ))}
+                    {hdrs.map((h) => <TableHeader key={h.key} {...getHeaderProps({ header: h })}>{h.header}</TableHeader>)}
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {rows.map((row) => {
-                    const r = reports.find((x) => x.key === row.id);
+                    const report = REPORTS.find((r) => r.id === row.id);
+                    const cells = [
+                      <TableCell key="n">{report.name}</TableCell>,
+                      <TableCell key="c"><Tag type="gray" size="sm">{report.category}</Tag></TableCell>,
+                      <TableCell key="t">
+                        {report.template}{' '}
+                        {report.configurable
+                          ? <Tag type="gray" size="sm">{t('admin.reports.source.shipped', 'Shipped default')}</Tag>
+                          : <span className="cds--label">{t('admin.reports.source.managedInCode', 'Managed in code')} · {t('admin.reports.letterOnly', 'Letter only')}</span>}
+                      </TableCell>,
+                    ];
+                    if (!report.configurable) {
+                      // Not expandable in V1 (FR-B5)
+                      return <TableRow key={row.id} {...getRowProps({ row })}><TableCell />{cells}</TableRow>;
+                    }
                     return (
                       <React.Fragment key={row.id}>
-                        <TableExpandRow {...getRowProps({ row })}>
-                          <TableCell>{r.name}</TableCell>
-                          <TableCell><Tag type={categoryTagKind(r.category)}>{r.category}</Tag></TableCell>
-                          <TableCell>
-                            <span style={{ fontFamily: 'monospace' }}>{r.activeTemplate}</span>
-                            <div style={{ fontSize: 12, color: 'var(--cds-text-secondary)' }}>{r.activeVersion}</div>
-                          </TableCell>
-                          <TableCell>
-                            <Tag type={r.source === 'CUSTOM' ? 'blue' : 'gray'}>
-                              {r.source === 'CUSTOM'
-                                ? t('admin.reports.source.custom', 'Custom')
-                                : t('admin.reports.source.shipped', 'Shipped default')}
-                            </Tag>
-                          </TableCell>
-                          <TableCell>
-                            {!r.configurable ? (
-                              <Tag type="gray">{t('admin.reports.notConfigurable', 'Managed in code — not yet configurable')}</Tag>
-                            ) : r.source === 'CUSTOM' ? (
-                              <Tag type="blue">{t('admin.reports.status.overridden', 'Overridden')}</Tag>
-                            ) : (
-                              <Tag type="green">{t('admin.reports.status.active', 'Active')}</Tag>
-                            )}
-                          </TableCell>
-                        </TableExpandRow>
-
-                        <TableExpandedRow {...getExpandedRowProps({ row })} colSpan={headers.length + 1}>
-                          {r.configurable
-                            ? <ReportDetail report={r} update={update} setNotice={setNotice} onRevert={() => setRevertTarget(r)} />
-                            : <ReadOnlyDetail report={r} />}
-                        </TableExpandedRow>
+                        <TableExpandRow {...getRowProps({ row })}>{cells}</TableExpandRow>
+                        {row.isExpanded && (
+                          <TableExpandedRow colSpan={hdrs.length + 1}>
+                            <PatientReportSettings showV2={showV2} />
+                          </TableExpandedRow>
+                        )}
                       </React.Fragment>
                     );
                   })}
+                  {rows.length === 0 && (
+                    <TableRow><TableCell colSpan={hdrs.length + 1}>{t('admin.reports.list.empty', 'No reports match your search.')}</TableCell></TableRow>
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>
           )}
         </DataTable>
-      </Column>
-
-      {revertTarget && (
-        <Modal
-          open
-          modalHeading={t('admin.reports.revert.modal.title', 'Revert to shipped default?')}
-          primaryButtonText={t('admin.reports.revert.modal.confirm', 'Revert')}
-          secondaryButtonText={t('admin.reports.revert.modal.cancel', 'Cancel')}
-          onRequestClose={() => setRevertTarget(null)}
-          onRequestSubmit={doRevert}
-          danger
-        >
-          <p>
-            Revert <strong>{revertTarget.name}</strong> to the shipped default template? Your custom
-            template is kept and can be re-selected later.
+        {!showAll && (
+          <p className="cds--form__helper-text" style={{ marginTop: '0.5rem' }}>
+            {t('admin.reports.list.hiddenCount', '{0} reports are managed in code and hidden.').replace('{0}', String(hidden))}
           </p>
-        </Modal>
-      )}
+        )}
+      </Column>
     </Grid>
-  );
-}
-
-function ReportDetail({ report: r, update, setNotice, onRevert }) {
-  const [uploadError, setUploadError] = useState(null);
-
-  const setSource = (source) => {
-    if (source === 'CUSTOM' && !r.customTemplate) {
-      setUploadError('Upload a custom template first, then select Custom override and Save.');
-      return;
-    }
-    update(r.key, {
-      source,
-      activeTemplate: source === 'CUSTOM' ? r.customTemplate.filename : `${r.activeVariant}.jrxml`,
-      activeVersion: source === 'CUSTOM' ? `custom · ${r.customTemplate.uploadedAt}` : 'v3.2 (shipped)',
-    });
-    setNotice({ kind: 'success', title: t('admin.reports.saved', 'Report settings saved') });
-  };
-
-  const onUpload = () => {
-    // Simulated validation success — real validation checks parameter-compatibility (FR-5).
-    update(r.key, { customTemplate: { filename: 'uploaded_template.jrxml', uploadedBy: 'you', uploadedAt: '2026-07-01' } });
-    setNotice({ kind: 'info', title: t('admin.reports.detail.upload.success', 'Custom template validated. Select "Custom override" and Save to use it.') });
-  };
-
-  return (
-    <Tile style={{ padding: '1.25rem', background: 'var(--cds-layer-02)' }}>
-      {r.newerDefaultAvailable && (
-        <InlineNotification
-          kind="warning" lowContrast hideCloseButton
-          title={t('admin.reports.upgrade.newDefaultAvailable', 'A newer shipped default is available for this report. You are on a custom override.')}
-          style={{ marginBottom: '1rem', maxWidth: 'none' }}
-        />
-      )}
-
-      <Grid>
-        <Column lg={8} md={4} sm={4}>
-          <Stack gap={5}>
-            <div>
-              <p style={{ fontSize: 12, textTransform: 'uppercase', color: 'var(--cds-text-secondary)' }}>
-                {t('admin.reports.detail.activeTemplate.label', 'Active template')}
-              </p>
-              <p style={{ fontFamily: 'monospace' }}>{r.activeTemplate} <span style={{ color: 'var(--cds-text-secondary)' }}>· {r.activeVersion}</span></p>
-            </div>
-
-            <RadioButtonGroup
-              legendText={t('admin.reports.detail.source.label', 'Template source')}
-              name={`source-${r.key}`}
-              valueSelected={r.source}
-              onChange={setSource}
-              orientation="vertical"
-            >
-              <RadioButton labelText={t('admin.reports.detail.source.shipped', 'Shipped default')} value="SHIPPED" id={`src-shipped-${r.key}`} />
-              <RadioButton labelText={t('admin.reports.detail.source.custom', 'Custom override')} value="CUSTOM" id={`src-custom-${r.key}`} />
-            </RadioButtonGroup>
-
-            {r.variants.length > 1 && r.source === 'SHIPPED' && (
-              <Select
-                id={`variant-${r.key}`}
-                labelText={t('admin.reports.detail.variant.label', 'Layout variant')}
-                value={r.activeVariant}
-                onChange={(e) => update(r.key, { activeVariant: e.target.value, activeTemplate: `${e.target.value}.jrxml` })}
-              >
-                {r.variants.map((v) => <SelectItem key={v.key} value={v.key} text={v.label} />)}
-              </Select>
-            )}
-          </Stack>
-        </Column>
-
-        <Column lg={8} md={4} sm={4}>
-          <Stack gap={5}>
-            {/* Per-report settings absorbed from Printed Report config (FR-6) */}
-            {('paperSize' in r.settings) && (
-              <>
-                <p style={{ fontSize: 12, textTransform: 'uppercase', color: 'var(--cds-text-secondary)' }}>
-                  {t('admin.reports.detail.settings.label', 'Report settings')}
-                </p>
-                <Select
-                  id={`paper-${r.key}`}
-                  labelText={t('admin.reports.detail.paperSize.label', 'Paper size')}
-                  value={r.settings.paperSize}
-                  onChange={(e) => update(r.key, { settings: { ...r.settings, paperSize: e.target.value } })}
-                >
-                  <SelectItem value="LETTER" text="Letter" />
-                  <SelectItem value="A4" text="A4" />
-                </Select>
-                <Select
-                  id={`logo-${r.key}`}
-                  labelText={t('admin.reports.detail.accreditationLogoPosition.label', 'Accreditation logo position')}
-                  value={r.settings.accreditationLogoPosition}
-                  onChange={(e) => update(r.key, { settings: { ...r.settings, accreditationLogoPosition: e.target.value } })}
-                >
-                  <SelectItem value="BOTTOM" text="Bottom of report (default)" />
-                  <SelectItem value="TOP" text="Top of report" />
-                </Select>
-              </>
-            )}
-
-            <FileUploader
-              labelTitle={t('admin.reports.detail.upload.label', 'Upload custom template (.jrxml)')}
-              labelDescription="Must use only the parameters this report provides."
-              buttonLabel="Add file"
-              accept={['.jrxml']}
-              filenameStatus="edit"
-              onChange={onUpload}
-            />
-            {uploadError && (
-              <InlineNotification kind="error" lowContrast title={uploadError} onCloseButtonClick={() => setUploadError(null)} style={{ maxWidth: 'none' }} />
-            )}
-          </Stack>
-        </Column>
-      </Grid>
-
-      <Stack orientation="horizontal" gap={3} style={{ marginTop: '1.25rem' }}>
-        <Button kind="tertiary" size="sm" renderIcon={View}>{t('admin.reports.detail.preview', 'Preview with sample data')}</Button>
-        <Button kind="ghost" size="sm" renderIcon={Renew} onClick={onRevert}>{t('admin.reports.detail.revert', 'Revert to shipped default')}</Button>
-      </Stack>
-    </Tile>
-  );
-}
-
-function ReadOnlyDetail({ report: r }) {
-  return (
-    <Tile style={{ padding: '1.25rem', background: 'var(--cds-layer-02)' }}>
-      <InlineNotification
-        kind="info" lowContrast hideCloseButton
-        title={t('admin.reports.notConfigurable', 'Managed in code — not yet configurable')}
-        subtitle={`${r.name} renders from ${r.activeTemplate} (${r.activeVersion}). Template selection for this report is resolved in code until the engine supports registry resolution for it.`}
-        style={{ maxWidth: 'none' }}
-      />
-    </Tile>
   );
 }
