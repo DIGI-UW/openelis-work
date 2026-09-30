@@ -101,6 +101,33 @@ Stale admin `editorKey`s also found (in `admin-ia-inventory.md`, now flagged the
 `/MasterListsPage/<editorKey>` and `/admin/<editorKey>` (e.g. `/admin/languageManagement`,
 `/admin/translationManagement`).
 
+## Route changes — shipped router re-read 2026-10-01 (bundle `index-DDcS0cc-.js`)
+
+Read from the live bundle's route and `Redirect` declarations without logging in, so these are
+**route facts only**; screen behaviour was not re-verified this cycle.
+
+| Area | Now shipped | Note |
+|---|---|---|
+| EQA | **`/qa/eqa/*`** (management, my-programs, my-cycles, participants, provider/schemes, provider/cycles/:cycleId/workbench, follow-up-queue, lab-performance/{coverage,recent}, analyst-competency, in-house) | `/EQAManagement`, `/EQADistribution`, `/EQAParticipants`, `/EQAResults`, `/EQAOrders`, `/EQAMyPrograms` still resolve, as **redirects** into `/qa/eqa/*`. Cite the `/qa/eqa/*` path in new specs |
+| Quality control | **`/qa/qc/*`** (dashboard, alerts, control-lots, manual-qc, reagent-qc, rule-config) | `/analyzers/qc/{db,control-lots,rule-config}` redirect here; `/analyzers/qc/charts/:analyzerId` and `/analyzers/qc/instruments/:instrumentId` remain under Analyzers |
+| Quality menu (new) | `/qa/overview`, `/qa/qi/{dashboard,amendment,callback,config,rejection,tat}`, `/qa/qms/{accreditation,audit-trail,capa-register,e-signature-log,nce-register}` | QA module (develop PR #4069, merged 2026-09-24). Check here before designing a new quality or audit page |
+| Analyzer Error Dashboard | **gone** — `/analyzers/errors` appears nowhere in the bundle | Retired by Casey 2026-09-24 (QA open-question 8). D-027's route list is superseded (see D-069) |
+| Storage | `/Storage/:resource(sample-items\|inventory-lots\|rooms\|devices\|shelves\|racks\|boxes)` | Inventory lots now live in Storage (develop PR #4016/#4033) |
+| Microbiology | `/MicrobiologyWorklist`, `/MicrobiologyCaseView/:caseId`, admin `MicrobiologyReference/:section/:detailId` | first shipped micro routes |
+| Vector | `/vector/deconvolution`, `/vector/identification`, `/VectorManualEntry`, `/VectorSurveillanceReport` | |
+| Other new | `/EnvironmentalDashboard`, `/LaporanHasil`, `/FreezerMonitoring`, `/analyzers/types/:profileId/mapping` | |
+
+Admin editorKey changes are recorded in `admin-ia-inventory.md`.
+
+## Terminology: "Lab Unit" is `test_section`
+"Lab Unit" and "Test Section" are the **same entity**. The schema and some shipped labels say
+`test_section` / "Test section" (the Test Catalog editor's Basic Info still does), but every spec,
+mockup and doc says **"Lab Unit"** and never mixes the two. There is **no `lab_unit` master table**:
+`lab_unit` in code is a user-role and login concept (`lab_unit_role_map`, `UserLabUnitRoles`,
+`REQUIRE_LAB_UNIT_AT_LOGIN`, TAT breakdown by lab unit). When grounding a data model, map
+"Lab Unit" to `test_section`; don't invent an entity. (Casey directive; promoted from memory
+2026-10-01.)
+
 ---
 
 ## Verified data models (reuse, don't re-derive)
@@ -136,3 +163,10 @@ add a confirmation date. Promote new verified facts here as they surface in QA o
   route re-verification deferred: authenticated session/JS execution blocked by tool-use policy in
   the unattended run; build hash cross-confirmed unchanged via the `openelis-qa-tracker` artifact's
   own 2026-09-01 drift check instead).
+
+- **2026-10-01 (monthly consolidation):** re-read the shipped router (unauthenticated bundle read;
+  no login this run) and added the 2026-10-01 route-change table: EQA and QC moved under `/qa/*`
+  with redirects from the old paths, a new Quality menu (`/qa/qi/*`, `/qa/qms/*`), the Analyzer
+  Error Dashboard retired, first Microbiology routes. Promoted the Lab Unit = `test_section`
+  terminology rule from memory. The not-built list was not re-confirmed against `develop` this
+  cycle beyond those routes.

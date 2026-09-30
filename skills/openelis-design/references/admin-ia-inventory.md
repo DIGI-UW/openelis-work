@@ -27,13 +27,13 @@ name** — e.g. Application Properties → `commonproperties`, Site Information 
 |---|---|
 | Reflex Tests Management | `reflex` |
 | Calculated Value Tests | `calculatedValue` |
-| Analyzer Test Name | `AnalyzerTestName` |
+| Analyzer Test Name | `AnalyzerTestName` — ⚠ not found in the router strings 2026-10-01 (UNVERIFIED: may be built dynamically); confirm before citing |
 | Lab Number Management | `labNumber` |
 | Program Entry | `program` |
-| ~~EQA Program Management~~ | ~~`eqaProgram`~~ — ⚠ **not in the shipped router (2026-08-01)**; EQA is its own module at `/EQAManagement` |
+| ~~EQA Program Management~~ | ~~`eqaProgram`~~ — ⚠ **not in the shipped router**; EQA is its own module, now at **`/qa/eqa/*`** (old `/EQAManagement` redirects; router 2026-10-01) |
 | Provider Management | `providerMenu` |
-| ~~Barcode Configuration~~ | ~~`barcodeConfiguration`~~ — ⚠ **not in the shipped router (2026-08-01)** |
-| List Plugins | `PluginFile` |
+| ~~Barcode Configuration~~ | ~~`barcodeConfiguration`~~ — **redirects to `labelPresets`** (router, 2026-10-01); cite Label Presets |
+| List Plugins | `PluginFile` — ⚠ not found in the router strings 2026-10-01 (UNVERIFIED); confirm before citing |
 | Organization Management | `organizationManagement` |
 | Result Reporting Configuration | `resultReportingConfiguration` |
 | User Management | `userManagement` |
@@ -54,6 +54,30 @@ name** — e.g. Application Properties → `commonproperties`, Site Information 
 | Language Management | `languageManagement` |
 | Translation Management | `translationManagement` |
 | Order Entry Configuration | `SampleEntryConfigurationMenu` |
+
+### Admin editorKeys in the shipped router but not in the table above (2026-10-01)
+
+Read from bundle `index-DDcS0cc-.js`. Page titles were not checked (no login), so only the keys
+are asserted; name the page from the live SideNav when you cite one.
+
+- **Test catalog:** `TestCatalogList` (entity lists, e.g. `?entity=labunits|panels|sampletypes`),
+  `TestCatalogEditor/:testId` (+ `/group/:ids/:section`, `/panel/:panelId/:section`), `TestCatalog`,
+  `CatalogImport` (CSV import, OGC-1194), `LabUnitManagement/:labUnitId`, `SampleTypeEditor/:sampleTypeId`,
+  `TestActivation`, `TestOrderability`, `ResultSelectListAdd`, and the legacy wizard families
+  `Test*`, `TestSection*`, `Panel*`, `SampleType*`, `Method*`, `Uom*`, `SelectListRenameEntry`.
+- **Configuration:** `PatientConfigurationMenu`, `ValidationConfigurationMenu`,
+  `ResultConfigurationMenu`, `PrintedReportsConfigurationMenu`, `MenuStatementConfigMenu`,
+  `SampleAcceptanceChecklist`, `calendarManagement`, `testNotificationConfig`,
+  `notificationTriggerConfig`, `labelPresets`.
+- **Menus:** `patientMenuManagement`, `studyMenuManagement`, `nonConformityMenuManagement` (the
+  menuConfiguration parent is still absent, BUG-49).
+- **Organizations and people:** `organizationEdit`, `userEdit`, `providerTitleMenu` (provider titles,
+  OGC-1223).
+- **Environmental and vector setup:** `environmental`, `vector`, `clinical`, `all`, `sampling-sites`,
+  `trap-types`, `species`, `vectorSurveillanceSetup`, `manual-entry-fields`, `ComplianceStandardsAdmin`.
+- **Integrations and operations:** `externalConnections`, `externalConnectionEdit`,
+  `stuckAnalyzerEvents`, `dataExportStatus`, `DatabaseCleaning`.
+- **Microbiology:** `MicrobiologyReference/:section/:detailId`.
 
 **Legacy admin (JSP):** `/api/OpenELIS-Global/MasterListsPage` (opens the old JSP UI in a
 new tab; orange header; "training installation" warning). Reference only — don't target for
@@ -81,10 +105,12 @@ new work.
 - **Workplan:** `/WorkplanByTest`, `/WorkplanByPanel`, `/WorkplanByPriority`, **`/WorkPlanByTestSection`** (⚠ only this one has a capital `P` — a real inconsistency in the app)
 - **Reports:** `/Report`, `/RoutineReport`, `/RoutineReports`, `/StudyReport`, `/StudyReports`, `/TATReport`; generation via JSP `/api/OpenELIS-Global/ReportPrint`
 - **Referrals:** `/SampleShipment`, `/SampleShipment/:tab`, `/SampleShipment/{receive,create-box,reports,settings}`, `/SampleShipment/box/:boxId`, `/ReferredOutTests`
-- **Analyzers:** `/analyzers`, `/analyzers/new`, `/analyzers/types`, `/analyzers/errors`, `/analyzers/custom-field-types`, `/analyzers/:id/{edit,mappings,qc-rules}`, `/analyzers/qc/{db,rule-config,control-lots,control-lots/new,control-lots/:id,charts/:analyzerId,instruments/:instrumentId}`
-- **EQA:** `/EQAManagement`, `/EQADistribution`, `/EQADistribution/create`, `/EQAMyPrograms`, `/EQAOrders`, `/EQAParticipants`, `/EQAResults`
+- **Analyzers:** `/analyzers`, `/analyzers/new`, `/analyzers/types`, `/analyzers/types/:profileId/mapping` (new), ~~`/analyzers/errors`~~ (retired 2026-09-24), `/analyzers/custom-field-types`, `/analyzers/:id/{edit,mappings,qc-rules}`, `/analyzers/qc/{db,rule-config,control-lots,control-lots/new,control-lots/:id,charts/:analyzerId,instruments/:instrumentId}`
+- **EQA:** now **`/qa/eqa/*`** (see `current-state-gotchas.md` 2026-10-01 table); the old `/EQAManagement`, `/EQADistribution`, `/EQAMyPrograms`, `/EQAOrders`, `/EQAParticipants`, `/EQAResults` are redirects
+- **Quality:** `/qa/overview`, `/qa/qc/*`, `/qa/qi/*`, `/qa/qms/*` (2026-10-01)
+- **Microbiology:** `/MicrobiologyWorklist`, `/MicrobiologyCaseView/:caseId` · **Vector:** `/vector/deconvolution`, `/vector/identification`, `/VectorManualEntry`, `/VectorSurveillanceReport` · **Environmental:** `/EnvironmentalDashboard`
 - **Alerts:** `/Alerts` · **Inventory:** `/inventory` (⚠ lowercase) · **Aliquot:** `/Aliquot` · **Freezer:** `/FreezerMonitoring`
-- **Storage:** `/Storage` + `/Storage/{rooms,devices,shelves,racks,boxes}` (each with `/new` and `/:id/edit`) and `/Storage/sample-items`, `/Storage/sample-items/:id/manage-location` (⚠ **`/Storage/samples` is not a route**)
+- **Storage:** `/Storage` + `/Storage/:resource` where resource is `sample-items|inventory-lots|rooms|devices|shelves|racks|boxes` (2026-10-01; inventory lots joined Storage), and `/Storage/sample-items`, `/Storage/sample-items/:id/manage-location` (⚠ **`/Storage/samples` is not a route**)
 - **Orders/Results:** `/ElectronicOrders`, `/SampleBatchEntrySetup`, `/PrintBarcode`, `/SamplePatientEntry`, `/SampleEdit`, `/ModifyOrder`, `/SampleManagement`, `/order`, `/result`, `/Results`, `/LogbookResults`, `/AccessionResults`, `/PatientResults(/:patientId)`, `/RangeResults`, `/StatusResults`, `/AnalyzerResults`
 - **Order wizard steps:** `<base>/enter`, `<base>/collect`, `<base>/label`, `<base>/qa`
 - **Patient:** `/PatientManagement/:patientId?`, `/PatientHistory`, `/PatientMerge`
@@ -117,3 +143,10 @@ a React SPA returns 200 for any path, so status codes cannot confirm a frontend 
 Three admin `editorKey`s were found stale and are struck through above; the non-admin
 sections were rewritten from the router output. Repeat this extraction each cycle rather
 than re-checking routes by hand.
+
+**Re-read 2026-10-01** from bundle `index-DDcS0cc-.js` (route strings and `Redirect` pairs, no login).
+Added the untabled editorKeys above, marked `barcodeConfiguration` as a redirect to `labelPresets`,
+moved EQA to `/qa/eqa/*`, and flagged `AnalyzerTestName` and `PluginFile` as not found (unverified,
+not asserted removed). Nested routes built at runtime (for example the per-analyzer
+`/analyzers/:id/...` pages) don't appear as literal strings, so their absence from the bundle scan
+proves nothing.

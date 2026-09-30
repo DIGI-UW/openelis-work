@@ -66,8 +66,12 @@ Domain records in a LIMS are never destroyed; they are deactivated and can be re
 Designs must scale to real deployment data volumes, especially the test catalog (assume
 ~500+ tests in production).
 
-- Any picker over a large/growing set (tests, organizations, providers, panels) MUST be
-  **search/typeahead** based (Carbon `ComboBox`/filterable), never a long static `Select`.
+- Any picker over a large/growing set (tests, **sample types**, organizations, providers, panels)
+  MUST be **search/typeahead** based (Carbon `ComboBox`/filterable), never a long static `Select`.
+  Sample Type counts in the hundreds in a real deployment and has been creeping into designs as a
+  static `Select`; treat it, and any controlled vocabulary (compliance standard, collection method),
+  as a large set. In XLSX/CSV templates, do not enumerate Sample Type as a data-validation dropdown;
+  resolve it in the app by typeahead. (Promoted from memory 2026-10-01; extends D-007.)
 - Designs SHOULD prefer **mapping/linking to an existing record** over creating a new one.
 - Designs MUST NOT embed a multi-step "create heavy entity" flow (e.g. creating a Test)
   inside another workflow; link out to the dedicated admin page, then return.
@@ -98,6 +102,13 @@ Stage 2 (Design Brief) and `/analyze` Pass C.
 - **No emoji checkmarks in funder-facing / professional outputs.** Use prose, not ✅/➡️/☑.
 - **Domain enum has no BOTH.** Domain is strictly CLINICAL / ENVIRONMENTAL / VECTOR
   everywhere (catalog and orders). Never propose BOTH, even as an order-level escape hatch.
+- **Selected items show their labels, not just a count.** Multi-select fields, chip/tag
+  groups, and selection summaries MUST render the selected items' full names (removable
+  chips or a readable list) — never a bare count like "3 selected" or a "3" badge with the
+  names hidden. A count MAY accompany the labels (e.g. a "Filters (2)" tally beside the
+  visible values), never replace them. Rationale: a count forces a click to discover what is
+  selected and invites errors; labels are scannable and self-documenting. `/analyze` Pass C:
+  a count-only chip/selection with hidden labels → MEDIUM. (Product direction, 2026-07-09.)
 - **Confirm "Done" ≠ shipped.** A Jira ticket marked Done is not proof a capability is
   live; confirm before claiming delivery in reports.
 

@@ -38,7 +38,13 @@ the **Epic** level: a **Feature Doc** child issue is (will be) auto-created unde
 Epic enters **In Review** (deployed, so there's something real to document). Tick **Docs N/A** on a
 Feature Doc to skip docs for trivial work. **Stories, Bugs, Tasks, and Tech Debt never get docs.**
 (The Epic-level auto-create + auto-close automation is staged but not yet enabled — confirm with
-Casey before assuming it fires.)
+Casey before assuming it fires; create the Feature Doc child manually if it didn't.)
+
+The Feature Doc is the **join point of the docs spine**: its body links the FRS + preview, the
+Confluence manual page (numeric page ID), and the drift-contract id — full template and the
+hygiene reconciliation check live in **`references/docs-spine.md`**. The manual entry itself is
+authored at **Acceptance or later** via the `openelis-user-manual` skill (verified behavior
+only, never from the FRS).
 
 ## What this means for /breakdown and ticket creation
 - New **Epics** = one per mockup/feature; expect a Feature Doc child once In Review is reached.

@@ -6,6 +6,18 @@
 
 ---
 
+## One ticket per feature, and it stays short
+`/breakdown` creates **exactly one** ticket — an **Epic**, or a **Story** when the work is one
+screen, needs no new data model, and fits in one reviewable PR. Never child Stories.
+
+The body is a **doorway, not a container**: 250–400 words of plain language in four short labelled
+sections — *What the lab user is trying to do*, *What we're building*, *How it fits the lab
+workflow*, *What it touches in OpenELIS* — then a links block (gallery prototype, standalone HTML
+preview, FRS, mockup JSX source, slicing guide, all in `openelis-work`). If a full narrative doc
+exists, link it in place of the prose sections. Acceptance criteria, FR tables, story points,
+version tables, i18n keys, and permission matrices do **not** go in the ticket; they live in the
+FRS. Format: `references/jira-template.md`.
+
 ## Links must be clickable
 When creating or commenting on issues via the Atlassian MCP, use `contentFormat: markdown`
 with `[label](url)` syntax — it renders as a real clickable link. Verify via `renderedFields`
@@ -34,8 +46,8 @@ OGC-899 (PNG/CPHL Phase II) is linked-not-reparented, with `PNG` / `Phase2` labe
 ## Labels
 Combine country/deployment (`Madagascar`, `Indonesia`, `global`, `PNG`), domain (`vector`,
 `environmental`, `blood-bank`), and compliance/program (`iso-15189`, `SILNAS`, `Phase2`).
-Labels go on the Epic and propagate to every child Story, plus a version label
-(`v1`/`v2`/…) for sprint filtering.
+Labels go on the single handoff ticket. If the developer later splits it into their own
+stories, they carry the same labels plus a version label (`v1`/`v2`/…) for sprint filtering.
 
 **Contract attribution moved to a field.** Set the single-select
 **Contract** field on every active issue (see `references/ogc-workflow.md`); the old `contract:*`
@@ -51,10 +63,11 @@ labels are retired. Country/domain/program labels above still apply.
 The Jira reorg has shipped. OGC now runs a lean 6-state workflow
 (Backlog → Ready → In Progress → In Review → Acceptance → Done) + Icebox, with an **Acceptance
 gate**, a **Reject Count** field, a **Contract** single-select field (replacing `contract:*`
-labels), and **per-Epic documentation** (a Feature Doc child, auto-created at In Review — staged).
+labels), and **per-ticket documentation** (a Feature Doc child, auto-created at In Review — staged).
 Full details and what it means for `/breakdown` and ticket creation: **`references/ogc-workflow.md`** —
 read it whenever you create epics/stories or report. (The doc-automation rules are built but
-staged-off; confirm with Casey before assuming they fire.)
+staged-off; confirm with Casey before assuming they fire.) Feature Doc body template and the
+design↔docs traceability rules: **`references/docs-spine.md`**.
 
 ---
 

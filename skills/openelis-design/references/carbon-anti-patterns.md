@@ -45,6 +45,7 @@ Inventing a new color or reusing a kind for an off-list status is an anti-patter
 | B5 | `Accordion` used for primary/required content | `Accordion` only for optional / advanced config | MEDIUM |
 | B6 | Inventing a new top-level SideNav group | Reuse Config / Organization / Resources / Automation / Compliance; flag a genuine gap explicitly | HIGH |
 | B7 | Confusing global admin buckets with editor-internal grouping | Global groups are SideNav-level, not inside a record editor (`feedback_admin_ia_vs_editor_ia`) | MEDIUM |
+| B8 | Multi-select / chip group / selection summary that shows only a **count** (e.g. "3 selected", a "3" badge) with the item names hidden | Render the selected items' **full labels** (removable chips or a readable list); a count MAY accompany the labels, never replace them (`feedback_selections_show_labels_not_counts`) | MEDIUM |
 
 ---
 
@@ -52,7 +53,7 @@ Inventing a new color or reusing a kind for an off-list status is an anti-patter
 
 | # | Anti-pattern | Correct pattern | Severity |
 |---|---|---|---|
-| C1 | Long static `Select` over a large/growing set (tests ~500+, orgs, providers, panels) | Search / typeahead `ComboBox` (filterable) | MEDIUM |
+| C1 | Long static `Select` over a large/growing set (tests ~500+, **sample types (hundreds)**, orgs, providers, panels, any controlled vocabulary) | Search / typeahead `ComboBox` (filterable) | MEDIUM |
 | C2 | Embedding a multi-step "create heavy entity" flow (e.g. create a Test) inside another workflow | Link out to the dedicated admin page, then return | MEDIUM |
 | C3 | Creating a new record where linking to an existing one would do | Prefer mapping/linking to an existing record | LOW |
 

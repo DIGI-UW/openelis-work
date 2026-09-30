@@ -3,7 +3,7 @@ name: openelis-design
 description: "Expert assistant for designing features in OpenELIS Global, an open-source laboratory information management system (LIMS). Use this skill whenever the user asks to design, specify, mockup, or document any feature for OpenELIS Global — including new modules, admin configuration pages, workflow improvements, analyzer integrations, or clinical data views. Also triggers for Jira story creation, FRS documents, React/Carbon mockups, or any request involving lab informatics design for OpenELIS. If the user mentions lab workflows, LIMS features, clinical lab software, or says anything about \"OpenELIS\", use this skill immediately. Also use for design critique, crosswalk analysis, harmonization reviews, or when the user asks to review, improve, or validate an existing mockup or spec."
 ---
 
-# OpenELIS Global Design Skill v3.3
+# OpenELIS Global Design Skill v3.17
 
 OpenELIS Global is an open-source LIMS used in clinical laboratories worldwide.
 
@@ -34,7 +34,7 @@ OpenELIS design work is organized into seven commands, each with a distinct trig
 | `/specify` | "Write the spec", "Build the FRS", "Document this feature" | Full FRS + mockup + visual preview via guided dialogue |
 | `/analyze` | "Review this spec", "Check for issues", crosswalk/harmonization requests | Cross-artifact consistency report (includes a cross-feature pass) |
 | `/checklist` | "Generate a checklist", "What should I validate?", pre-story quality gate | Domain-specific requirements quality checklist ("unit tests for English") |
-| `/breakdown` | "Break this into stories", "Plan the sprints", "Create the epic" | Slice approved mockup into 1 Epic + versioned child Stories (~20 pts each, 2-week sprints) |
+| `/breakdown` | "Create the epic", "Hand off to devs", "Break this down" | Build the JSX mockup, then create **exactly one ticket** — an Epic, or a Story if it's small enough. Short plain-language body — four sections (what the lab user is trying to do / what we're building / how it fits the lab workflow / what it touches in OpenELIS) — plus links to the prototype, preview, FRS, mockup source, and slicing guide in `openelis-work`. The **developer slices stories** — the skill does not create child Stories. |
 
 Commands chain naturally: a new feature typically runs `/clarify` → **`/crosscheck`** → `/specify` → `/analyze` → `/checklist` → `/breakdown`. Run `/crosscheck` early (at brief time) so overlaps and contradictions surface *before* you invest in the FRS; it also runs again as a pass inside `/analyze` at the final gate. `/breakdown` is the only command that creates Jira tickets.
 
@@ -275,11 +275,15 @@ A spec without a declared SideNav slot, breadcrumb, and URL is incomplete — de
   // SideNav: Admin → Configuration → Application Properties
   ```
 - **HTML preview:** Echo the route in the preview banner so reviewers see it without opening the JSX.
-- **Jira story:** Include the route and SideNav path in the description so the implementing dev has it at hand.
+- **Handoff ticket:** name the route inside the "How it fits" sentence only — the full SideNav + breadcrumb + URL declaration stays in the FRS.
 
-### Stage 3: Three Deliverables (FRS + Mockup + Preview)
+### Stage 3: Design Deliverables — FRS + HTML Preview now; JSX Mockup deferred to handoff
 
-Always produce all three together unless the user explicitly asks for only some.
+During the design session produce the **FRS + HTML preview** only. Do **not** write the JSX
+mockup while the design is still being iterated — it burns tokens re-editing a heavy artifact
+before the design is settled. The JSX mockup is a **developer-handoff** artifact: build it once,
+at the end, after Casey approves the FRS + preview (or when explicitly asked). The HTML preview —
+not the JSX — is what the reviewer looks at during iteration.
 
 **FRS structure:** See `references/frs-template.md`. The FRS opens with a **Lab Context** section (see below), followed by Overview, User Stories, Functional Requirements, and the rest of the standard sections (including the mandatory Localization table).
 
@@ -301,19 +305,23 @@ This section is the developer's onboarding to the feature. Everything below — 
 
 **FRS stays version-agnostic.** The FRS describes the full feature. Version boundaries (v1, v2, v3) are decided downstream in `/breakdown`, not in the FRS. This lets the breakdown plan re-slice without rewriting the spec.
 
-**Mockup:** See React/Carbon Patterns section below. Save as `[feature-name]-mockup.jsx`. The mockup also stays version-agnostic — show the full feature; `/breakdown` decides what lands in v1 vs v2.
+**Mockup (deferred to handoff):** The JSX mockup (`[feature-name]-mockup.jsx`, see React/Carbon
+Patterns below) is produced only at handoff — after the FRS + preview are approved — so tokens
+aren't spent re-editing it during iteration. It stays version-agnostic — show the full feature.
+It is attached to the handoff ticket for the developer.
 
-**Visual preview — required every time:** After writing the JSX mockup, always produce a
-`[feature-name]-preview.html` file. The JSX file is the implementation artifact; the preview
-is what lets the user **see the design right now** without any build step. Save it to the
+**Visual preview — required every time, authored directly from the FRS:** Produce a
+`[feature-name]-preview.html` file directly (do **not** wait for a JSX mockup — the preview is the
+review artifact and is authored on its own). The preview is what lets the user **see and iterate on
+the design right now** without any build step and without spending tokens on JSX. Save it to the
 workspace folder and share a `computer://` link right away in your reply. See the HTML
 Preview Pattern section below.
 
-**Registry upkeep (closing step):** once the FRS is approved, add/refresh this feature's row in `references/spec-registry.md` (entities, routes/pages, shared concepts, upstream/downstream deps, status) and add any new precedent it set to `references/decision-log.md`. This is what keeps `/crosscheck` accurate for the next feature — skipping it lets the portfolio index rot. If `/crosscheck` wasn't run earlier, run it now before handoff.
+**Registry upkeep (closing step):** once the FRS is approved, add/refresh this feature's row in `references/spec-registry.md` (entities, routes/pages, shared concepts, upstream/downstream deps, status, `Docs` = `—`) and add any new precedent it set to `references/decision-log.md`. This is what keeps `/crosscheck` accurate for the next feature — skipping it lets the portfolio index rot. If `/crosscheck` wasn't run earlier, run it now before handoff.
 
-**Jira handoff:** `/specify` does NOT create Jira tickets. After delivering the FRS, mockup, and preview, ask: *"Happy with the FRS, mockup, and preview? When you give the green light I'll run `/breakdown` to slice this into an Epic with versioned sprint stories."*
+**Jira handoff:** `/specify` does NOT create Jira tickets. After delivering the FRS + preview, ask: *"Happy with the FRS and preview? When you give the green light I'll build the JSX mockup and run `/breakdown` to create the ticket — one Epic (or a Story if it's small enough), with a short plain-language body and links back to the repo. The developer slices the stories."*
 
-All Jira creation (Epic + child Stories with version labels) happens in `/breakdown`. Metadata gathering (epic linkage, labels, assignee) also moves to `/breakdown` — see that command for details.
+All Jira creation happens in `/breakdown`, which creates **exactly one ticket** — an Epic, or a Story when the work is one screen with no new data model. The body stays short and links to the prototype, FRS, and slicing guide in `openelis-work`; the developer slices it into stories. The JSX mockup is built at this handoff step, not during design. Metadata gathering (narrative link, epic linkage, labels, assignee) also happens in `/breakdown` — see that command for details.
 
 ---
 
@@ -352,11 +360,11 @@ All Jira creation (Epic + child Stories with version labels) happens in `/breakd
 **E. Coverage Gaps**
 - Every FRS requirement has a corresponding UI element in mockup?
 - Every UI element in mockup traces to a requirement?
-- Every Jira acceptance criterion traces to an FRS requirement?
+- (Acceptance criteria live in the FRS, not in Jira — check the FRS's ACs, and check that no ACs leaked into the handoff ticket body.)
 
 **F. Cross-Module Harmonization**
 - Shared concepts (resistance status, QC badges, validation levels) rendered identically to existing modules?
-- Terminology consistent across FRS, mockup, and Jira story?
+- Terminology consistent across FRS, mockup, and the handoff ticket?
 - Data entities referenced in mockup present in FRS Data Model?
 
 **G. Invented Data** (design-addendum MUST A)
@@ -384,14 +392,16 @@ All Jira creation (Epic + child Stories with version labels) happens in `/breakd
 - Is access over-specified — e.g. a per-role matrix for a feature that lives wholly inside one role's existing workflow? (Unnecessary.)
 - Auto-CRITICAL: a write action with no stated role that can perform it.
 
-**K. Breakdown Plan Coverage** (only if a `[feature-name]-breakdown.md` exists)
-- Does every FR in the FRS appear in at least one version of the breakdown plan?
-- Does every UI element in the mockup get built by at least one story in the breakdown plan?
-- Are cross-cutting concerns (localization, access/roles) folded into the user-facing story that introduces them, not split into separate stories?
+**K. Slicing Guide Coverage** (only if a `[feature-name]-breakdown.md` exists — remember this
+artifact is a *non-binding suggestion* for the developer, so grade coverage strictly but treat
+sizing quibbles as advisory)
+- Does every FR in the FRS appear in at least one version of the slicing guide?
+- Does every UI element in the mockup get built by at least one slice?
+- Are cross-cutting concerns (localization, access/roles) folded into the user-facing slice that introduces them, not split out on their own?
 - Does any version exceed 20 story points without a declared `over-capacity: justified` reason?
 - Is v1 a thin shippable slice that delivers a complete user-facing capability (not split by technical layer)?
-- Is every story titled and scoped around user value rather than a technical layer or component?
-- Auto-HIGH: FRs or UI elements not assigned to any story, or any story scoped/titled by technical layer. Auto-MEDIUM: over-capacity versions without justification.
+- Is every slice titled and scoped around user value rather than a technical layer or component?
+- Auto-HIGH: FRs or UI elements not assigned to any slice, or any slice scoped/titled by technical layer. Auto-LOW (advisory): over-capacity versions without justification.
 
 **L. Lab Context Coverage** (FRS opening section)
 - Does the FRS open with a `## Lab Context` section *before* the Overview?
@@ -409,6 +419,11 @@ All Jira creation (Epic + child Stories with version labels) happens in `/breakd
 - Does it depend on an unbuilt upstream (`references/current-state-gotchas.md`) with no FRS Dependency declaration? Does it change something downstream specs rely on?
 - Is a shared concept (Critical Acknowledgment, TAT threshold model, ReferralStatus, QC/validation badges, Domain enum) rendered/modeled differently than the sibling that owns it?
 - Auto-CRITICAL: contradicts an active GLOBAL decision, or unbuilt-upstream dependency with no declaration. Auto-HIGH: contradicts an active FEATURE decision, or uncoordinated shared write path/model. See `/crosscheck` for the full procedure and output format.
+
+**N. Docs Impact** (see `references/docs-spine.md`)
+- Is this a redesign/extension of a **built** feature whose `spec-registry.md` row has a published manual page in its `Docs` column (or an entry in `openelis-work/docs-manual/contracts.json`)?
+- If yes: that published manual page will drift when this ships. Flag it so the handoff ticket's Feature Doc includes re-capturing and re-verifying the page (and bumping its `capturedVersion`).
+- Auto-MEDIUM: a shipped manual page is affected and the FRS/breakdown doesn't flag it.
 
 **Severity assignment:**
 
@@ -510,46 +525,78 @@ and implementation begins. This is NOT a QA/testing checklist.
 
 ---
 
-## `/breakdown` — Epic + Versioned Sprint Plan
+## `/breakdown` — One Ticket + Slicing Guide
 
-**Purpose:** Slice an approved FRS + mockup into one Jira Epic and a versioned set of
-child Stories that fit 2-week sprints. `/breakdown` is the **only command that creates
-Jira tickets**. Run it after `/specify` (and ideally after `/analyze` clears CRITICAL
-findings).
+**Purpose:** Turn an approved FRS + mockup into **exactly one Jira ticket** for developer handoff.
+`/breakdown` is the **only command that creates Jira tickets**, and it creates **one ticket only** —
+an **Epic**, or a **Story** when the work is small enough (rule below). The FRS, prototype, and
+slicing guide live in `openelis-work` and are **linked**, not pasted. The **developer slices the
+work**. The skill does **not** create child Stories. Run it after `/specify` (and ideally after
+`/analyze` clears CRITICAL findings).
+
+> **Handoff model (current — supersedes the slicing stages below):** We no longer pre-slice features
+> into child Stories, and we no longer stuff the ticket body. We deliver **one ticket** with a short,
+> plain-language orientation in four short sections (what the lab user is trying to do / what we're
+> building / how it fits the lab workflow / what it touches in OpenELIS) plus links to the prototype,
+> preview, FRS, mockup source, and slicing guide in `openelis-work`. Build the **JSX mockup now**
+> if `/specify` deferred it (it does by default). Everything below about versions, Fibonacci points,
+> and per-version capacity is retained **only** as the *suggested slicing guide shipped to the repo* —
+> not as ticket-body content, and not as tickets the skill creates.
 
 **Core principles:**
 
-1. **One mockup → one Epic.** Every mockup that ships gets its own Epic. The Epic is the
-   feature; child Stories are the work that builds it. Even a tiny feature still gets an
-   Epic with v1 only — the invariant holds.
-2. **Slice by user value, never by technical layer.** A version is a thin end-to-end
+1. **One mockup → one ticket; the developer slices.** Every mockup that ships gets exactly one Epic
+   (or Story). The skill does not create child Stories. The version/slice material below becomes a
+   `[feature-name]-breakdown.md` shipped to `openelis-work` and linked in one line from the ticket.
+
+   **Epic or Story?** Create a **Story** when *all* of these hold: it is one screen (a single route,
+   or a change to one existing screen), it needs no new data model, and a competent dev could ship it
+   in one reviewable PR. Otherwise create an **Epic**. When in doubt, Epic. Say which you picked and
+   why in one line when you report back.
+
+2. **The ticket body is a doorway, not a container.** Minimal details, mostly links. Its whole job
+   is to get a dev who has never seen the feature oriented in about a minute, in four short labelled
+   sections: *What the lab user is trying to do* → *What we're building* → *How it fits the lab
+   workflow* → *What it touches in OpenELIS*. Target 250–400 words. **No** acceptance criteria, FR tables, story points,
+   version tables, i18n key lists, or permission matrices in the ticket — those live in the FRS. If a
+   **full narrative document** exists, link that *instead of* writing the prose sections. Full body
+   format: `references/jira-template.md`.
+3. **Slice by user value, never by technical layer.** A version is a thin end-to-end
    slice a user can actually use on its own (e.g. read-only list). v2 builds on v1 (e.g.
    inline edit). v3 builds on v2 (e.g. bulk actions). Never split a version *or a story*
    by technical layer ("v1 = backend, v2 = frontend", or separate "API" and "UI"
    stories) — that produces unshippable intermediate states. Every story is something a
    user can do, and its title says so in plain language (not a layer or component name).
-3. **Each version fits in one ~2-week sprint with a target of 20 story points,** sized
+4. **Each version fits in one ~2-week sprint with a target of 20 story points,** sized
    using the Fibonacci scale (1, 2, 3, 5, 8, 13). A small feature has only v1; a large
    feature may have v1 → v2 → v3 (or more). Each version's points sum to ≤20 unless
    explicitly justified.
-4. **Cross-cutting work rolls into the user-facing story that touches it.** Localization
-   and access rules are *not* separate stories — they live in the acceptance criteria of
-   whichever user-facing story introduces them.
-5. **FRS stays version-agnostic.** Functional requirements describe the full feature.
+5. **Cross-cutting work rolls into the user-facing story that touches it.** Localization
+   and access rules are *not* separate stories — they are covered by the FRS acceptance criteria
+   for whichever user-facing slice introduces them.
+6. **FRS stays version-agnostic.** Functional requirements describe the full feature.
    Version boundaries are decided here in the breakdown plan, not in the FRS. This lets
    you re-slice (combine v2+v3, split v1 into v1a/v1b) without rewriting the FRS.
-6. **Plan first, Jira after approval.** `/breakdown` produces a markdown plan and waits
+7. **Plan first, Jira after approval.** `/breakdown` produces a markdown plan and waits
    for Casey's green light before touching Jira. Same gate as the FRS/mockup approval.
 
-7. Size to the implementation pipeline. When the implementer is Claude Code (agentic) rather than a human team, size each slice to one reviewable PR ("one branch, one PR, one review"), not to story points. Prefer fewer, larger-but-coherent vertical slices (often ~5–7 for a feature that would be ~14 human stories), because an agent implements a bigger coherent chunk in one pass than a human fits in a sprint. Story points and the 20-point/2-week target are human-planning artifacts; for an agent pipeline, replace "≤20 points per version" with "each slice is a PR a reviewer can actually read in one sitting."
-The breakdown is what enables small PRs — it does not happen automatically. Pointing Claude Code at a whole Epic produces one unreviewable chunk. Drive it slice-by-slice, one PR per slice.
-Every slice must still be: independently shippable, dependency-ordered (never needs an unbuilt dependency), and carry explicit, machine-checkable acceptance criteria so CI and the reviewer can confirm it. Reviewability of the diff matters more with an AI implementer, not less — the diff is where subtle errors are caught.
+8. **Size slices to the implementation pipeline.** When the implementer is Claude Code (agentic)
+   rather than a human team, size each slice to one reviewable PR ("one branch, one PR, one
+   review"), not to story points. Prefer fewer, larger-but-coherent vertical slices (often ~5–7
+   for a feature that would be ~14 human stories), because an agent implements a bigger coherent
+   chunk in one pass than a human fits in a sprint. Story points and the 20-point/2-week target
+   are human-planning artifacts; for an agent pipeline, replace "≤20 points per version" with
+   "each slice is a PR a reviewer can actually read in one sitting."
 
+   The slicing guide is what enables small PRs — it does not happen automatically. Pointing Claude
+   Code at a whole ticket produces one unreviewable chunk. Drive it slice-by-slice, one PR per
+   slice. Every slice must still be: independently shippable, dependency-ordered (never needs an
+   unbuilt dependency), and covered by explicit, machine-checkable **FRS acceptance criteria** so
+   CI and the reviewer can confirm it. Reviewability of the diff matters more with an AI
+   implementer, not less — the diff is where subtle errors are caught.
 
-
-Note for existing breakdowns
-
-Re-slice over-granular existing breakdowns against this principle. Known offender: the AMR review workflow micro-module breakdown.
+   **Note for existing breakdowns:** re-slice over-granular existing breakdowns against this
+   principle. Known offender: the AMR review workflow micro-module breakdown.
 
 ### Stage 1: Slice the feature into versions
 
@@ -583,8 +630,9 @@ v2. Continue until every FR from the FRS is covered.
 
 ### Stage 2: Estimate each story in story points
 
-For each version, decompose the work into 3–6 child Stories. Estimate each in Fibonacci
-points using this rubric:
+For each version, describe the work as 3–6 candidate slices (these are *suggestions in the
+slicing guide*, never tickets the skill creates). Estimate each in Fibonacci points using this
+rubric:
 
 | Points | Size | Typical scope (described as what a user can do) |
 |---|---|---|
@@ -598,9 +646,9 @@ points using this rubric:
 A story estimated at 13 should almost always be split into two ≤8s. Anything above 13 is
 too big — break it up before continuing.
 
-**Cross-cutting work is already inside each estimate.** A "let a user edit a record" story
-at 5 points already includes its localization and access rules. Do not add separate stories
-for these. The acceptance criteria of the user-facing story spell them out.
+**Cross-cutting work is already inside each estimate.** A "let a user edit a record" slice
+at 5 points already includes its localization and access rules. Do not add separate slices
+for these — the FRS acceptance criteria spell them out.
 
 ### Stage 3: Check capacity, propose splits if needed
 
@@ -616,7 +664,7 @@ If a version is under 10 points, flag it too: *`v3 totals 8 points — may have 
 
 If the pipeline is Claude Code, the capacity check is "is this slice a reviewable PR?" not "≤20 points." Flag and consolidate over-granular stories (many 1–2 point micro-stories that would each be a trivial PR) into coherent PR-sized slices. Flag the opposite too: a slice whose diff a human couldn't review in one sitting should still be split.
 
-### Stage 4: Output the breakdown plan
+### Stage 4: Output the slicing guide
 
 Produce a markdown file named `[feature-name]-breakdown.md` with this structure:
 
@@ -629,11 +677,11 @@ Produce a markdown file named `[feature-name]-breakdown.md` with this structure:
 **Total points:** [sum]
 **Sprints required (estimate):** [N × 2-week sprints]
 
-## Epic
+## Handoff ticket (Epic, or Story if small)
 **Title:** [feature name as it will appear in Jira]
 **Description summary:** [1–2 sentences from the FRS Overview]
 **Parent / linked program epic (optional):** [e.g. OGC-527 Environmental/Vector, or "none"]
-**Labels:** [country, domain, compliance tags — propagated to every child story]
+**Labels:** [country, domain, compliance tags — set on the single handoff ticket; the developer's own stories inherit them]
 
 ## v1 — [slice name, e.g. "Read-only list + filter"]
 **Sprint target:** 20 points
@@ -657,49 +705,74 @@ Produce a markdown file named `[feature-name]-breakdown.md` with this structure:
   - Access / roles: ✅ (which role can act, on each story that changes data)
 ````
 
-Save the plan to the workspace folder and share a `computer://` link in your reply.
+Save the plan to the workspace folder and share a `computer://` link in your reply. The plan
+**ships to `openelis-work` alongside the FRS and mockup** (via `upload/` → the gallery thread) —
+the ticket links to it in one line. Its contents never go into the ticket body.
 
-### Stage 5: Get approval, then create Jira
+### Stage 5: Get approval, then create the one ticket
 
-**⚠ Do not create any Jira tickets until Casey has explicitly approved the breakdown plan.**
+**⚠ Do not create any Jira ticket until Casey has explicitly approved the breakdown plan.**
 
-After delivering the plan, ask: *"Happy with the breakdown? When you give the green light I'll create the Epic and child Stories in Jira."*
+After delivering the plan, ask: *"Happy with the breakdown? When you give the green light I'll
+create the [Epic|Story] in Jira — short body, links to the repo."*
 
-Once approved, gather the remaining Jira metadata. Ask **three questions, one at a time:**
+Once approved, gather the remaining metadata. Ask **four questions, one at a time:**
 
-1. **Parent / linked program epic** — Suggest the most likely existing umbrella epic
+1. **Is there a full narrative document for this feature?** (Confluence page, Google Doc, doc in
+   the repo.) If yes, get the URL — the ticket links it *instead of* the written prose sections
+   (Form A in `references/jira-template.md`). If no, write the prose sections (Form B). Never
+   assume one exists.
+
+2. **Parent / linked program epic** — Suggest the most likely existing umbrella epic
    based on feature domain (e.g. OGC-527 for Environmental/Vector, OGC-354 for Sample
-   Collection, OGC-517 for Results). The new mockup-Epic gets linked to this via a Jira
+   Collection, OGC-517 for Results). The new ticket gets linked to this via a Jira
    "is part of" link, **not** a parent-child epic nest (Jira's epic hierarchy is flat by
    default). Casey can decline if the mockup is standalone.
 
-2. **Labels** — Suggest 3–5 labels combining country/deployment context (e.g.
+3. **Labels** — Suggest 3–5 labels combining country/deployment context (e.g.
    `Madagascar`, `Indonesia`, `global`), domain attribute (e.g. `vector`,
    `environmental`, `blood-bank`), and compliance/program tags (e.g. `iso-15189`,
-   `SILNAS`). These labels go on the Epic *and* are propagated to every child Story.
+   `SILNAS`).
 
-3. **Assignee (optional)** — Default unassigned. If the feature domain matches a known
+4. **Assignee (optional)** — Default unassigned. If the feature domain matches a known
    contributor pattern (e.g. Piotr for front-end Carbon components), note the suggestion
    but don't assume.
 
-Then create the tickets in this order:
+Then create **one ticket — and only one** (no child Stories; the developer slices):
 
-1. **Create the Epic** (issue type `Epic`):
-   - Title: the feature name.
-   - Description: FRS Overview + link to the FRS and mockup files in the gallery + link to the breakdown plan.
-   - Labels: from question 2.
-   - Optional "is part of" link to the program epic from question 1.
+1. **Pick Epic or Story** using the rule in Principle 1: Story only if it's one screen, no new
+   data model, one reviewable PR. Otherwise Epic.
 
-2. **For each version, create the child Stories** under the Epic. For each Story:
-   - **Title format:** `[feature]: [story summary] (v1)` — the `(v1)` / `(v2)` / `(v3)` suffix is mandatory and matches the version label. The story summary names what a user can do, in plain language — never a technical layer or component.
-   - **Labels:** the Epic's labels **plus** a version label (`v1`, `v2`, `v3`, etc.). The version label is what enables sprint filtering in Jira.
-   - **Description:** Use `references/jira-template.md`. Acceptance criteria must trace to the FRs listed for that story in the breakdown plan. Include the route, SideNav path, and the cross-cutting concerns (localization key list, which role can act) so the implementing dev has it at hand.
-   - **Epic Link:** Set to the newly-created mockup-Epic.
-   - **Story Points:** Set to the Fibonacci estimate from the breakdown plan.
+2. **Create it** with the body from `references/jira-template.md` — Form A if there's a narrative
+   to link, Form B otherwise. Keep it to 250–400 words: the four short sections (what the lab user
+   is trying to do → what we're building → how it fits the lab workflow → what it touches in
+   OpenELIS), the links block, and 1–3 out-of-scope bullets. The links block carries all the
+   detail: gallery prototype, standalone HTML preview, FRS, mockup JSX source, and the slicing
+   guide — all in `openelis-work`. **Attach the JSX mockup too** (build it now if `/specify`
+   deferred it). Set labels and the **Contract** field; add the optional "is part of" link.
 
-3. **Confirm the result.** Report the Epic key and a per-version count of child Stories created. Share Jira links.
+   Before saving, re-read the body against these: would a dev outside the lab domain know *why*
+   this exists and *where it sits* after one read? Is anything in the body already stated in the
+   FRS (cut it and link instead)? Any acceptance criteria, FR ids, points, or i18n keys left
+   (cut them)? Any filler like "improve the user experience" (replace with the concrete thing)?
 
-4. **Registry upkeep.** Record the Epic key in this feature's `references/spec-registry.md` row, and log any sequencing/dependency decision the breakdown made (e.g. "X must ship before Y") in `references/decision-log.md` as a FEATURE decision.
+3. **Do NOT create child Stories.** The developer slices. The slicing guide is a linked file in
+   the repo, non-binding.
+
+4. **Docs handoff** (see `references/docs-spine.md`). Add a **one-line** "Documentation" note to
+   the ticket: a **Feature Doc** child is expected when it reaches In Review (the auto-create
+   automation is staged — create the child manually if it doesn't fire), using the body template
+   in `references/docs-spine.md` (links: FRS, preview, manual page ID, drift-contract id). The
+   manual entry itself is authored at **Acceptance or later** via the `openelis-user-manual`
+   skill — never from the FRS. Tick **Docs N/A** for trivial work.
+
+5. **Confirm the result.** Report the ticket key, whether it's an Epic or a Story and the one-line
+   reason, and confirm the mockup is attached and the prototype/FRS/slicing-guide links render as
+   clickable links (check `renderedFields`). Share the Jira link.
+
+6. **Registry upkeep.** Record the ticket key in this feature's `references/spec-registry.md` row,
+   set the row's `Docs` column to `pending`, and log any sequencing/dependency decision in
+   `references/decision-log.md` as a FEATURE decision.
 
 ### Output: relationship to other commands
 
@@ -708,11 +781,13 @@ Then create the tickets in this order:
 | FRS, mockup, preview | `/specify` | First | No |
 | Quality report | `/analyze` | After /specify — fix CRITICALs before /breakdown | No |
 | Requirements quality checklist | `/checklist` | Optional, before /breakdown | No |
-| **Epic + versioned child stories** | **`/breakdown`** | **Last — the only Jira-creating step** | **Yes** |
+| JSX mockup (deferred from /specify) | `/breakdown` | At handoff, before the ticket | No |
+| Slicing guide `[feature]-breakdown.md` → `openelis-work` | `/breakdown` | Before the ticket | No |
+| **One ticket (Epic, or Story if small) — short body + repo links** | **`/breakdown`** | **Last — the only Jira-creating step** | **Yes (one ticket)** |
 
-If a feature truly fits in one sprint (≤20 points, one version), `/breakdown` still
-runs — it just produces an Epic with v1 only. This keeps the one-mockup-one-Epic
-invariant intact and makes future scope expansion (adding v2 later) frictionless.
+`/breakdown` always produces exactly **one ticket** per mockup — an Epic, or a Story when the work
+is one screen / no new data model / one PR. The body stays short and links to `openelis-work`. It
+never creates child Stories — the developer slices.
 
 ---
 
@@ -919,6 +994,73 @@ preview. Don't drift from the brief.
 
 ---
 
+## Registry upkeep — the skill directory is READ-ONLY in a session
+
+`/specify`, `/crosscheck` and `/breakdown` all end by updating `references/spec-registry.md` and
+`references/decision-log.md`. **You cannot write to them from a running session** — the skill
+directory is a synced, read-only cache, and edits there neither persist nor reach the account.
+Silently skipping the update is the failure mode this section exists to prevent: a stale registry
+gives false confidence, which is worse than no registry.
+
+### Where the writable copies live
+
+Two in-repo copies, both of which must be updated:
+
+- `OpenELIS Feature Design/openelis-design-skill-src/references/` — the **newest** copy; treat as
+  source of truth.
+- `skills/openelis-design/references/` — the in-repo skill mirror.
+
+**Do NOT create a top-level `openelis-work/references/`** — that path was tried and reverted on
+2026-08-12; these two are the real homes.
+
+> **2026-10-01 re-merge.** The two copies had split again (skill-src ran to D-170, the repo copy
+> stopped at D-066, and 11 IDs meant different things in each). They were re-merged on branch
+> `skill/consolidation-2026-10`: skill-src numbering kept, repo-only decisions re-homed to
+> D-171 to D-174 (map in `decision-log.md`, 2026-10-01 note). Until Casey picks a single home,
+> keep writing **both** copies and number after the **highest ID in either** (next: D-175).
+
+### Before minting a decision ID: check the REPO, not the synced copy
+
+The three copies have drifted before — on 2026-08-11 the synced cache stopped at **D-034**, the
+in-repo mirror at **D-027**, and `openelis-design-skill-src` at **D-042**. A decision drafted as
+D-035 against the synced copy would have collided head-on with the Inventory decisions. **Always
+read the highest `D-0xx` from `openelis-design-skill-src` and number after that.**
+
+### The two-step close
+
+1. **Write the authoritative copies** to both paths above, then commit them with the design.
+2. **Emit a re-installable skill package.** Copy this skill directory, apply the same edits, zip it
+   as `openelis-design.skill`, and send it with `SendUserFile` so Casey can click to install and
+   fold the change into the account copy. Report it as *delivered*, never as *saved* — you get no
+   signal either way.
+
+If the workspace isn't reachable, do step 2 alone and say plainly that step 1 is outstanding,
+naming the rows that still need to land.
+
+### Do git and build work on the Mac, not the device mount
+
+The device mount forbids `unlink`. Consequences, all observed on 2026-08-12:
+
+- `vite build` fails on `emptyOutDir` (`EPERM: operation not permitted, unlink .../dist/...`).
+  Workaround: `mv` `dist` aside so vite creates it fresh, then verify nothing was lost
+  (`comm -23` of the old and new file lists).
+- git cannot clean up its own `index.lock` / `HEAD.lock`, so every git write leaves one behind that
+  blocks the next command. A stale lock from a crashed run is what stranded the 2026-08-11 gallery
+  registration.
+- `rm` never works — move unwanted files to a `_to_delete/` folder and tell Casey to delete it.
+
+Use the **Control-your-Mac** connector instead: it has network, a working `rm`, node via nvm
+(`/Users/casey/.nvm/versions/node/<ver>/bin`), and `gh` at `/opt/homebrew/bin/gh` authenticated
+from `.secrets/gh-pr-token`. That is also the route for `git push`, `gh pr merge` and
+`gh issue create` — the GitHub connector is read-only (403 `Resource not accessible by integration`
+on `issues:write` and `pull_requests:write`), so **do not hand those commands to Casey to run.**
+
+### Check the remote before assuming the mount is current
+
+`git ls-remote` first. On 2026-08-12 the mount's `main` was three commits stale and showed no sign
+of an already-pushed branch **and an already-open PR** for the design being registered — which is
+what produced two competing registrations of one feature.
+
 ## Reference Files
 
 | File | When to read |
@@ -928,7 +1070,7 @@ preview. Don't drift from the brief.
 | `references/current-state-gotchas.md` | During `/specify` Stage 1 and `/analyze` cross-module pass — what's built vs not built; required Dependency/Feature-Flag declarations |
 | `references/permissions-and-audit.md` | During `/specify` Stage 2 (Access brief item) and `/analyze` Pass J — describing who can use a feature in terms of existing roles |
 | `references/frs-template.md` | When writing any FRS document |
-| `references/jira-template.md` | When `/breakdown` creates the Epic and child Stories |
+| `references/jira-template.md` | **Read every time `/breakdown` creates the ticket** — Epic-vs-Story rule, the ≤350-word body (Form A with a narrative link, Form B without), and what must never go in the body |
 | `references/carbon-anti-patterns.md` | During `/analyze` Carbon fidelity pass, or self-critique before delivery |
 | `references/module-inventory.md` | When a feature touches an existing module — check pattern, route, and Jira anchor |
 | `references/verified-data-models.md` | During `/specify` Stage 1 and `/analyze` Pass G — reuse field-verified data models instead of inventing fields |
@@ -937,3 +1079,5 @@ preview. Don't drift from the brief.
 | `references/ogc-workflow.md` | The LIVE OGC Lean workflow — statuses, Acceptance gate, Reject Count, Contract field, per-Epic docs. Read when creating epics/stories or reporting. |
 | `references/decision-log.md` | During `/crosscheck` and `/analyze` Pass M — the prior-decisions ledger to check new designs against (cite by ID) |
 | `references/spec-registry.md` | During `/crosscheck` and `/analyze` Pass M — per-feature overlap/dependency index; append a row at the end of `/specify` and `/breakdown` |
+| `references/docs-spine.md` | During `/breakdown` (handoff ticket + Feature Doc) and `/analyze` Pass N — how specs, Jira Epics, Feature Docs, the Confluence manual, and drift contracts link together |
+| `references/test-catalog-data-model.md` | **Whenever a feature touches Test, Panel, Sample Type, Lab Unit, or their junctions** — source-verified ER model, real cardinalities, junction consumption traces, and the five resolved tensions (specimen-is-identity, SAMPLETYPE_PANEL sync, domain build state, storage ownership, terminology store). Supersedes ad-hoc re-derivation |
