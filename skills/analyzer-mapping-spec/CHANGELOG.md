@@ -1,5 +1,20 @@
 # analyzer-mapping-spec — Changelog
 
+## 2026-10-01 — monthly consolidation
+
+**The profile home moved again: the Analyzer Bridge now owns profiles.** The monthly roster check
+found `projects/analyzer-profiles/` gone from `OpenELIS-Global-2` `develop`. Profiles now ship in
+the bridge repo (`DIGI-UW/openelis-analyzer-bridge`, `src/main/resources/analyzer-profiles/`,
+revisioned: GeneXpert ASTM, FluoroCycler XT, QuantStudio), site revisions live in the Bridge's
+durable store, the contract is `contracts/analyzer/v1/analyzer-profile.schema.json`, and OpenELIS
+reads `GET {bridge}/api/profiles` and pins each analyzer to a profile revision
+(`AnalyzerProfileBinding`), with drafts authored in-app under Analyzer Types. Rewrote "Where
+profiles live" in `references/profile-reuse.md` (the 2026-08-01 two-tier answer kept as history)
+and pointed SKILL.md's profile-reuse step at the Bridge catalog. **Unverified:** the distro's
+remaining role, and where the 13 older mirror profiles (Sysmex, Mindray, Horiba, Stago, Abbott)
+went. The `analyzer-defaults/1.0` schema section is now the previous shape; check field names
+against the v1 contract before quoting them.
+
 ## 2026-08-01 — monthly consolidation
 
 **Resolved the canonical analyzer-profile home** (open since this reference was written).

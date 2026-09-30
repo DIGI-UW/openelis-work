@@ -85,7 +85,7 @@ In every "none of the three" case the spec still describes **what the mapping is
 
 ## Step 2 — Write the Integration Spec (Deliverable 1)
 
-**Read `references/spec-templates.md`** before writing (full section structure for ASTM, HL7, CSV). **Also read `references/profile-reuse.md` first** — find the closest existing analyzer profile (e.g. in a distro's `configs/analyzer-profiles/`) and adapt its panel-level LOINC map rather than re-deriving mappings; re-verify the per-instrument bits (transport/port, QC field, identifier) against the vendor manual. Respect each profile's `confidence`/`notes`. Worked reference: `references/example-spec-annotated.md` shows a complete, annotated spec to calibrate against.
+**Read `references/spec-templates.md`** before writing (full section structure for ASTM, HL7, CSV). **Also read `references/profile-reuse.md` first** — find the closest existing analyzer profile (the Analyzer Bridge's shipped or site profile catalog; see "Where profiles live") and adapt its panel-level LOINC map rather than re-deriving mappings; re-verify the per-instrument bits (transport/port, QC field, identifier) against the vendor manual. Respect each profile's `confidence`/`notes`. Worked reference: `references/example-spec-annotated.md` shows a complete, annotated spec to calibrate against.
 
 Key requirements for all specs:
 - Version header: `v1.0` on first issue; bump to `v1.1`, `v2.0`, etc. on revisions

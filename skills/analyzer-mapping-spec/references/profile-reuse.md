@@ -1,6 +1,7 @@
 # Profile Reuse — start from a real profile, don't retype mappings
 
-> Analyzer configurations are captured as **profile JSON** (schema `analyzer-defaults/1.0`).
+> Analyzer configurations are captured as **profile JSON** (now the Bridge contract
+> `contracts/analyzer/v1/analyzer-profile.schema.json`; formerly `analyzer-defaults/1.0`).
 > Real, maintained profiles already exist. Before writing a spec, **find the closest existing
 > profile and adapt it** — that is the reuse mechanism, not a hand-typed library in this skill.
 > (An earlier version of this file kept a parallel hand-typed library; it drifted from reality
@@ -10,9 +11,37 @@
 
 ---
 
-## Where profiles live — RESOLVED 2026-08-01
+## Where profiles live — CHANGED 2026-10-01: the Analyzer Bridge owns them
 
-The canonical-home question is settled, and the answer is a **two-tier** arrangement rather
+The 2026-08-01 answer below (distro `configs/analyzer-profiles/` + a repo mirror) is
+**superseded**. As of `develop` on 2026-10-01 the analyzer profile home is the **OpenELIS Analyzer
+Bridge** (`DIGI-UW/openelis-analyzer-bridge`), neither of the two original candidates:
+
+| What | Where (verified 2026-10-01) | Role |
+|---|---|---|
+| **Shipped profiles** | bridge repo `src/main/resources/analyzer-profiles/*.json` (classpath pattern `bridge.profile-catalog.shipped-pattern`) | packaged with each Bridge release; revisioned files (`genexpert-astm.json` … `-v7`, `fluorocycler-xt` … `-v4`, `quantstudio` … `-v3`) |
+| **Site profiles** | the Bridge's durable store `bridge.profile-catalog.directory` (default `/data/openelis-analyzer-bridge/profile-catalog`) | revisions authored for one deployment |
+| **Contract** | bridge repo `contracts/analyzer/v1/analyzer-profile.schema.json` ("OpenELIS Analyzer Bridge profile revision v1") | required: `schemaVersion`, `profileMeta`, `category`, `protocol`, `capabilities`, `configDefaults`, `connectionFields`, `controlResultRecognition`, `catalog` |
+| **OpenELIS side** | `BridgeProfileCatalogService` reads `GET {bridge}/api/profiles` (schema 1.0, `sha256:` fingerprints); `AnalyzerProfileBinding` pins an analyzer to a profile **revision**; drafts are authored in-app (Analyzer Types, `ProfileDraftEditor`, route `/analyzers/types/:profileId/mapping`) | OpenELIS consumes a pinned profile; the Bridge normalizes results |
+
+What this means for specs:
+- **The `projects/analyzer-profiles/` mirror is gone from `develop`**, and with it the 13-profile
+  roster listed below (Sysmex XN, Mindray BC/BS, Horiba, Stago, Abbott Architect). Only three
+  analyzers ship built-in today. Where those older profiles went (distro, a Bridge branch, or
+  dropped) is **UNVERIFIED**; don't cite them as existing without checking.
+- A spec names a **profile id and revision**, not a file path. A new analyzer's deliverable is a
+  profile revision that validates against the v1 contract, contributed to the Bridge's shipped set
+  once validated.
+- The distro's role is **UNVERIFIED** after this change (it may still seed site profiles).
+- The v1 contract still carries `identifier_pattern`/`msh3_pattern` and adds
+  `controlResultRecognition`; the older `analyzer-defaults/1.0` schema section later in this file
+  describes the previous shape. Check field names against the v1 schema before quoting them.
+- The reuse rule is unchanged: reuse the panel's **LOINC map**, adapt by LOINC, never assume
+  another deployment's value names.
+
+### Previous answer (2026-08-01, superseded)
+
+The canonical-home question was then settled as a **two-tier** arrangement rather
 than either of the candidates that were originally on the table (it is **not** the analyzer
 plugins repo):
 
@@ -171,3 +200,9 @@ roster each cycle; it grows as new analyzers are integrated.
 `DIGI-UW/OpenELIS-Global-2` → `projects/analyzer-profiles/` (develop) — **unchanged** since
 2026-08-01: same 6 ASTM, 7 HL7, and 7 `file/` profiles. No new analyzers integrated this
 cycle; nothing else needed for this file.
+
+**2026-10-01 (monthly consolidation):** the mirror check failed: `projects/analyzer-profiles/` no
+longer exists on `develop`. Profiles moved to the Analyzer Bridge (shipped set in the bridge repo,
+site revisions in the Bridge's store, OpenELIS pins a revision through `AnalyzerProfileBinding`).
+"Where profiles live" rewritten; the 2026-08-01 answer kept as history. Distro role and the fate
+of the 13 older profiles are unverified.
