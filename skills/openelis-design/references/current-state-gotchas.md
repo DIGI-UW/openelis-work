@@ -101,7 +101,7 @@ Stale admin `editorKey`s also found (in `admin-ia-inventory.md`, now flagged the
 `/MasterListsPage/<editorKey>` and `/admin/<editorKey>` (e.g. `/admin/languageManagement`,
 `/admin/translationManagement`).
 
-## Route changes — shipped router re-read 2026-10-01 (bundle `index-DDcS0cc-.js`)
+## Route changes: shipped router re-read 2026-10-01 (bundle `index-DDcS0cc-.js`)
 
 Read from the live bundle's route and `Redirect` declarations without logging in, so these are
 **route facts only**; screen behaviour was not re-verified this cycle.
@@ -111,7 +111,7 @@ Read from the live bundle's route and `Redirect` declarations without logging in
 | EQA | **`/qa/eqa/*`** (management, my-programs, my-cycles, participants, provider/schemes, provider/cycles/:cycleId/workbench, follow-up-queue, lab-performance/{coverage,recent}, analyst-competency, in-house) | `/EQAManagement`, `/EQADistribution`, `/EQAParticipants`, `/EQAResults`, `/EQAOrders`, `/EQAMyPrograms` still resolve, as **redirects** into `/qa/eqa/*`. Cite the `/qa/eqa/*` path in new specs |
 | Quality control | **`/qa/qc/*`** (dashboard, alerts, control-lots, manual-qc, reagent-qc, rule-config) | `/analyzers/qc/{db,control-lots,rule-config}` redirect here; `/analyzers/qc/charts/:analyzerId` and `/analyzers/qc/instruments/:instrumentId` remain under Analyzers |
 | Quality menu (new) | `/qa/overview`, `/qa/qi/{dashboard,amendment,callback,config,rejection,tat}`, `/qa/qms/{accreditation,audit-trail,capa-register,e-signature-log,nce-register}` | QA module (develop PR #4069, merged 2026-09-24). Check here before designing a new quality or audit page |
-| Analyzer Error Dashboard | **gone** — `/analyzers/errors` appears nowhere in the bundle | Retired by Casey 2026-09-24 (QA open-question 8). D-027's route list is superseded (see D-069) |
+| Analyzer Error Dashboard | **gone**; `/analyzers/errors` appears nowhere in the bundle | Retired by Casey 2026-09-24 (QA open-question 8). D-027's route list is superseded (see D-069) |
 | Storage | `/Storage/:resource(sample-items\|inventory-lots\|rooms\|devices\|shelves\|racks\|boxes)` | Inventory lots now live in Storage (develop PR #4016/#4033) |
 | Microbiology | `/MicrobiologyWorklist`, `/MicrobiologyCaseView/:caseId`, admin `MicrobiologyReference/:section/:detailId` | first shipped micro routes |
 | Vector | `/vector/deconvolution`, `/vector/identification`, `/VectorManualEntry`, `/VectorSurveillanceReport` | |

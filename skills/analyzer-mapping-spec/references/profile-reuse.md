@@ -11,7 +11,7 @@
 
 ---
 
-## Where profiles live — CHANGED 2026-10-01: the Analyzer Bridge owns them
+## Where profiles live: CHANGED 2026-10-01: the Analyzer Bridge owns them
 
 The 2026-08-01 answer below (distro `configs/analyzer-profiles/` + a repo mirror) is
 **superseded**. As of `develop` on 2026-10-01 the analyzer profile home is the **OpenELIS Analyzer

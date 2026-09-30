@@ -1,6 +1,6 @@
 # openelis-design — Changelog
 
-## v3.17 (2026-10-01) — monthly consolidation: the two lines re-merged
+## v3.17 (2026-10-01): monthly consolidation: the two lines re-merged
 
 **What was wrong.** Two copies of this skill had been edited in parallel again. The installed skill
 is built from `OpenELIS Feature Design/openelis-design-skill-src/`, and its SKILL.md tells sessions

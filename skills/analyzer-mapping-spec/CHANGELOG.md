@@ -1,6 +1,6 @@
 # analyzer-mapping-spec — Changelog
 
-## 2026-10-01 — monthly consolidation
+## 2026-10-01: monthly consolidation
 
 **The profile home moved again: the Analyzer Bridge now owns profiles.** The monthly roster check
 found `projects/analyzer-profiles/` gone from `OpenELIS-Global-2` `develop`. Profiles now ship in

@@ -27,13 +27,13 @@ name** — e.g. Application Properties → `commonproperties`, Site Information 
 |---|---|
 | Reflex Tests Management | `reflex` |
 | Calculated Value Tests | `calculatedValue` |
-| Analyzer Test Name | `AnalyzerTestName` — ⚠ not found in the router strings 2026-10-01 (UNVERIFIED: may be built dynamically); confirm before citing |
+| Analyzer Test Name | `AnalyzerTestName`; ⚠ not found in the router strings 2026-10-01 (UNVERIFIED: may be built dynamically); confirm before citing |
 | Lab Number Management | `labNumber` |
 | Program Entry | `program` |
-| ~~EQA Program Management~~ | ~~`eqaProgram`~~ — ⚠ **not in the shipped router**; EQA is its own module, now at **`/qa/eqa/*`** (old `/EQAManagement` redirects; router 2026-10-01) |
+| ~~EQA Program Management~~ | ~~`eqaProgram`~~; ⚠ **not in the shipped router**; EQA is its own module, now at **`/qa/eqa/*`** (old `/EQAManagement` redirects; router 2026-10-01) |
 | Provider Management | `providerMenu` |
-| ~~Barcode Configuration~~ | ~~`barcodeConfiguration`~~ — **redirects to `labelPresets`** (router, 2026-10-01); cite Label Presets |
-| List Plugins | `PluginFile` — ⚠ not found in the router strings 2026-10-01 (UNVERIFIED); confirm before citing |
+| ~~Barcode Configuration~~ | ~~`barcodeConfiguration`~~; **redirects to `labelPresets`** (router, 2026-10-01); cite Label Presets |
+| List Plugins | `PluginFile`; ⚠ not found in the router strings 2026-10-01 (UNVERIFIED); confirm before citing |
 | Organization Management | `organizationManagement` |
 | Result Reporting Configuration | `resultReportingConfiguration` |
 | User Management | `userManagement` |

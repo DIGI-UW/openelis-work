@@ -33,7 +33,7 @@ were never added to that list. Read the `**Version**` line, not the amendment lo
 `**Version**: 1.11.0 | **Ratified**: 2025-10-30 | **Last Amended**: 2026-07-15`, unchanged
 since the 2026-08-01 sync. Re-sync trigger did **not** fire this cycle.
 
-**2026-10-01 verification — re-sync trigger FIRED (1.11.0 → 1.11.2).** Upstream footer now reads
+**2026-10-01 verification: re-sync trigger FIRED (1.11.0 → 1.11.2).** Upstream footer now reads
 `**Version**: 1.11.2 | **Ratified**: 2025-10-30 | **Last Amended**: 2026-09-25`. Two PATCH
 amendments since the last sync, neither touching a Core Principle:
 - **v1.11.1 (2026-09-07), Technology Stack > Frontend.** The "SWR 2.0.3 for data fetching" line was
@@ -57,7 +57,7 @@ amendments since the last sync, neither touching a Core Principle:
 > the upstream constitution from this skill — propose changes via the repo's amendment
 > process (see its Governance section).
 
-## Constitution structure (upstream, v1.11.2 — principles unchanged since v1.11.0)
+## Constitution structure (upstream, v1.11.2: principles unchanged since v1.11.0)
 
 Ten Core Principles, followed by Technical Stack Constraints, Development Workflow, and
 Governance. The principles are:
