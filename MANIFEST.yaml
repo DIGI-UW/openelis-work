@@ -267,10 +267,11 @@
   spec: designs/admin-config/test-catalog-microbiology-workflow-attribute.md
   preview: designs/admin-config/test-catalog-microbiology-workflow-attribute.html
   category: admin-config
-  status: superseded
-  superseded_by: microbiology-v2-amendments
+  status: draft
+  narrowed_by: microbiology-v2-amendments
   description: >
-    Superseded by Microbiology v2 Amendments (2026-09-28). Test Catalog Basic Info microbiology workflow attribute: a nullable culture_workflow_type
+    Narrowed by Microbiology v2 (2026-10-01): kept, renamed Culture type and set only on
+    generic culture tests (A-01, D-125). Test Catalog Basic Info microbiology workflow attribute: a nullable culture_workflow_type
     enum (Bacteriology / Mycobacteriology-TB) orthogonal to Domain and the AMR flag; drives
     micro case routing (M-03/M-04). Foldable into Test Catalog v2.5 section 2.1 Basic Info.
   links:
@@ -278,6 +279,7 @@
     gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-microbiology-workflow-attribute
     preview: https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-microbiology-workflow-attribute.html
   added: "2026-06-08"
+  updated: "2026-10-01"
 
 - id: test-catalog-v2-5-v1-preview
   type: mockup
@@ -639,24 +641,26 @@
   path: designs/microbiology/m-01-amr-reference-data.md
   category: microbiology
   description: >
-    M-01: Organism / Antibiotic / AST Panel / Culture Protocol masters with WHONET codes.
+    Amended by Microbiology v2 (2026-09-28). M-01: Organism / Antibiotic / AST Panel / Culture Protocol masters with WHONET codes.
   links:
     jira: ["OGC-786"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-01-amr-reference-data-organism-master
     preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-01-organism-master.html
   added: "2026-05-15"
+  updated: "2026-10-01"
 
 - id: m-02-breakpoint-catalog
   type: spec
   path: designs/microbiology/m-02-breakpoint-catalog.md
   category: microbiology
   description: >
-    M-02: Versioned CLSI + EUCAST breakpoint tables; snapshot-at-write.
+    Amended by Microbiology v2 (2026-09-28). M-02: Versioned CLSI + EUCAST breakpoint tables; snapshot-at-write.
   links:
     jira: ["OGC-787"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-02-breakpoint-catalog
     preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-02-breakpoint-catalog.html
   added: "2026-05-15"
+  updated: "2026-10-01"
 
 - id: m-03-order-entry-micro-hook
   type: spec
@@ -741,23 +745,25 @@
   path: designs/microbiology/m-05-ast-entry-and-interpretation.md
   category: microbiology
   description: >
-    M-05: AST Setup + AST Edit with BreakpointLookupService and inline override mechanism.
+    Amended by Microbiology v2 (2026-09-28). M-05: AST Setup + AST Edit with BreakpointLookupService and inline override mechanism.
   links:
     jira: ["OGC-791"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-05-ast-entry-interpretation
     preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-05-ast-entry-prototype.html
   added: "2026-05-15"
+  updated: "2026-10-01"
 
 - id: m-06-expert-rules-engine
   type: spec
   path: designs/microbiology/m-06-expert-rules-engine.md
   category: microbiology
   description: >
-    M-06: Expert Rules engine — MRSA, D-test, ESBL, cascade, intrinsic verification. Phase 1B.
+    Amended by Microbiology v2 (2026-09-28). M-06: Expert Rules engine — MRSA, D-test, ESBL, cascade, intrinsic verification. Phase 1B.
   links:
     jira: ["OGC-793"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-06-expert-rules-engine
   added: "2026-05-15"
+  updated: "2026-10-01"
 
 - id: m-07-pending-cultures
   type: spec
@@ -827,12 +833,13 @@
   path: designs/microbiology/m-08-macro-library.md
   category: microbiology
   description: >
-    M-08: Cross-cutting macro library — .code → expanded text. 85 seeded defaults across 8 categories.
+    Amended by Microbiology v2 (2026-09-28). M-08: Cross-cutting macro library — .code → expanded text. 85 seeded defaults across 8 categories.
   links:
     jira: ["OGC-788"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-08-macro-library
     preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-08-macro-library.html
   added: "2026-05-15"
+  updated: "2026-10-01"
 
 - id: m-09-whonet-export
   type: spec
@@ -866,12 +873,13 @@
   path: designs/microbiology/m-11-critical-result-acknowledgment.md
   category: microbiology
   description: >
-    M-11: Polymorphic critical-notification rework. Co-ships with Phase 1A+.
+    Amended by Microbiology v2 (2026-09-28). M-11: Polymorphic critical-notification rework. Co-ships with Phase 1A+.
   links:
     jira: ["OGC-785"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-11-critical-result-acknowledgment
     preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-11-critical-notification-prototype.html
   added: "2026-05-15"
+  updated: "2026-10-01"
 
 - id: m-12-test-reagent-linkage
   type: spec
@@ -879,13 +887,13 @@
   preview: designs/microbiology/m-12-test-reagent-linkage-prototype.html
   category: microbiology
   description: >
-    M-12: Test → Reagent linkage (ISO 15189 §7.3). General OE foundation; parallel pre-track.
+    Amended by Microbiology v2 (2026-09-28). M-12: Test → Reagent linkage (ISO 15189 §7.3). General OE foundation; parallel pre-track.
   links:
     jira: ["OGC-784"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-12-test-to-reagent-linkage
     preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-12-test-reagent-linkage-prototype.html
   added: "2026-05-15"
-  updated: "2026-06-08"
+  updated: "2026-10-01"
 
 # ─── Microbiology — FRS v1.0 formal docs ─────────────────────────────────
 
@@ -981,22 +989,24 @@
   updated: "2026-09-04"
 
 - id: microbiology-v2-amendments
-  type: html
-  path: designs/microbiology/amr-micro-v2-amendments.md
+  type: jsx
+  path: designs/microbiology/amr-micro-v2-mockup.jsx
   spec: designs/microbiology/amr-micro-v2-amendments.md
   preview: designs/microbiology/amr-micro-v2-preview.html
   category: microbiology
   description: >
-    Microbiology (AMR) v2 amendments (draft 3, M-18 folded in), a delta over M-00 to M-18 reconciled with the CPHL
-    workflow breakdown: declared workflow and culture protocol removed, Cases open from
-    Program = Microbiology with a lab unit per sample, purpose and replicates move to the
-    Case view. Supersedes the Test Catalog microbiology workflow attribute (OGC-925).
+    Microbiology (AMR) v2 amendments (v2.0 draft 9), a delta over M-00 to M-18 reconciled with
+    the CPHL workflow breakdown. Every micro test opens a case; blood culture sets as one sample
+    per bottle; case view with Initial testing, Culture (plating templates, tracked or not
+    tracked media), Growth work-up with reportable tests on a positive culture, AST/DST,
+    Additional testing, labels, patient history; Bench batches proposed. Draft 9 preview plus
+    developer JSX mockup. Narrows the Test Catalog microbiology workflow attribute (OGC-925).
   links:
-    jira: ["OGC-782"]
+    jira: ["OGC-1383", "OGC-782"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/microbiology-v2-amendments
     preview: https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-v2-preview.html
   added: "2026-09-28"
-  updated: "2026-09-29"
+  updated: "2026-10-01"
 
 - id: m-18-environmental-microbiology
   type: jsx
@@ -1007,13 +1017,15 @@
   breakdown: designs/microbiology/m-18-environmental-microbiology-breakdown.md
   category: microbiology
   description: >
-    M-18 Environmental Microbiology FRS v0.5, aligned with Microbiology v2: order-level
-    purpose and replicates, sampling sites for wards, investigation link moved to M-16.
+    M-18 Environmental Microbiology FRS v0.9, follows Microbiology v2 draft 9: any environmental
+    micro test opens a Case, no Microbiology section on environmental order entry, purpose
+    defaults to Routine monitoring on the Case, tracked or not tracked media with plating templates.
   links:
+    jira: ["OGC-1382"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-18-environmental-microbiology
     preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-18-environmental-microbiology.html
   added: "2026-09-28"
-  updated: "2026-09-29"
+  updated: "2026-10-01"
 
 - id: amr-micro-narrative-v2
   type: spec
@@ -1585,13 +1597,14 @@
   path: designs/reports/patient-report-redesign.md
   category: results-validation
   description: >
-    Patient Report visual redesign spec — Carbon-aligned layout, accreditation logo, digital
-    signature block, reference range display, result interpretation flagging. Ships two JRXML
-    templates: patient_letter.jrxml (US Letter) and patient_a4.jrxml (A4), selected via Admin →
-    General Configuration → Printed Reports Configuration. Includes Jasper coordinate-level
-    implementation notes.
+    Patient Report & Report Management FRS v2.3.3: one consolidated FRS for the patient report
+    (Part A) and the Report Management page (Part B), each split into V1 and V2. Labels from the
+    UI translation catalogue, completed date and time per test, microbiology rows. OGC-932 is the
+    V1 PNG / CPHL deliverable.
   paired_with: patient-report-redesign-preview
+  breakdown: designs/reports/patient-report-redesign-breakdown.md
   links:
+    jira: ["OGC-1111", "OGC-932"]
     github: https://github.com/DIGI-UW/openelis-work/issues/102
   tags:
     - reports
@@ -1602,19 +1615,18 @@
     - A4
     - letter
   added: "2026-04-24"
-  updated: "2026-04-27"
+  updated: "2026-10-01"
 
 - id: patient-report-redesign-preview
   type: mockup
   path: designs/reports/patient-report-redesign.html
   category: results-validation
   description: >
-    HTML preview of the patient report redesign — renders at US Letter and A4 dimensions with
-    a paper-size toggle in the banner. No build step required; open in any browser.
+    HTML preview of the patient report for FRS v2.3 (V1 and V2 layouts).
   paired_with: patient-report-redesign-spec
   links: {}
   added: "2026-04-24"
-  updated: "2026-04-27"
+  updated: "2026-10-01"
 
 - id: patient-report-letter-jrxml
   type: reference-data
@@ -1715,9 +1727,12 @@
   type: spec
   path: designs/other/report-level-signatures.md
   category: other
-  description: Report-level digital signatures spec
-  links: {}
+  description: >
+    Report-level digital signatures spec (OGC-302). Layout points superseded by Patient Report FRS section 14.1.
+  links:
+    jira: ["OGC-302"]
   added: "2026-03-03"
+  updated: "2026-10-01"
 
 - id: unassigned-tests-spec
   type: spec
@@ -2392,15 +2407,14 @@
   preview: designs/admin-config/report-management.html
   category: admin-config
   description: >
-    Admin registry to choose, version, and override the report templates OpenELIS
-    uses to render reports — active template per report, shipped-default vs custom
-    override, bundled variants, upload, preview, and revert-to-default (OGC-1111).
+    Report Management admin page, Part B of the consolidated Patient Report & Report Management
+    FRS v2.3.3 (designs/reports/patient-report-redesign.md); the local spec is a pointer.
   links:
     jira: ["OGC-1111"]
     gallery: https://digi-uw.github.io/openelis-work/#/admin-config/report-management
     preview: https://digi-uw.github.io/openelis-work/designs/admin-config/report-management.html
   added: "2026-07-01"
-  updated: "2026-07-01"
+  updated: "2026-10-01"
 - id: test-catalog-editor-completion
   type: jsx
   path: designs/admin-config/test-catalog-editor-completion.jsx
@@ -3763,12 +3777,13 @@
   preview: designs/inventory/inventory-item-type-management.html
   category: inventory
   description: >
-    Inventory Item-Type Management — move the hard-coded "Type of Item" list into the Data
+    Amended by Microbiology v2 (D-147: Microbiology medium item type, FR-05.1d). Inventory Item-Type Management — move the hard-coded "Type of Item" list into the Data
     Dictionary with managed add/edit/deactivate.
   links:
     gallery: https://digi-uw.github.io/openelis-work/#/inventory/inventory-item-type-management
     preview: https://digi-uw.github.io/openelis-work/designs/inventory/inventory-item-type-management.html
   added: "2026-06-12"
+  updated: "2026-10-01"
 - id: admin-phase5-finalization
   type: mockup
   path: designs/admin-config/admin-phase5-finalization.html
@@ -4055,7 +4070,7 @@
   preview: designs/sample-collection/clinical-order-entry-v4.html
   category: vector-surveillance
   description: >
-    Clinical Order Entry v4 (FRS v0.10: domain switcher FR-A17 to A22, Microbiology program section FR-B12a). Enter Order + Prepare Samples (+ optional Sample check),
+    Clinical Order Entry v4 (FRS v0.16, preview v0.15; FR-B12a: any micro test opens the Case, one sample per blood culture bottle, D-162, D-163). Enter Order + Prepare Samples (+ optional Sample check),
     whole-step all-or-nothing saves, Container Types and Body Sites in the test catalog, shared
     ordered-tests / samples tables and summary strip, search-first creation, lab time zone,
     working labels. Two-phase plan. Supersedes the 2026-09-10 Enter Order preview and OGC-1066.
@@ -4065,7 +4080,7 @@
     gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/clinical-order-entry-v4
     preview: https://digi-uw.github.io/openelis-work/designs/sample-collection/clinical-order-entry-v4.html
   added: "2026-09-10"
-  updated: "2026-09-29"
+  updated: "2026-10-01"
 - id: environmental-order-entry-v2
   type: mockup
   path: designs/sample-collection/environmental-order-entry-v2.html

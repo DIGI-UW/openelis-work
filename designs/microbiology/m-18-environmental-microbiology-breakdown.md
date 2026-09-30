@@ -4,7 +4,7 @@
 **Preview:** `m-18-environmental-microbiology-preview.html`
 **Mockup:** `m-18-environmental-microbiology-mockup.jsx`
 **Analysis:** `m-18-environmental-microbiology-analyze.md`
-**Depends on:** `amr-micro-v2-amendments.md` (draft 3): A-02 case routing and lab unit keying, A-03 Case information
+**Depends on:** `amr-micro-v2-amendments.md` (draft 6): A-02 case routing and lab unit keying, A-03 Case information
 **Pipeline:** Claude Code, one reviewable PR per slice. This guide is a suggestion; the developer slices.
 
 ## Handoff ticket
@@ -21,7 +21,7 @@
 |---|---|---|---|---|
 | 1 | A technician never sees culture tests on Results or Validation; a line points to the Microbiology worklist | FR-B1 to FR-B4 | none (applies to clinical cultures today) | Small PR |
 | 2 | A catalog manager sets up an Environmental Microbiology lab unit and its culture tests; purposes for environmental Cases exist | FR-A1 to FR-A5, FR-C5 (code list) | none | Small PR |
-| 3 | Reception opens environmental Cases from Program = Microbiology with a lab unit per sample; a technician works the Case with the site as the subject and sets Purpose and Replicates once for the order | FR-C1 to FR-C9, FR-D1 to FR-D7 | v2 A-02 (routing, lab unit keying) and A-03 (Case information); slice 2 | Medium PR |
+| 3 | Reception orders the environmental culture test like any test and the Case opens on save (no micro section, no Program coupling, D-146); a technician works the Case with the site as the subject and sets Purpose and Replicates once for the order | FR-C1 to FR-C9, FR-D1 to FR-D7 | v2 A-02 (routing, lab unit keying) and A-03 (Case information); slice 2 | Medium PR |
 | 4 | A technician who works both benches sees patient and site rows on one Worklist, filters by lab unit, and finds Cases by site | FR-E1 to FR-E3 | slice 3 | Small PR |
 | 5 | A supervisor exports WHONET with or without environmental isolates; antibiogram and GLASS never include them | FR-F1 to FR-F4 | slice 3 | Small PR |
 | 6 | Cluster detection counts environmental Cases in the environmental stream, except outbreak-investigation samples | FR-G1 to FR-G3 | slice 3; M-16 detection built | Small PR, later |

@@ -1,7 +1,7 @@
 /**
  * OpenELIS Global: Clinical Order Entry v4 (developer handoff mockup)
  *
- * Spec:      clinical-order-entry-v4-frs.md, v0.7 (2026-09-25)
+ * Spec:      clinical-order-entry-v4-frs.md, v0.9 (2026-09-27; adds the domain switcher, FR-A17 to A22)
  * Reference: clinical-order-entry-v4-preview.html (approved HTML preview; visual and behavioural reference)
  * Stack:     @carbon/react v1.15+, @carbon/icons-react. Carbon tokens only; the only literal colours are the
  *            container cap swatches, which are catalog data (FR-G2: cap colour is display-only and editable).
@@ -433,12 +433,13 @@ function StatusTags({ tags }) {
 }
 
 // Page header: breadcrumb, title, optional actions
-function PageHeader({ crumbs, title, subtitle, actions }) {
+function PageHeader({ crumbs, title, subtitle, actions, domain }) {
   return (
     <div style={{ marginBottom: 'var(--cds-spacing-05)' }}>
       <Breadcrumb noTrailingSlash>
         {crumbs.map((c, i) => <BreadcrumbItem key={c} href="#" isCurrentPage={i === crumbs.length - 1}>{c}</BreadcrumbItem>)}
       </Breadcrumb>
+      {domain}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap', marginTop: 'var(--cds-spacing-03)' }}>
         <div>
           <h1 className="cds--type-productive-heading-04" style={{ margin: 0 }}>{title}</h1>
@@ -446,6 +447,68 @@ function PageHeader({ crumbs, title, subtitle, actions }) {
         </div>
         {actions}
       </div>
+    </div>
+  );
+}
+
+// Domain switcher (FR-A17 to A22, D-093). The SideNav has ONE item, "Add Order" (order.nav.addOrder), replacing
+// Add Clinical / Environmental / Vector Order. This switcher, below the breadcrumb and above the progress indicator,
+// picks the domain. Each domain keeps its own route and form: choosing one NAVIGATES (router push) to that domain's
+// route; it never re-renders this page as another domain.
+//   available: domains with at least one active, orderable test on an active sample type (Dependency 32). Fewer
+//              than two: render nothing (FR-A18).
+//   default:   the last-used domain, browser-local like Results Entry's sticky layout (FR-A19); a domain route in
+//              the URL always wins.
+//   switching: immediate when nothing beyond the reserved lab number is entered; otherwise confirm with kept and
+//              cleared lists. The reserved lab number travels with the switch and is NOT re-reserved (FR-A20).
+//   saved:     read-only Tag; the domain is fixed at first save (FR-A21). Electronic orders: switch disabled.
+const ORDER_DOMAINS = [
+  { k: 'clinical', key: 'order.domain.clinical', l: 'Clinical', route: '/order/clinical' },
+  { k: 'environmental', key: 'order.domain.environmental', l: 'Environmental', route: '/order/environmental' },
+  { k: 'vector', key: 'order.domain.vector', l: 'Vector', route: '/order/vector' },
+];
+function DomainSwitcher({ current, mode = 'new', available = ['clinical', 'environmental', 'vector'], dirty = false, kept, cleared, onNavigate = () => {} }) {
+  const [pending, setPending] = useState(null);
+  const [resetKey, setResetKey] = useState(0);
+  const list = ORDER_DOMAINS.filter(d => available.includes(d.k) || d.k === current);
+  const cur = ORDER_DOMAINS.find(d => d.k === current);
+  const target = d => d.route + (mode === 'dashboard' ? '' : '/enter');
+  if (mode === 'saved') {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: 'var(--cds-spacing-03) 0' }}>
+        <span className="cds--label" style={{ margin: 0 }}>{t('order.domain.switcher.label', 'Order type')}</span>
+        <Tag type="cool-gray" title={t('order.domain.locked', 'The order type is fixed once the order is saved. To change it, cancel the order and enter it again.')}>{t(cur.key, cur.l)}</Tag>
+      </div>
+    );
+  }
+  if (list.length < 2) return null;
+  const pick = d => {
+    if (!d || d.k === current) return;
+    if (mode === 'dashboard' || !dirty) onNavigate(target(d)); else setPending(d);
+  };
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: 'var(--cds-spacing-03) 0' }}>
+      <span className="cds--label" id="order-domain-label" style={{ margin: 0 }}>{t('order.domain.switcher.label', 'Order type')}</span>
+      <ContentSwitcher key={current + '-' + resetKey} aria-labelledby="order-domain-label" size="md" style={{ width: 'auto', maxWidth: 480 }}
+        selectedIndex={list.findIndex(d => d.k === current)} onChange={({ index }) => pick(list[index])}>
+        {list.map(d => (
+          <Switch key={d.k} name={d.k} text={t(d.key, d.l)} disabled={mode === 'eorder' && d.k !== current}
+            title={mode === 'eorder' && d.k !== current ? t('order.domain.eorder', 'Electronic orders keep the order type they arrived with.') : undefined} />
+        ))}
+      </ContentSwitcher>
+      {/* Non-destructive confirmation (FR-A20); Stay remounts the switcher so it shows the current domain again */}
+      <Modal
+        open={!!pending}
+        size="sm"
+        modalHeading={pending ? fmt(t('order.domain.switch.title', 'Switch to {domain}?'), { domain: t(pending.key, pending.l) }) : ''}
+        primaryButtonText={t('order.domain.switch.confirm', 'Switch')}
+        secondaryButtonText={t('order.domain.switch.stay', 'Stay')}
+        onRequestClose={() => { setPending(null); setResetKey(k => k + 1); }}
+        onRequestSubmit={() => { const d = pending; setPending(null); onNavigate(target(d)); }}
+      >
+        <p>{fmt(t('order.domain.switch.kept', 'Kept: {fields}'), { fields: kept })}</p>
+        <p>{fmt(t('order.domain.switch.cleared', 'Cleared: {items}'), { items: cleared })}</p>
+      </Modal>
     </div>
   );
 }
@@ -678,7 +741,7 @@ function OrderFooter({ nextStep, isLast, items, saveProblems, onSaveExit, onSave
           </>
         )}
       </div>
-      {/* FR-A3: the only Modal in order entry (destructive confirmation, D-005) */}
+      {/* FR-A3: the only destructive Modal in order entry (D-005); the other order entry Modal is the domain switch confirmation (FR-A20) */}
       <Modal
         open={discardOpen}
         danger
@@ -1670,7 +1733,7 @@ function EnterOrderPage({ cfg, acceptance, go, received0, sim }) {
   const [contact, setContact] = useState('');
   const [refLabNo, setRefLabNo] = useState(pre ? 'PMGH-MW3-1187' : '');
   const [remember, setRemember] = useState(false);
-  const [orderAt, setOrderAt] = useState(NOW);
+  const [orderAt, setOrderAt] = useState(''); // FR-B11: optional, blank, never stamped
   const [requiredBy, setRequiredBy] = useState('');
   const [program, setProgram] = useState('Routine clinical testing');
   const [answers, setAnswers] = useState({});
@@ -1735,7 +1798,10 @@ function EnterOrderPage({ cfg, acceptance, go, received0, sim }) {
   return (
     <div>
       <PageHeader crumbs={[t('nav.home', 'Home'), t('nav.orders', 'Orders'), t('nav.clinicalOrders', 'Clinical Orders'), t('order.step.enter', 'Enter Order')]}
-        title={t('order.step.enter', 'Enter Order')}
+        domain={<DomainSwitcher current="clinical" mode={everSaved ? 'saved' : 'new'} dirty
+          kept={fmt(t('order.domain.switch.keptList', 'lab number {labNo}, received date and time, requester, notes'), { labNo: LAB })}
+          cleared={t('order.domain.switch.clearedClinical', 'patient, program, tests and panels, samples, billing and notification choices')} />}
+        title={everSaved ? t('order.step.enter', 'Enter Order') : fmt(t('order.domain.heading.new', 'New {domain} order'), { domain: t('order.domain.clinical', 'Clinical').toLowerCase() })}
         actions={everSaved && <Button kind="danger--tertiary" size="md" onClick={() => setCancelOrder('')}>{t('order.dashboard.cancelOrder', 'Cancel order')}</Button>} />
       {cancelOrder !== null && (
         <div style={{ ...S.panelBox, marginBottom: 16 }}>
@@ -1795,6 +1861,18 @@ function EnterOrderPage({ cfg, acceptance, go, received0, sim }) {
             <Button kind="ghost" size="sm" onClick={() => setChangeLab(null)}>{t('common.cancel', 'Cancel')}</Button>
           </div>
         )}
+        {/* Entered stamp and order dates (FR-B11): Entered is automatic; order date is optional */}
+        <div style={{ ...S.row, marginTop: 'var(--cds-spacing-05)' }}>
+          <TextInput id="entered" readOnly labelText={t('order.entry.entered', 'Entered')} value={everSaved ? `${fmtDT(NOW)} · ${ME}` : t('order.entry.entered.onSave', 'Recorded automatically when you save')}
+            helperText={t('order.entry.entered.helper', 'When the order was entered at the laboratory, and by whom.')} />
+          <DatePicker datePickerType="single" dateFormat="d/m/Y" maxDate="25/09/2026" value={orderAt ? orderAt.slice(0, 10) : ''}>
+            <DatePickerInput id="order-date" labelText={t('order.requestDate', 'Order date and time')} placeholder={t('common.datePlaceholder', 'dd/mm/yyyy')} helperText={t('order.entry.orderDate.helper', 'Optional. When the clinician ordered the tests.')} />
+          </DatePicker>
+          <TimePicker id="order-time" labelText={t('order.requestTime', 'Time')} value={orderAt ? orderAt.slice(11, 16) : ''} onChange={e => setOrderAt(`${(orderAt || NOW).slice(0, 10)}T${e.target.value}`)} />
+          <DatePicker datePickerType="single" dateFormat="d/m/Y" minDate="25/09/2026" onChange={([d]) => setRequiredBy(d ? d.toISOString() : '')}>
+            <DatePickerInput id="required-by" labelText={t('sample.requiredBy', 'Required by')} placeholder={t('common.datePlaceholder', 'dd/mm/yyyy')} helperText={t('order.entry.requiredBy.beforeOrder', 'Required by cannot be before the order date.')} />
+          </DatePicker>
+        </div>
       </OrderSection>
 
       {/* 2. Patient (FR-B5, FR-B6): search first; Create new patient only after a search that SUCCEEDED */}
@@ -1912,17 +1990,8 @@ function EnterOrderPage({ cfg, acceptance, go, received0, sim }) {
 
       {/* 4. Request details (FR-B11, FR-B12) */}
       <OrderSection id="sec-details" n={4} title={t('order.entry.section.requestDetails', 'Request details')} folded={folded.details}
-        summary={`${fmtDT(orderAt)} · ${program}`} onEdit={() => setFolded({ ...folded, details: false })} onLeave={() => setFolded(f => ({ ...f, details: true }))}>
+        summary={`${orderAt ? fmtDT(orderAt) : t('order.entry.noOrderDate', 'No order date')} · ${program}`} onEdit={() => setFolded({ ...folded, details: false })} onLeave={() => setFolded(f => ({ ...f, details: true }))}>
         <div style={S.row}>
-          <DatePicker datePickerType="single" dateFormat="d/m/Y" maxDate="25/09/2026" value={orderAt.slice(0, 10)}>
-            <DatePickerInput id="order-date" labelText={reqLabel(t('order.requestDate', 'Order date and time'), true)} placeholder={t('common.datePlaceholder', 'dd/mm/yyyy')} />
-          </DatePicker>
-          <TimePicker id="order-time" labelText={t('order.requestTime', 'Time')} value={orderAt.slice(11, 16)} onChange={e => setOrderAt(`${orderAt.slice(0, 10)}T${e.target.value}`)} />
-          <DatePicker datePickerType="single" dateFormat="d/m/Y" minDate="25/09/2026" onChange={([d]) => setRequiredBy(d ? d.toISOString() : '')}>
-            <DatePickerInput id="required-by" labelText={t('sample.requiredBy', 'Required by')} placeholder={t('common.datePlaceholder', 'dd/mm/yyyy')} helperText={t('order.entry.requiredBy.beforeOrder', 'Required by cannot be before the order date.')} />
-          </DatePicker>
-        </div>
-        <div style={{ ...S.row, marginTop: 16 }}>
           <Select id="program" labelText={t('common.program', 'Program')} value={program} onChange={e => { setProgram(e.target.value); setAnswers({}); }}>
             {Object.keys(PROGRAMS).map(p => <SelectItem key={p} value={p} text={p} />)}
           </Select>
@@ -1934,7 +2003,6 @@ function EnterOrderPage({ cfg, acceptance, go, received0, sim }) {
           ) : <TextInput key={q.k} id={`pq-${q.k}`} labelText={q.l} value={answers[q.k] || ''} onChange={e => setAnswers({ ...answers, [q.k]: e.target.value })} />))}
           <TextInput id="diagnosis" labelText={t('order.provisionalDiagnosis', 'Provisional diagnosis')} value={diagnosis} onChange={e => setDiagnosis(e.target.value)} style={{ minWidth: 280 }} />
           {cfg.nextVisit && <DatePicker datePickerType="single" dateFormat="d/m/Y"><DatePickerInput id="next-visit" labelText={t('order.nextVisitDate', 'Next visit date')} placeholder={t('common.datePlaceholder', 'dd/mm/yyyy')} /></DatePicker>}
-          {cfg.testLocationCode && <TextInput id="test-loc" labelText={t('order.testLocationCode', 'Sampling performed at')} />}
         </div>
       </OrderSection>
 
@@ -1963,12 +2031,14 @@ function EnterOrderPage({ cfg, acceptance, go, received0, sim }) {
         )}
         {received && (
           <>
+            {/* Receipt (FR-B23): when the samples arrived; required only once samples are received */}
             <div style={{ ...S.row, marginBottom: 16 }}>
               <DatePicker datePickerType="single" dateFormat="d/m/Y" maxDate="25/09/2026" value={receivedAt.slice(0, 10)}>
                 <DatePickerInput id="received-date" labelText={reqLabel(t('order.entry.received.at', 'Received date'), true)} placeholder={t('common.datePlaceholder', 'dd/mm/yyyy')} />
               </DatePicker>
               <TimePicker id="received-time" labelText={reqLabel(t('order.entry.received.time', 'Received time'), true)} value={receivedAt.slice(11, 16)} onChange={e => setReceivedAt(`${receivedAt.slice(0, 10)}T${e.target.value}`)} />
               <ComboBox id="received-by" titleText={reqLabel(t('order.entry.received.by', 'Received by'), true)} items={USERS} selectedItem={receivedBy} onChange={({ selectedItem }) => setReceivedBy(selectedItem)} />
+              {!orderAt && <Button kind="ghost" size="md" onClick={() => setOrderAt(receivedAt)}>{t('order.entry.sameAsReceived', 'Use as order date')}</Button>}
               <span style={S.muted}>{fmt(t('order.entry.received.tz', 'Laboratory time ({tz})'), { tz: LAB_TZ })}</span>
             </div>
             <SamplesTable mode="enter" rows={rows} setRows={setRows} ot={ot} cfg={cfg} labNo={labNo} receivedAt={receivedAt} filter={filter} onNotify={setNotice}
@@ -2074,7 +2144,7 @@ function PrepareSamplesPage({ cfg, acceptance, go, sim, variant }) {
 
   return (
     <div>
-      <PageHeader crumbs={[t('nav.home', 'Home'), t('nav.orders', 'Orders'), t('nav.clinicalOrders', 'Clinical Orders'), t('order.step.prepare', 'Prepare Samples')]} title={t('order.step.prepare', 'Prepare Samples')}
+      <PageHeader domain={<DomainSwitcher current="clinical" mode="saved" />} crumbs={[t('nav.home', 'Home'), t('nav.orders', 'Orders'), t('nav.clinicalOrders', 'Clinical Orders'), t('order.step.prepare', 'Prepare Samples')]} title={t('order.step.prepare', 'Prepare Samples')}
         actions={<Button kind="danger--tertiary" size="md">{t('order.dashboard.cancelOrder', 'Cancel order')}</Button>} />
       <OrderProgressIndicator steps={orderSteps(acceptance, [stepDone('10:42'), stepCurrent(items.length), stepNotStarted()])} onOpen={k => go(k)} />
       <OrderSummaryStrip patient={PATIENTS[0]} facility={FACILITIES[0]} ward="Medical Ward 3" provider={PROVIDERS[0]} ot={ot} rows={rows} received activeFilter={filter} onFilter={setFilter} />
@@ -2213,7 +2283,7 @@ function SampleCheckPage({ cfg, acceptance, go, sim }) {
 
   return (
     <div>
-      <PageHeader crumbs={[t('nav.home', 'Home'), t('nav.orders', 'Orders'), t('nav.clinicalOrders', 'Clinical Orders'), t('order.step.sampleCheck', 'Sample check')]} title={t('order.step.sampleCheck', 'Sample check')} />
+      <PageHeader domain={<DomainSwitcher current="clinical" mode="saved" />} crumbs={[t('nav.home', 'Home'), t('nav.orders', 'Orders'), t('nav.clinicalOrders', 'Clinical Orders'), t('order.step.sampleCheck', 'Sample check')]} title={t('order.step.sampleCheck', 'Sample check')} />
       <OrderProgressIndicator steps={orderSteps(acceptance, [stepDone('10:42'), stepDone('10:58'), stepCurrent(items.length)])} onOpen={k => go(k)} />
       <OrderSummaryStrip patient={PATIENTS[0]} facility={FACILITIES[0]} ward="Medical Ward 3" provider={PROVIDERS[0]} ot={ot} rows={rows} received />
       <PanelsReview ot={ot} rows={rows} />
@@ -2381,7 +2451,7 @@ function OrderDashboard({ cfg, acceptance, go }) {
   };
   return (
     <div>
-      <PageHeader crumbs={[t('nav.home', 'Home'), t('nav.orders', 'Orders'), t('nav.clinicalOrders', 'Clinical Orders')]} title={t('nav.clinicalOrders', 'Clinical Orders')}
+      <PageHeader domain={<DomainSwitcher current="clinical" mode="dashboard" />} crumbs={[t('nav.home', 'Home'), t('nav.orders', 'Orders'), t('nav.clinicalOrders', 'Clinical Orders')]} title={t('nav.clinicalOrders', 'Clinical Orders')}
         actions={<Button renderIcon={Add} onClick={() => go('enter')}>{t('order.dashboard.newOrder', 'New order')}</Button>} />
       <InlineNotification kind="info" lowContrast title={t('order.dashboard.modifyMoved', 'Modify Order has moved here. Open an order to change it.')} />
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: 'var(--cds-spacing-05) 0' }} role="group" aria-label={t('order.dashboard.filters', 'Quick filters')}>
@@ -2755,7 +2825,7 @@ const CFG_ROWS = [
   ['restrictFreeTextProviderEntry', 'restrictFreeTextProviderEntry', 'FR-B8'], ['restrictFreeTextRefSiteEntry', 'restrictFreeTextRefSiteEntry', 'FR-B7'],
   ['validateAccessionNumber', 'validateAccessionNumber', 'FR-A14'], ['autoFill', 'auto-fill collection date/time', 'FR-C3'], ['gpsCoordinatesEnabled', 'gpsCoordinatesEnabled', 'FR-C9'],
   ['trackPayment', 'trackPayment', 'FR-B28'], ['billingRefNumber', 'billingRefNumber', 'FR-B28'], ['contactTracingEnabled', 'contactTracingEnabled', 'FR-B30'],
-  ['notifications', 'Result notifications (Test Notification Configuration)', 'FR-B29'], ['nextVisit', 'Next visit date (form field)', 'FR-B12'], ['testLocationCode', 'Test location code (form field)', 'FR-B12'],
+  ['notifications', 'Result notifications (Test Notification Configuration)', 'FR-B29'], ['nextVisit', 'Next visit date (form field)', 'FR-B12'],
   ['labelOverride', 'Allow label override at order entry', 'FR-I5'], ['consentRequiredForCollection', 'consentRequiredForCollection (Site Information)', 'FR-D2'],
   ['useExternalPatientSource', 'useExternalPatientSource (Site Information)', 'FR-B5'], ['canRefer', 'Signed-in user holds Sample Shipment Management (referral access)', 'Access'],
 ];
@@ -2807,7 +2877,7 @@ function OrderEntryConfiguration({ cfg, setCfg, acceptance, setAcceptance }) {
 const CFG_DEFAULT = {
   requesterRequired: true, eqaEnabled: true, patientRequired: false, restrictFreeTextProviderEntry: true, restrictFreeTextRefSiteEntry: false,
   validateAccessionNumber: true, autoFill: false, gpsCoordinatesEnabled: false, trackPayment: true, billingRefNumber: false, contactTracingEnabled: false,
-  notifications: false, nextVisit: false, testLocationCode: false, labelOverride: true, consentRequiredForCollection: false, useExternalPatientSource: false,
+  notifications: false, nextVisit: false, labelOverride: true, consentRequiredForCollection: false, useExternalPatientSource: false,
   enableClientRegistry: false, nationalIdRequired: false, canRefer: true, clockDrift: false,
 };
 const SCREENS = [

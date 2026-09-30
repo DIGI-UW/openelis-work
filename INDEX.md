@@ -27,7 +27,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Test Catalog Completion v2 [Completed] | [test-catalog-completion-v2.jsx](designs/admin-config/test-catalog-completion-v2.jsx) | [test-catalog-completion-v2.md](designs/admin-config/test-catalog-completion-v2.md) |
 | Test Catalog — QC Targets & LOD/LOQ | [preview](designs/admin-config/test-catalog-qc-targets-preview.html) | [test-catalog-qc-targets.md](designs/admin-config/test-catalog-qc-targets.md) |
 | Test Catalog [Completed] | [test-catalog.jsx](designs/admin-config/test-catalog.jsx) · [preview](designs/admin-config/test-catalog.html) | [test-catalog.md](designs/admin-config/test-catalog.md) |
-| Test Catalog — Microbiology Workflow Attribute | [preview](designs/admin-config/test-catalog-microbiology-workflow-attribute.html) | [test-catalog-microbiology-workflow-attribute.md](designs/admin-config/test-catalog-microbiology-workflow-attribute.md) |
+| Test Catalog — Microbiology Workflow Attribute (narrowed by Microbiology v2) | [preview](designs/admin-config/test-catalog-microbiology-workflow-attribute.html) | [test-catalog-microbiology-workflow-attribute.md](designs/admin-config/test-catalog-microbiology-workflow-attribute.md) |
 | RBAC Management | [rbac-ui-mockup.html](designs/rbac/rbac-ui-mockup.html) | [rbac-revamp-prd.md](designs/rbac/rbac-revamp-prd.md) |
 | Password Policy Enhancements | [password-enhancements.jsx](designs/admin-config/password-enhancements.jsx) | [password-enhancements.md](designs/admin-config/password-enhancements.md) |
 | Catalog Subscription | [catalog-subscription-carbon.jsx](designs/admin-config/catalog-subscription-carbon.jsx) \| [preview](designs/admin-config/catalog-subscription.html) | [catalog-subscription.md](designs/admin-config/catalog-subscription.md) |
@@ -102,6 +102,8 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | AMR Module | [amr-module.jsx](designs/microbiology/amr-module.jsx) | [amr-module.md](designs/microbiology/amr-module.md) |
 | Case Workbench | — | [case-workbench.md](designs/microbiology/case-workbench.md) |
 | Guided Workflow Walkthrough | [amr-micro-workflow-flow.html](designs/microbiology/amr-micro-workflow-flow.html) | [amr-micro-narrative.md](designs/microbiology/amr-micro-narrative.md) |
+| Microbiology v2 Amendments (draft 9) | [amr-micro-v2-mockup.jsx](designs/microbiology/amr-micro-v2-mockup.jsx) · [preview](designs/microbiology/amr-micro-v2-preview.html) | [amr-micro-v2-amendments.md](designs/microbiology/amr-micro-v2-amendments.md) |
+| M-18 Environmental Microbiology (v0.9) | [m-18-environmental-microbiology.jsx](designs/microbiology/m-18-environmental-microbiology.jsx) · [preview](designs/microbiology/m-18-environmental-microbiology.html) | [m-18-environmental-microbiology.md](designs/microbiology/m-18-environmental-microbiology.md) |
 
 ## Non-Conforming Events (NCE)
 
@@ -174,7 +176,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Environmental LHU (S-06c) | [S06c-environmental-lhu-mockup.jsx](designs/reports/S06c-environmental-lhu-mockup.jsx) \| [preview](designs/reports/S06c-environmental-lhu-preview.html) \| [annotated](designs/reports/S06c-environmental-lhu-preview-annotated.html) | [S06c-environmental-lhu-frs-v1.0.md](designs/reports/S06c-environmental-lhu-frs-v1.0.md) |
 | Vector LHU (S-06d) | [S06d-vector-lhu-mockup.jsx](designs/reports/S06d-vector-lhu-mockup.jsx) \| [preview](designs/reports/S06d-vector-lhu-preview.html) \| [annotated](designs/reports/S06d-vector-lhu-preview-annotated.html) | [S06d-vector-lhu-frs-v1.0.md](designs/reports/S06d-vector-lhu-frs-v1.0.md) |
 | Report Print Queue | [report-print-queue.jsx](designs/reports/report-print-queue.jsx) · [preview](designs/reports/report-print-queue.html) | [report-print-queue.md](designs/reports/report-print-queue.md) |
-| Patient Report Redesign | [preview](designs/reports/patient-report-redesign.html) · [patient_letter.jrxml](designs/reports/patient_letter.jrxml) | [patient-report-redesign.md](designs/reports/patient-report-redesign.md) |
+| Patient Report Redesign | [preview](designs/reports/patient-report-redesign.html) · [patient_letter.jrxml](designs/reports/patient_letter.jrxml) | [patient-report-redesign.md](designs/reports/patient-report-redesign.md) (Patient Report & Report Management FRS v2.3.3) · [breakdown](designs/reports/patient-report-redesign-breakdown.md) |
 | Positivity Rate Report | [positivity-rate.jsx](designs/reports/positivity-rate.jsx) | [positivity-rate.md](designs/reports/positivity-rate.md) |
 | Disease Surveillance Dashboard | [disease-surveillance-dashboard.jsx](designs/reports/disease-surveillance-dashboard.jsx) | [disease-surveillance-dashboard.md](designs/reports/disease-surveillance-dashboard.md) |
 | Custom Data Export | [custom-data-export.jsx](designs/reports/custom-data-export.jsx) | [custom-data-export.md](designs/reports/custom-data-export.md) |
@@ -251,7 +253,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Calendar Management [Completed] | [calendar-management.jsx](designs/other/calendar-management.jsx) | — |
 | Patient ID Card Scanning [Completed] | *(moved to Patient section)* | — |
 | Unassigned Tests | — | [unassigned-tests.md](designs/other/unassigned-tests.md) |
-| Report Level Signatures | — | [report-level-signatures.md](designs/other/report-level-signatures.md) |
+| Report Level Signatures (layout points superseded by Patient Report FRS §14.1) | — | [report-level-signatures.md](designs/other/report-level-signatures.md) |
 | Change Management Strategy | — | [change-management-strategy.md](designs/other/change-management-strategy.md) |
 | Environmental & Vector Testing Roadmap | — | [environmental-vector-roadmap.md](designs/other/environmental-vector-roadmap.md) |
 | Style Guide v2 — Component Usage | — | [openelis-style-guide-v2-component-usage.md](designs/other/openelis-style-guide-v2-component-usage.md) |

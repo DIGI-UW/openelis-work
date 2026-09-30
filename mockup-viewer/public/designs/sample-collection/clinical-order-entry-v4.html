@@ -285,6 +285,16 @@
   .chk-items tr.no th { box-shadow: inset 3px 0 0 #da1e28; }
   .chk-items .ev { color: #161616; line-height: 1.5; }
   .ev-miss { color: #a2191f; }
+  .ds-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .ds-saved { margin: 4px 0 12px; }
+  .ds-lab { font-size: 12px; color: #525252; font-weight: 600; letter-spacing: .16px; }
+  .ds-sw { display: inline-flex !important; inline-size: auto !important; width: auto !important; max-width: 100%; flex: none; }
+  .ds-sw .cds--content-switcher-btn { flex: none !important; inline-size: auto !important; width: auto !important; min-width: 136px; padding: 0 16px; }
+  .ds-sw .cds--content-switcher__label { overflow: visible; text-overflow: clip; }
+  .newb > .ds-row { padding-right: 48px; }
+  .ds-hint { font-size: 12px; flex: 1; min-width: 220px; }
+  .ds-pv { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-top: 8px; padding-top: 6px; border-top: 1px dashed #b28600; font-size: 12px; }
+  .ds-pv-t { font-family: 'IBM Plex Mono', monospace; color: #3d2e00; }
 </style>
 </head>
 <body>
@@ -541,7 +551,7 @@ const n2 = n => n.toLocaleString('en-US');
 const CFG0 = {
   requesterRequired: true, eqaEnabled: false, restrictFreeTextProviderEntry: true, restrictFreeTextRefSiteEntry: false, gpsCoordinatesEnabled: false,
   autoFill: false, trackPayment: true, billingRefNumber: false, contactTracingEnabled: false, notifications: false, labelOverride: true,
-  nextVisit: false, testLocationCode: false, useExternalPatientSource: false, validateAccessionNumber: true,
+  nextVisit: false, useExternalPatientSource: false, validateAccessionNumber: true,
 };
 const CFG_META = [
   ['requesterRequired', 'requesterRequired', 'Order Entry', 'Facility and provider required at the complete level; their required markers show only when on (default on)', 'FR-B13', false],
@@ -555,7 +565,6 @@ const CFG_META = [
   ['contactTracingEnabled', 'contactTracingEnabled', 'Order Entry', 'Index case name and record number', 'FR-B30', false],
   ['notifications', 'Result notifications', 'Test Notification Configuration, SMTP/SMS', 'Notify patient and Notify provider on each ordered test', 'FR-B29', false],
   ['nextVisit', 'Next visit date (form field)', 'Field set', 'Next visit date shown only when on', 'FR-B12', true],
-  ['testLocationCode', 'Test location code (form field)', 'Field set', 'Sampling performed at, shown only when on', 'FR-B12', true],
   ['useExternalPatientSource', 'useExternalPatientSource', 'Site Information', 'Patient search also queries the external patient source', 'FR-B5', true],
   ['labelOverride', 'Allow label override at order entry', 'Order Entry', 'Label quantities can be changed at order entry, up to each maximum; off makes every quantity read-only with its reason', 'FR-I5', false],
   ['validateAccessionNumber', 'validateAccessionNumber', 'Order Entry', 'Lab number format checked as it is entered', 'FR-A14', true],
@@ -899,6 +908,86 @@ function Swatch({ c }) {
 }
 function Req() { return <span className="req" aria-hidden="true">*</span>; }
 function Annot({ children }) { return <div className="annot">{children}</div>; }
+/* Domain switcher (Clinical FRS v0.15 FR-A17 to A22, D-093). One Add Order item in the SideNav; this switcher picks the
+   domain. Each domain keeps its own form and route; the switcher never merges them. */
+const DOMAINS = [
+  { k: 'clinical', l: 'Clinical', route: '/order/clinical' },
+  { k: 'environmental', l: 'Environmental', route: '/order/environmental' },
+  { k: 'vector', l: 'Vector', route: '/order/vector' },
+];
+const DS_STATE = { noVector: false, clean: false };
+function DomainSwitch({ current, mode = 'new', kept, cleared, onGo, labNo }) {
+  const [pending, setPending] = useState(null);
+  const [note, setNote] = useState(null);
+  const [noVec, setNoVec] = useState(DS_STATE.noVector);
+  const [clean, setClean] = useState(DS_STATE.clean);
+  const btns = useRef([]);
+  const cur = DOMAINS.find(d => d.k === current);
+  if (mode === 'saved') return (
+    <div className="ds-row ds-saved">
+      <span className="ds-lab">Order type</span>
+      <Tag c="cool-gray" md tip="The order type is fixed once the order is saved. To change it, cancel the order and enter it again.">{cur.l}</Tag>
+      <span className="chip-new">new</span>
+      <span className="muted ds-hint">Fixed at first save (FR-A21). Wrong domain: cancel with "Registered in the wrong domain" and enter again.</span>
+    </div>
+  );
+  const avail = DOMAINS.filter(d => !(noVec && d.k === 'vector') || d.k === current);
+  const route = d => d.route + (mode === 'dashboard' ? '' : '/enter');
+  const go = d => {
+    setPending(null);
+    if (onGo && onGo(d.k)) return;
+    setNote('Opens ' + route(d) + (mode === 'dashboard' ? '' : ', keeping lab number ' + labNo) + '. The ' + d.l.toLowerCase() + ' form is drawn in its own preview.');
+  };
+  const pick = d => {
+    if (d.k === current || mode === 'eorder') return;
+    if (mode === 'dashboard' || clean) go(d); else setPending(d);
+  };
+  const onKey = (e, i) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    e.preventDefault();
+    const n = avail.length;
+    const j = (i + (e.key === 'ArrowRight' ? 1 : n - 1)) % n;
+    if (btns.current[j]) btns.current[j].focus();
+  };
+  const pv = (
+    <div className="ds-pv" role="group" aria-label="Preview controls for the domain switcher">
+      <span className="ds-pv-t">Preview:</span>
+      {mode === 'new' && <Checkbox label="Nothing entered yet (switch happens at once)" checked={clean} onChange={v => { DS_STATE.clean = v; setClean(v); }} />}
+      <Checkbox label="No active vector tests in the catalog (FR-A18)" checked={noVec} onChange={v => { DS_STATE.noVector = v; setNoVec(v); }} />
+    </div>
+  );
+  return (
+    <NewBlock style={{ padding: '10px 14px', margin: '4px 0 12px' }}>
+      <div className="ds-row">
+        <span className="ds-lab" id={'ds-lab-' + current}>Order type</span>
+        <div className="cds--content-switcher ds-sw" role="tablist" aria-labelledby={'ds-lab-' + current}>
+          {avail.map((d, i) => {
+            const on = d.k === current;
+            const off = mode === 'eorder' && !on;
+            return (
+              <button key={d.k} type="button" role="tab" aria-selected={on} tabIndex={on ? 0 : -1} disabled={off}
+                title={off ? 'Electronic orders keep the order type they arrived with.' : undefined}
+                ref={el => { btns.current[i] = el; }} onKeyDown={e => onKey(e, i)} onClick={() => pick(d)}
+                className={'cds--content-switcher-btn' + (on ? ' cds--content-switcher--selected' : '')}>
+                <span className="cds--content-switcher__label">{d.l}</span>
+              </button>
+            );
+          })}
+        </div>
+        <span className="muted ds-hint">SideNav: one <strong>Add Order</strong> item replaces Add Clinical, Add Environmental and Add Vector Order. Opens on the domain you last used.</span>
+      </div>
+      {avail.length < 2 && <Annot>With only one domain in the catalog, no switcher is shown and the page looks as it does today (FR-A18). Drawn here so the state can be reviewed.</Annot>}
+      {note && <Notif kind="info" title={note} onClose={() => setNote(null)} style={{ marginTop: 8 }} />}
+      {pv}
+      <Modal open={!!pending} title={pending ? 'Switch to ' + pending.l + '?' : ''} primary="Switch" onClose={() => setPending(null)} onPrimary={() => go(pending)}>
+        <p style={{ margin: '0 0 8px' }}><strong>Kept:</strong> {kept}</p>
+        <p style={{ margin: '0 0 8px' }}><strong>Cleared:</strong> {cleared}</p>
+        <p className="muted" style={{ margin: 0 }}>The lab number is not reserved again, so no number is skipped.</p>
+      </Modal>
+    </NewBlock>
+  );
+}
+
 
 function TextInput({ label, value, onChange, placeholder, helper, required, invalid, invalidText, warn, warnText, type = 'text', readOnly, inputRef, onKeyDown, style, newMark, size, disabled, maxLength, ariaLabel }) {
   const id = useId();
@@ -1091,11 +1180,12 @@ function Breadcrumb({ items }) {
     </nav>
   );
 }
-function PageHead({ route, crumbs, title, sub, actions }) {
+function PageHead({ route, crumbs, title, sub, actions, domainSwitch }) {
   return (
     <div>
       <div className="page-route">Route: {route}</div>
       <Breadcrumb items={crumbs} />
+      {domainSwitch}
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: 240 }}>
           <h1 className="page-title">{title}</h1>
@@ -2516,7 +2606,7 @@ function Dashboard({ go, orders, setOrders, dash, acc, cfg }) {
   };
   return (
     <div>
-      <PageHead route="/order/clinical" crumbs={['Home', 'Orders', 'Clinical Orders']} title="Clinical Orders" sub="Central Public Health Laboratory (CPHL), Port Moresby. Orders entered today."
+      <PageHead domainSwitch={<DomainSwitch current="clinical" mode="dashboard" />} route="/order/clinical" crumbs={['Home', 'Orders', 'Clinical Orders']} title="Clinical Orders" sub="Central Public Health Laboratory (CPHL), Port Moresby. Orders entered today."
         actions={<Btn size="md" onClick={() => go(2)}>New order</Btn>} />
       {note && <Notif kind="success" title={note} onClose={() => setNote(null)} style={{ marginBottom: 16 }} />}
       {modNote && <Notif kind="info" title="Modify Order has moved here. Open an order to change it." sub="Every change after entry is made on the order's own steps. The Modify Order menu row is removed, and old Modify Order links open Enter Order for the same order." onClose={() => setModNote(false)} style={{ marginBottom: 16 }} />}
@@ -2622,13 +2712,12 @@ function EnterOrder({ go, received0, acc, onSaved, savedId, net, setNet, stat, s
   const [remember, setRemember] = useState(false);
   const [contact, setContact] = useState('+675 324 8210 (Medical Ward 3 nurses\' station)');
   const [refNo, setRefNo] = useState('PMGH-MW3-1187');
-  const [reqAt, setReqAt] = useState('2026-09-25T09:40');
+  const [reqAt, setReqAt] = useState(''); // FR-B11: optional, starts blank, never stamped
   const [reqBy, setReqBy] = useState('2026-09-27');
   const [program, setProgram] = useState('Antenatal care');
   const [pq, setPq] = useState({ gest: '24', visit: 'First visit', art: 'TLD', vlr: 'Routine monitoring', tbn: '' });
   const [diag, setDiag] = useState('Anaemia in pregnancy, query cause');
   const [nextVisit, setNextVisit] = useState('2026-10-23');
-  const [testLoc, setTestLoc] = useState('Medical Ward 3 treatment room');
   const [ot, setOt] = useState(() => buildOt(full ? DEFAULT_SPEC : ['P:FBC', 'HBA1C', 'CREA'], saved));
   const [received, setReceived] = useState(full);
   const [recAt, setRecAt] = useState(RECEIVED);
@@ -2758,7 +2847,7 @@ function EnterOrder({ go, received0, acc, onSaved, savedId, net, setNet, stat, s
   if (!activeIds(ot).length) items.push({ label: 'Add at least one test', go: () => flashEl('fld-addcode') });
   if (reqReq && !fac) items.push({ label: 'Add the requesting facility', go: () => flashEl('fld-facility') });
   if (reqReq && !prov) items.push({ label: 'Add the requesting provider', go: () => flashEl('fld-provider') });
-  if (reqAt > NOW) items.push({ label: 'Order date and time cannot be in the future', go: () => flashEl('fld-reqat') });
+  if (reqAt && reqAt > NOW) items.push({ label: 'Order date and time cannot be in the future', go: () => flashEl('fld-reqat') });
   if (reqByBad) items.push({ label: 'Required by cannot be before the order date', go: () => flashEl('fld-reqby') });
   if (eqa && !eqaF.prog) items.push({ label: 'Choose the EQA program', go: () => flashEl('sec-order') });
   if (scanBad) items.push({ label: 'Lab number format', go: () => flashEl('fld-labscan') });
@@ -2797,7 +2886,7 @@ function EnterOrder({ go, received0, acc, onSaved, savedId, net, setNet, stat, s
   const done = {
     patient: !!(noPat || (patient && !(patient.isNew && !patient.nid))) && !newPat,
     requester: (!reqReq || (fac && prov)) && !np && !addFac,
-    details: !!reqAt && reqAt <= NOW && !reqByBad,
+    details: !(reqAt && reqAt > NOW) && !reqByBad,
   };
   const isFold = k => !!folded[k] && done[k];
   const onMove = ev => {
@@ -2812,7 +2901,7 @@ function EnterOrder({ go, received0, acc, onSaved, savedId, net, setNet, stat, s
   const foldText = {
     patient: noPat ? (eqa ? 'EQA sample, no patient' : 'No patient (override recorded)') : patient ? [patient.name, patient.sex, age != null ? age + ' y' : null, patient.nid].filter(Boolean).join(', ') : '',
     requester: [fac ? fac.n + (ward ? ', ' + ward : '') : 'No facility', prov ? provName(prov) : 'No provider', refNo ? 'Referring lab no. ' + refNo : null].filter(Boolean).join(' · '),
-    details: ['Ordered ' + fmtDT(reqAt), reqBy ? 'required by ' + fmtD(reqBy) : null, program, diag || null].filter(Boolean).join(' · '),
+    details: [reqAt ? 'Ordered ' + fmtDT(reqAt) : 'No order date', reqBy ? 'required by ' + fmtD(reqBy) : null, program, diag || null].filter(Boolean).join(' · '),
   };
   const Fold = ({ k }) => <div className="fold-line"><span className="fold-t">{I.check}<span>{foldText[k]}</span></span><Btn kind="ghost" onClick={() => unfold(k)} aria-label={'Edit ' + { patient: 'Patient', requester: 'Requester', details: 'Request details' }[k]}>Edit {I.editBtn}</Btn></div>;
   const chooserFolded = activeIds(ot).length > 0 && !chOpen;
@@ -2820,8 +2909,8 @@ function EnterOrder({ go, received0, acc, onSaved, savedId, net, setNet, stat, s
 
   return (
     <div onClickCapture={onMove} onFocusCapture={onMove}>
-      <PageHead route={'/order/clinical/enter' + (saved ? '?id=' + labNo : '')} crumbs={['Home', 'Orders', 'Clinical Orders', 'Enter Order']}
-        title={<span>Enter Order{stat && <> <Tag c="red" md>STAT</Tag></>}</span>}
+      <PageHead domainSwitch={<DomainSwitch current="clinical" mode={saved ? 'saved' : 'new'} labNo={labNo} kept={'lab number ' + labNo + ', received date and time, requester, notes'} cleared="patient, program, tests and panels, samples, billing and notification choices" />} route={'/order/clinical/enter' + (saved ? '?id=' + labNo : '')} crumbs={['Home', 'Orders', 'Clinical Orders', 'Enter Order']}
+        title={<span>{saved ? 'Enter Order' : 'New clinical order'}{stat && <> <Tag c="red" md>STAT</Tag></>}</span>}
         sub={saved ? 'Saved order ' + labNo + '. Every change after entry is made on these steps.' : 'Step 1 of the clinical order. Work top to bottom, in the order of the paper request form.'}
         actions={saved ? <Btn kind="danger--ghost" size="md" onClick={() => go(1, { note: 'Use Cancel order on the dashboard row, or here, to cancel with a reason (FR-A4). Shown on the dashboard for this preview.' })}>Cancel order</Btn> : null} />
       <PreviewControls note="A simulated failure applies to the next action; Retry then succeeds, except while the server outage is on."
@@ -2836,7 +2925,7 @@ function EnterOrder({ go, received0, acc, onSaved, savedId, net, setNet, stat, s
           { label: 'Browser blocks the print window', on: psim.printBlocked, set: v => setPsim(s => ({ ...s, printBlocked: v })) },
           { label: 'Label file cannot be generated', on: psim.printFail, set: v => setPsim(s => ({ ...s, printFail: v })) },
         ]}
-        cfgItems={cfgControls(cfg, setCfg, ['labelOverride', 'requesterRequired', 'eqaEnabled', 'restrictFreeTextProviderEntry', 'restrictFreeTextRefSiteEntry', 'validateAccessionNumber', 'useExternalPatientSource', 'nextVisit', 'testLocationCode', 'billingRefNumber', 'trackPayment', 'contactTracingEnabled', 'notifications', 'autoFill', 'gpsCoordinatesEnabled'])} />
+        cfgItems={cfgControls(cfg, setCfg, ['labelOverride', 'requesterRequired', 'eqaEnabled', 'restrictFreeTextProviderEntry', 'restrictFreeTextRefSiteEntry', 'validateAccessionNumber', 'useExternalPatientSource', 'nextVisit', 'billingRefNumber', 'trackPayment', 'contactTracingEnabled', 'notifications', 'autoFill', 'gpsCoordinatesEnabled'])} />
       <NewBlock style={{ padding: '10px 14px 2px' }}>
         <Progress steps={orderSteps(acc, 0, [stCur(items.length), saved ? stProg(PREP_TODO) : stNot(), stNot()])} onOpen={saved ? s => go(s.screen, { id: labNo }) : null} />
         {!saved && <p className="muted" style={{ margin: '-6px 0 8px', fontSize: 12 }}>Steps open from the indicator once the order is saved.</p>}
@@ -2930,6 +3019,17 @@ function EnterOrder({ go, received0, acc, onSaved, savedId, net, setNet, stat, s
             )}
           </NewBlock>
         )}
+        <div className="grid g3" style={{ marginTop: 16, maxWidth: 1020 }}>
+          <div id="fld-entered">
+            <span className="lbl">Entered</span>
+            <div>{saved ? '25/09/2026 10:55 by Mary Kila' : 'Recorded automatically when you save'}</div>
+            <div className="cds--form__helper-text">When the order was entered at the laboratory, and by whom. Not editable.</div>
+          </div>
+          <div id="fld-reqat">
+            <TextInput label="Order date and time" type="datetime-local" value={reqAt} onChange={setReqAt} helper="Optional. When the clinician ordered the tests, from the request form." invalid={!!reqAt && reqAt > NOW} invalidText="Order date and time cannot be in the future." />
+          </div>
+          <div id="fld-reqby"><TextInput label="Required by" type="date" value={reqBy} onChange={setReqBy} invalid={!!reqByBad} invalidText="Required by cannot be before the order date." helper="Optional" /></div>
+        </div>
         {chgDone && <Notif kind="success" title={'Lab number changes from ' + chgDone.old + ' to ' + chgDone.nw + ' when you save.'} sub={'Reason recorded: ' + chgDone.reason + '. Print new labels for every tube after you save (Print all labels).'} onClose={() => setChgDone(null)} style={{ marginTop: 12 }} />}
       </div>
 
@@ -3082,11 +3182,7 @@ function EnterOrder({ go, received0, acc, onSaved, savedId, net, setNet, stat, s
       <div className="section" id="sec-details" data-sec="details">
         <SecHead n="4" title="Request details">{isFold('details') && <Fold k="details" />}</SecHead>
         {!isFold('details') && <>
-        <div className="grid g2" style={{ maxWidth: 820 }}>
-          <div id="fld-reqat"><TextInput label="Order date and time" required type="datetime-local" value={reqAt} onChange={setReqAt} helper={'When the clinician ordered the tests. Defaults to now in laboratory time (' + LAB_TZ + ').'} invalid={reqAt > NOW} invalidText="Order date and time cannot be in the future." /></div>
-          <div id="fld-reqby"><TextInput label="Required by" type="date" value={reqBy} onChange={setReqBy} invalid={!!reqByBad} invalidText="Required by cannot be before the order date." helper="Optional" /></div>
-        </div>
-        <div className="grid g3" style={{ marginTop: 16 }}>
+        <div className="grid g3">
           <Select label="Program" value={program} onChange={setProgram} options={Object.keys(PROGRAM_QUESTIONS)} />
           <div style={{ gridColumn: 'span 2' }}><TextInput label="Provisional diagnosis" value={diag} onChange={setDiag} /></div>
         </div>
@@ -3100,12 +3196,11 @@ function EnterOrder({ go, received0, acc, onSaved, savedId, net, setNet, stat, s
             </div>
           ) : <div className="muted">This program has no additional order questions.</div>}
         </div>
-        {(cfg.nextVisit || cfg.testLocationCode) ? (
+        {cfg.nextVisit ? (
           <div className="grid g3" style={{ marginTop: 16 }}>
-            {cfg.nextVisit && <TextInput label="Next visit date" type="date" value={nextVisit} onChange={setNextVisit} helper="Shown because the Next visit date field is on" />}
-            {cfg.testLocationCode && <Select label="Sampling performed at" value={testLoc} onChange={setTestLoc} options={['Medical Ward 3 treatment room', 'CPHL collection room', 'Outpatients phlebotomy', 'Community outreach']} helper="Test location code, shown because its field is on" />}
+            <TextInput label="Next visit date" type="date" value={nextVisit} onChange={setNextVisit} helper="Shown because the Next visit date field is on" />
           </div>
-        ) : <p className="muted" style={{ marginBottom: 0 }}>Next visit date and Sampling performed at appear only when their configuration switches are on (both off here).</p>}
+        ) : <p className="muted" style={{ marginBottom: 0 }}>Next visit date appears only when its configuration switch is on (off here).</p>}
         </>}
       </div>
 
@@ -3134,13 +3229,14 @@ function EnterOrder({ go, received0, acc, onSaved, savedId, net, setNet, stat, s
           </Notif>
         )}
         {!received ? (
-          <p className="muted" style={{ marginTop: 8, marginBottom: 0 }}>Off: the tubes have not arrived. Switch on if they are on the desk now; OpenELIS proposes the containers it expects from the tests, and you correct them to what actually arrived.</p>
+          <p className="muted" style={{ marginTop: 8, marginBottom: 0 }}>Off: the tubes have not arrived. Received date and time is recorded when they do, here or in Prepare Samples. Switch on if they are on the desk now; OpenELIS proposes the containers it expects from the tests, and you correct them to what actually arrived.</p>
         ) : (
           <div>
             <div className="grid g3" style={{ marginBottom: 16 }}>
-              <div id="fld-recat"><TextInput label="Received date and time" required type="datetime-local" value={recAt} onChange={setRecAt} helper={'Defaults to now in laboratory time (' + LAB_TZ + ').'} invalid={recAt > NOW} invalidText="Received date and time cannot be in the future." /></div>
+              <div id="fld-recat"><TextInput label="Received date and time" required type="datetime-local" value={recAt} onChange={setRecAt} helper={'When the samples reached the laboratory. Defaults to now in laboratory time (' + LAB_TZ + '). Copied to each sample; a row can override it.'} invalid={recAt > NOW} invalidText="Received date and time cannot be in the future." /></div>
               <div id="fld-recby"><Typeahead label="Received by" required value={recBy} options={USERS.map(u => ({ v: u, l: u, meta: 'User' }))} onPick={o => setRecBy(o.v)} onClear={() => setRecBy('')} placeholder="Search users" helper="Defaults to you. Type to search users." /></div>
-              <div className="muted" style={{ paddingTop: 22 }}>Collection can be recorded here at the desk, in the Collected column. If it is left empty, Prepare Samples asks for it.</div>
+              <div className="muted" style={{ paddingTop: 22 }}>Collection can be recorded here at the desk, in the Collected column. If it is left empty, Prepare Samples asks for it.
+                {!reqAt && <div style={{ marginTop: 8 }}><Btn kind="ghost" onClick={() => setReqAt(recAt)}>Use as order date</Btn></div>}</div>
             </div>
             <SamplesTable mode="enter" rows={rows} setRows={setRows} ot={ot} cfg={cfg} labNo={labNo} recAt={recAt} filt={filt} onClearFilt={() => setFilt(null)} onAliquotFirst={onAliquotFirst} cmd={cmd} existingRefs={{}} lab={lab} />
           </div>
@@ -3336,7 +3432,7 @@ function Prepare({ go, variant, acc, onSaved, net, stat, cfg, setCfg, psim, setP
 
   return (
     <div>
-      <PageHead route={'/order/clinical/collect?id=' + LAB} crumbs={['Home', 'Orders', 'Clinical Orders', 'Prepare Samples']} title={<span>Prepare Samples{stat && <> <Tag c="red" md>STAT</Tag></>}</span>}
+      <PageHead domainSwitch={<DomainSwitch current="clinical" mode="saved" />} route={'/order/clinical/collect?id=' + LAB} crumbs={['Home', 'Orders', 'Clinical Orders', 'Prepare Samples']} title={<span>Prepare Samples{stat && <> <Tag c="red" md>STAT</Tag></>}</span>}
         sub={fresh ? 'Order ' + LAB + '. No receipt was recorded on Enter Order: record it above the samples. Tests on top, tubes below; resolve only real choices.' : 'Order ' + LAB + '. Received ' + fmtDT(RECEIVED) + ' by ' + ME_RECEPTION + '. Tests on top, tubes below; resolve only real choices.'} />
       <PreviewControls note="Label file simulations apply to the next print of saved samples. Retry then succeeds."
         items={[
@@ -3522,7 +3618,7 @@ function SampleCheck({ go, acc, onSaved, net, stat, cfg, psim }) {
   const aliq = r => rows.filter(x => x.parent === r.num);
   return (
     <div>
-      <PageHead route={'/order/clinical/qa?id=' + LAB} crumbs={['Home', 'Orders', 'Clinical Orders', 'Sample check']} title={<span>Sample check{stat && <> <Tag c="red" md>STAT</Tag></>}</span>} sub={'Order ' + LAB + '. One row per sample: each checklist item sits beside the recorded data it asks about.'} />
+      <PageHead domainSwitch={<DomainSwitch current="clinical" mode="saved" />} route={'/order/clinical/qa?id=' + LAB} crumbs={['Home', 'Orders', 'Clinical Orders', 'Sample check']} title={<span>Sample check{stat && <> <Tag c="red" md>STAT</Tag></>}</span>} sub={'Order ' + LAB + '. One row per sample: each checklist item sits beside the recorded data it asks about.'} />
       <PreviewControls items={[{ label: 'Prepare Samples not complete', on: sim.prepIncomplete, set: v => setSim(x => ({ ...x, prepIncomplete: v })) },
         { label: 'Needs attention: sample -2 rejected', on: rejected2, set: reject2 }]} />
       {acc === 'Off'
@@ -4268,7 +4364,7 @@ function App() {
   if (screen === 13) body = <SiteInfo />;
   return (
     <div>
-      <div className="pv-banner"><span>Visual Preview: Clinical Order Entry v4 (FRS v0.7) | OpenELIS Design Mockup | Not a live application</span><span>Screen {screen}: {route}</span></div>
+      <div className="pv-banner"><span>Visual Preview: Clinical Order Entry v4 (FRS v0.15) | OpenELIS Design Mockup | Not a live application</span><span>Screen {screen}: {route}</span></div>
       <header className="app-header">
         <div className="brand">OpenELIS Global <span>| Central Public Health Laboratory (CPHL), Port Moresby</span></div>
         {net && <span className="net-pill" role="status" title="The server is not answering. The page keeps retrying with growing gaps; nothing you entered is lost."><span className="dot"></span>Reconnecting...</span>}
