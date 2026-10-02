@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-09-25T16:34:42Z",
-  "reportAt": "2026-09-25T16:33:25.457Z",
-  "sections": 70,
-  "contracts": 70,
-  "ok": 2,
+  "generatedAt": "2026-10-02T15:52:16Z",
+  "reportAt": "2026-10-02T15:44:44.725Z",
+  "sections": 69,
+  "contracts": 69,
+  "ok": 3,
   "review": 52,
-  "errors": 8,
+  "errors": 6,
   "stale": [
     "add-patient",
     "admin-compliance-standards",
@@ -37,6 +37,7 @@
     "logging-configuration",
     "menu-configuration",
     "nce-capa",
+    "nce-report",
     "order-entry",
     "order-search",
     "organization-management",
@@ -45,13 +46,9 @@
     "patient-management",
     "patient-merge",
     "patient-order-enhancements",
-    "program-entry",
+    "programs-v2",
     "provider-management",
     "qa-review-shared",
-    "qc-control-lot",
-    "qc-empty-chart",
-    "qc-review",
-    "qc-setup-instrument",
     "reference-lab-results",
     "reflex-testing",
     "register-new-patient",
@@ -76,108 +73,85 @@
     "vector-surveillance",
     "vector-surveillance-report"
   ],
-  "capturedOld": 33,
+  "capturedOld": 35,
   "unchecked": [],
   "instances": {
-    "analyzers.openelis-global.org": {
-      "contracts": 1,
-      "checked": 1,
-      "ok": 0,
-      "review": 0,
-      "drift": 0,
-      "error": 1,
-      "version": "3.2.3.0",
-      "checkedAt": "2026-09-25T16:24:40.713Z"
-    },
     "pngtest.openelis-global.org": {
-      "contracts": 2,
-      "checked": 2,
-      "ok": 2,
+      "contracts": 4,
+      "checked": 4,
+      "ok": 3,
       "review": 0,
-      "drift": 0,
+      "drift": 1,
       "error": 0,
       "version": "3.2.2.0",
-      "checkedAt": "2026-09-25T16:25:36.483Z"
+      "checkedAt": "2026-09-28T10:44:30.086Z"
     },
     "testing.openelis-global.org": {
-      "contracts": 67,
-      "checked": 67,
+      "contracts": 65,
+      "checked": 65,
       "ok": 0,
       "review": 52,
-      "drift": 8,
-      "error": 7,
-      "version": "3.2.3.0",
-      "checkedAt": "2026-09-25T16:33:25.450Z"
+      "drift": 7,
+      "error": 6,
+      "version": "3.3.0",
+      "checkedAt": "2026-10-02T15:44:44.718Z"
     }
   },
   "drift": [
     {
-      "id": "analyzer-framework",
+      "id": "analyzer-mapping-qc",
       "base": "testing.openelis-global.org",
       "missing": [
-        "/analyzers/types :: Analyzer Types"
+        "/qa/qc/dashboard :: Overall QC Pass Rate",
+        "/qa/qc/rule-config :: Configure Westgard rules per analyzer and test combination"
       ],
-      "page": null
+      "page": "1648590851"
     },
     {
       "id": "analyzer-setup",
       "base": "testing.openelis-global.org",
       "missing": [
-        "/analyzers :: Manage laboratory analyzers and field mappings",
-        "/analyzers :: Add Analyzer",
-        "/analyzers :: Total Analyzers",
-        "/analyzers :: Analyzer type",
-        "/analyzers?setup=instrument :: Set up a new analyzer",
-        "/analyzers?setup=instrument :: Analyzer name",
-        "/analyzers/types :: Analyzer Types",
-        "/analyzers/types :: The reusable setups behind your analyzers.",
-        "/analyzers/types :: Reusable analyzer setup"
+        "/analyzers/types :: The reusable setups behind your analyzers."
       ],
       "page": "1648361491"
     },
     {
-      "id": "label-store-shared",
+      "id": "clinical-collect",
       "base": "testing.openelis-global.org",
       "missing": [
-        "/order/clinical/label?labNumber={{ORDER_IN_PROGRESS}} :: Save & Next"
+        "/order/clinical/collect?labNumber={{ORDER_IN_PROGRESS}} :: Save & Next"
       ],
       "page": null
     },
     {
-      "id": "menu-configuration",
+      "id": "clinical-order-enter",
       "base": "testing.openelis-global.org",
       "missing": [
-        "/MasterListsPage/globalMenuManagement :: Side Nav Active",
-        "/MasterListsPage/globalMenuManagement :: Show Child Elements",
-        "/MasterListsPage/globalMenuManagement :: Submit"
+        "/order/clinical/enter :: Print Labels"
+      ],
+      "page": "1648787462"
+    },
+    {
+      "id": "qa-review-shared",
+      "base": "testing.openelis-global.org",
+      "missing": [
+        "/order/clinical/qa?labNumber={{ORDER_IN_PROGRESS}} :: Submit"
       ],
       "page": null
     },
     {
-      "id": "organization-management",
-      "base": "testing.openelis-global.org",
+      "id": "qc-overview",
+      "base": "pngtest.openelis-global.org",
       "missing": [
-        "/MasterListsPage/organizationManagement :: Organization Management",
-        "/MasterListsPage/organizationEdit?ID=0 :: Add Organization"
+        "/qa/qc/dashboard :: Overall QC Pass Rate"
       ],
-      "page": null
+      "page": "1680048163"
     },
     {
-      "id": "patient-management",
+      "id": "register-new-patient",
       "base": "testing.openelis-global.org",
       "missing": [
-        "/PatientManagement :: Patient Results"
-      ],
-      "page": null
-    },
-    {
-      "id": "program-entry",
-      "base": "testing.openelis-global.org",
-      "missing": [
-        "/MasterListsPage/program :: Add/Edit Program",
-        "/MasterListsPage/program :: Program Name",
-        "/MasterListsPage/program :: Program Code",
-        "/MasterListsPage/program :: Test Section"
+        "/PatientManagement :: Gender"
       ],
       "page": null
     },
@@ -195,14 +169,12 @@
   ],
   "errorRoutes": [
     {
-      "id": "analyzer-mapping-qc",
+      "id": "admin-vector-reference-data",
       "base": "testing.openelis-global.org",
       "routes": [
-        "/analyzers/qc/db :: redirected to /qa/qc/dashboard",
-        "/analyzers/qc/rule-config :: redirected to /qa/qc/rule-config",
-        "/analyzers/qc/control-lots :: redirected to /qa/qc/control-lots"
+        "/MasterListsPage/vectorSurveillanceSetup/sampling-sites :: redirected to /MasterListsPage/locations/sites"
       ],
-      "page": "1648590851"
+      "page": "1420460034"
     },
     {
       "id": "environmental-surveillance",
@@ -213,38 +185,21 @@
       "page": "1420099592"
     },
     {
-      "id": "qc-control-lot",
+      "id": "label-store-shared",
       "base": "testing.openelis-global.org",
       "routes": [
-        "/analyzers/qc/control-lots :: redirected to /qa/qc/control-lots"
+        "/order/clinical/label?labNumber={{ORDER_IN_PROGRESS}} :: redirected to /order/clinical/collect"
       ],
       "page": null
     },
     {
-      "id": "qc-empty-chart",
+      "id": "organization-management",
       "base": "testing.openelis-global.org",
       "routes": [
-        "/analyzers/qc/db :: redirected to /qa/qc/dashboard",
-        "/analyzers/qc/control-lots :: redirected to /qa/qc/control-lots",
-        "/analyzers/qc/rule-config :: redirected to /qa/qc/rule-config"
+        "/MasterListsPage/organizationManagement :: redirected to /MasterListsPage/locations",
+        "/MasterListsPage/organizationEdit?ID=0 :: redirected to /MasterListsPage/locations"
       ],
-      "page": null
-    },
-    {
-      "id": "qc-review",
-      "base": "testing.openelis-global.org",
-      "routes": [
-        "/analyzers/qc/db :: redirected to /qa/qc/dashboard"
-      ],
-      "page": null
-    },
-    {
-      "id": "qc-setup-instrument",
-      "base": "analyzers.openelis-global.org",
-      "routes": [
-        "/analyzers/qc/rule-config :: redirected to /qa/qc/rule-config"
-      ],
-      "page": null
+      "page": "1437892659"
     },
     {
       "id": "results-entry-legacy",
@@ -264,5 +219,5 @@
       "page": null
     }
   ],
-  "summary": "70 of 70 contracts checked: 2 ok, 52 review, 8 drift, 8 route errors."
+  "summary": "69 of 69 contracts checked: 3 ok, 52 review, 8 drift, 6 route errors."
 }

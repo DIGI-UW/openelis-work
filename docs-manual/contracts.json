@@ -61,14 +61,16 @@
         {
           "path": "/analyzers/types",
           "anchors": [
-            "Analyzer Types"
+            "Duplicate Profile",
+            "Create Profile"
           ]
         }
       ],
       "uiPaths": [
         "frontend/src/components/analyzers"
       ],
-      "capturedDate": "2026-06-24"
+      "capturedDate": "2026-06-24",
+      "notes": "testing renders en_GB strings on 3.2.3.0 (Organisation, Analyser); anchors kept spelling-neutral (28 Sept 2026)"
     },
     {
       "id": "barcode-labels",
@@ -618,18 +620,18 @@
         {
           "path": "/MasterListsPage/organizationManagement",
           "anchors": [
-            "Organization Management",
             "Search By Org Name",
             "Add",
             "Org Name",
+            "Parent Org",
             "CLIA Number"
           ]
         },
         {
           "path": "/MasterListsPage/organizationEdit?ID=0",
           "anchors": [
-            "Add Organization",
             "Org Name",
+            "Org prefix",
             "Type of Activity",
             "Save"
           ]
@@ -638,7 +640,9 @@
       "uiPaths": [
         "frontend/src/components/admin/organizationManagement"
       ],
-      "capturedDate": "2026-06-30"
+      "capturedDate": "2026-06-30",
+      "confluencePageId": "1437892659",
+      "notes": "testing renders en_GB strings on 3.2.3.0 (Organisation, Analyser); anchors kept spelling-neutral (28 Sept 2026)"
     },
     {
       "id": "provider-management",
@@ -674,26 +678,6 @@
             "Lab Number Management",
             "Lab Number Type",
             "Submit"
-          ]
-        }
-      ],
-      "base": "https://testing.openelis-global.org",
-      "capturedVersion": "3.2.1.10",
-      "capturedDate": "2026-06-30"
-    },
-    {
-      "id": "program-entry",
-      "title": "Program Entry",
-      "manualDoc": "Confluence 1439006727 (draft)",
-      "captureSpec": "tests/docs/admin-discover.docs.spec.ts",
-      "routes": [
-        {
-          "path": "/MasterListsPage/program",
-          "anchors": [
-            "Add/Edit Program",
-            "Program Name",
-            "Program Code",
-            "Test Section"
           ]
         }
       ],
@@ -946,13 +930,13 @@
           "anchors": [
             "Add Or Modify Patient",
             "Search for Patient",
-            "New Patient",
-            "Patient Results"
+            "New Patient"
           ]
         }
       ],
       "capturedVersion": "3.2.2.0",
-      "capturedDate": "2026-09-22"
+      "capturedDate": "2026-09-22",
+      "notes": "Patient Results only renders after a patient is selected; removed from on-load anchors 28 Sept 2026"
     },
     {
       "id": "site-information",
@@ -978,22 +962,23 @@
     {
       "id": "menu-configuration",
       "title": "Menu Configuration",
-      "manualDoc": "Confluence 1439694850 (draft)",
-      "captureSpec": "tests/docs/admin-discover2.docs.spec.ts",
+      "manualDoc": "Confluence 1160282114 (Admin, Configure the navigation menu; rewritten 28 Sept 2026 for the redesigned screen)",
+      "captureSpec": "tests/docs/menu-cap.docs.spec.ts",
       "routes": [
         {
           "path": "/MasterListsPage/globalMenuManagement",
           "anchors": [
             "Global Menu Management",
-            "Side Nav Active",
-            "Show Child Elements",
-            "Submit"
+            "Update menu visibility, section headings and icons",
+            "Aliquot",
+            "Save"
           ]
         }
       ],
       "base": "https://testing.openelis-global.org",
-      "capturedVersion": "3.2.1.10",
-      "capturedDate": "2026-06-30"
+      "capturedVersion": "3.2.3.0",
+      "capturedDate": "2026-09-28",
+      "confluencePageId": "1160282114"
     },
     {
       "id": "calendar-management",
@@ -1236,49 +1221,9 @@
       "jiraEpic": "OGC-684",
       "featureDoc": "OGC-1167",
       "captureSpec": "tests/docs/qc-capture.docs.spec.ts",
-      "note": "2026-09-23: section repointed from testing to analyzers.openelis-global.org, and all four figures re-captured there. Reason: testing has no Analyzer Bridge (/analyzers/types shows 'Analyzer types could not be loaded - Check the Analyzer Bridge connection'; rest/analyzer-types returns 502 'Bridge URL is not configured'), so no analyzer can be registered and this workflow cannot run there at all - its anchors were passing only because empty shell pages render. The analyzers host runs the workflow fully (13 analyzers, a live rule set). CAVEAT - the analyzers host is a build BEHIND testing: it shows Analyzers List columns 'Test Units'/'Type' where testing shows 'Lab Units'/'Analyzer type', and its Rule Configuration page still renders the pre-OGC-1224 'Analyzers > Quality Control Dashboard > Rule Configuration' title with no real h1. Step 1 prose and the anchors follow the analyzers host. When that host picks up the newer build, expect 'Test Units' to fail here - that is the signal to re-capture and restore the Lab Units / Analyzer type wording. HISTORY - the 19 Sep failure on '/analyzers :: Analyzer List' was a true positive: the page-hierarchy title 'Analyzer List' (i18n analyzer.page.hierarchy.list) was rendered at the 2026-09-02 capture and has since been removed from AnalyzersList on both hosts. OPERATIONAL - this section now only runs when the drift check is invoked with BASE=https://analyzers.openelis-global.org; a testing-only weekly run will skip it silently."
-    },
-    {
-      "id": "qc-control-lot",
-      "title": "Receive and activate a control lot",
-      "manualDoc": "OpenELIS QA/docs-manual/publish/qc-control-lot.xhtml",
-      "routes": [
-        {
-          "path": "/analyzers/qc/control-lots",
-          "anchors": [
-            "Control Lots",
-            "New Control Lot",
-            "Lot Number",
-            "Control Material",
-            "Control Level",
-            "Calculation Method",
-            "Expiration Date"
-          ]
-        },
-        {
-          "path": "/analyzers/qc/control-lots/new",
-          "anchors": [
-            "New Control Lot",
-            "Lot Number",
-            "Control Material",
-            "Control Level",
-            "Expiration Date",
-            "Analyzer",
-            "Test",
-            "Statistics Configuration",
-            "Configure"
-          ]
-        }
-      ],
-      "uiPaths": [
-        "frontend/src/components/qc/controlLots"
-      ],
-      "base": "https://testing.openelis-global.org",
-      "capturedVersion": "3.2.2.0",
-      "capturedDate": "2026-09-02",
-      "jiraEpic": "OGC-684",
-      "featureDoc": "OGC-1167",
-      "captureSpec": "tests/docs/qc-capture.docs.spec.ts"
+      "note": "2026-09-23: section repointed from testing to analyzers.openelis-global.org, and all four figures re-captured there. Reason: testing has no Analyzer Bridge (/analyzers/types shows 'Analyzer types could not be loaded - Check the Analyzer Bridge connection'; rest/analyzer-types returns 502 'Bridge URL is not configured'), so no analyzer can be registered and this workflow cannot run there at all - its anchors were passing only because empty shell pages render. The analyzers host runs the workflow fully (13 analyzers, a live rule set). CAVEAT - the analyzers host is a build BEHIND testing: it shows Analyzers List columns 'Test Units'/'Type' where testing shows 'Lab Units'/'Analyzer type', and its Rule Configuration page still renders the pre-OGC-1224 'Analyzers > Quality Control Dashboard > Rule Configuration' title with no real h1. Step 1 prose and the anchors follow the analyzers host. When that host picks up the newer build, expect 'Test Units' to fail here - that is the signal to re-capture and restore the Lab Units / Analyzer type wording. HISTORY - the 19 Sep failure on '/analyzers :: Analyzer List' was a true positive: the page-hierarchy title 'Analyzer List' (i18n analyzer.page.hierarchy.list) was rendered at the 2026-09-02 capture and has since been removed from AnalyzersList on both hosts. OPERATIONAL - this section now only runs when the drift check is invoked with BASE=https://analyzers.openelis-global.org; a testing-only weekly run will skip it silently.",
+      "retired": true,
+      "notes": "Retired 28 Sept 2026: the 3 Sept QC drafts were never published; qc-overview and qc-control-lot replace them"
     },
     {
       "id": "qc-review",
@@ -1306,7 +1251,9 @@
       "capturedDate": "2026-09-02",
       "jiraEpic": "OGC-684",
       "featureDoc": "OGC-1167",
-      "captureSpec": "tests/docs/qc-capture.docs.spec.ts"
+      "captureSpec": "tests/docs/qc-capture.docs.spec.ts",
+      "retired": true,
+      "notes": "Retired 28 Sept 2026: the 3 Sept QC drafts were never published; qc-overview and qc-control-lot replace them"
     },
     {
       "id": "qc-empty-chart",
@@ -1343,7 +1290,9 @@
       "capturedDate": "2026-09-02",
       "jiraEpic": "OGC-684",
       "featureDoc": "OGC-1167",
-      "captureSpec": "tests/docs/qc-capture.docs.spec.ts"
+      "captureSpec": "tests/docs/qc-capture.docs.spec.ts",
+      "retired": true,
+      "notes": "Retired 28 Sept 2026: the 3 Sept QC drafts were never published; qc-overview and qc-control-lot replace them"
     },
     {
       "id": "clinical-collect",
@@ -1414,10 +1363,10 @@
     {
       "id": "validation-v4",
       "title": "Triage and release results",
-      "manualDoc": "Confluence 1661763585 (draft, redesigned Validation page)",
-      "captureSpec": "tests/docs/validation-v4.docs.spec.ts",
+      "manualDoc": "Confluence 1661763585 (review area, redesigned Validation page; Step 8 verified on testing 3.2.3.0)",
+      "captureSpec": "tests/docs/validation-v4.docs.spec.ts; tests/docs/valid5-*.docs.spec.ts (Step 8, 3.2.3.0)",
       "jiraEpic": "OGC-817",
-      "featureDoc": null,
+      "featureDoc": "OGC-1229",
       "frs": "validation-page-v4-frs.md",
       "base": "https://testing.openelis-global.org",
       "routes": [
@@ -1438,9 +1387,10 @@
           ]
         }
       ],
-      "capturedVersion": "3.2.2.0",
-      "capturedDate": "2026-09-19",
-      "notes": "Queue header controls (Release all clear, filter chips, lane tags, Review) render only after a search returns rows awaiting validation, so they are not usable as on-load anchors. By Order uses the same queue plus an Include auto-validated toggle."
+      "capturedVersion": "3.2.3.0",
+      "capturedDate": "2026-09-28",
+      "notes": "Queue header controls (Release all clear, filter chips, lane tags, Review) render only after a search returns rows awaiting validation, so they are not usable as on-load anchors. By Order uses the same queue plus an Include auto-validated toggle.",
+      "confluencePageId": "1661763585"
     },
     {
       "id": "analyzer-setup",
@@ -1455,24 +1405,17 @@
         {
           "path": "/analyzers",
           "anchors": [
-            "Analyzers",
-            "Manage laboratory analyzers and field mappings",
-            "Add Analyzer",
-            "Total Analyzers",
             "In Setup",
             "Needs attention",
             "All Statuses",
             "Connection",
-            "Lab Units",
-            "Analyzer type"
+            "Lab Units"
           ]
         },
         {
           "path": "/analyzers?setup=instrument",
           "anchors": [
-            "Set up a new analyzer",
             "Instrument",
-            "Analyzer name",
             "Lab units",
             "Instrument not listed?",
             "Continue to Verify",
@@ -1483,10 +1426,8 @@
         {
           "path": "/analyzers/types",
           "anchors": [
-            "Analyzer Types",
             "The reusable setups behind your analyzers.",
             "Duplicate Profile",
-            "Reusable analyzer setup",
             "In Use",
             "Needs Attention",
             "Deactivated",
@@ -1499,7 +1440,7 @@
         "frontend/src/components/analyzers"
       ],
       "captures": "docs-manual/captures/sept15/1648361491",
-      "notes": "Figures captured 2026-09-15 on analyzers.openelis-global.org (the only instance with a reachable Bridge). Anchors re-derived from those figures and verified against testing.openelis-global.org 3.2.2.0 on 2026-09-22. /analyzers and Add Analyzer step 1 render in full on testing. /analyzers/types renders only its chrome there: with no Bridge the table is replaced by 'Analyzer types could not be loaded / Check the Analyzer Bridge connection, then try again' (OGC-1214), so the columns Analyzer type, Protocol, Tests mapped, Results mapped and Used by are deliberately NOT anchored. Two labels also differ from the figures: testing shows 'Create Profile' where figure 02 shows 'Create New Analyzer Type', and the list columns read 'Lab Units' / 'Analyzer type' where figure 01 shows 'Test Units' / 'Type'."
+      "notes": "testing renders en_GB strings on 3.2.3.0 (Organisation, Analyser); anchors kept spelling-neutral (28 Sept 2026); the removed anchors used the US spelling"
     },
     {
       "id": "analyzer-mapping-qc",
@@ -1512,7 +1453,7 @@
       "capturedDate": "2026-09-15",
       "routes": [
         {
-          "path": "/analyzers/qc/db",
+          "path": "/qa/qc/dashboard",
           "anchors": [
             "Quality Control Dashboard",
             "Monitor instrument QC status and alerts",
@@ -1527,7 +1468,7 @@
           ]
         },
         {
-          "path": "/analyzers/qc/rule-config",
+          "path": "/qa/qc/rule-config",
           "anchors": [
             "Rule Configuration",
             "Configure Westgard rules per analyzer and test combination",
@@ -1536,7 +1477,7 @@
           ]
         },
         {
-          "path": "/analyzers/qc/control-lots",
+          "path": "/qa/qc/control-lots",
           "anchors": [
             "Control Lots",
             "Manage QC control lots for Westgard rule evaluation",
@@ -1555,7 +1496,7 @@
         "frontend/src/components/analyzers"
       ],
       "captures": "docs-manual/captures/sept15/1648590851",
-      "notes": "Figures captured 2026-09-15 on analyzers.openelis-global.org; anchors verified on testing.openelis-global.org 3.2.2.0 on 2026-09-22, where all three QC routes render in full. The page's other two screens are NOT anchored because they cannot be reached on testing: the mapping editor (/analyzers/types/<profile>/mapping) renders an empty main there, since with no Bridge there are no analyzer types to open (OGC-1214); and the held-results screen (/AnalyzerResults?id=<n>) is both instance-specific and redirected - /AnalyzerResults now lands on /analyzers. Figures 04, 05 and 09 therefore have no drift coverage. Also unanchored: /analyzers/qc/instruments/<id>, which needs a concrete instrument id."
+      "notes": "QC moved from /analyzers/qc/* to /qa/qc/* in 3.2.3.0; paths repointed 28 Sept 2026, anchors not yet re-checked"
     },
     {
       "id": "general-configurations",
@@ -2121,6 +2062,132 @@
       ],
       "notes": "Verified on pngtest. Seed: scheme 9 Asia-Pacific CD4 Proficiency Programme (International PT, external provider), cycle 2 2026 Round 3 (APC-26-3), scored; org 34 APCPP as referring site. Add Order EQA mode route /SamplePatientEntry?isEQA=true&cycleId=2 not registered (needs a Planned cycle to be meaningful).",
       "locale": "en"
+    },
+    {
+      "id": "programs-v2",
+      "title": "Admin — Define programs and their questionnaires",
+      "confluencePageId": "1439006727",
+      "manualDoc": "Confluence 1439006727 (live, Administrator Guide); rewritten from draft 1679949842 on 2026-09-27, verified 3.2.3.0",
+      "captures": "docs-media/programs-v2 (8 figures)",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.2.3.0",
+      "capturedDate": "2026-09-27",
+      "jiraEpic": "OGC-781",
+      "featureDoc": "OGC-1236",
+      "frs": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/admin-config/programs-management.md",
+      "captureSpec": "tests/docs/programs-v2.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/MasterListsPage/program",
+          "anchors": [
+            "Programs",
+            "Add Program",
+            "Show deactivated",
+            "Name",
+            "Domain",
+            "Status",
+            "Lab unit(s)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qc-control-lot",
+      "title": "Receive and activate a control lot",
+      "confluencePageId": "1680048146",
+      "manualDoc": "Confluence 1680048146 (draft under 1189609473)",
+      "captures": "docs-media/qc-png-drive (4 figures)",
+      "base": "https://pngtest.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-27",
+      "jiraEpic": "OGC-682",
+      "featureDoc": "OGC-1213",
+      "frs": "pending",
+      "captureSpec": "tests/docs/qc-png-drive.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/qa/qc/control-lots",
+          "anchors": [
+            "New Control Lot",
+            "Lot Number",
+            "Control Material",
+            "Control Level",
+            "Calculation Method",
+            "Expiration Date"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qc-overview",
+      "title": "Statistical QC — overview and daily review",
+      "confluencePageId": "1680048163",
+      "manualDoc": "Confluence 1680048163 (draft under 1189609473)",
+      "captures": "docs-media/qc-png-explore + qc-png-drive (4 figures)",
+      "base": "https://pngtest.openelis-global.org",
+      "capturedVersion": "3.2.2.0",
+      "capturedDate": "2026-09-27",
+      "jiraEpic": "OGC-682",
+      "featureDoc": "OGC-1213",
+      "frs": "pending",
+      "captureSpec": "tests/docs/qc-png-explore.docs.spec.ts",
+      "routes": [
+        {
+          "path": "/qa/qc/dashboard",
+          "anchors": [
+            "Quality Control Dashboard",
+            "Instruments In Control",
+            "Out of Control",
+            "Overall QC Pass Rate",
+            "Instruments",
+            "Alerts",
+            "Bench QC"
+          ]
+        },
+        {
+          "path": "/qa/qc/rule-config",
+          "anchors": [
+            "Configured Rule Sets",
+            "Analyzer",
+            "Enabled Rules"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nce-report",
+      "title": "Report a non-conforming event",
+      "confluencePageId": "1681260549",
+      "manualDoc": "Confluence 1681260549 (draft under 1189609473)",
+      "captureSpec": "tests/docs/nce-cap.docs.spec.ts",
+      "jiraEpic": "OGC-682",
+      "featureDoc": null,
+      "frs": null,
+      "base": "https://testing.openelis-global.org",
+      "routes": [
+        {
+          "path": "/ReportNonConformingEvent",
+          "anchors": [
+            "Report Non-Conformity Event",
+            "Reporter & Event Context",
+            "Classification",
+            "Details",
+            "Attachments",
+            "Link to Samples / Results (Optional)",
+            "Submit NCE"
+          ]
+        },
+        {
+          "path": "/NceDashboard",
+          "anchors": [
+            "All NCEs",
+            "Report NCE",
+            "Clear All"
+          ]
+        }
+      ],
+      "capturedVersion": "3.2.3.0",
+      "capturedDate": "2026-09-28"
     }
   ]
 }

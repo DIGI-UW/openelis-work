@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-25T16:34:42Z",
+  "generatedAt": "2026-10-02T15:46:09Z",
   "repo": "DIGI-UW/OpenELIS-Global-2",
   "branchesWatched": [
     "develop",
@@ -7,9 +7,9 @@
   ],
   "windows": {
     "develop": {
-      "base": "0d22a210",
-      "head": "5e59f8d1",
-      "commitCount": 140,
+      "base": "342d14e1",
+      "head": "85001620",
+      "commitCount": 195,
       "windowDays": 30
     },
     "demo-silnas": {
@@ -19,46 +19,5 @@
       "windowDays": 30
     }
   },
-  "uncovered": [
-    {
-      "componentDir": "frontend/src/components/Login.jsx",
-      "branches": [
-        "develop"
-      ],
-      "fileCount": 1,
-      "files": [
-        "frontend/src/components/Login.jsx"
-      ]
-    },
-    {
-      "componentDir": "frontend/src/components/Login.test.jsx",
-      "branches": [
-        "develop"
-      ],
-      "fileCount": 1,
-      "files": [
-        "frontend/src/components/Login.test.jsx"
-      ]
-    },
-    {
-      "componentDir": "frontend/src/components/Style.css",
-      "branches": [
-        "develop"
-      ],
-      "fileCount": 1,
-      "files": [
-        "frontend/src/components/Style.css"
-      ]
-    },
-    {
-      "componentDir": "frontend/src/components/__tests__",
-      "branches": [
-        "develop"
-      ],
-      "fileCount": 1,
-      "files": [
-        "frontend/src/components/__tests__/caseViewNavigation.test.jsx"
-      ]
-    }
-  ]
+  "uncovered": []
 }
