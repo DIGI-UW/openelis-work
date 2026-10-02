@@ -44,6 +44,12 @@
   .bl { font-size:6.5pt; font-weight:700; color:var(--g); text-transform:uppercase; letter-spacing:.4pt; border-bottom:.5pt solid var(--g); margin-bottom:2pt; }
   .kv { display:grid; grid-template-columns:72pt 1fr; font-size:8pt; line-height:9.5pt; }
   .kv .k { color:var(--g); font-size:7.5pt; }
+  .smp { margin:0 0 5pt; }
+  .smp .sr { display:grid; grid-template-columns:18pt 150pt 62pt 62pt 1fr; column-gap:2pt; font-size:8pt; line-height:9pt; }
+  body.a4 .smp .sr { grid-template-columns:18pt 146pt 62pt 62pt 1fr; }
+  .smp .sr.h { font-size:6.5pt; font-weight:700; color:var(--g); text-transform:uppercase; letter-spacing:.4pt; border-bottom:.5pt solid var(--g); margin-bottom:1pt; line-height:8pt; }
+  .smp .sr > :first-child { text-align:center; } .smp .sr:not(.h) > :first-child { font-family:'DejaVu Sans Mono', Menlo, monospace; font-size:7.5pt; }
+  .smp .sr .dt { font-size:7.5pt; } .smp .sr .rej { font-weight:700; }
   .pn { display:flex; justify-content:space-between; font-size:10pt; font-weight:700; line-height:11.5pt; }
   .pn span { font-weight:400; font-size:8pt; }
 
@@ -98,7 +104,7 @@
 </head>
 <body class="letter showv2">
 <div class="banner">
-  <span><b>Visual Preview</b> | Patient Report v2.1 | /Report?type=patient&amp;report=patientCILNSP_vreduit | Not a live application</span>
+  <span><b>Visual Preview</b> | Patient Report v2.4 | /Report?type=patient&amp;report=patientCILNSP_vreduit | Not a live application</span>
   <span class="grp">Paper <button data-k="paper" data-v="letter" class="on">Letter</button><button data-k="paper" data-v="a4">A4</button></span>
   <span class="grp">View <button data-k="view" data-v="pdf" class="on">PDF</button><button data-k="view" data-v="copy">Photocopy</button></span>
   <span class="grp">Language <button data-k="lang" data-v="en" class="on">EN</button><button data-k="lang" data-v="fr">FR</button><button data-k="lang" data-v="id">ID</button></span>
@@ -106,7 +112,7 @@
 </div>
 
 <div class="notes">
-  The template is monochrome: black, one gray for secondary text, and one light fill on critical rows only. <b>Photocopy</b> simulates a monochrome copy. <b>Example 1</b> is a corrected 22-result order that fits on one page with its sign-off. <b>Example 2</b> is page 2 of a longer order and shows the compact header. Logo and accreditation slots are square. Items tagged <span class="v2tag">V2</span> hide under V1 only: the version number, the HIL values, the earlier-attempts appendix and the coverage block.
+  The template is monochrome: black, one gray for secondary text, and one light fill on critical rows only. <b>Photocopy</b> simulates a monochrome copy. <b>Example 1</b> is a corrected 16-test order on four samples (one rejected) that fits on one page with its Samples block and sign-off. <b>Example 2</b> is page 2 of a longer order and shows the compact header. Logo and accreditation slots are square. Items tagged <span class="v2tag">V2</span> hide under V1 only: the version number, the HIL values, the earlier-attempts appendix and the coverage block.
 </div>
 
 <div class="caption">Example 1: typical order, one page</div>
@@ -124,7 +130,7 @@
       <div class="acc acc1"></div><div class="acc acc2"></div><div class="acc"></div>
       <div class="sq" id="logoR"></div>
     </div>
-    <div class="corr"><span class="v2only" data-t="version">Version 2.</span> <span data-t="corrline">Corrected report. Replaces the report issued 24/09/2026 14:05. Change: Potassium re-run on a new sample after hemolysis; 5.4 corrected to 6.8 mmol/L.</span></div>
+    <div class="corr"><span class="v2only" data-t="version">Version 2.</span> <span data-t="corrline">Corrected report. Replaces the report issued 24/09/2026 14:05. Change: Potassium re-run after analyzer recalibration; 5.4 corrected to 6.8 mmol/L.</span></div>
 
     <div class="card">
       <div>
@@ -148,12 +154,18 @@
       <div>
         <div class="bl" data-t="dates">Dates</div>
         <div class="kv">
-          <span class="k" data-t="collected">Collected</span><span>24/09/2026 08:40</span>
-          <span class="k" data-t="received">Received</span><span>24/09/2026 09:02</span>
-          <span class="k" data-t="released">Completed</span><span>25/09/2026 10:12</span>
           <span class="k" data-t="orderdate">Order date</span><span>24/09/2026 08:10</span>
+          <span class="k" data-t="released">Completed</span><span>25/09/2026 10:12</span>
         </div>
       </div>
+    </div>
+
+    <div class="smp">
+      <div class="sr h"><span data-t="sm_no">#</span><span data-t="sm_title">Samples</span><span data-t="collected">Collected</span><span data-t="received">Received</span><span data-t="sm_cond">Condition</span></div>
+      <div class="sr"><span>1</span><span data-t="st_wb">Whole blood (EDTA)</span><span class="dt">24/09/26 08:40</span><span class="dt">24/09/26 09:02</span><span></span></div>
+      <div class="sr"><span>2</span><span data-t="st_ser">Serum</span><span class="dt">24/09/26 08:40</span><span class="dt">24/09/26 09:02</span><span></span></div>
+      <div class="sr"><span>3</span><span data-t="st_pl">Plasma (fluoride)</span><span class="dt">24/09/26 08:40</span><span class="dt">24/09/26 09:02</span><span data-t="cond_fast">Fasting</span></div>
+      <div class="sr"><span>4</span><span data-t="st_ur">Urine, midstream</span><span class="dt">24/09/26 08:45</span><span class="dt">24/09/26 13:30</span><span class="rej" data-t="cond_rej">Rejected: received more than 2 h after collection, not refrigerated</span></div>
     </div>
 
     <div class="cols"><span data-t="c_test">Test</span><span class="c" data-t="c_smp">Smp</span><span data-t="c_method">Method</span><span class="r" data-t="c_res">Result</span><span class="c" data-t="c_flag">Flag</span><span data-t="c_rng">Reference range</span><span data-t="c_uom">Units</span><span data-t="c_done">Completed</span></div>
@@ -161,14 +173,13 @@
     <div class="sec" data-t="s_hem">Hematology</div>
     <div class="rw par"><div class="row"><span class="t" data-t="cbc">Complete blood count</span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
     <div class="rw lo"><div class="row"><span class="t ind" data-t="hgb">Hemoglobin</span><span class="s">1</span><span class="m">SLS, Sysmex XN-550</span><span class="v">10.9</span><span class="f" data-flag="B"></span><span class="r">13.0 - 17.0</span><span class="u">g/dL</span><span class="d">24/09/26 10:05</span></div></div>
-    <div class="rw"><div class="row"><span class="t ind" data-t="hct">Hematocrit</span><span class="s">1</span><span class="m">Calculated</span><span class="v">33.1</span><span class="f"></span><span class="r">40 - 50</span><span class="u">%</span><span class="d">24/09/26 10:05</span></div></div>
     <div class="rw"><div class="row"><span class="t ind" data-t="wbc">White cell count</span><span class="s">1</span><span class="m">Flow cytometry</span><span class="v">7.8</span><span class="f"></span><span class="r">4.0 - 10.0</span><span class="u">10³/µL</span><span class="d">24/09/26 10:05</span></div></div>
     <div class="rw"><div class="row"><span class="t ind" data-t="plt">Platelet count</span><span class="s">1</span><span class="m">Impedance</span><span class="v">245</span><span class="f"></span><span class="r">150 - 400</span><span class="u">10³/µL</span><span class="d">24/09/26 10:05</span></div></div>
     <div class="rw"><div class="row"><span class="t" data-t="esr">ESR (Whole blood) †</span><span class="s">1</span><span class="m">Westergren</span><span class="v">18</span><span class="f"></span><span class="r">0 - 20</span><span class="u">mm/h</span><span class="d">24/09/26 10:20</span></div></div>
 
     <div class="sec" data-t="s_chem">Clinical chemistry</div>
     <div class="rw cr"><div class="row"><span class="t" data-t="k">Potassium (Serum)</span><span class="s">2</span><span class="m">Indirect ISE, Cobas c311<span class="v2only hil"> · HIL: H- I- L-</span></span><span class="v">6.8</span><span class="f"><span data-flag="EE"></span><br><span class="tag" data-t="critical">CRITICAL</span></span><span class="r">3.5 - 5.1</span><span class="u">mmol/L</span><span class="d">25/09/26 10:12</span></div>
-      <div class="sub" data-t="note_k">Note: Repeat on a fresh sample; first sample hemolyzed and rejected.</div>
+      <div class="sub" data-t="note_k">Note: Repeated after recalibration; result confirmed.</div>
       <div class="sub cb" data-t="cb_line">Callback: Sr. Ruth Nanau (Ward 3), 24/09/2026 11:42, by J. Aisi. Read back confirmed. (+1 earlier attempts)</div>
     </div>
     <div class="rw"><div class="row"><span class="t" data-t="na">Sodium (Serum)</span><span class="s">2</span><span class="m">Indirect ISE, Cobas c311</span><span class="v">137</span><span class="f"></span><span class="r">136 - 145</span><span class="u">mmol/L</span><span class="d">24/09/26 11:30</span></div></div>
@@ -179,16 +190,11 @@
     <div class="rw lo"><div class="row"><span class="t" data-t="alb">Albumin (Serum)</span><span class="s">2</span><span class="m">Bromocresol green</span><span class="v">31</span><span class="f" data-flag="B"></span><span class="r">35 - 52</span><span class="u">g/L</span><span class="d">24/09/26 11:30</span></div></div>
     <div class="rw"><div class="row"><span class="t" data-t="hba1c">HbA1c (Whole blood) †</span><span class="s">1</span><span class="m ref" data-t="refperf">Performed by Pacific International Hospital Laboratory</span><span class="v">6.1</span><span class="f"></span><span class="r">4.0 - 6.0</span><span class="u">%</span><span class="d">25/09/26 09:40</span></div></div>
     <div class="rw"><div class="row"><span class="t" data-t="tsh">TSH (Serum) †</span><span class="s">2</span><span class="m"></span><span class="v pend" data-t="inprog">In progress</span><span class="f" data-t="R">R</span><span class="r">0.27 - 4.2</span><span class="u">mIU/L</span><span class="d"></span></div></div>
+    <div class="rw"><div class="row"><span class="t" data-t="ucr">Creatinine (Urine)</span><span class="s">4</span><span class="m"></span><span class="v pend" data-t="smprej">Sample rejected</span><span class="f"></span><span class="r">5.3 - 15.9</span><span class="u">mmol/L</span><span class="d"></span></div></div>
 
     <div class="sec" data-t="s_ser">Serology</div>
     <div class="rw ab"><div class="row"><span class="t" data-t="hbsag">Hepatitis B surface antigen (Serum) †</span><span class="s">2</span><span class="m" data-t="m_rdt">Rapid immunochromatographic</span><span class="v" data-t="reactive">Reactive</span><span class="f">*</span><span class="r" data-t="nonreactive">Non-reactive</span><span class="u"></span><span class="d">24/09/26 14:15</span></div></div>
     <div class="rw"><div class="row"><span class="t" data-t="hiv">HIV 1/2 antibody (Serum)</span><span class="s">2</span><span class="m" data-t="m_alg">National testing algorithm</span><span class="v" data-t="nonreactive">Non-reactive</span><span class="f"></span><span class="r" data-t="nonreactive">Non-reactive</span><span class="u"></span><span class="d">24/09/26 14:15</span></div></div>
-
-    <div class="sec" data-t="s_mol">Molecular biology</div>
-    <div class="rw par"><div class="row"><span class="t">MTB/RIF Ultra (Sputum)</span><span class="s">4</span><span class="m">Real-time PCR, GeneXpert</span><span></span><span></span><span></span><span></span></div></div>
-    <div class="rw"><div class="row"><span class="t ind">MTB</span><span></span><span></span><span class="v" data-t="nd">Not detected</span><span class="f"></span><span class="r" data-t="nd">Not detected</span><span class="u"></span><span class="d"></span></div></div>
-    <div class="rw"><div class="row"><span class="t ind" data-t="rif">Rifampicin resistance</span><span></span><span></span><span class="v" data-t="na2">Not applicable</span><span class="f"></span><span class="r">-</span><span class="u"></span><span class="d"></span></div></div>
-    <div class="rw"><div class="row"><span class="t ind" data-t="spc">Internal control (SPC)</span><span></span><span></span><span class="v">27.4</span><span class="f"></span><span class="r">&lt; 38</span><span class="u">Ct</span><span class="d"></span></div></div>
 
     <div class="app v2only">
       <table>
@@ -199,7 +205,7 @@
         </tbody>
       </table>
     </div>
-    <div class="cov v2only"><span class="v2tag">V2</span><b data-t="cov_title">Accreditation coverage</b><br><b>ISO 15189 (PNGAS):</b> <span data-t="cov_iso">Hemoglobin, Hematocrit, White cell count, Platelet count, Potassium, Sodium, Creatinine, Urea, Glucose, ALT, Albumin, HIV 1/2 antibody (12 of 18 tests).</span> <b>SANAS:</b> <span data-t="cov_sanas">MTB/RIF Ultra (1 of 18 tests).</span></div>
+    <div class="cov v2only"><span class="v2tag">V2</span><b data-t="cov_title">Accreditation coverage</b><br><b>ISO 15189 (PNGAS):</b> <span data-t="cov_iso">Hemoglobin, White cell count, Platelet count, Potassium, Sodium, Creatinine, Urea, Glucose, ALT, Albumin (10 of 16 tests).</span> <b>SANAS:</b> <span data-t="cov_sanas">HIV 1/2 antibody (1 of 16 tests).</span></div>
 
     <div class="signoff">
       <div class="txt">
@@ -230,7 +236,7 @@
       <div><b>Central Public Health Laboratory</b> <span class="g" data-t="title_partial">Results: partial report</span></div>
       <div class="g" style="font-size:7.5pt" data-t="page23">Page 2 of 3</div>
     </div>
-    <div class="strip"><b>KAUPA, Ruth</b><span>NCD-2021-011907</span><span>8815-402-19</span><span class="mono">CPHL26-018502</span><span>Dr. P. Tom</span><span>POMGH, Maternity</span><span>25/09/2026 07:55</span></div>
+    <div class="strip"><b>KAUPA, Ruth</b><span>NCD-2021-011907</span><span>8815-402-19</span><span class="mono">CPHL26-018502</span><span>Dr. P. Tom</span><span>POMGH, Maternity</span><span data-t="strip_coll">Collected 25/09/26 07:55 (first of 3 samples)</span></div>
     <div class="cols"><span data-t="c_test">Test</span><span class="c" data-t="c_smp">Smp</span><span data-t="c_method">Method</span><span class="r" data-t="c_res">Result</span><span class="c" data-t="c_flag">Flag</span><span data-t="c_rng">Reference range</span><span data-t="c_uom">Units</span><span data-t="c_done">Completed</span></div>
     <div class="sec" data-t="s_chem">Clinical chemistry</div>
     <div id="p2rows"></div>
@@ -280,50 +286,53 @@ const P2 = [
 let state = { paper:'letter', view:'pdf', lang:'en', scope:'v2' };
 const T = {
   en:{ title_final:'Results: final report', title_partial:'Results: partial report', director:'Lab director', accredline:'Tests on this report are accredited by: ISO 15189 (PNGAS), SANAS.', version:'Version 2.',
-    corrline:'Corrected report. Replaces the report issued 24/09/2026 14:05. Change: Potassium re-run on a new sample after hemolysis; 5.4 corrected to 6.8 mmol/L.',
+    corrline:'Corrected report. Replaces the report issued 24/09/2026 14:05. Change: Potassium re-run after analyzer recalibration; 5.4 corrected to 6.8 mmol/L.',
     patient:'Patient', order:'Order', dates:'Dates', dob:'Date of birth', pcode:'Patient ID', nid:'National ID', labno:'Lab number', program:'Program', prescriber:'Requester', site:'Site / ward', collected:'Collected', received:'Received', released:'Completed', orderdate:'Order date',
     c_test:'Test', c_smp:'Smp', c_method:'Method', c_res:'Result', c_flag:'Flag', c_rng:'Reference range', c_uom:'Units', c_done:'Completed',
     s_hem:'Hematology', s_chem:'Clinical chemistry', s_ser:'Serology', s_mol:'Molecular biology', cbc:'Complete blood count', hgb:'Hemoglobin', hct:'Hematocrit', wbc:'White cell count', plt:'Platelet count', esr:'ESR (Whole blood) †',
     k:'Potassium (Serum)', na:'Sodium (Serum)', creat:'Creatinine (Serum)', urea:'Urea (Serum)', gluc:'Glucose, fasting (Plasma)', alt:'ALT (Serum)', alb:'Albumin (Serum)', hba1c:'HbA1c (Whole blood) †', tsh:'TSH (Serum) †',
     refperf:'Performed by Pacific International Hospital Laboratory', inprog:'In progress', R:'R', critical:'CRITICAL',
-    note_k:'Note: Repeat on a fresh sample; first sample hemolyzed and rejected.', cb_line:'Callback: Sr. Ruth Nanau (Ward 3), 24/09/2026 11:42, by J. Aisi. Read back confirmed. (+1 earlier attempts)',
+    note_k:'Note: Repeated after recalibration; result confirmed.', cb_line:'Callback: Sr. Ruth Nanau (Ward 3), 24/09/2026 11:42, by J. Aisi. Read back confirmed. (+1 earlier attempts)',
     hbsag:'Hepatitis B surface antigen (Serum) †', hiv:'HIV 1/2 antibody (Serum)', m_rdt:'Rapid immunochromatographic', m_alg:'National testing algorithm', reactive:'Reactive', nonreactive:'Non-reactive', nd:'Not detected', na2:'Not applicable', rif:'Rifampicin resistance', spc:'Internal control (SPC)',
     cb_title:'Critical value callbacks', cb_value:'Value called', cb_to:'Called to', cb_time:'Time', cb_by:'By', cb_outcome:'Outcome', unreachable:'Unable to reach', confirmed:'Read back confirmed',
-    cov_title:'Accreditation coverage', cov_iso:'Hemoglobin, Hematocrit, White cell count, Platelet count, Potassium, Sodium, Creatinine, Urea, Glucose, ALT, Albumin, HIV 1/2 antibody (12 of 18 tests).', cov_sanas:'MTB/RIF Ultra (1 of 18 tests).',
+    cov_title:'Accreditation coverage', cov_iso:'Hemoglobin, White cell count, Platelet count, Potassium, Sodium, Creatinine, Urea, Glucose, ALT, Albumin (10 of 16 tests).', cov_sanas:'HIV 1/2 antibody (1 of 16 tests).',
     comments:'General comments', concl_text:'Hyperkalemia with reduced renal function; clinician informed by phone. HBsAg reactive; confirmatory testing advised.', releasedBy:'Validated and released by', eor:'End of report', issued:'Issued', page11:'Page 1 of 1', page23:'Page 2 of 3',
     lg:'Legend', lg_high:'above normal', lg_low:'below normal', lg_crit:'critical', lg_abn:'abnormal', lg_ref:'referred, pending', lg_conf:'confirmation', lg_na:'not within the accredited scope',
+    sm_no:'#', sm_title:'Samples', sm_cond:'Condition', st_wb:'Whole blood (EDTA)', st_ser:'Serum', st_pl:'Plasma (fluoride)', st_sp:'Sputum', st_ur:'Urine, midstream', cond_fast:'Fasting', cond_em:'Early morning', cond_rej:'Rejected: received more than 2 h after collection, not refrigerated', ucr:'Creatinine (Urine)', smprej:'Sample rejected', strip_coll:'Collected 25/09/26 07:55 (first of 3 samples)',
     flags:{B:'L',E:'H',BB:'LL',EE:'HH'} },
   fr:{ title_final:'Résultats : rapport final', title_partial:'Résultats : rapport partiel', director:'Directeur du laboratoire', accredline:'Les tests de ce rapport sont accrédités par : ISO 15189 (PNGAS), SANAS.', version:'Version 2.',
-    corrline:'Rapport corrigé. Remplace le rapport émis le 24/09/2026 14:05. Modification : potassium refait sur nouveau prélèvement après hémolyse ; 5,4 corrigé à 6,8 mmol/L.',
+    corrline:'Rapport corrigé. Remplace le rapport émis le 24/09/2026 14:05. Modification : potassium refait après recalibrage de l\'automate ; 5,4 corrigé à 6,8 mmol/L.',
     patient:'Patient', order:'Demande', dates:'Dates', dob:'Date de naissance', pcode:'ID du patient', nid:"Numéro d'Identité", labno:'Numéro de Laboratoire', program:'Programme', prescriber:'Prescripteur', site:'Site / service', collected:'Prélevé', received:'Reçu', released:'Terminé', orderdate:'Date de Commande',
     c_test:'Analyse', c_smp:'Éch.', c_method:'Méthode', c_res:'Résultat', c_flag:'Alerte', c_rng:'Plage de référence', c_uom:'Unités', c_done:'Terminé',
     s_hem:'Hématologie', s_chem:'Biochimie clinique', s_ser:'Sérologie', s_mol:'Biologie moléculaire', cbc:'Numération formule sanguine', hgb:'Hémoglobine', hct:'Hématocrite', wbc:'Globules blancs', plt:'Plaquettes', esr:'VS (Sang total) †',
     k:'Potassium (Sérum)', na:'Sodium (Sérum)', creat:'Créatinine (Sérum)', urea:'Urée (Sérum)', gluc:'Glycémie à jeun (Plasma)', alt:'ALAT (Sérum)', alb:'Albumine (Sérum)', hba1c:'HbA1c (Sang total) †', tsh:'TSH (Sérum) †',
     refperf:'Réalisé par Pacific International Hospital Laboratory', inprog:'En cours', R:'R', critical:'CRITIQUE',
-    note_k:'Note : refait sur nouveau prélèvement ; premier échantillon hémolysé et rejeté.', cb_line:'Appel : Sr. Ruth Nanau (Salle 3), 24/09/2026 11:42, par J. Aisi. Relecture confirmée. (+1 tentatives précédentes)',
+    note_k:'Note : refait après recalibrage ; résultat confirmé.', cb_line:'Appel : Sr. Ruth Nanau (Salle 3), 24/09/2026 11:42, par J. Aisi. Relecture confirmée. (+1 tentatives précédentes)',
     hbsag:'Antigène HBs (Sérum) †', hiv:'Anticorps VIH 1/2 (Sérum)', m_rdt:'Immunochromatographique rapide', m_alg:'Algorithme national', reactive:'Réactif', nonreactive:'Non réactif', nd:'Non détecté', na2:'Non applicable', rif:'Résistance à la rifampicine', spc:'Contrôle interne (SPC)',
     cb_title:'Appels pour valeurs critiques', cb_value:'Valeur communiquée', cb_to:'Destinataire', cb_time:'Heure', cb_by:'Par', cb_outcome:"Résultat de l'appel", unreachable:'Injoignable', confirmed:'Relecture confirmée',
-    cov_title:"Couverture d'accréditation", cov_iso:'Hémoglobine, Hématocrite, Globules blancs, Plaquettes, Potassium, Sodium, Créatinine, Urée, Glycémie, ALAT, Albumine, Anticorps VIH 1/2 (12 sur 18 tests).', cov_sanas:'MTB/RIF Ultra (1 sur 18 tests).',
+    cov_title:"Couverture d'accréditation", cov_iso:'Hémoglobine, Globules blancs, Plaquettes, Potassium, Sodium, Créatinine, Urée, Glycémie, ALAT, Albumine (10 sur 16 tests).', cov_sanas:'Anticorps VIH 1/2 (1 sur 16 tests).',
     comments:'Commentaires généraux', concl_text:'Hyperkaliémie avec fonction rénale diminuée ; clinicien informé par téléphone. AgHBs réactif ; test de confirmation conseillé.', releasedBy:'Validé et libéré par', eor:'Fin du rapport', issued:'Émis le', page11:'Page 1 sur 1', page23:'Page 2 sur 3',
     lg:'Légende', lg_high:'supérieur à la normale', lg_low:'inférieur à la normale', lg_crit:'critique', lg_abn:'anormal', lg_ref:'référé, en attente', lg_conf:'confirmation', lg_na:"hors du périmètre d'accréditation",
+    sm_no:'N°', sm_title:'Échantillons', sm_cond:'État', st_wb:'Sang total (EDTA)', st_ser:'Sérum', st_pl:'Plasma (fluorure)', st_sp:'Crachat', st_ur:'Urine, mi-jet', cond_fast:'À jeun', cond_em:'Premier matin', cond_rej:'Rejeté : reçu plus de 2 h après le prélèvement, non réfrigéré', ucr:'Créatinine (Urine)', smprej:'Échantillon rejeté', strip_coll:'Prélevé 25/09/26 07:55 (premier de 3 échantillons)',
     flags:{B:'B',E:'E',BB:'BB',EE:'EE'} }
 };
 
 T.id = Object.assign({}, T.en, {
   title_final:'Hasil: laporan akhir', title_partial:'Hasil: laporan sebagian', director:'Kepala laboratorium',
   accredline:'Pemeriksaan pada laporan ini terakreditasi oleh: ISO 15189 (PNGAS), SANAS.', version:'Versi 2.',
-  corrline:'Laporan koreksi. Menggantikan laporan yang diterbitkan 24/09/2026 14:05. Perubahan: Kalium diulang pada sampel baru setelah hemolisis; 5,4 dikoreksi menjadi 6,8 mmol/L.',
+  corrline:'Laporan koreksi. Menggantikan laporan yang diterbitkan 24/09/2026 14:05. Perubahan: Kalium diulang setelah kalibrasi ulang alat; 5,4 dikoreksi menjadi 6,8 mmol/L.',
   patient:'Pasien', order:'Permintaan', dates:'Tanggal', dob:'Tanggal Lahir', pcode:'Nomor Identitas Pasien', nid:'NIK', labno:'Nomor Registrasi', program:'Program', prescriber:'Pemohon', site:'Lokasi / ruang', collected:'Diambil', received:'Diterima', released:'Selesai', orderdate:'Tanggal Permintaan',
   c_test:'Pemeriksaan', c_smp:'Spl', c_method:'Metode', c_res:'Hasil', c_flag:'Bendera', c_rng:'Rentang Referensi', c_uom:'Unit', c_done:'Selesai',
   s_hem:'Hematologi', s_chem:'Kimia klinik', s_ser:'Serologi', s_mol:'Biologi molekuler', cbc:'Darah lengkap', hgb:'Hemoglobin', hct:'Hematokrit', wbc:'Leukosit', plt:'Trombosit', esr:'LED (Darah lengkap) †',
   k:'Kalium (Serum)', na:'Natrium (Serum)', creat:'Kreatinin (Serum)', urea:'Ureum (Serum)', gluc:'Glukosa puasa (Plasma)', alt:'SGPT (Serum)', alb:'Albumin (Serum)', hba1c:'HbA1c (Darah lengkap) †', tsh:'TSH (Serum) †',
   refperf:'Dikerjakan oleh Pacific International Hospital Laboratory', inprog:'Dalam Pengerjaan', critical:'KRITIS',
-  note_k:'Catatan: Diulang pada sampel baru; sampel pertama hemolisis dan ditolak.', cb_line:'Panggilan: Sr. Ruth Nanau (Ruang 3), 24/09/2026 11:42, oleh J. Aisi. Pembacaan ulang dikonfirmasi. (+1 percobaan sebelumnya)',
+  note_k:'Catatan: Diulang setelah kalibrasi ulang; hasil dikonfirmasi.', cb_line:'Panggilan: Sr. Ruth Nanau (Ruang 3), 24/09/2026 11:42, oleh J. Aisi. Pembacaan ulang dikonfirmasi. (+1 percobaan sebelumnya)',
   hbsag:'HBsAg (Serum) †', hiv:'Antibodi HIV 1/2 (Serum)', m_rdt:'Imunokromatografi cepat', m_alg:'Algoritma nasional', reactive:'Reaktif', nonreactive:'Non-reaktif', nd:'Tidak terdeteksi', na2:'Tidak berlaku', rif:'Resistansi rifampisin', spc:'Kontrol internal (SPC)',
   cb_title:'Panggilan nilai kritis', cb_value:'Nilai yang disampaikan', cb_to:'Dihubungi', cb_time:'Waktu', cb_by:'Oleh', cb_outcome:'Hasil panggilan', unreachable:'Tidak dapat dihubungi', confirmed:'Pembacaan ulang dikonfirmasi',
   cov_title:'Cakupan akreditasi', comments:'Komentar umum', concl_text:'Hiperkalemia dengan penurunan fungsi ginjal; klinisi diberi tahu melalui telepon. HBsAg reaktif; disarankan pemeriksaan konfirmasi.',
   releasedBy:'Divalidasi dan dirilis oleh', eor:'Akhir laporan', issued:'Diterbitkan', page11:'Halaman 1 dari 1', page23:'Halaman 2 dari 3',
   lg:'Keterangan', lg_high:'di atas normal', lg_low:'di bawah normal', lg_crit:'kritis', lg_abn:'Tidak normal', lg_ref:'dirujuk, hasil menunggu', lg_conf:'uji konfirmasi', lg_na:'di luar lingkup akreditasi',
+  sm_no:'No', sm_title:'Sampel', sm_cond:'Kondisi', st_wb:'Darah lengkap (EDTA)', st_ser:'Serum', st_pl:'Plasma (fluorida)', st_sp:'Sputum', st_ur:'Urin, porsi tengah', cond_fast:'Puasa', cond_em:'Pagi hari', cond_rej:'Ditolak: diterima lebih dari 2 jam setelah pengambilan, tidak didinginkan', ucr:'Kreatinin (Urin)', smprej:'Sampel ditolak', strip_coll:'Diambil 25/09/26 07:55 (pertama dari 3 sampel)',
   flags:{B:'R',E:'T',BB:'RR',EE:'TT'}
 });
 const ARROW = { B:'↓', E:'↑', BB:'⇊', EE:'⇈' };
