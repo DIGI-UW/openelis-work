@@ -1596,10 +1596,10 @@
   path: designs/reports/patient-report-redesign.md
   category: results-validation
   description: >
-    Patient Report & Report Management FRS v2.3.3: one consolidated FRS for the patient report
-    (Part A) and the Report Management page (Part B), each split into V1 and V2. Labels from the
-    UI translation catalogue, completed date and time per test, microbiology rows. OGC-932 is the
-    V1 PNG / CPHL deliverable.
+    Patient Report & Report Management FRS v2.4.3: the patient report (Part A). Report Management
+    (Part B) moved to the Admin Redesign FRS section 13. Labels from the UI translation
+    catalogue, completed date and time per test, microbiology rows. OGC-932 is the V1 PNG / CPHL
+    deliverable.
   paired_with: patient-report-redesign-preview
   breakdown: designs/reports/patient-report-redesign-breakdown.md
   links:
@@ -2407,13 +2407,13 @@
   category: admin-config
   description: >
     Report Management admin page, Part B of the consolidated Patient Report & Report Management
-    FRS v2.3.3 (designs/reports/patient-report-redesign.md); the local spec is a pointer.
+    FRS v2.4.3 (designs/reports/patient-report-redesign.md); the local spec is a pointer.
   links:
     jira: ["OGC-1111"]
     gallery: https://digi-uw.github.io/openelis-work/#/admin-config/report-management
     preview: https://digi-uw.github.io/openelis-work/designs/admin-config/report-management.html
   added: "2026-07-01"
-  updated: "2026-10-01"
+  updated: "2026-10-02"
 - id: test-catalog-editor-completion
   type: jsx
   path: designs/admin-config/test-catalog-editor-completion.jsx

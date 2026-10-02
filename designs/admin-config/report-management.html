@@ -101,20 +101,16 @@ function Banner({ scope, setScope }) {
 function SideNav() {
   return (
     <nav className="sidenav" aria-label="Admin">
-      <div className="fence">Existing component: Admin SideNav (navigation-redesign-frs.md, A.3). Abbreviated drawing, not a spec of its contents. This feature adds only the Report Management entry, replacing Printed Reports.</div>
-      <div className="sec">{t('sidenav.section.config','Config')}</div>
-      <div className="it grp">{t('sidenav.label.admin.workflowSettings','Workflow Settings')}</div>
-      <div className="it sub">Order Entry</div>
-      <div className="it sub">Patient Entry</div>
-      <div className="it sub">Result Entry</div>
-      <div className="it sub">Validation</div>
-      <div className="it sub">Workplan</div>
-      <div className="it sub active">{t('sidenav.label.admin.reportManagement','Report Management')}</div>
+      <div className="fence">Existing component: Admin SideNav (admin-redesign-frs.md §3.1). Abbreviated drawing; the full sidebar is admin-redesign-frs.md §3.1. Report Management sits at Config › Report Management, replacing Printed Reports.</div>
+      <div className="sec">{t('sidenav.label.admin.bucket.config','Config')}</div>
+      <div className="it">{t('sidenav.label.admin.configuration','Configuration')}</div>
+      <div className="it active">{t('sidenav.label.admin.reportManagement','Report Management')}</div>
+      <div className="it grp">{t('sidenav.label.admin.workflowSettings','Workflow Settings')} (merging)</div>
       <div className="it">Application Properties</div>
       <div className="it">Menu Configuration</div>
       <div className="it">Lab Number Format</div>
       <div className="it">Label Presets</div>
-      <div className="sec">{t('sidenav.section.organization','Organization')}</div>
+      <div className="sec">{t('sidenav.label.admin.bucket.organization','Organization')}</div>
       <div className="it">Site Information</div>
       <div className="it">Site Branding</div>
       <div className="it">Users</div>
@@ -181,7 +177,7 @@ function PrintDefaults() {
       </fieldset>
       <div className="help">{t('admin.reports.defaults.paperSize.help','Applies to every report that has a Letter and an A4 layout.')}</div>
       <div style={{marginTop:'1rem'}}>
-        <button className="cds--btn cds--btn--primary cds--btn--sm" disabled={paper===saved} onClick={()=>{setSaved(paper); setNote(true);}}>{t('admin.reports.save','Save')}</button>
+        <button className="cds--btn cds--btn--primary cds--btn--sm" disabled={paper===saved} onClick={()=>{setSaved(paper); setNote(true);}}>{t('common.save','Save')}</button>
       </div>
       {note && <Notification kind="success" title={t('admin.reports.defaults.saved','Print defaults saved. New reports use them from now on.')} onClose={()=>setNote(false)} />}
     </div>
@@ -244,7 +240,7 @@ function PatientReportPanel({ scope }) {
         <div className="fields">
           <div>
             <div className="cds--label">{t('admin.reports.lines.siteName','Lab name')}</div>
-            <div className="ro">Central Public Health Laboratory &nbsp;<a className="lnk">{t('admin.reports.lines.siteNameLink','Edit in Site Information')}</a></div>
+            <div className="ro">Central Public Health Laboratory &nbsp;<a className="lnk">{t('admin.reports.lines.siteNameLink','Edit in Configuration')}</a></div>
           </div>
           <div></div>
           <TextField id="dt" label={t('admin.reports.lines.directorTitle','Lab director title')} value={f.title} onChange={v=>setF({...f, title:v})} />
@@ -308,8 +304,8 @@ function PatientReportPanel({ scope }) {
 
       {note && <Notification kind="success" title={t('admin.reports.saved','Report settings saved.')} onClose={()=>setNote(false)} />}
       <div className="stickybar">
-        <button className="cds--btn cds--btn--primary cds--btn--sm" disabled={!dirty || !canSaveTemplate} onClick={save}>{t('admin.reports.save','Save')}</button>
-        <button className="cds--btn cds--btn--secondary cds--btn--sm" disabled={!dirty} onClick={()=>{setF(savedF); setSel(active);}}>{t('admin.reports.cancel','Cancel')}</button>
+        <button className="cds--btn cds--btn--primary cds--btn--sm" disabled={!dirty || !canSaveTemplate} onClick={save}>{t('common.save','Save')}</button>
+        <button className="cds--btn cds--btn--secondary cds--btn--sm" disabled={!dirty} onClick={()=>{setF(savedF); setSel(active);}}>{t('common.cancel','Cancel')}</button>
       </div>
 
       {modal && (
@@ -318,7 +314,7 @@ function PatientReportPanel({ scope }) {
             <div className="mh"><h3 style={{fontSize:20, fontWeight:400}}>{t('admin.reports.template.revert.modal.title','Revert to shipped default?')}</h3></div>
             <div className="mb">{t('admin.reports.template.revert.modal.body','Revert Patient Status Report to the shipped template? The custom template stays in the configuration folder and can be selected again.')}</div>
             <div className="mf">
-              <button className="cds--btn cds--btn--secondary" onClick={()=>setModal(false)}>{t('admin.reports.cancel','Cancel')}</button>
+              <button className="cds--btn cds--btn--secondary" onClick={()=>setModal(false)}>{t('common.cancel','Cancel')}</button>
               <button className="cds--btn cds--btn--danger" onClick={()=>{ setHistory([{ d:'2026-09-26 10:21', u:'admin.kaupa', from:name(active), to:'Shipped default' }, ...history]); setActive('shipped'); setSel('shipped'); setModal(false); setNote(true); }}>{t('admin.reports.template.revert.modal.confirm','Revert')}</button>
             </div>
           </div>
@@ -342,11 +338,10 @@ function App() {
         <SideNav />
         <main className="content">
           {/* Route: /MasterListsPage/reportManagement */}
-          {/* SideNav: Admin › Config › Workflow Settings › Report Management */}
+          {/* SideNav: Admin › Config › Report Management (admin-redesign-frs.md §13) */}
           <nav className="cds--breadcrumb" aria-label="breadcrumb">
-            <div className="cds--breadcrumb-item"><a className="cds--link" href="#">{t('breadcrumb.home','Home')}</a></div>
-            <div className="cds--breadcrumb-item"><a className="cds--link" href="#">{t('breadcrumb.admin','Admin Management')}</a></div>
-            <div className="cds--breadcrumb-item"><a className="cds--link" href="#">{t('sidenav.label.admin.workflowSettings','Workflow Settings')}</a></div>
+            <div className="cds--breadcrumb-item"><a className="cds--link" href="#">{t('home.label','Home')}</a></div>
+            <div className="cds--breadcrumb-item"><a className="cds--link" href="#">{t('breadcrums.admin.managment','Admin Management')}</a></div>
             <div className="cds--breadcrumb-item cds--breadcrumb-item--current"><span>{t('admin.reports.title','Report Management')}</span></div>
           </nav>
           <h1 className="pt">{t('admin.reports.title','Report Management')}</h1>

@@ -1,11 +1,11 @@
-// Report Management: developer handoff mockup (FRS: patient-report-and-report-management-frs.md v2.1, Part B)
+// Report Management: developer handoff mockup (FRS: admin-redesign-frs.md v1.0 §13; formerly Part B of the patient report FRS)
 // Route: /MasterListsPage/reportManagement   (old /MasterListsPage/PrintedReportsConfigurationMenu redirects here)
-// SideNav: Admin › Config › Workflow Settings › Report Management (replaces "Printed Reports", D-065 / D-090)
-// Breadcrumb: Home / Admin Management / Workflow Settings / Report Management (D-013)
+// SideNav: Admin › Config › Report Management, top level after Configuration (replaces "Printed Reports", D-065, D-156)
+// Breadcrumb: Home / Admin Management / Report Management (D-192)
 // Access: existing Admin role only (D-006). No new permission keys.
 //
-// Mock data only. Every string goes through t(key, fallback); keys are listed in FRS §13.2.
-// V2-only sections render when showV2 is true (FR-B12 to FR-B19).
+// Mock data only. Every string goes through t(key, fallback); keys are listed in admin-redesign-frs.md §15.4.
+// V2-only sections render when showV2 is true (RM-12 to RM-19).
 // Existing shipped components are NOT redrawn here: the Admin SideNav and page shell are reused as they ship (D-063).
 
 import React, { useMemo, useState } from 'react';
@@ -21,7 +21,7 @@ import { View, Reset } from '@carbon/icons-react';
 const t = (key, fallback) => fallback || key;
 
 // Report list comes from the existing report configuration records (reportconfiguration.Report,
-// ReportCategory): display key, category, sort order, visibility (FR-B4). Mocked here.
+// ReportCategory): display key, category, sort order, visibility (RM-4). Mocked here.
 const REPORTS = [
   { id: 'patientCILNSP_vreduit', name: 'Patient Status Report', category: 'Clinical', template: 'patient_letter / patient_a4', configurable: true, hasA4: true },
   { id: 'patientCILNSP', name: 'Patient Report (full)', category: 'Clinical', template: 'PatientReportCDI', configurable: false },
@@ -40,7 +40,7 @@ const CUSTOM_TEMPLATES = [
 ];
 
 // ---------------------------------------------------------------------------------------------
-// Print defaults (FR-B1 to FR-B3)
+// Print defaults (RM-1 to RM-3)
 // ---------------------------------------------------------------------------------------------
 function PrintDefaults() {
   const [saved, setSaved] = useState('A4');
@@ -62,7 +62,7 @@ function PrintDefaults() {
         </RadioButtonGroup>
         <div>
           <Button size="sm" kind="primary" disabled={paper === saved} onClick={() => { setSaved(paper); setNotice(true); }}>
-            {t('admin.reports.save', 'Save')}
+            {t('common.save', 'Save')}
           </Button>
         </div>
         {notice && (
@@ -75,7 +75,7 @@ function PrintDefaults() {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Image control: square preview for logos, 4:1 for the signature (FR-B7)
+// Image control: square preview for logos, 4:1 for the signature (RM-7)
 // ---------------------------------------------------------------------------------------------
 function ImageSetting({ id, label, help, shape, initial }) {
   const [image, setImage] = useState(initial);
@@ -86,7 +86,7 @@ function ImageSetting({ id, label, help, shape, initial }) {
     if (!f) return;
     const ok = ['image/png', 'image/jpeg'].includes(f.type) && f.size <= 2 * 1024 * 1024;
     setInvalid(!ok);
-    if (ok) setImage(URL.createObjectURL(f)); // saves at once, as today; audited (FR-B20)
+    if (ok) setImage(URL.createObjectURL(f)); // saves at once, as today; audited (RM-20)
   };
   return (
     <Stack gap={3}>
@@ -111,7 +111,7 @@ function ImageSetting({ id, label, help, shape, initial }) {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Template registry, V2 (FR-B12 to FR-B19)
+// Template registry, V2 (RM-12 to RM-19)
 // ---------------------------------------------------------------------------------------------
 function TemplateSection({ active, selected, setSelected, previewed, onPreview, onRevert, history }) {
   const usable = CUSTOM_TEMPLATES.filter((c) => c.usable);
@@ -175,7 +175,7 @@ function TemplateSection({ active, selected, setSelected, previewed, onPreview, 
 }
 
 // ---------------------------------------------------------------------------------------------
-// Patient Status Report row expansion (FR-B7 to FR-B11, plus V2 template section)
+// Patient Status Report row expansion (RM-7 to RM-11, plus V2 template section)
 // ---------------------------------------------------------------------------------------------
 function PatientReportSettings({ showV2 }) {
   const initial = { title: 'Dr.', given: 'Mary', surname: 'Kila', info: 'Port Moresby General Hospital campus, Boroko, NCD' };
@@ -230,7 +230,7 @@ function PatientReportSettings({ showV2 }) {
         <h5>{t('admin.reports.lines.title', 'Header lines')}</h5>
         <div>
           <span className="cds--label">{t('admin.reports.lines.siteName', 'Lab name')}</span>
-          <p>Central Public Health Laboratory <Link href="/MasterListsPage/SiteInformationMenu">{t('admin.reports.lines.siteNameLink', 'Edit in Site Information')}</Link></p>
+          <p>Central Public Health Laboratory <Link href="/MasterListsPage/configuration?setting=SiteName">{t('admin.reports.lines.siteNameLink', 'Edit in Configuration')}</Link></p>
         </div>
         <Grid narrow>
           <Column lg={3} md={2} sm={4}>
@@ -260,7 +260,7 @@ function PatientReportSettings({ showV2 }) {
 
       <Stack gap={3}>
         <h5>{t('admin.reports.signatures.title', 'Signatures')}</h5>
-        {/* Filled by OGC-302 (report-level e-signatures), including esig.report.show_lab_director_signature (FR-B10) */}
+        {/* Filled by OGC-302 (report-level e-signatures), including esig.report.show_lab_director_signature (RM-10) */}
         <p>{t('admin.reports.signatures.placeholder', 'Electronic signature settings will appear here.')}</p>
       </Stack>
 
@@ -272,14 +272,14 @@ function PatientReportSettings({ showV2 }) {
 
       {notice && <InlineNotification kind="success" lowContrast title={notice} onClose={() => setNotice(null)} />}
       <Stack orientation="horizontal" gap={3}>
-        <Button size="sm" kind="primary" disabled={!dirty || !templateOk} onClick={save}>{t('admin.reports.save', 'Save')}</Button>
-        <Button size="sm" kind="secondary" disabled={!dirty} onClick={() => { setForm(saved); setSelected(active); }}>{t('admin.reports.cancel', 'Cancel')}</Button>
+        <Button size="sm" kind="primary" disabled={!dirty || !templateOk} onClick={save}>{t('common.save', 'Save')}</Button>
+        <Button size="sm" kind="secondary" disabled={!dirty} onClick={() => { setForm(saved); setSelected(active); }}>{t('common.cancel', 'Cancel')}</Button>
       </Stack>
 
       <Modal open={revertOpen} danger size="sm"
         modalHeading={t('admin.reports.template.revert.modal.title', 'Revert to shipped default?')}
         primaryButtonText={t('admin.reports.template.revert.modal.confirm', 'Revert')}
-        secondaryButtonText={t('admin.reports.cancel', 'Cancel')}
+        secondaryButtonText={t('common.cancel', 'Cancel')}
         onRequestClose={() => setRevertOpen(false)}
         onRequestSubmit={() => {
           setHistory([{ id: `h${history.length + 1}`, date: '2026-09-30 10:21', user: 'admin.kaupa', from: label(active), to: label('shipped') }, ...history]);
@@ -312,9 +312,8 @@ export default function ReportManagementPage({ showV2 = true }) {
     <Grid fullWidth>
       <Column lg={16} md={8} sm={4}>
         <Breadcrumb noTrailingSlash>
-          <BreadcrumbItem href="/">{t('breadcrumb.home', 'Home')}</BreadcrumbItem>
-          <BreadcrumbItem href="/MasterListsPage">{t('breadcrumb.admin', 'Admin Management')}</BreadcrumbItem>
-          <BreadcrumbItem href="#">{t('sidenav.label.admin.workflowSettings', 'Workflow Settings')}</BreadcrumbItem>
+          <BreadcrumbItem href="/">{t('home.label', 'Home')}</BreadcrumbItem>
+          <BreadcrumbItem href="/MasterListsPage">{t('breadcrums.admin.managment', 'Admin Management')}</BreadcrumbItem>
           <BreadcrumbItem isCurrentPage>{t('admin.reports.title', 'Report Management')}</BreadcrumbItem>
         </Breadcrumb>
         <h2 style={{ marginTop: '1rem' }}>{t('admin.reports.title', 'Report Management')}</h2>
@@ -359,7 +358,7 @@ export default function ReportManagementPage({ showV2 = true }) {
                       </TableCell>,
                     ];
                     if (!report.configurable) {
-                      // Not expandable in V1 (FR-B5)
+                      // Not expandable in V1 (RM-5)
                       return <TableRow key={row.id} {...getRowProps({ row })}><TableCell />{cells}</TableRow>;
                     }
                     return (
