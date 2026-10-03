@@ -48,9 +48,9 @@
  *   order.referral.{aliquotFirst.enter, title}
  *   order.requester.{contact, email.invalid, facility, fax.invalid, referringLabNumber, ward}
  *   order.sampleCheck.{answerFor, col.checklist, fail, noneReported, pass, released}
- *   order.samples.{collectionDate, collectionMethod, collectionTime, collector, conditions, containerType, details,
+ *   order.samples.{collectionDate, collectionMethod, collectionTime, collector, containerType, details,
  *       editCollection, fillAll.title, fromParent, gps, gps.help, labSampling, noCollector, noTime, notRecorded,
- *       origin, removedOne, selected, temperature, toolbar}
+ *       removedOne, selected, toolbar}; sample.handling.*; search.possibleMatches.*
  *   order.step.{current, progress, reason.rejected}
  *   order.storage.{locked, position}
  *   order.summary.{awaiting, elsewhere, eqaNoPatient, label, noFacility, noPatientOverride, noProvider,
@@ -92,6 +92,7 @@ import {
   Printer, SendAlt, WarningAlt, TrashCan, Misuse, Eyedropper, Box, Locked, Edit, Undo, Add, Barcode, Time,
   ChevronDown, CheckmarkFilled, WarningFilled, Incomplete, RadioButtonChecked, CircleDash, Upload, Download,
 } from '@carbon/icons-react';
+import { OverflowMenu, OverflowMenuItem } from '@carbon/react';
 
 /* ============================== i18n ============================== */
 // Stand-in for the app's intl hook. Every visible string is t('key', 'English'); fmt() fills {placeholders}.
@@ -922,7 +923,7 @@ function OrderedTestsTable({ mode, ot, setOt, rows, setRows, cfg, received, filt
   const [deviation, setDeviation] = useState(null);   // { testId, num } incompatible assignment awaiting a choice (FR-D8)
   const upd = (id, patch) => setOt(ot.map(e => (e.id === id ? { ...e, ...patch } : e)));
   const prepare = mode === 'prepare';
-  const cols = 6 + (cfg.billingRefNumber ? 1 : 0) + (cfg.notifications ? 1 : 0);
+  const cols = 5 + (cfg.notifications ? 1 : 0);
 
   const assign = (testId, num, force) => {
     const target = rows.find(r => r.num === num);
@@ -1004,17 +1005,6 @@ function OrderedTestsTable({ mode, ot, setOt, rows, setRows, cfg, received, filt
             ) : <span style={S.muted}>{t('order.tests.noContainer', 'No container set in the test catalog')}</span>}
           </TableCell>
           <TableCell>{sampleCell(e)}</TableCell>
-          <TableCell>
-            <Checkbox id={`else-${e.id}`} labelText={t('order.tests.col.testedElsewhere', 'Tested elsewhere')} hideLabel disabled={struck} checked={e.elsewhere.on}
-              title={t('order.tests.testedElsewhere.help', 'Result reported by another laboratory')}
-              onChange={(_, { checked }) => upd(e.id, { elsewhere: { ...e.elsewhere, on: checked, lab: e.elsewhere.lab || (facility ? `${facility.name} laboratory` : '') } })} />
-          </TableCell>
-          {cfg.billingRefNumber && (
-            <TableCell>
-              {/* FR-B28: manual for now; read-only once a billing system sets it */}
-              <Toggle id={`paid-${e.id}`} size="sm" labelText={t('order.billing.paid', 'Paid')} hideLabel labelA="" labelB="" toggled={e.paid} onToggle={v => upd(e.id, { paid: v })} />
-            </TableCell>
-          )}
           {cfg.notifications && (
             <TableCell>
               <Checkbox id={`np-${e.id}`} labelText={`${t('order.notify.patient', 'Notify patient')} (${t('order.notify.sms', 'SMS')})`} checked={e.notify.patient} onChange={(_, { checked }) => upd(e.id, { notify: { ...e.notify, patient: checked } })} />
@@ -1023,6 +1013,13 @@ function OrderedTestsTable({ mode, ot, setOt, rows, setRows, cfg, received, filt
           )}
           <TableCell>
             {!struck && <IconButton kind="ghost" size="sm" label={e.saved ? t('order.tests.cancelTest', 'Cancel test') : t('common.remove', 'Remove')} onClick={() => removeRow(e)}><TrashCan /></IconButton>}
+            {/* FR-B18, FR-B20: rarely used actions sit in the overflow (D-104) */}
+            {!struck && (
+              <OverflowMenu size="sm" flipped aria-label={t('common.moreActions', 'More actions')} iconDescription={t('common.moreActions', 'More actions')}>
+                <OverflowMenuItem itemText={e.elsewhere.on ? t('order.tests.action.unmarkTestedElsewhere', 'Not tested elsewhere') : t('order.tests.action.markTestedElsewhere', 'Mark tested elsewhere')}
+                  onClick={() => upd(e.id, { elsewhere: { ...e.elsewhere, on: !e.elsewhere.on, lab: e.elsewhere.lab || (facility ? `${facility.name} laboratory` : '') } })} />
+              </OverflowMenu>
+            )}
           </TableCell>
         </TableRow>
         {e.elsewhere.on && !struck && (
@@ -1072,7 +1069,7 @@ function OrderedTestsTable({ mode, ot, setOt, rows, setRows, cfg, received, filt
   const panelIds = panelsOf(ot).filter(pid => visible.some(e => e.panels.includes(pid)));
   const headers = [
     t('common.tests', 'Tests'), t('common.sampleType', 'Sample type'), t('order.tests.col.expected', 'Expected container'), t('order.tests.col.sample', 'Sample'),
-    t('order.tests.col.testedElsewhere', 'Tested elsewhere'), ...(cfg.billingRefNumber ? [t('order.tests.col.paid', 'Paid')] : []), ...(cfg.notifications ? [t('order.notify.heading', 'Notify')] : []), '',
+    ...(cfg.notifications ? [t('order.notify.heading', 'Notify')] : []), '',
   ];
   // FR-J1: skeleton rows while the order loads
   if (loading) return <TableContainer title={t('order.tests.table.heading', 'Ordered tests')}><SkeletonText paragraph lineCount={5} /></TableContainer>;
@@ -1277,7 +1274,55 @@ function VoidPanel({ row, onApply, onCancel }) {
 }
 
 // FR-C9: optional detail only. Required data never lives here (principle 2).
-function SampleDetails({ row, upd, cfg }) {
+/* ============================== Possible matches before create (FR-B6a, D-162) ============================== */
+// Search stays exact/prefix (OGC-1197). This fuzzy check runs once, server side, only when the user presses Create.
+const COMMON_WORDS = ['hospital', 'general', 'health', 'centre', 'center', 'clinic', 'the', 'dr', 'sr', 'mr', 'mrs', 'ms', 'prof'];
+const normTokens = v => (v || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(w => w && !COMMON_WORDS.includes(w));
+const lev = (a, b) => { const d = Array.from({ length: a.length + 1 }, (_, i) => [i]); for (let j = 1; j <= b.length; j++) d[0][j] = j; for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); return d[a.length][b.length]; };
+const nameClose = (a, b) => { const x = normTokens(a).sort().join(' '); const y = normTokens(b).sort().join(' '); return !!x && !!y && (x === y || lev(x, y) <= Math.max(1, Math.floor(Math.min(x.length, y.length) / 5))); };
+const possibleMatches = (draft, list) => list.map(r => {
+  const why = [];
+  if (nameClose(draft.name, r.name)) why.push('name');
+  if (draft.nid && r.nid && lev(draft.nid.toUpperCase(), r.nid.toUpperCase()) <= 1) why.push('national ID');
+  return why.length ? { r, why } : null;
+}).filter(Boolean).slice(0, 5);
+function PossibleMatches({ matches, render, onUse, onCreate, onBack }) {
+  const [ask, setAsk] = useState(false);
+  return (
+    <div style={{ ...S.panelBox, marginTop: 12 }}>
+      <InlineNotification kind="warning" lowContrast hideCloseButton title={fmt(t('search.possibleMatches.title', 'Possible matches ({count})'), { count: matches.length })}
+        subtitle={t('search.possibleMatches.intro', 'These records look similar to the one you are creating. Use one of them, or create a new record.')} />
+      {matches.map((m, i) => (
+        <div key={i} style={{ ...S.row, alignItems: 'center', marginBottom: 8 }}>
+          <span style={{ flex: 1 }}>{render(m.r)} <span style={S.muted}>{fmt(t('search.possibleMatches.matched', 'Matched on: {fields}'), { fields: m.why.join(', ') })}</span></span>
+          <Button kind="tertiary" size="sm" onClick={() => onUse(m.r)}>{t('search.possibleMatches.use', 'Use this one')}</Button>
+        </div>
+      ))}
+      {!ask ? (
+        <div style={S.row}>
+          <Button kind="secondary" size="sm" onClick={() => setAsk(true)}>{t('search.possibleMatches.createAnyway', 'Create new anyway')}</Button>
+          <Button kind="ghost" size="sm" onClick={onBack}>{t('common.back', 'Back')}</Button>
+        </div>
+      ) : (
+        <ActionableNotification inline kind="warning" lowContrast title={fmt(t('search.possibleMatches.confirm', 'Create a new record even though {count} similar records exist?'), { count: matches.length })}
+          actionButtonLabel={t('search.possibleMatches.createAnyway', 'Create new anyway')} onActionButtonClick={onCreate} onClose={() => setAsk(false)} />
+      )}
+    </div>
+  );
+}
+
+/* ============================== Handling (FR-C9a, D-163) ============================== */
+const ARRIVAL = ['Room temperature', 'Refrigerated 2 to 8 °C', 'Frozen', 'On ice', 'Dry ice'];
+// Required comes from the test catalog (storage condition and holding time of the sample's tests); illustrative values by sample type here
+const HANDLING_REQ = {
+  Serum: { text: 'Refrigerated 2 to 8 °C · process within 8 h', ok: ['Refrigerated 2 to 8 °C', 'On ice'] },
+  'Plasma (citrated)': { text: 'Room temperature · process within 4 h', ok: ['Room temperature'] },
+  'Whole blood': { text: 'Room temperature or refrigerated 2 to 8 °C', ok: ['Room temperature', 'Refrigerated 2 to 8 °C'] },
+};
+const handlingReq = r => HANDLING_REQ[r.st] || null;
+const handlingMismatch = r => { const q = handlingReq(r); if (!q || !r.arr || q.ok.includes(r.arr)) return null; return fmt(t('sample.handling.mismatch.detail', 'Needs {required}; {actual}'), { required: q.text.split(' · ')[0].toLowerCase(), actual: `arrived ${r.arr.toLowerCase()}${r.arrC ? ` (${r.arrC} °C)` : ''}` }); };
+
+function SampleDetails({ row, upd, cfg, onAll }) {
   if (row.parent) {
     return (
       <div style={S.row}>
@@ -1289,6 +1334,29 @@ function SampleDetails({ row, upd, cfg }) {
   }
   return (
     <Grid condensed style={{ paddingInline: 0 }}>
+      {/* Handling (FR-C9a): Required from the catalog, Arrived as, Stored at. Retired here: specimen origin, collection conditions, free-text temperature, lab performed sampling (FR-C9) */}
+      <Column sm={4} md={8} lg={16}>
+        <div style={{ ...S.panelBox, marginBottom: 12 }}>
+          <strong>{t('sample.handling.title', 'Handling')}</strong>
+          <div style={{ ...S.row, marginTop: 8 }}>
+            <div style={{ minWidth: 260 }}>
+              <div style={S.muted}>{t('sample.handling.required', 'Required')}</div>
+              <div>{handlingReq(row) ? handlingReq(row).text : <span style={S.muted}>{t('sample.handling.noRequirement', 'No requirement')}</span>}</div>
+            </div>
+            <Select id={`d-arr-${row.num}`} labelText={t('sample.handling.arrivedAs', 'Arrived as')} value={row.arr || ''} onChange={e => upd({ arr: e.target.value })}>
+              <SelectItem value="" text={t('common.notRecorded', 'Not recorded')} />
+              {ARRIVAL.map(v => <SelectItem key={v} value={v} text={v} />)}
+            </Select>
+            <TextInput id={`d-arrc-${row.num}`} labelText={t('sample.handling.measuredTemp', 'Measured temperature (°C)')} value={row.arrC || ''} onChange={e => upd({ arrC: e.target.value })} style={{ maxWidth: 120 }} />
+            {onAll && row.arr && <Button kind="ghost" size="sm" onClick={() => onAll({ arr: row.arr, arrC: row.arrC || '' })}>{t('sample.handling.sameForAll', 'Same for all samples')}</Button>}
+            <div style={{ minWidth: 200 }}>
+              <div style={S.muted}>{t('sample.handling.storedAt', 'Stored at')}</div>
+              <div>{row.storage || <span style={S.muted}>{t('order.samples.notStored', 'Not stored')}</span>}</div>
+            </div>
+          </div>
+          {handlingMismatch(row) && <InlineNotification kind="warning" lowContrast hideCloseButton title={t('sample.handling.mismatch', 'Handling mismatch')} subtitle={handlingMismatch(row)} />}
+        </div>
+      </Column>
       <Column sm={2} md={2} lg={3}><TextInput id={`d-q-${row.num}`} labelText={t('common.quantity', 'Quantity')} value={row.qty} onChange={e => upd({ qty: e.target.value })} /></Column>
       <Column sm={2} md={2} lg={2}><TextInput id={`d-u-${row.num}`} labelText={t('common.unit', 'Unit')} value={row.unit} onChange={e => upd({ unit: e.target.value })} /></Column>
       <Column sm={4} md={4} lg={4}>
@@ -1297,11 +1365,7 @@ function SampleDetails({ row, upd, cfg }) {
           {COLLECTION_METHODS.map(m => <SelectItem key={m} value={m} text={m} />)}
         </Select>
       </Column>
-      <Column sm={4} md={4} lg={3}><TextInput id={`d-o-${row.num}`} labelText={t('order.samples.origin', 'Specimen origin')} value={row.origin || ''} onChange={e => upd({ origin: e.target.value })} /></Column>
-      <Column sm={2} md={2} lg={2}><TextInput id={`d-t-${row.num}`} labelText={t('order.samples.temperature', 'Sample temperature')} value={row.temp || ''} onChange={e => upd({ temp: e.target.value })} /></Column>
-      <Column sm={4} md={4} lg={4}><TextInput id={`d-c-${row.num}`} labelText={t('order.samples.conditions', 'Collection conditions')} value={row.cond || ''} onChange={e => upd({ cond: e.target.value })} /></Column>
       {cfg.gpsCoordinatesEnabled && <Column sm={4} md={4} lg={4}><TextInput id={`d-g-${row.num}`} labelText={t('order.samples.gps', 'GPS coordinates')} helperText={t('order.samples.gps.help', 'Accuracy 20 m or better, timeout 30 s')} value={row.gps || ''} onChange={e => upd({ gps: e.target.value })} /></Column>}
-      <Column sm={4} md={4} lg={4}><Checkbox id={`d-l-${row.num}`} labelText={t('order.samples.labSampling', 'Lab performed sampling')} checked={!row.coll.elsewhere} disabled /></Column>
       <Column sm={4} md={8} lg={12}><TextArea id={`d-n-${row.num}`} labelText={t('common.notes', 'Notes')} rows={2} value={row.notes || ''} onChange={e => upd({ notes: e.target.value })} /></Column>
     </Grid>
   );
@@ -1439,6 +1503,8 @@ function SamplesTable({ mode, rows, setRows, ot, cfg, labNo = LAB, receivedAt = 
     if (r.voided) tags.push('Voided');
     const h = holdingTag(r, receivedAt);
     if (h) tags.push(h);
+    const hm = !r.voided && !r.parent ? handlingMismatch(r) : null;
+    if (hm && !r.status.includes('Non-conformity')) tags.push({ text: t('sample.handling.mismatch', 'Handling mismatch'), kind: 'warm-gray', icon: WarningAlt, tip: hm });
     return tags;
   };
   const inlinePanel = r => {
@@ -1576,7 +1642,7 @@ function SamplesTable({ mode, rows, setRows, ot, cfg, labNo = LAB, receivedAt = 
                     )}
                   </TableCell>
                 </TableExpandRow>
-                {expanded[r.num] && <TableExpandedRow colSpan={cols + 1}><SampleDetails row={r} upd={p => upd(r.num, p)} cfg={cfg} /></TableExpandedRow>}
+                {expanded[r.num] && <TableExpandedRow colSpan={cols + 1}><SampleDetails row={r} upd={p => upd(r.num, p)} onAll={p => setRows(rs => rs.map(x => (x.parent || x.voided ? x : { ...x, ...p })))} cfg={cfg} /></TableExpandedRow>}
                 {inlinePanel(r)}
               </React.Fragment>
             ))}
@@ -1724,6 +1790,7 @@ function EnterOrderPage({ cfg, acceptance, go, received0, sim }) {
   const [patient, setPatient] = useState(pre ? PATIENTS[0] : null);
   const [pSearch, setPSearch] = useState({ status: 'idle', q: { id: '', last: 'Morea', first: 'Kila', dob: '' } });
   const [newPatient, setNewPatient] = useState(null);
+  const [pm, setPm] = useState(null); // FR-B6a possible matches
   const [facility, setFacility] = useState(pre ? FACILITIES[0] : null);
   const [facInput, setFacInput] = useState('');
   const [ward, setWard] = useState(pre ? 'Medical Ward 3' : null);
@@ -1744,6 +1811,7 @@ function EnterOrderPage({ cfg, acceptance, go, received0, sim }) {
   const [confirmOff, setConfirmOff] = useState(false);
   const [receivedAt, setReceivedAt] = useState(RECEIVED_AT);
   const [receivedBy, setReceivedBy] = useState(ME);
+  const [recByEdit, setRecByEdit] = useState(false);
   // FR-C3: with auto-fill on, empty collection times default to the received time, marked "Defaulted, confirm"
   const autoFill = rs => (cfg.autoFill ? rs.map(r => (r.parent || r.coll.at ? r : { ...r, coll: { ...r.coll, at: RECEIVED_AT, defaulted: true } })) : rs);
   const [rows, setRows] = useState(() => (pre ? autoFill(proposeSamples(buildOrderedTests(DEFAULT_SPEC))) : []));
@@ -1835,9 +1903,6 @@ function EnterOrderPage({ cfg, acceptance, go, received0, sim }) {
               <span><Checkbox id="no-patient" labelText={t('order.noPatient', 'This order has no patient')} disabled={cfg.patientRequired && !eqa} checked={noPatient} onChange={(_, { checked }) => setNoPatient(checked)} /></span>
             </Tooltip>
           </Column>
-          <Column sm={4} md={8} lg={3} style={{ display: 'flex', alignItems: 'flex-end' }}>
-            <Button kind="ghost" size="md" renderIcon={Printer} onClick={() => focusField('order-labels')}>{t('order.label.printOrder', 'Print order labels')}</Button>
-          </Column>
         </Grid>
         {noPatient && !eqa && <InlineNotification kind="warning" lowContrast hideCloseButton title={t('order.noPatient.warning.title', 'Results will not be evaluated against a reference range')} subtitle={t('order.noPatient.warning.subtitle', 'Without a patient there is no age or sex to select reference ranges.')} />}
         {eqa && (
@@ -1919,6 +1984,13 @@ function EnterOrderPage({ cfg, acceptance, go, received0, sim }) {
                   <TextInput id="np-first" labelText={t('patient.firstName', 'First name')} defaultValue={newPatient.first} />
                   <TextInput id="np-nid" labelText={reqLabel(t('patient.nationalId', 'National ID'), cfg.nationalIdRequired)} />
                 </div>
+                <Button size="sm" onClick={() => {
+                  const last = document.getElementById('np-last').value; const first = document.getElementById('np-first').value;
+                  const d = { id: 'new', name: `${first} ${last}`.trim(), nid: document.getElementById('np-nid').value, sex: '', dob: '' };
+                  const m = possibleMatches(d, PATIENTS); if (m.length) setPm({ d, m }); else { setPatient(d); setNewPatient(null); }
+                }}>{t('order.entry.patient.create', 'Create patient')}</Button>
+                {pm && <PossibleMatches matches={pm.m} render={p => <span><strong>{p.name}</strong> <span style={S.muted}>{p.sex}, {p.dob}, {p.nid}</span></span>}
+                  onUse={p => { setPatient(p); setNewPatient(null); setPm(null); }} onCreate={() => { setPatient(pm.d); setNewPatient(null); setPm(null); }} onBack={() => setPm(null)} />}
               </Fence>
             </div>
           )}
@@ -1965,13 +2037,13 @@ function EnterOrderPage({ cfg, acceptance, go, received0, sim }) {
         {provider && (
           <div style={{ ...S.row, marginTop: 16 }}>
             <TextInput id="prov-phone" readOnly labelText={t('order.requester.phone.label', 'Phone')} value={provider.phone} />
-            <TextInput id="prov-fax" readOnly labelText={t('order.requester.fax.label', 'Fax')} value={provider.fax} />
+            {cfg.showFaxFields && <TextInput id="prov-fax" readOnly labelText={t('order.requester.fax.label', 'Fax')} value={provider.fax} />}
             <TextInput id="prov-email" readOnly labelText={t('order.requester.email.label', 'Email')} value={provider.email} />
           </div>
         )}
         {newProv && (
           <div style={{ ...S.panelBox, marginTop: 16 }}>
-            {/* FR-B9 field order: Title, First name, Last name (required), Phone, Fax, Email. Blocked on OGC-1223 landing. */}
+            {/* FR-B9 field order: Title, First name, Last name (required), Phone, Email, Fax only when showFaxFields is on. Title is saved and shown in provider search results. Blocked on OGC-1223 landing. */}
             <div style={S.row}>
               <Select id="np-title" labelText={t('order.entry.provider.title', 'Title')} value={newProv.title} onChange={e => setNewProv({ ...newProv, title: e.target.value })}>
                 <SelectItem value="" text={t('common.none', 'None')} />
@@ -1980,7 +2052,7 @@ function EnterOrderPage({ cfg, acceptance, go, received0, sim }) {
               <TextInput id="np-first-p" labelText={t('order.requester.firstName.label', 'First name')} value={newProv.first} onChange={e => setNewProv({ ...newProv, first: e.target.value })} />
               <TextInput id="np-last-p" required labelText={reqLabel(t('order.requester.lastName.label', 'Last name'), true)} value={newProv.last} onChange={e => setNewProv({ ...newProv, last: e.target.value })} />
               <TextInput id="np-phone" labelText={t('order.requester.phone.label', 'Phone')} value={newProv.phone} onChange={e => setNewProv({ ...newProv, phone: e.target.value })} />
-              <TextInput id="np-fax" labelText={t('order.requester.fax.label', 'Fax')} value={newProv.fax} invalid={!!newProv.fax && !/^[+\d\s()-]{6,}$/.test(newProv.fax)} invalidText={t('order.requester.fax.invalid', 'Enter a fax number.')} onChange={e => setNewProv({ ...newProv, fax: e.target.value })} />
+              {cfg.showFaxFields && <TextInput id="np-fax" labelText={t('order.requester.fax.label', 'Fax')} value={newProv.fax} invalid={!!newProv.fax && !/^[+\d\s()-]{6,}$/.test(newProv.fax)} invalidText={t('order.requester.fax.invalid', 'Enter a fax number.')} onChange={e => setNewProv({ ...newProv, fax: e.target.value })} />}
               <TextInput id="np-email" labelText={t('order.requester.email.label', 'Email')} value={newProv.email} invalid={!!newProv.email && !/^\S+@\S+\.\S+$/.test(newProv.email)} invalidText={t('order.requester.email.invalid', 'Enter an email address.')} onChange={e => setNewProv({ ...newProv, email: e.target.value })} />
             </div>
             <Button size="sm" disabled={!newProv.last} onClick={() => { setProvider({ id: 'new', ...newProv, facility: facility ? facility.name : '' }); setNewProv(null); }}>{t('order.entry.provider.use', 'Use this provider')}</Button>
@@ -2037,7 +2109,8 @@ function EnterOrderPage({ cfg, acceptance, go, received0, sim }) {
                 <DatePickerInput id="received-date" labelText={reqLabel(t('order.entry.received.at', 'Received date'), true)} placeholder={t('common.datePlaceholder', 'dd/mm/yyyy')} />
               </DatePicker>
               <TimePicker id="received-time" labelText={reqLabel(t('order.entry.received.time', 'Received time'), true)} value={receivedAt.slice(11, 16)} onChange={e => setReceivedAt(`${receivedAt.slice(0, 10)}T${e.target.value}`)} />
-              <ComboBox id="received-by" titleText={reqLabel(t('order.entry.received.by', 'Received by'), true)} items={USERS} selectedItem={receivedBy} onChange={({ selectedItem }) => setReceivedBy(selectedItem)} />
+              {recByEdit ? <ComboBox id="received-by" titleText={reqLabel(t('order.entry.received.by', 'Received by'), true)} items={USERS} selectedItem={receivedBy} onChange={({ selectedItem }) => { setReceivedBy(selectedItem); setRecByEdit(false); }} />
+                : <span style={{ alignSelf: 'center' }}>{fmt(t(receivedBy === ME ? 'order.entry.receivedBy.you' : 'order.entry.receivedBy.other', receivedBy === ME ? 'Received by {name} (you)' : 'Received by {name}'), { name: receivedBy })} <Button kind="ghost" size="sm" onClick={() => setRecByEdit(true)}>{t('common.change', 'Change')}</Button></span>}
               {!orderAt && <Button kind="ghost" size="md" onClick={() => setOrderAt(receivedAt)}>{t('order.entry.sameAsReceived', 'Use as order date')}</Button>}
               <span style={S.muted}>{fmt(t('order.entry.received.tz', 'Laboratory time ({tz})'), { tz: LAB_TZ })}</span>
             </div>
@@ -2824,7 +2897,7 @@ const CFG_ROWS = [
   ['requesterRequired', 'requesterRequired', 'FR-B13'], ['eqaEnabled', 'eqaEnabled', 'FR-B4'], ['patientRequired', 'PatientRequired', 'FR-B4'],
   ['restrictFreeTextProviderEntry', 'restrictFreeTextProviderEntry', 'FR-B8'], ['restrictFreeTextRefSiteEntry', 'restrictFreeTextRefSiteEntry', 'FR-B7'],
   ['validateAccessionNumber', 'validateAccessionNumber', 'FR-A14'], ['autoFill', 'auto-fill collection date/time', 'FR-C3'], ['gpsCoordinatesEnabled', 'gpsCoordinatesEnabled', 'FR-C9'],
-  ['trackPayment', 'trackPayment', 'FR-B28'], ['billingRefNumber', 'billingRefNumber', 'FR-B28'], ['contactTracingEnabled', 'contactTracingEnabled', 'FR-B30'],
+  ['trackPayment', 'trackPayment', 'FR-B28'], ['billingRefNumber', 'billingRefNumber', 'FR-B28'], ['showFaxFields', 'Show fax fields (new)', 'FR-B7, FR-B9'], ['contactTracingEnabled', 'contactTracingEnabled', 'FR-B30'],
   ['notifications', 'Result notifications (Test Notification Configuration)', 'FR-B29'], ['nextVisit', 'Next visit date (form field)', 'FR-B12'],
   ['labelOverride', 'Allow label override at order entry', 'FR-I5'], ['consentRequiredForCollection', 'consentRequiredForCollection (Site Information)', 'FR-D2'],
   ['useExternalPatientSource', 'useExternalPatientSource (Site Information)', 'FR-B5'], ['canRefer', 'Signed-in user holds Sample Shipment Management (referral access)', 'Access'],
@@ -2877,7 +2950,7 @@ function OrderEntryConfiguration({ cfg, setCfg, acceptance, setAcceptance }) {
 const CFG_DEFAULT = {
   requesterRequired: true, eqaEnabled: true, patientRequired: false, restrictFreeTextProviderEntry: true, restrictFreeTextRefSiteEntry: false,
   validateAccessionNumber: true, autoFill: false, gpsCoordinatesEnabled: false, trackPayment: true, billingRefNumber: false, contactTracingEnabled: false,
-  notifications: false, nextVisit: false, labelOverride: true, consentRequiredForCollection: false, useExternalPatientSource: false,
+  notifications: false, nextVisit: false, showFaxFields: false, labelOverride: true, consentRequiredForCollection: false, useExternalPatientSource: false,
   enableClientRegistry: false, nationalIdRequired: false, canRefer: true, clockDrift: false,
 };
 const SCREENS = [

@@ -1,6 +1,6 @@
 # Clinical Order Entry v4: Acceptance Test Scripts
 
-Date: 2026-09-29. Reviewer scripts for every slice in `order-entry-v4-implementation-plan.md`. They are written against FRS v0.15 (`clinical-order-entry-v4-frs.md`). FR-B12a (Microbiology program section) is tested with the Microbiology v2 work.
+Date: 2026-09-29. Reviewer scripts for every slice in `order-entry-v4-implementation-plan.md`. They are written against FRS v0.20 (`clinical-order-entry-v4-frs.md`). FR-B12a (Microbiology program section) is tested with the Microbiology v2 work.
 
 Each script names:
 - **Where** to run it: the testing instance, or the design preview for layout-only checks.
@@ -222,6 +222,26 @@ For each setting below, switch it off, check order entry, switch it on, check ag
 
 ---
 
+### M14. Order entry clean-up (preview for layout, instance for the match check)
+
+Setup: standard test data. Billing reference and trackPayment on; showFaxFields off.
+
+| # | Step | Expected |
+|---|---|---|
+| 1 | Look at the Order section. | No Print order labels button. Order labels print from the Labels section only. |
+| 2 | Search the patient "Morea Kila" (names swapped), choose Create new patient, then Create patient. | Possible matches lists Patient A with "Matched on: name" and Use this one. Search results themselves never include fuzzy matches. |
+| 3 | Choose Create new anyway. | A confirmation names the number of similar records. Confirming creates the patient, and the choice is recorded (who, when, matches shown). |
+| 4 | Search facility "Tokarara Health Center", Add new facility, Create facility. | Possible matches lists Tokarara Health Centre. |
+| 5 | Search provider "Tau". | Results show "Dr Agnes Tau" with her facility. With showFaxFields off, no Fax field appears in her details or in Add new provider. Turn it on: Fax appears in both. |
+| 6 | Look at the ordered tests table. | No Tested elsewhere or Paid column. Each row has Remove and a More actions menu. |
+| 7 | More actions on Haemoglobin, Mark tested elsewhere. | The reported value and performing laboratory fields open; the row shows a purple Tested elsewhere Tag; the menu item now reads Not tested elsewhere. |
+| 8 | Switch on Samples received. | Received by reads "Received by Mary Kila (you)" with Change. Change opens a user search. |
+| 9 | Open Billing. | Billing reference and one order-level Payment status. No paid toggle on any test. |
+| 10 | Expand sample -2 (Serum). | No Specimen origin, Collection conditions, Sample temperature or Lab performed sampling. A Handling group shows Required "Refrigerated 2 to 8 °C", Arrived as, Measured °C and Stored at. |
+| 11 | Set Arrived as to Room temperature. | One warm-gray Handling mismatch Tag on the row's Status, with a tooltip naming the difference; Report non-conformity is offered. Saving is not blocked. |
+| 12 | Choose Same for all samples. | Every primary sample gets the same Arrived as value. |
+| 13 | Open an order saved before v4 with specimen origin and collection conditions. | The old values show read-only under "Recorded before this version". |
+
 ## Phase 2
 
 ### P1. Container Types (preview)
@@ -351,7 +371,7 @@ For each setting below, switch it off, check order entry, switch it on, check ag
 |---|---|---|
 | 1 | Open an e-order (external orders on). | Everything is prefilled. An order without a specimen opens with Add sample focused. |
 | 2 | Open `/SamplePatientEntry?ID=...`. | It redirects to Enter Order with the same order. |
-| 3 | Turn billing on. | Billing reference and a Paid toggle per test. The Unpaid dashboard filter works. |
+| 3 | Turn billing and trackPayment on. | Billing reference and the order-level Payment status (no per-test Paid). The Unpaid dashboard filter works. |
 | 4 | Turn result notifications on. | Notify patient and Notify provider appear per test, with channels. |
 | 5 | Turn contact tracing on. | The index case fields appear and print on the report. |
 | 6 | Remove an attachment on a saved order. | A reason is required. It shows under Show removed. |
