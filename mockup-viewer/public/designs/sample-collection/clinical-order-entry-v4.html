@@ -551,7 +551,7 @@ const n2 = n => n.toLocaleString('en-US');
 const CFG0 = {
   requesterRequired: true, eqaEnabled: false, restrictFreeTextProviderEntry: true, restrictFreeTextRefSiteEntry: false, gpsCoordinatesEnabled: false,
   autoFill: false, trackPayment: true, billingRefNumber: false, contactTracingEnabled: false, notifications: false, labelOverride: true,
-  nextVisit: false, useExternalPatientSource: false, validateAccessionNumber: true,
+  nextVisit: false, showFaxFields: false, useExternalPatientSource: false, validateAccessionNumber: true,
 };
 const CFG_META = [
   ['requesterRequired', 'requesterRequired', 'Order Entry', 'Facility and provider required at the complete level; their required markers show only when on (default on)', 'FR-B13', false],
@@ -560,8 +560,9 @@ const CFG_META = [
   ['restrictFreeTextRefSiteEntry', 'restrictFreeTextRefSiteEntry', 'Order Entry', 'Add new facility disabled with its reason', 'FR-B7', false],
   ['gpsCoordinatesEnabled', 'gpsCoordinatesEnabled', 'Order Entry', 'GPS in the expanded sample row, with accuracy and timeout', 'FR-C9', true],
   ['autoFill', 'auto-fill collection date/time', 'Order Entry', 'Empty collection times default to the received time, marked "Defaulted, confirm"', 'FR-C3', false],
-  ['trackPayment', 'trackPayment', 'Order Entry', 'Payment status (order level) shown only when on', 'FR-B28', true],
-  ['billingRefNumber', 'billingRefNumber', 'Order Entry', 'Billing reference field, plus a Paid indicator on each ordered test', 'FR-B28', false],
+  ['trackPayment', 'trackPayment', 'Order Entry', 'Payment status (order level, the only paid marker) shown only when on', 'FR-B28', true],
+  ['billingRefNumber', 'billingRefNumber', 'Order Entry', 'Billing reference field', 'FR-B28', false],
+  ['showFaxFields', 'showFaxFields (new)', 'Order Entry', 'Fax fields on a new provider and in provider details (default off)', 'FR-B7, FR-B9', true],
   ['contactTracingEnabled', 'contactTracingEnabled', 'Order Entry', 'Index case name and record number', 'FR-B30', false],
   ['notifications', 'Result notifications', 'Test Notification Configuration, SMTP/SMS', 'Notify patient and Notify provider on each ordered test', 'FR-B29', false],
   ['nextVisit', 'Next visit date (form field)', 'Field set', 'Next visit date shown only when on', 'FR-B12', true],
@@ -641,6 +642,7 @@ const joinNames = (ids, ot) => groupNames(ids, ot).join(', ');
 
 /* Carbon icons, 16 px descriptors copied from @carbon/icons (Apache-2.0) */
 const CI = {
+  OverflowMenuVertical: { vb: "0 0 32 32", els: [{"e":"circle","a":{"cx":"16","cy":"8","r":"2"}},{"e":"circle","a":{"cx":"16","cy":"16","r":"2"}},{"e":"circle","a":{"cx":"16","cy":"24","r":"2"}}] },
   Printer: { vb: "0 0 32 32", els: [{"e":"path","a":{"d":"M28,9H25V3H7V9H4a2,2,0,0,0-2,2V21a2,2,0,0,0,2,2H7v6H25V23h3a2,2,0,0,0,2-2V11A2,2,0,0,0,28,9ZM9,5H23V9H9ZM23,27H9V17H23Zm5-6H25V15H7v6H4V11H28Z"}}] },
   SendAlt: { vb: "0 0 32 32", els: [{"e":"path","a":{"d":"M27.71,4.29a1,1,0,0,0-1.05-.23l-22,8a1,1,0,0,0,0,1.87l9.6,3.84,3.84,9.6A1,1,0,0,0,19,28h0a1,1,0,0,0,.92-.66l8-22A1,1,0,0,0,27.71,4.29ZM19,24.2l-2.79-7L21,12.41,19.59,11l-4.83,4.83L7.8,13,25.33,6.67Z"}}] },
   WarningAlt: { vb: "0 0 16 16", els: [{"e":"path","a":{"d":"M14.5,14h-13c-0.2,0-0.3-0.1-0.4-0.2c-0.1-0.2-0.1-0.3,0-0.5l6.5-12C7.7,1,8,0.9,8.2,1.1c0.1,0,0.2,0.1,0.2,0.2l6.5,12\tc0.1,0.2,0.1,0.3,0,0.5C14.9,13.9,14.7,14,14.5,14z M2.3,13h11.3L8,2.5L2.3,13z"}},{"e":"path","a":{"d":"M7.5 6H8.5V9.5H7.5z"}},{"e":"path","a":{"d":"M8,10.8c-0.4,0-0.8,0.3-0.8,0.8s0.3,0.8,0.8,0.8c0.4,0,0.8-0.3,0.8-0.8S8.4,10.8,8,10.8z"}}] },
@@ -688,7 +690,7 @@ function rich(t) {
 const normNum = v => { v = (v || '').trim().toUpperCase(); let m = /^(\w+?\d{5})\.(\d+)-(\d+)$/.exec(v); if (m) return m[1] + '-' + m[2] + '.' + m[3]; m = /^(\w+?\d{5})\.(\d+)$/.exec(v); if (m) return m[1] + '-' + m[2]; return v; };
 
 function mkRow(o) {
-  return Object.assign({ key: null, status: [], tests: [], manual: {}, dev: {}, storage: null, coll: null, parent: null, saved: true, edited: false, voided: false, gone: false, voidReason: '', qty: '', unit: 'mL', site: '', side: '', other: '', reason: '', method: 'Venepuncture', origin: 'Inpatient ward', temp: 'Ambient', cond: '', notes: '', gps: '', lblQty: {}, lblBy: {}, gen: null, genFail: false, after: false, confirmed: false, referred: [], referTo: '' }, o);
+  return Object.assign({ key: null, status: [], tests: [], manual: {}, dev: {}, storage: null, coll: null, parent: null, saved: true, edited: false, voided: false, gone: false, voidReason: '', qty: '', unit: 'mL', site: '', side: '', other: '', reason: '', method: 'Venepuncture', arr: '', arrC: '', notes: '', gps: '', lblQty: {}, lblBy: {}, gen: null, genFail: false, after: false, confirmed: false, referred: [], referTo: '' }, o);
 }
 const liveRows = rows => rows.filter(r => !r.gone && !r.voided);
 const usableRows = rows => liveRows(rows).filter(r => !r.status.includes('Rejected'));
@@ -908,7 +910,7 @@ function Swatch({ c }) {
 }
 function Req() { return <span className="req" aria-hidden="true">*</span>; }
 function Annot({ children }) { return <div className="annot">{children}</div>; }
-/* Domain switcher (Clinical FRS v0.15 FR-A17 to A22, D-093). One Add Order item in the SideNav; this switcher picks the
+/* Domain switcher (Clinical FRS v0.20 FR-A17 to A22, D-093). One Add Order item in the SideNav; this switcher picks the
    domain. Each domain keeps its own form and route; the switcher never merges them. */
 const DOMAINS = [
   { k: 'clinical', l: 'Clinical', route: '/order/clinical' },
@@ -1207,7 +1209,7 @@ function SecHead({ n, title, req, children, id }) {
 
 /* Icons: @carbon/icons paths (FR-C6) */
 const I = {
-  print: <CIcon n="Printer" className="cds--btn__icon" />, refer: <CIcon n="SendAlt" className="cds--btn__icon" />, nce: <CIcon n="WarningAlt" className="cds--btn__icon" />,
+  more: <CIcon n="OverflowMenuVertical" className="cds--btn__icon" />, print: <CIcon n="Printer" className="cds--btn__icon" />, refer: <CIcon n="SendAlt" className="cds--btn__icon" />, nce: <CIcon n="WarningAlt" className="cds--btn__icon" />,
   trash: <CIcon n="TrashCan" className="cds--btn__icon" />, voidI: <CIcon n="Misuse" className="cds--btn__icon" />, aliquot: <CIcon n="Eyedropper" className="cds--btn__icon" />,
   store: <CIcon n="Box" className="cds--btn__icon" />, undo: <CIcon n="Undo" className="cds--btn__icon" />, add: <CIcon n="Add" className="cds--btn__icon" />,
   barcode: <CIcon n="Barcode" className="cds--btn__icon" />, time: <CIcon n="Time" size={12} style={{ verticalAlign: '-1px' }} />,
@@ -1618,7 +1620,7 @@ function OrderedTestsTable({ mode, ot, rows, setRows, cfg, received, filt, onCle
   const solo = vis.filter(e => !e.panels.length);
   if (solo.length) groups.push({ pid: null, items: solo });
   const cancelledN = ot.filter(e => e.cancelled && !e.removed).length;
-  const cols = 6 + (cfg.billingRefNumber ? 1 : 0) + (cfg.notifications ? 1 : 0);
+  const cols = 5 + (cfg.notifications ? 1 : 0);
   const refLab = (fac ? fac.n : 'Port Moresby General Hospital') + ' laboratory';
 
   const assign = (e, num) => {
@@ -1708,20 +1710,18 @@ function OrderedTestsTable({ mode, ot, rows, setRows, cfg, received, filt, onCle
           <td>{t.st}</td>
           <td style={{ minWidth: 170 }}>{expectedCell(t)}</td>
           <td style={{ minWidth: prep ? 240 : 160 }}>{sampleCell(e)}</td>
-          <td><Checkbox label={'Tested elsewhere: ' + t.name} hideLabel checked={!!up.on} disabled={ro || e.cancelled} onChange={v => onUpdEntry(e.id, { up: { ...up, on: v, lab: up.lab || refLab, val: up.val || '' } })} /></td>
-          {cfg.billingRefNumber && <td>{e.paidExt ? <span data-tip="Set by the billing system"><Tag c="green">Paid</Tag></span> : <Switch sm checked={!!e.paid} disabled={ro || e.cancelled} onChange={v => onUpdEntry(e.id, { paid: v })} label={e.paid ? 'Paid' : 'Unpaid'} hideState />}</td>}
           {cfg.notifications && <td style={{ minWidth: 190, fontSize: 12 }}>
             <Checkbox label={'Patient' + (patient && patient.phone ? ' (SMS ' + patient.phone + ')' : ' (no contact details)')} checked={e.notify.patient} disabled={ro || e.cancelled || !(patient && patient.phone)} onChange={v => onUpdEntry(e.id, { notify: { ...e.notify, patient: v } })} />
             <Checkbox label={'Provider' + (prov && prov.em ? ' (email ' + prov.em + ')' : ' (no contact details)')} checked={e.notify.provider && !!(prov && prov.em)} disabled={ro || e.cancelled || !(prov && prov.em)} onChange={v => onUpdEntry(e.id, { notify: { ...e.notify, provider: v } })} />
           </td>}
-          <td style={{ width: 48 }}>{removeBtn(e)}</td>
+          <td style={{ width: 88, whiteSpace: 'nowrap' }}>{removeBtn(e)}{!ro && !e.cancelled && <RowMenu label={'More actions for ' + t.name} items={[up.on ? { label: 'Not tested elsewhere', onClick: () => onUpdEntry(e.id, { up: { ...up, on: false } }) } : { label: 'Mark tested elsewhere', onClick: () => onUpdEntry(e.id, { up: { ...up, on: true, lab: up.lab || refLab, val: up.val || '' } }) }]} />}</td>
         </tr>
         {up.on && !e.cancelled && (
           <tr className="exp-row"><td colSpan={cols}>
             <div className="grid g3" style={{ maxWidth: 900 }}>
               <TextInput size="sm" label={'Reported value for ' + t.name} value={up.val} onChange={v => onUpdEntry(e.id, { up: { ...up, val: v } })} placeholder={e.id === 'HBA1C' ? '7.2 %' : 'Value and unit'} readOnly={ro} />
               <Typeahead label="Performing laboratory" value={up.lab} onPick={o => onUpdEntry(e.id, { up: { ...up, lab: o.v } })} options={[refLab, ...ORG_LABS.filter(x => x !== refLab)].map(l => ({ v: l, l, meta: 'Organization' }))} placeholder="Search organizations" disabled={ro} helper="Search over organizations; defaults to the referring facility's laboratory" />
-              <div className="muted" style={{ paddingTop: 20 }}>Result reported by another laboratory. A test tested elsewhere needs no sample. Behaviour owned by the External Lab IDs FRS.</div>
+              <div className="muted" style={{ paddingTop: 20 }}>Result reported by another laboratory. Set from the row's More actions menu; a test tested elsewhere needs no sample. Behaviour owned by the External Lab IDs FRS.</div>
             </div>
           </td></tr>
         )}
@@ -1768,10 +1768,9 @@ function OrderedTestsTable({ mode, ot, rows, setRows, cfg, received, filt, onCle
       <div className="cds--data-table-container table-scroll">
         <table className="cds--data-table cds--data-table--xs otbl" style={{ width: '100%' }}>
           <thead><tr>
-            <th>Test</th><th>Sample type</th><th>Expected container and volume</th><th>Sample</th><th><span data-tip="Result reported by another laboratory" tabIndex={0}>Tested elsewhere</span></th>
-            {cfg.billingRefNumber && <th>Paid</th>}
+            <th>Test</th><th>Sample type</th><th>Expected container and volume</th><th>Sample</th>
             {cfg.notifications && <th>Notify</th>}
-            <th><span className="cds--visually-hidden">Remove</span></th>
+            <th><span className="cds--visually-hidden">Actions</span></th>
           </tr></thead>
           <tbody>
             {ot.length === 0 && <tr><td colSpan={cols} className="muted" style={{ padding: 16 }}>No tests yet. Add a panel or test above, or type a code.</td></tr>}
@@ -1945,8 +1944,72 @@ function AliquotPanel({ row, remaining, onApply, onCancel }) {
     </NewBlock>
   );
 }
+/* Row overflow menu (D-104): rarely used actions */
+function RowMenu({ label, items }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <span style={{ position: 'relative', display: 'inline-block' }} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false); }}>
+      <IconBtn icon={I.more} className="tip-left" label={label} tip="More actions" on={open} onClick={() => setOpen(!open)} />
+      {open && (
+        <div role="menu" style={{ position: 'absolute', right: 0, top: 34, zIndex: 20, background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,.3)', minWidth: 210 }}>
+          {items.map(it => <button key={it.label} type="button" role="menuitem" className="res" style={{ width: '100%', textAlign: 'left', padding: '10px 16px' }} onClick={() => { setOpen(false); it.onClick(); }}>{it.label}</button>)}
+        </div>
+      )}
+    </span>
+  );
+}
+/* Possible matches before create (FR-B6a, D-162). Search stays exact/prefix; this runs only on Create. */
+const COMMON_WORDS = ['hospital', 'general', 'health', 'centre', 'center', 'clinic', 'the', 'dr', 'sr', 'mr', 'mrs', 'ms', 'prof'];
+const normTokens = v => (v || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(w => w && !COMMON_WORDS.includes(w));
+const lev = (a, b) => { const m = a.length, n = b.length; const d = Array.from({ length: m + 1 }, (_, i) => [i]); for (let j = 1; j <= n; j++) d[0][j] = j; for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); return d[m][n]; };
+const nameClose = (a, b) => { const x = normTokens(a).sort().join(' '), y = normTokens(b).sort().join(' '); if (!x || !y) return false; return x === y || lev(x, y) <= Math.max(1, Math.floor(Math.min(x.length, y.length) / 5)); };
+function possibleMatches(kind, draft, list) {
+  return list.map(r => {
+    const why = [];
+    if (kind === 'patient') {
+      if (nameClose(draft.name, r.name)) why.push('name');
+      if (draft.dob && r.dob && Math.abs(new Date(draft.dob) - new Date(r.dob)) <= 366 * 864e5) why.push('date of birth');
+      if (draft.nid && r.nid && lev(draft.nid.toUpperCase(), r.nid.toUpperCase()) <= 1) why.push('national ID');
+      return why.includes('name') || why.includes('national ID') ? { r, why } : null;
+    }
+    if (nameClose(draft.name, r.name)) why.push('name');
+    return why.length ? { r, why } : null;
+  }).filter(Boolean).slice(0, 5);
+}
+function PossibleMatches({ matches, render, onUse, onCreate, onBack }) {
+  const [ask, setAsk] = useState(false);
+  return (
+    <Notif kind="warning" title={'Possible matches (' + matches.length + ')'} sub="These records look similar to the one you are creating. Use one of them, or create a new record." style={{ marginTop: 12 }}>
+      <div className="results" style={{ marginBottom: 8 }}>
+        {matches.map((m, i) => (
+          <div key={i} className="res" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <div style={{ flex: 1 }}>{render(m.r)}<div className="muted" style={{ fontSize: 12 }}>Matched on: {m.why.join(', ')}</div></div>
+            <Btn kind="tertiary" onClick={() => onUse(m.r)}>Use this one</Btn>
+          </div>
+        ))}
+      </div>
+      {!ask ? (
+        <div style={{ display: 'flex', gap: 8 }}><Btn kind="secondary" onClick={() => setAsk(true)}>Create new anyway</Btn><Btn kind="ghost" onClick={onBack}>Back</Btn></div>
+      ) : (
+        <div>
+          <p style={{ margin: '4px 0 8px' }}>Create a new record even though {matches.length} similar {matches.length === 1 ? 'record exists' : 'records exist'}? Your choice is recorded.</p>
+          <div style={{ display: 'flex', gap: 8 }}><Btn kind="danger" onClick={onCreate}>Create new record</Btn><Btn kind="ghost" onClick={() => setAsk(false)}>Cancel</Btn></div>
+        </div>
+      )}
+    </Notif>
+  );
+}
+/* Handling (FR-C9a, D-163): catalog requirement, arrival condition, storage */
+const ARRIVAL = ['Room temperature', 'Refrigerated 2 to 8 °C', 'Frozen', 'On ice', 'Dry ice'];
+const HANDLING_REQ = {
+  'Serum': { text: 'Refrigerated 2 to 8 °C · process within 8 h', ok: ['Refrigerated 2 to 8 °C', 'On ice'] },
+  'Plasma (citrated)': { text: 'Room temperature · process within 4 h', ok: ['Room temperature'] },
+  'Whole blood': { text: 'Room temperature or refrigerated 2 to 8 °C', ok: ['Room temperature', 'Refrigerated 2 to 8 °C'] },
+};
+const handlingReq = r => HANDLING_REQ[r.st] || null;
+const handlingMismatch = r => { const q = handlingReq(r); if (!q || !r.arr) return null; return q.ok.includes(r.arr) ? null : 'Needs ' + q.text.split(' · ')[0].toLowerCase() + '; arrived ' + r.arr.toLowerCase() + (r.arrC ? ' (' + r.arrC + ' °C)' : ''); };
 /* Expanded row: optional detail only (FR-C9) */
-function DetailsPanel({ row, upd, remaining, cfg, ro }) {
+function DetailsPanel({ row, upd, remaining, cfg, ro, onAll }) {
   const [gpsBusy, setGpsBusy] = useState(false);
   if (row.parent) {
     return (
@@ -1962,16 +2025,27 @@ function DetailsPanel({ row, upd, remaining, cfg, ro }) {
   return (
     <div>
       <div className="h3" style={{ fontSize: 14 }}>Optional details for <SfxBadge num={row.num} /> <span className="muted" style={{ fontWeight: 400 }}>Required data (collection, body site, storage) is on the row itself; labels are in the Labels section.</span></div>
+      <div className="card" style={{ marginBottom: 12, borderLeft: '3px solid ' + (handlingMismatch(row) ? '#8e6a00' : '#c6c6c6') }}>
+        <div className="h3" style={{ fontSize: 14 }}>Handling <Tag c="purple">New, FR-C9a</Tag></div>
+        <div className="grid g3">
+          <div><span className="lbl">Required</span><div>{handlingReq(row) ? handlingReq(row).text : <span className="muted">No requirement</span>}</div><div className="cds--form__helper-text">From the test catalog (storage condition and holding time of its tests)</div></div>
+          <div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <Select label="Arrived as" value={row.arr || ''} onChange={v => upd({ arr: v })} options={[{ v: '', l: 'Not recorded' }, ...ARRIVAL]} disabled={ro} style={{ flex: 1 }} />
+              <TextInput label="Measured °C" value={row.arrC || ''} onChange={v => upd({ arrC: v })} placeholder="Optional" readOnly={ro} style={{ width: 110 }} />
+            </div>
+            {!ro && onAll && row.arr && <button type="button" className="linkbtn" onClick={() => onAll({ arr: row.arr, arrC: row.arrC || '' })}>Same for all samples</button>}
+          </div>
+          <div><span className="lbl">Stored at</span><div>{row.storage ? (row.storage.path || String(row.storage)) : <span className="muted">Not stored yet</span>}</div><div className="cds--form__helper-text">Checked against Required when the location records a condition (later phase)</div></div>
+        </div>
+        {handlingMismatch(row) && <Notif kind="warning" title="Handling mismatch" sub={handlingMismatch(row) + '. Shown as one Tag on the row; Report non-conformity from there. It never blocks.'} style={{ marginTop: 8, marginBottom: 0 }} />}
+      </div>
       <div className="grid g4">
         <div style={{ display: 'flex', gap: 8 }}>
           <TextInput label="Quantity" value={row.qty} onChange={v => upd({ qty: v })} style={{ flex: 1 }} readOnly={ro} helper={remaining != null ? 'Left after aliquots: ' + remaining.toFixed(1) + ' ' + (row.unit || 'mL') : null} />
           <Select label="Unit" value={row.unit} onChange={v => upd({ unit: v })} options={['mL', 'uL', 'swab', 'g']} style={{ width: 90 }} disabled={ro} />
         </div>
         <Select label="Collection method" value={row.method} onChange={v => upd({ method: v })} options={COLLECTION_METHODS} helper="Picker over the Clinical Collection Method list" disabled={ro} />
-        <Select label="Specimen origin" value={row.origin} onChange={v => upd({ origin: v })} options={['Inpatient ward', 'Outpatient', 'Emergency', 'Community']} disabled={ro} />
-        <Select label="Sample temperature" value={row.temp} onChange={v => upd({ temp: v })} options={['Ambient', 'Refrigerated 2 to 8 °C', 'Frozen']} disabled={ro} />
-        <TextInput label="Collection conditions" value={row.cond} onChange={v => upd({ cond: v })} placeholder="For example: fasting 10 h" readOnly={ro} />
-        <TextInput label="Lab performed sampling" value={c.elsewhere ? 'No (collected elsewhere)' : c.by ? 'Yes' : 'Not recorded yet'} readOnly onChange={() => {}} helper='Set from the Collected cell: "Collected elsewhere" stores No' />
         {cfg.gpsCoordinatesEnabled && (
           <div>
             <TextInput label="GPS coordinates" value={row.gps} onChange={v => upd({ gps: v })} placeholder="Latitude, longitude" readOnly={ro} helper="gpsRequiredAccuracyMeters 50, gpsTimeoutSeconds 30" />
@@ -2301,6 +2375,8 @@ function SamplesTable({ mode, rows, setRows, ot, cfg, labNo = LAB, recAt = RECEI
     const h = (prep || ro) ? holdInfo(r) : null;
     if (h && h.exceeded) out.push({ k: 'Holding time exceeded', c: 'red', tip: h.title });
     if (r.status.includes('Non-conformity')) out.push({ k: 'Non-conformity', c: 'warm-gray', warn: true });
+    const hm = !r.voided && !r.parent ? handlingMismatch(r) : null;
+    if (hm && !r.status.includes('Non-conformity')) out.push({ k: 'Handling mismatch', c: 'warm-gray', warn: true, tip: hm });
     if (h && h.near) out.push({ k: fmtDur(h.left) + ' left', c: 'warm-gray', warn: true, tip: h.title + (h.fromReceipt ? '. Counted from receipt (collection time unknown)' : '') });
     if (r.status.includes('Referred') && !r.voided) out.push({ k: 'Referred', c: 'purple', tip: 'Referred to ' + r.referTo });
     const proposed = !r.saved && !r.edited && !r.confirmed && !r.parent;
@@ -2553,7 +2629,7 @@ function SamplesTable({ mode, rows, setRows, ot, cfg, labNo = LAB, recAt = RECEI
                       )}
                     </td>
                   </tr>
-                  {det[r.num] && !r.voided && <tr className="exp-row"><td colSpan={cols}><DetailsPanel row={r} upd={f => upd(r.num, f)} remaining={r.parent ? null : remainingOf(r)} cfg={cfg} ro={ro} /></td></tr>}
+                  {det[r.num] && !r.voided && <tr className="exp-row"><td colSpan={cols}><DetailsPanel row={r} upd={f => upd(r.num, f)} onAll={f => setRows(rs => rs.map(x => (x.parent || x.voided ? x : { ...x, ...f })))} remaining={r.parent ? null : remainingOf(r)} cfg={cfg} ro={ro} /></td></tr>}
                   {renderPanel(r)}
                 </React.Fragment>
               );
@@ -2702,6 +2778,7 @@ function EnterOrder({ go, received0, acc, onSaved, savedId, net, setNet, stat, s
   const [search, setSearch] = useState('idle');
   const [patient, setPatient] = useState(full ? PATIENTS[0] : null);
   const [newPat, setNewPat] = useState(null);
+  const [pm, setPm] = useState(null); // possible matches before create (FR-B6a)
   const [facQ, setFacQ] = useState(FACS[0].n);
   const [fac, setFac] = useState(FACS[0]);
   const [addFac, setAddFac] = useState(false);
@@ -2722,6 +2799,7 @@ function EnterOrder({ go, received0, acc, onSaved, savedId, net, setNet, stat, s
   const [received, setReceived] = useState(full);
   const [recAt, setRecAt] = useState(RECEIVED);
   const [recBy, setRecBy] = useState(ME_RECEPTION);
+  const [recByEdit, setRecByEdit] = useState(false);
   const [rows, setRows] = useState(() => {
     if (!full) return [];
     const base = reconcile([], buildOt(DEFAULT_SPEC), LAB).rows;
@@ -2925,7 +3003,7 @@ function EnterOrder({ go, received0, acc, onSaved, savedId, net, setNet, stat, s
           { label: 'Browser blocks the print window', on: psim.printBlocked, set: v => setPsim(s => ({ ...s, printBlocked: v })) },
           { label: 'Label file cannot be generated', on: psim.printFail, set: v => setPsim(s => ({ ...s, printFail: v })) },
         ]}
-        cfgItems={cfgControls(cfg, setCfg, ['labelOverride', 'requesterRequired', 'eqaEnabled', 'restrictFreeTextProviderEntry', 'restrictFreeTextRefSiteEntry', 'validateAccessionNumber', 'useExternalPatientSource', 'nextVisit', 'billingRefNumber', 'trackPayment', 'contactTracingEnabled', 'notifications', 'autoFill', 'gpsCoordinatesEnabled'])} />
+        cfgItems={cfgControls(cfg, setCfg, ['labelOverride', 'requesterRequired', 'eqaEnabled', 'restrictFreeTextProviderEntry', 'restrictFreeTextRefSiteEntry', 'validateAccessionNumber', 'useExternalPatientSource', 'nextVisit', 'showFaxFields', 'billingRefNumber', 'trackPayment', 'contactTracingEnabled', 'notifications', 'autoFill', 'gpsCoordinatesEnabled'])} />
       <NewBlock style={{ padding: '10px 14px 2px' }}>
         <Progress steps={orderSteps(acc, 0, [stCur(items.length), saved ? stProg(PREP_TODO) : stNot(), stNot()])} onOpen={saved ? s => go(s.screen, { id: labNo }) : null} />
         {!saved && <p className="muted" style={{ margin: '-6px 0 8px', fontSize: 12 }}>Steps open from the indicator once the order is saved.</p>}
@@ -2937,7 +3015,7 @@ function EnterOrder({ go, received0, acc, onSaved, savedId, net, setNet, stat, s
       {/* 1. Order */}
       <div className="section" id="sec-order" data-sec="order">
         <SecHead n="1" title="Order" />
-        <div className="grid" style={{ gridTemplateColumns: 'minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1.2fr)' }}>
+        <div className="grid" style={{ gridTemplateColumns: 'minmax(0, 1.1fr) minmax(0, 1fr)', maxWidth: 1020 }}>
           <div className="cds--tile" style={{ background: '#f4f4f4' }}>
             <span className="lbl">Lab number</span>
             <div className="mono" style={{ fontSize: 24 }}>{saved ? labNo : (labScan.trim().toUpperCase() || labNo)}</div>
@@ -2971,14 +3049,6 @@ function EnterOrder({ go, received0, acc, onSaved, savedId, net, setNet, stat, s
                 {noPat && !eqa && <Notif kind="warning" title="Results will not be evaluated against a reference range" sub="Without a patient there is no age or sex, so results are not flagged normal or abnormal." style={{ marginTop: 12, marginBottom: 0 }} />}
               </Fence>
             </div>
-          </div>
-          <div className="cds--tile" style={{ background: '#f4f4f4' }} id="order-labels-shortcut">
-            <span className="lbl">Order labels</span>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-              <Btn kind="tertiary" onClick={printOrder}>Print order labels {I.print}</Btn>
-            </div>
-            <div className="muted" style={{ marginTop: 8 }}>{lab.orderCount()} order labels. Quantities are in the Labels section. <button type="button" className="linkbtn" onClick={() => scrollTo('sec-labels')}>Go to Labels</button></div>
-            <LabelMsgs lab={lab} src="order" style={{ marginTop: 8, marginBottom: 0 }} />
           </div>
         </div>
         {eqa && cfg.eqaEnabled && (
@@ -3061,9 +3131,12 @@ function EnterOrder({ go, received0, acc, onSaved, savedId, net, setNet, stat, s
               </div>
               <p className="muted">Abbreviated. The full form is the shared new-patient form, unchanged.</p>
               <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                <Btn disabled={!newPat.last} onClick={() => { setPatient({ name: (newPat.first + ' ' + newPat.last).trim(), sex: newPat.sex, dob: newPat.dob, nid: newPat.nid, phone: newPat.phone, isNew: true }); setNewPat(null); }}>Use this patient</Btn>
+                <Btn disabled={!newPat.last} onClick={() => { const d = { name: (newPat.first + ' ' + newPat.last).trim(), sex: newPat.sex, dob: newPat.dob, nid: newPat.nid, phone: newPat.phone, isNew: true }; const m = possibleMatches('patient', d, PATIENTS); if (m.length) setPm({ kind: 'patient', d, m }); else { setPatient(d); setNewPat(null); } }}>Create patient</Btn>
                 <Btn kind="ghost" onClick={() => setNewPat(null)}>Back to search</Btn>
               </div>
+              {pm && pm.kind === 'patient' && <PossibleMatches matches={pm.m} render={p => <span><strong>{p.name}</strong> <span className="muted">{p.sex}, born {fmtD(p.dob)}, {p.nid}</span></span>}
+                onUse={p => { setPatient(p); setNewPat(null); setPm(null); }} onCreate={() => { setPatient(pm.d); setNewPat(null); setPm(null); }} onBack={() => setPm(null)} />}
+              <p className="muted" style={{ marginBottom: 0 }}>Try last name "Moreaa" or first and last swapped ("Morea Kila"): Create patient shows Possible matches first (FR-B6a). Search itself never uses fuzzy matching.</p>
             </div>
           ) : (
             <div>
@@ -3116,9 +3189,11 @@ function EnterOrder({ go, received0, acc, onSaved, savedId, net, setNet, stat, s
                   : !addFac ? <Btn kind="ghost" onClick={() => setAddFac(true)}>Add new facility</Btn> : (
                     <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', marginTop: 8 }}>
                       <div style={{ flex: 1 }}><TextInput label="Facility name" required value={facQ} onChange={setFacQ} /></div>
-                      <div style={{ paddingBottom: 2 }}><Btn onClick={() => { const f = { n: facQ, wards: ['Outpatients'] }; setFac(f); setWard('Outpatients'); setAddFac(false); }}>Use new facility</Btn></div>
+                      <div style={{ paddingBottom: 2 }}><Btn onClick={() => { const f = { n: facQ, wards: ['Outpatients'] }; const m = possibleMatches('facility', { name: facQ }, FACS.map(x => ({ ...x, name: x.n }))); if (m.length) setPm({ kind: 'facility', d: f, m }); else { setFac(f); setWard('Outpatients'); setAddFac(false); } }}>Create facility</Btn></div>
                     </div>
                   )}
+                {pm && pm.kind === 'facility' && <PossibleMatches matches={pm.m} render={f => <strong>{f.n}</strong>}
+                  onUse={f => { setFac(f); setFacQ(f.n); setWard(f.wards[0]); setAddFac(false); setPm(null); }} onCreate={() => { setFac(pm.d); setWard('Outpatients'); setAddFac(false); setPm(null); }} onBack={() => setPm(null)} />}
                 {cfg.restrictFreeTextRefSiteEntry && <div className="muted" id="fac-why">Adding new entries here is turned off in Order Entry Configuration (restrictFreeTextRefSiteEntry).</div>}
               </div>
             )}
@@ -3145,10 +3220,10 @@ function EnterOrder({ go, received0, acc, onSaved, savedId, net, setNet, stat, s
                 {prov && (
                   <div className="card">
                     <div style={{ marginBottom: 8 }}><strong>{provName(prov)}</strong> <Tag c="green">Selected</Tag></div>
-                    <dl className="kv"><dt>Facility</dt><dd>{prov.fac}</dd><dt>Phone</dt><dd>{prov.ph || 'None'}</dd><dt>Fax</dt><dd>{prov.fax || 'None'}</dd><dt>Email</dt><dd>{prov.em || 'None'}</dd></dl>
+                    <dl className="kv"><dt>Facility</dt><dd>{prov.fac}</dd><dt>Phone</dt><dd>{prov.ph || 'None'}</dd>{cfg.showFaxFields && <><dt>Fax</dt><dd>{prov.fax || 'None'}</dd></>}<dt>Email</dt><dd>{prov.em || 'None'}</dd></dl>
                   </div>
                 )}
-                {!prov && !np && <p className="muted" style={{ paddingTop: 24 }}>Name, phone, fax and email appear after you pick a provider or choose Add new provider.</p>}
+                {!prov && !np && <p className="muted" style={{ paddingTop: 24 }}>Name, phone and email appear after you pick a provider or choose Add new provider.</p>}
               </div>
             </div>
             {np && !cfg.restrictFreeTextProviderEntry && (
@@ -3159,7 +3234,7 @@ function EnterOrder({ go, received0, acc, onSaved, savedId, net, setNet, stat, s
                   <TextInput label="First name" value={np.f} onChange={v => setNp({ ...np, f: v })} />
                   <TextInput label="Last name" required value={np.l} onChange={v => setNp({ ...np, l: v })} />
                   <TextInput label="Phone" value={np.ph} onChange={v => setNp({ ...np, ph: v })} placeholder="+675" />
-                  <TextInput label="Fax" value={np.fax} onChange={v => setNp({ ...np, fax: v })} invalid={!!np.fax && !/^[+0-9 ()-]{6,}$/.test(np.fax)} invalidText="Enter a fax number, for example +675 324 8201" />
+                  {cfg.showFaxFields && <TextInput label="Fax" value={np.fax} onChange={v => setNp({ ...np, fax: v })} invalid={!!np.fax && !/^[+0-9 ()-]{6,}$/.test(np.fax)} invalidText="Enter a fax number, for example +675 324 8201"  />}
                   <TextInput label="Email" value={np.em} onChange={v => setNp({ ...np, em: v })} invalid={!!np.em && !/^\S+@\S+\.\S+$/.test(np.em)} invalidText="Enter an email address, for example name@pomgh.gov.pg" />
                 </div>
                 <p className="muted" style={{ marginTop: 8 }}>Saved with the title, so reports print "{provName({ t: np.t, f: np.f || 'First', l: np.l || 'Last' })}".</p>
@@ -3234,7 +3309,9 @@ function EnterOrder({ go, received0, acc, onSaved, savedId, net, setNet, stat, s
           <div>
             <div className="grid g3" style={{ marginBottom: 16 }}>
               <div id="fld-recat"><TextInput label="Received date and time" required type="datetime-local" value={recAt} onChange={setRecAt} helper={'When the samples reached the laboratory. Defaults to now in laboratory time (' + LAB_TZ + '). Copied to each sample; a row can override it.'} invalid={recAt > NOW} invalidText="Received date and time cannot be in the future." /></div>
-              <div id="fld-recby"><Typeahead label="Received by" required value={recBy} options={USERS.map(u => ({ v: u, l: u, meta: 'User' }))} onPick={o => setRecBy(o.v)} onClear={() => setRecBy('')} placeholder="Search users" helper="Defaults to you. Type to search users." /></div>
+              <div id="fld-recby">{recByEdit || !recBy
+                ? <Typeahead label="Received by" required value={recBy} options={USERS.map(u => ({ v: u, l: u, meta: 'User' }))} onPick={o => { setRecBy(o.v); setRecByEdit(false); }} onClear={() => setRecBy('')} placeholder="Search users" helper="Type to search users." />
+                : <div><span className="lbl">Received by</span><div style={{ paddingTop: 6 }}>Received by {recBy}{recBy === ME_RECEPTION ? ' (you)' : ''} <button type="button" className="linkbtn" onClick={() => setRecByEdit(true)}>Change</button></div></div>}</div>
               <div className="muted" style={{ paddingTop: 22 }}>Collection can be recorded here at the desk, in the Collected column. If it is left empty, Prepare Samples asks for it.
                 {!reqAt && <div style={{ marginTop: 8 }}><Btn kind="ghost" onClick={() => setReqAt(recAt)}>Use as order date</Btn></div>}</div>
             </div>
@@ -3250,8 +3327,8 @@ function EnterOrder({ go, received0, acc, onSaved, savedId, net, setNet, stat, s
         {billingOn ? (
           <div>
             <div className="grid g3">
-              {cfg.billingRefNumber && <TextInput label="Billing reference" value={billRef} onChange={setBillRef} helper="Label follows billingRefNumberLocalization. Paid is set per test in the Ordered tests table." newMark />}
-              {cfg.trackPayment && <Select label="Payment status" value={pay} onChange={setPay} options={['Paid', 'Not paid', 'Exempt']} helper="Order level. Shown because trackPayment is on." />}
+              {cfg.billingRefNumber && <TextInput label="Billing reference" value={billRef} onChange={setBillRef} helper="Label follows billingRefNumberLocalization." newMark />}
+              {cfg.trackPayment && <Select label="Payment status" value={pay} onChange={setPay} options={['Paid', 'Not paid', 'Exempt']} helper="The only paid marker: order level, shown because trackPayment is on. Odoo can set it later." />}
             </div>
             {cfg.contactTracingEnabled && (
               <div className="grid g3" style={{ marginTop: 16 }}>
@@ -4364,7 +4441,7 @@ function App() {
   if (screen === 13) body = <SiteInfo />;
   return (
     <div>
-      <div className="pv-banner"><span>Visual Preview: Clinical Order Entry v4 (FRS v0.15) | OpenELIS Design Mockup | Not a live application</span><span>Screen {screen}: {route}</span></div>
+      <div className="pv-banner"><span>Visual Preview: Clinical Order Entry v4 (FRS v0.20) | OpenELIS Design Mockup | Not a live application</span><span>Screen {screen}: {route}</span></div>
       <header className="app-header">
         <div className="brand">OpenELIS Global <span>| Central Public Health Laboratory (CPHL), Port Moresby</span></div>
         {net && <span className="net-pill" role="status" title="The server is not answering. The page keeps retrying with growing gaps; nothing you entered is lost."><span className="dot"></span>Reconnecting...</span>}

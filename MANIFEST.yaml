@@ -4069,7 +4069,7 @@
   preview: designs/sample-collection/clinical-order-entry-v4.html
   category: vector-surveillance
   description: >
-    Clinical Order Entry v4 (FRS v0.16, preview v0.15; FR-B12a: any micro test opens the Case, one sample per blood culture bottle, D-162, D-163). Enter Order + Prepare Samples (+ optional Sample check),
+    Clinical Order Entry v4 (FRS v0.20: order-entry clean-up, possible matches before create, Handling group, fewer low-value fields; FR-B12a follows Microbiology v2 draft 10, D-178). Enter Order + Prepare Samples (+ optional Sample check),
     whole-step all-or-nothing saves, Container Types and Body Sites in the test catalog, shared
     ordered-tests / samples tables and summary strip, search-first creation, lab time zone,
     working labels. Two-phase plan. Supersedes the 2026-09-10 Enter Order preview and OGC-1066.
@@ -4079,7 +4079,7 @@
     gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/clinical-order-entry-v4
     preview: https://digi-uw.github.io/openelis-work/designs/sample-collection/clinical-order-entry-v4.html
   added: "2026-09-10"
-  updated: "2026-10-01"
+  updated: "2026-10-03"
 - id: environmental-order-entry-v2
   type: mockup
   path: designs/sample-collection/environmental-order-entry-v2.html
