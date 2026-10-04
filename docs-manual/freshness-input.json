@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-27",
+  "generated": "2026-10-04",
   "counts": {
     "total": 73,
     "by_maturity": {
@@ -45,7 +45,8 @@
         "OGC-811",
         "OGC-1020",
         "OGC-1170",
-        "OGC-1179"
+        "OGC-1179",
+        "OGC-1131"
       ],
       "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/278626329",
       "manual_status": null,
@@ -264,6 +265,7 @@
       "maturity": "production",
       "since": "3.2.1.4",
       "jira": [
+        "OGC-312",
         "OGC-313",
         "OGC-314",
         "OGC-315",
@@ -704,7 +706,8 @@
       "since": null,
       "jira": [
         "OGC-302",
-        "OGC-932"
+        "OGC-932",
+        "OGC-1111"
       ],
       "manual_page": null,
       "manual_status": null,
@@ -850,7 +853,9 @@
         "OGC-1153",
         "OGC-760",
         "OGC-1193",
-        "OGC-1194"
+        "OGC-1194",
+        "OGC-759",
+        "OGC-1131"
       ],
       "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/257228825",
       "manual_status": null,
@@ -923,7 +928,8 @@
       "since": "3.2.1.x",
       "jira": [
         "OGC-272",
-        "OGC-535"
+        "OGC-535",
+        "OGC-1363"
       ],
       "manual_page": "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1188790284",
       "manual_status": "draft",
