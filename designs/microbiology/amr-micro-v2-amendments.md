@@ -6,7 +6,7 @@ baseline, including behavior carried forward from the retired case/worklist docu
 Historical decisions remain in Git; their identifiers are not invented or renumbered here.
 
 This repository owns functional requirements, workflows and mocks.
-[Engineering decisions and roadmap](https://github.com/DIGI-UW/OpenELIS-Global-2/tree/docs/ogc-1383-amr-v2-baseline/specs/amr)
+[Engineering decisions and roadmap](https://github.com/DIGI-UW/OpenELIS-Global-2/tree/3b0f132d553f48f4f0e0cd47d24f2eb0c567d772/specs/amr)
 belong to the application repository. [OGC-1383](https://uwdigi.atlassian.net/browse/OGC-1383)
 and environmental follow-on [OGC-1382](https://uwdigi.atlassian.net/browse/OGC-1382)
 track ownership, dependencies and acceptance evidence, not implementation contracts.
