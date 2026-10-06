@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-10-02T15:52:16Z",
-  "reportAt": "2026-10-02T15:44:44.725Z",
+  "generatedAt": "2026-10-06T22:49:52Z",
+  "reportAt": "2026-10-06T22:48:38.330Z",
   "sections": 69,
   "contracts": 69,
-  "ok": 3,
-  "review": 52,
-  "errors": 6,
+  "ok": 0,
+  "review": 47,
+  "errors": 11,
   "stale": [
     "add-patient",
     "admin-compliance-standards",
@@ -28,6 +28,8 @@
     "electronic-signatures",
     "environmental-order-results",
     "environmental-surveillance",
+    "eqa-participant",
+    "eqa-provider",
     "general-configurations",
     "lab-number-management",
     "lab-unit-add",
@@ -49,6 +51,8 @@
     "programs-v2",
     "provider-management",
     "qa-review-shared",
+    "qc-control-lot",
+    "qc-overview",
     "reference-lab-results",
     "reflex-testing",
     "register-new-patient",
@@ -79,22 +83,22 @@
     "pngtest.openelis-global.org": {
       "contracts": 4,
       "checked": 4,
-      "ok": 3,
-      "review": 0,
-      "drift": 1,
+      "ok": 0,
+      "review": 1,
+      "drift": 3,
       "error": 0,
-      "version": "3.2.2.0",
-      "checkedAt": "2026-09-28T10:44:30.086Z"
+      "version": "3.3.0",
+      "checkedAt": "2026-10-06T22:48:38.321Z"
     },
     "testing.openelis-global.org": {
       "contracts": 65,
       "checked": 65,
       "ok": 0,
-      "review": 52,
-      "drift": 7,
-      "error": 6,
+      "review": 46,
+      "drift": 8,
+      "error": 11,
       "version": "3.3.0",
-      "checkedAt": "2026-10-02T15:44:44.718Z"
+      "checkedAt": "2026-10-06T22:46:20.487Z"
     }
   },
   "drift": [
@@ -132,6 +136,31 @@
       "page": "1648787462"
     },
     {
+      "id": "eqa-provider",
+      "base": "pngtest.openelis-global.org",
+      "missing": [
+        "/qa/eqa/management :: System Settings",
+        "/qa/eqa/management :: Scheme Name",
+        "/qa/eqa/management :: Scheme type",
+        "/qa/eqa/participants :: Select Program",
+        "/qa/eqa/provider/follow-ups :: Notified",
+        "/qa/eqa/provider/follow-ups :: Response",
+        "/qa/eqa/provider/schemes/8/performance :: Pass rate (last 4)",
+        "/qa/eqa/provider/schemes/8/performance :: Most recent",
+        "/qa/eqa/provider/schemes/8/performance :: Open follow-ups",
+        "/qa/eqa/in-house :: Unblind date (submission deadline)"
+      ],
+      "page": "1669562408"
+    },
+    {
+      "id": "general-configurations",
+      "base": "testing.openelis-global.org",
+      "missing": [
+        "/MasterListsPage/ResultConfigurationMenu :: resultsEntryUnifiedRoute"
+      ],
+      "page": "1649082375"
+    },
+    {
       "id": "qa-review-shared",
       "base": "testing.openelis-global.org",
       "missing": [
@@ -140,10 +169,30 @@
       "page": null
     },
     {
+      "id": "qc-control-lot",
+      "base": "pngtest.openelis-global.org",
+      "missing": [
+        "/qa/qc/control-lots :: New Control Lot",
+        "/qa/qc/control-lots :: Lot Number",
+        "/qa/qc/control-lots :: Control Material",
+        "/qa/qc/control-lots :: Control Level",
+        "/qa/qc/control-lots :: Calculation Method",
+        "/qa/qc/control-lots :: Expiration Date"
+      ],
+      "page": "1680048146"
+    },
+    {
       "id": "qc-overview",
       "base": "pngtest.openelis-global.org",
       "missing": [
-        "/qa/qc/dashboard :: Overall QC Pass Rate"
+        "/qa/qc/dashboard :: Quality Control Dashboard",
+        "/qa/qc/dashboard :: Instruments In Control",
+        "/qa/qc/dashboard :: Out of Control",
+        "/qa/qc/dashboard :: Overall QC Pass Rate",
+        "/qa/qc/dashboard :: Instruments",
+        "/qa/qc/dashboard :: Bench QC",
+        "/qa/qc/rule-config :: Configured Rule Sets",
+        "/qa/qc/rule-config :: Enabled Rules"
       ],
       "page": "1680048163"
     },
@@ -169,6 +218,14 @@
   ],
   "errorRoutes": [
     {
+      "id": "admin-sample-type-management",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/MasterListsPage/SampleTypeManagement :: redirected to /MasterListsPage/SampleTypeEditor"
+      ],
+      "page": "1420853278"
+    },
+    {
       "id": "admin-vector-reference-data",
       "base": "testing.openelis-global.org",
       "routes": [
@@ -177,10 +234,20 @@
       "page": "1420460034"
     },
     {
+      "id": "electronic-signatures",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/ResultValidation?type=&test= :: redirected to /validation",
+        "/AccessionValidation :: redirected to /validation"
+      ],
+      "page": "1242759175"
+    },
+    {
       "id": "environmental-surveillance",
       "base": "testing.openelis-global.org",
       "routes": [
-        "/LogbookResults?type= :: redirected to /Results"
+        "/LogbookResults?type= :: redirected to /Results",
+        "/ResultValidation?type=&test= :: redirected to /validation"
       ],
       "page": "1420099592"
     },
@@ -202,6 +269,16 @@
       "page": "1437892659"
     },
     {
+      "id": "result-validation",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/ResultValidation?type=&test= :: redirected to /validation",
+        "/AccessionValidation :: redirected to /validation",
+        "/ResultValidationByTestDate :: redirected to /validation"
+      ],
+      "page": null
+    },
+    {
       "id": "results-entry-legacy",
       "base": "testing.openelis-global.org",
       "routes": [
@@ -217,7 +294,24 @@
         "/ReferredOutTests :: redirected to /api/OpenELIS-Global/ReferredOutTests"
       ],
       "page": null
+    },
+    {
+      "id": "validation",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/ResultValidation?type=&test= :: redirected to /validation"
+      ],
+      "page": null
+    },
+    {
+      "id": "validation-v4",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/ResultValidation?type=&test= :: redirected to /validation",
+        "/AccessionValidation :: redirected to /validation"
+      ],
+      "page": "1661763585"
     }
   ],
-  "summary": "69 of 69 contracts checked: 3 ok, 52 review, 8 drift, 6 route errors."
+  "summary": "69 of 69 contracts checked: 0 ok, 47 review, 11 drift, 11 route errors."
 }
