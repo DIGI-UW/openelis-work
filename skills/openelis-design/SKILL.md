@@ -3,7 +3,7 @@ name: openelis-design
 description: "Expert assistant for designing features in OpenELIS Global, an open-source laboratory information management system (LIMS). Use this skill whenever the user asks to design, specify, mockup, or document any feature for OpenELIS Global — including new modules, admin configuration pages, workflow improvements, analyzer integrations, or clinical data views. Also triggers for Jira story creation, FRS documents, React/Carbon mockups, or any request involving lab informatics design for OpenELIS. If the user mentions lab workflows, LIMS features, clinical lab software, or says anything about \"OpenELIS\", use this skill immediately. Also use for design critique, crosswalk analysis, harmonization reviews, or when the user asks to review, improve, or validate an existing mockup or spec."
 ---
 
-# OpenELIS Global Design Skill v3.17
+# OpenELIS Global Design Skill v3.27
 
 OpenELIS Global is an open-source LIMS used in clinical laboratories worldwide.
 
@@ -18,7 +18,13 @@ OpenELIS Global is an open-source LIMS used in clinical laboratories worldwide.
 
 Together these are the non-negotiable authority for all design decisions in this skill.
 The addendum's MUSTs (data reuse, no multitenancy, shipped-app style source, no-hard-delete,
-design-for-large-catalogs) are CRITICAL findings in `/analyze` when violated.
+design-for-large-catalogs, reuse built mechanisms) are CRITICAL findings in `/analyze` when violated.
+
+**Reuse rule (MUST F, summarized here):** before a design adds a store, list, setting, admin page, status set,
+editor, export or job, name the built OpenELIS mechanism that already does that job (test catalog fields and reagent
+links, Dictionary, Programs and questionnaires, reflex rules, analysis statuses and Validation, Workplan, `note`,
+label presets, Inventory, report states, Organizations, FHIR storage) and reuse or extend it, or say why it cannot,
+with the code reference checked. Checked by `/analyze` Pass O.
 
 ---
 
@@ -233,6 +239,7 @@ Constitution Principle 7 mandates this. Commit in writing to:
   2. **Breadcrumb trail** — the exact crumb chain rendered at the top of the page, including the active leaf (e.g. `Home / Admin / Configuration / Application Properties`)
   3. **URL route** — the stable, well-formed URL the dev should wire up. Must match an existing pattern (see conventions). Call out the route in `code formatting`, e.g. `/MasterListsPage/commonproperties`. If extending an existing page, reuse its URL; if new, pick the pattern that fits the closest neighbor.
 - **Access:** *(see `references/permissions-and-audit.md`)* describe who can use the feature in terms of existing user roles — which role(s) can see it, and for each action which role can perform it (view vs. change). Default to existing roles (Reception / Analyst / Validator / Provider / Admin / Test Catalog Manager / EQA Provider). Describe access as user capability ("a Validator can release results; an Analyst cannot"), not as an enforcement mechanism, and say what a user without access sees (item hidden, action disabled). If the feature lives entirely inside one role's existing workflow, state that: "Accessible via the existing `[Role]` role."
+- **Reuse inventory:** *(design-addendum MUST F)* for each thing the design needs to store, list, configure, edit, print or export, name the built OpenELIS mechanism it reuses (with the code reference checked) or say why none fits. New mechanisms are the exception and are listed as such.
 
 Share the brief. Adjust on feedback. Then produce the deliverables.
 
@@ -355,7 +362,7 @@ All Jira creation happens in `/breakdown`, which creates **exactly one ticket** 
 - Design brief produced before code (Principle IX / Stage 2)?
 - **Design-addendum MUSTs** (see `memory/design-addendum.md`): hard "Delete" on a domain record → CRITICAL; domain-record list with no show/hide-deactivated affordance → MEDIUM (No-Hard-Delete). Static dropdown over a large/growing set → MEDIUM; inline "create heavy entity" flow → MEDIUM (Design-for-Large-Catalogs).
 
-> The No-Hard-Delete and Design-for-Large-Catalogs principles, plus data-reuse, no-multitenancy, and shipped-app-as-style-source, are defined in `memory/design-addendum.md`. They are candidates to upstream into the engineering constitution via the repo's amendment process; until then the addendum is this skill's authority and its MUST violations are CRITICAL here.
+> The No-Hard-Delete, Design-for-Large-Catalogs and Reuse-Built-Mechanisms principles, plus data-reuse, no-multitenancy, and shipped-app-as-style-source, are defined in `memory/design-addendum.md`. They are candidates to upstream into the engineering constitution via the repo's amendment process; until then the addendum is this skill's authority and its MUST violations are CRITICAL here.
 
 **E. Coverage Gaps**
 - Every FRS requirement has a corresponding UI element in mockup?
@@ -424,6 +431,13 @@ sizing quibbles as advisory)
 - Is this a redesign/extension of a **built** feature whose `spec-registry.md` row has a published manual page in its `Docs` column (or an entry in `openelis-work/docs-manual/contracts.json`)?
 - If yes: that published manual page will drift when this ships. Flag it so the handoff ticket's Feature Doc includes re-capturing and re-verifying the page (and bumping its `capturedVersion`).
 - Auto-MEDIUM: a shipped manual page is affected and the FRS/breakdown doesn't flag it.
+
+**O. Parallel Mechanism** (design-addendum MUST F)
+- For each new store, list, setting, admin page, status set, editor, export or job in the FRS or mockup: is there a built OpenELIS mechanism that does this job (test catalog fields and reagent links, Dictionary, Programs and questionnaires, reflex rules, analysis statuses, Validation, Workplan, `note`, label presets, Inventory, report states, Organizations, FHIR storage)?
+- Check the code, not memory: cite the class, table or endpoint found (or searched for and not found), with the develop commit.
+- Is an extension of a built mechanism declared as a Dependency on it, not as new module data?
+- Do two parts of the design implement the same thing twice (two result editors, two coded lists for one concept)?
+- Auto-HIGH: a parallel mechanism where a built one fits. Auto-CRITICAL: it contradicts an active decision about that mechanism (for example a new enum where D-037 says tag).
 
 **Severity assignment:**
 
@@ -516,6 +530,11 @@ and implementation begins. This is NOT a QA/testing checklist.
 - [ ] Are all acceptance criteria testable (observable, specific, falsifiable)?
 - [ ] Does each criterion trace to a functional requirement?
 - [ ] Are edge cases and error paths included, not just happy path?
+
+### Reuse of built mechanisms (design-addendum MUST F)
+- [ ] Does every new store, list, setting, admin page, status set or editor name the built OpenELIS mechanism it reuses, or say why none fits?
+- [ ] Are extensions of built mechanisms declared as Dependencies on them?
+- [ ] Is anything implemented twice within the design (two editors, two lists for one concept)?
 
 ### FRS–Mockup Alignment
 - [ ] Does every requirement have a corresponding UI element?
@@ -1013,11 +1032,12 @@ Two in-repo copies, both of which must be updated:
 **Do NOT create a top-level `openelis-work/references/`** — that path was tried and reverted on
 2026-08-12; these two are the real homes.
 
-> **2026-10-01 re-merge.** The two copies had split again (skill-src ran to D-170, the repo copy
-> stopped at D-066, and 11 IDs meant different things in each). They were re-merged on branch
-> `skill/consolidation-2026-10`: skill-src numbering kept, repo-only decisions re-homed to
-> D-171 to D-174 (map in `decision-log.md`, 2026-10-01 note). Until Casey picks a single home,
-> keep writing **both** copies and number after the **highest ID in either** (next: D-175).
+> **Re-merges (2026-10-01, 2026-10-06).** The two copies keep splitting: sessions write skill-src
+> (below says to number from it), while the repo copy is what gets committed. They were re-merged on
+> branch `skill/consolidation-2026-10`: skill-src numbering kept; the four repo-only decisions now sit
+> at D-218 to D-221 (map in `decision-log.md`, 2026-10-01 and 2026-10-06 notes). Until Casey picks a
+> single home, keep writing **both** copies and number after the **highest ID in either**
+> (next: D-222).
 
 ### Before minting a decision ID: check the REPO, not the synced copy
 
@@ -1066,7 +1086,7 @@ what produced two competing registrations of one feature.
 | File | When to read |
 |---|---|
 | `memory/constitution.md` | **Always first** — pointer to the upstream engineering constitution (synced version + design-relevant summary + raw URL + re-sync trigger) |
-| `memory/design-addendum.md` | **Always first** — skill-specific design MUSTs (data reuse, no multitenancy, shipped-app style source, no-hard-delete, large-catalogs) + standing UI/IA conventions |
+| `memory/design-addendum.md` | **Always first** — skill-specific design MUSTs (data reuse, no multitenancy, shipped-app style source, no-hard-delete, large-catalogs, reuse built mechanisms) + standing UI/IA conventions |
 | `references/current-state-gotchas.md` | During `/specify` Stage 1 and `/analyze` cross-module pass — what's built vs not built; required Dependency/Feature-Flag declarations |
 | `references/permissions-and-audit.md` | During `/specify` Stage 2 (Access brief item) and `/analyze` Pass J — describing who can use a feature in terms of existing roles |
 | `references/frs-template.md` | When writing any FRS document |

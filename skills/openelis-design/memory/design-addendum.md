@@ -78,6 +78,24 @@ Designs must scale to real deployment data volumes, especially the test catalog 
 - `/analyze` detection (Pass B): static dropdown bound to a large/growing set → MEDIUM;
   inline create-flow for a heavy entity → MEDIUM.
 
+## MUST F: Reuse built OpenELIS mechanisms; no parallel implementation
+
+Before a design adds a store, list, setting, admin page, status set, editor, export or job, it
+MUST name the OpenELIS mechanism that already does that job and reuse it, or say why it
+cannot (with the code reference checked). Typical built mechanisms: the test catalog (result
+types, multi-component results, Reportable, reagent links), Dictionary categories, Programs
+and their questionnaires, reflex and expert rules, the analysis statuses and Validation,
+Workplan prints, the `note` table, label presets, Inventory items and lots, the patient
+report states (Partial, Final, Amended), the Organizations list, FHIR storage services.
+
+- A module-specific copy of one of these (its own coded list, its own status set, its own
+  admin for what a catalog link already holds, its own note store) is a finding even when it
+  "works".
+- An extension of a built mechanism (a new field, scope or seeded entry) is preferred and is
+  declared as a Dependency on that mechanism, not as new module data.
+- `/analyze` detection (Pass O): a parallel mechanism where a built one fits → HIGH; one that
+  contradicts an active decision about that mechanism → CRITICAL.
+
 ---
 
 ## Standing UI/IA conventions (from accumulated design feedback)

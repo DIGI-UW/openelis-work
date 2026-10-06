@@ -1,6 +1,103 @@
 # openelis-design — Changelog
 
-## v3.17 (2026-10-01): monthly consolidation: the two lines re-merged
+## v3.27 (2026-10-06): monthly consolidation top-up
+
+**What happened since 2026-10-01.** Design sessions kept writing skill-src, as its SKILL.md tells
+them to, and took it from D-170 to **D-217** (v3.17 to v3.26 below: Microbiology v2 drafts 9.2 to
+10.5, Patient Report v2.4.x, the reuse MUST F with `/analyze` Pass O, Handling groups). Skill-src
+also used **v3.17** for its own 2026-10-01 entry, so the branch's consolidation entry is relabelled
+`v3.17-consolidation` below.
+
+**What this pass did (same branch `skill/consolidation-2026-10`, still unmerged):**
+- Re-based `SKILL.md`, `decision-log.md`, `spec-registry.md`, `CHANGELOG.md` and
+  `design-addendum.md` on skill-src as of 2026-10-03, then re-applied the 2026-10-01 corrections
+  (D-017 superseded, EQA V2 / Reagent / Inventory rows, four new registry rows, Sample Type typeahead
+  MUST, the re-merge note). Files skill-src has not touched since 2026-09-30 keep the branch version.
+- Decision IDs: the four repo-only decisions collided a third time (skill-src now uses D-171 to
+  D-174 for Microbiology) and move again: **D-171 → D-218, D-172 → D-219, D-173 → D-220,
+  D-174 → D-221**. Next ID **D-222**. Map in the decision log's 2026-10-06 note.
+- Constitution pointer re-synced **1.11.2 → 1.12.0** (2026-09-29, new Principle V.7 Test
+  Isolation, MANDATORY). Low design impact; noted for acceptance criteria.
+
+**Needs Casey (unchanged, now urgent):** pick one home for the skill source. Sessions number from
+skill-src only, so any ID that lives only in the repo copy will keep colliding. Either merge this
+branch and rebuild the installed skill from `skills/openelis-design/`, or copy D-218 to D-221 into
+skill-src's decision log before the next design session.
+
+---
+
+# skill-src line (v3.17 to v3.26, 2026-10-01 to 2026-10-03), imported 2026-10-06
+
+## v3.26 (2026-10-03)
+
+- **Microbiology v2 draft 10.5** (risk review of 2026-09-30). D-211 to D-215: admission date for inpatients is Needed for
+  surveillance and never blocks release; the WHONET field map follows the v2 Case information; susceptibilities keep their
+  organism, isolate and specimen links; placements are confirmed at validation; hand-added tests are tagged and on the
+  Timeline. Delivery target: the November 2026 CPHL training build, hard final before the December contract end.
+
+## v3.25 (2026-10-02)
+
+- **Reuse check (SKILL v3.12).** New design-addendum MUST F: reuse built OpenELIS mechanisms, no parallel implementation.
+  `/analyze` gains Pass O (Parallel Mechanism), `/specify` Stage 2 a Reuse inventory item, and `/checklist` a Reuse of
+  built mechanisms category.
+- **Microbiology v2 drafts 10.3 and 10.4, Patient Report FRS v2.4.3.** D-183 to D-210: catalog tests on cultures, In lab only
+  from Reportable, Dictionary categories, Workplan bench sheet, reflex on the culture result; the Mohamed Gomaa review
+  (live order summary, OpenELIS statuses and Block self-validation, explicit sets, received isolates, media lots, Used on
+  cultures, one questionnaire record, overdue sorting, Partial releases); media links on the culture test (no Plating
+  templates), notes in the note table, Reporting track as a Dictionary category, per-container labels.
+
+## v3.24 (2026-10-02)
+
+- **Microbiology v2 draft 10.2 and Patient Report FRS v2.4.1.** D-181: a micro case prints under the sub-headers Initial
+  testing, Culture, AST / DST and Additional testing (FR-A42a). D-182: a Gram stain can wait for its result; a positive blood
+  culture bottle adds one by rule. The TB and blood culture examples are one Case view with two data sets.
+
+## v3.23 (2026-10-02)
+
+- **Microbiology v2 draft 10.1.** D-179: Extend incubation on any open culture row, with a reason, and Extend 24 h on
+  Final read due. D-180: every positive row records Positive at (analyzer time or server time, editable) and shows the time to
+  positivity in days, hours and minutes. The preview and mockup gain a blood culture AMR example case with reportable Gram stains.
+
+## v3.22 (2026-10-02)
+
+- **Microbiology v2 draft 10.** D-178: no culture type. Micro tests are a Yes / No switch with a Case role; a case is one
+  order, sample type and lab unit; the case's Program (programs marked Show on Microbiology case, with a reporting track) brings
+  its questions and decides the exports; Choose path and Change culture type removed. D-177: any number of case tests per lab unit.
+  Clinical Order Entry v4 FR-B12a v0.19 and M-18 v0.10 aligned.
+
+## v3.21 (2026-10-02)
+
+- **Microbiology v2 draft 9.7.** D-177 supersedes D-175: case tests (Case role Case; any number per lab unit) let
+  reception assign the case, and the technician chooses the path as step 1 of
+  the case. No Program rule, no admin defaults. Clinical Order Entry v4 FR-B12a v0.18 aligned.
+
+## v3.20 (2026-10-02)
+
+- **Microbiology v2 drafts 9.5 and 9.6.** D-174 Print bench sheet and Open sheet on the Micro worklist; D-175 an order
+  saved with Program = Microbiology opens a case for each sample (amends D-146); D-176 Inoculated at editable until the first
+  reading. Clinical Order Entry v4 FR-B12a v0.17 aligned (Program case per sample; body site and time per sample).
+
+## v3.19 (2026-10-02)
+
+- **Microbiology v2 draft 9.4.** D-173: the culture work-up lives under each culture row (no Growth work-up section);
+  every culture and subculture row has an Add menu (Gram stain, Test on this culture, Microscopy exam, Subculture); Gram stain has a
+  Report this result switch; a culture can have several subcultures. Patient report FRS v2.3.4 aligned (FR-A42, FR-A43).
+
+## v3.18 (2026-10-01)
+
+- **Microbiology v2 draft 9.3.** D-172 supersedes D-171: bench work stays on the Micro worklist with no run and no batch
+  record. Check due and Final read due filters with one-click and bulk No growth (replacing Mark checked and No change), and
+  bulk Inoculate with one plating template and one lot per tracked medium.
+
+## v3.17 (2026-10-01)
+
+- **Microbiology v2 draft 9.2.** D-171: micro bench batches are Runs (OGC-1200, WORKPLAN source; methods Culture plating
+  and Plate reading). Plate these and Read these on the Micro worklist work like Batch these and use the same run header, chips,
+  summary bar, progress, tags and audit; the Bench view and the separate batch number are gone. Amends D-167.
+
+---
+
+## v3.17-consolidation (2026-10-01): monthly consolidation: the two lines re-merged
 
 **What was wrong.** Two copies of this skill had been edited in parallel again. The installed skill
 is built from `OpenELIS Feature Design/openelis-design-skill-src/`, and its SKILL.md tells sessions
