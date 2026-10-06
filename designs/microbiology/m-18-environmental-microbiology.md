@@ -1,20 +1,19 @@
-# M-18 Environmental Microbiology: Functional Requirements Specification
+# Environmental Microbiology functional requirements
 
-| | |
-|---|---|
-| **Version** | v0.9 (follows Microbiology v2 draft 9: any environmental micro test opens a Case; media are tracked or not tracked Microbiology medium items, search first with Add new; plating templates; tests on a positive culture reportable; subculture from any culture; v0.8: follows Microbiology v2 draft 8: no Microbiology section and no Program coupling at order entry, the environmental generic culture test is ordered like any test, purpose defaults to Routine monitoring on the Case, medium from Inventory; v0.7: crosscheck fixes: routing text on generic culture tests and culture type keying, purpose per case, routes and keys aligned with the build; v0.6: follows Microbiology v2 draft 6: Culture rows keyed on generic culture tests, environmental report on the Laporan Hasil certificate, keys under `microbiology.*`; v0.5: review fixes: decisions renumbered D-120 to D-123, purpose and replicates apply per order, sites interim until Locations & Organizations; v0.4 aligned with Microbiology v2; built on what develop stores today: order-level purpose and replicates in the existing micro order detail, sampling sites for wards, investigation link moved to M-16) |
-| **Date** | 2026-09-29 |
-| **Author** | Casey (Director of Product), drafted with Claude |
-| **Status** | Draft for review |
-| **Module** | Microbiology (M-00 parent). Also touches Results Entry v4, Validation v4, Environmental Order Entry v4 |
-| **Preview** | `m-18-environmental-microbiology-preview.html` |
-| **Checked against** | develop `15cbcb1` (2026-09-27): `UnifiedResults.tsx`, `domainIntl.ts`, `ResultEntryRestController.getUserLabUnits`, `TestSection.domain`, `Test.domain`, `MicroReportProjectionServiceImpl`, `MicroCaseAnalysis`, `MicroCaseOrderDetail`, `MicroCulturePurpose`, `MicroWhonetExportSelection`, `ObservationHistoryServiceImpl` (`envSamplingSiteId`) |
-| **Related** | M-03 Order Entry Micro Hook v2.2, M-04 Case Workbench v2.0, M-07 Worklists v2.0, M-09 WHONET Export v2.0, M-13 Antibiogram, M-15 GLASS, M-16 Cluster Detection v1.0, Clinical Order Entry v4 FRS v0.9 (domain switcher, FR-A17 to A22), Environmental and Vector Order Entry v4 FRS v0.2, Lab Units FRS, Locations & Organizations redesign |
+> Functional authority: the V2 baseline owns case behavior; this document owns its scoped laboratory outcomes. Technical examples are non-normative. Engineering decisions and verification belong to specs/amr.
 
 
-> **Aligned with Microbiology v2 draft 9 (2026-10-01).** `amr-micro-v2-amendments.md` removes the declared workflow and the culture protocol. A Case opens for each **generic culture test** on a sample, ordered in the ordinary test grid like any test (Program plays no part, D-146), is keyed on the sample and its **culture type**, and carries its lab unit as a changeable label (v2 A-01, A-02; D-124, D-125, D-129, D-146). Purpose is per Case, defaulting to Routine monitoring; replicates stay per order (D-137). Plates and bottles take their medium and lot from Inventory, or a Not tracked name remembered per lab unit (v2 FR-05.1b, FR-05.1c). D-120 (one domain per lab unit) is unchanged and fits v2.
+**Baseline:** environmental follow-on aligned to Microbiology V2 draft 10.4.
+[OGC-1382](https://uwdigi.atlassian.net/browse/OGC-1382) is blocked by
+[OGC-1383](https://uwdigi.atlassian.net/browse/OGC-1383). This is functional
+scope, not a schema or routing implementation. See the [V2 baseline](amr-micro-v2-amendments.md)
+and [preview](m-18-environmental-microbiology.html).
 
----
+An eligible test opens a case; Program does not. Group samples by **order,
+sample type, lab unit and site**, retaining each sampling point. Transfers keep
+cases separate. Joining existing cases is deferred; a member without results
+may be split with a reason. Media defaults come from catalog test media links;
+culture rows record lots without changing stock.
 
 ## Lab Context
 
@@ -44,7 +43,7 @@ An environmental swab ordered with an environmental culture test opens a normal 
 This feature makes the microbiology module work for environmental samples without a second workflow. It has four parts:
 
 1. **A separate Environmental Microbiology lab unit.** Environmental culture tests live in their own lab unit with the Environmental domain. Lab units keep exactly one domain. Culture tests linked to a Microbiology Case are kept off the Results and Validation worklists in every domain; the case is where they are entered and released.
-2. **Environmental Microbiology Cases.** A generic culture test opens a Case in any domain (Microbiology v2 A-02). An environmental Case has a **site** as its subject instead of a patient. Everything else in the case workflow is unchanged.
+2. **Environmental Microbiology Cases.** Any eligible micro test opens a case in its domain (Microbiology v2 A-02). An environmental Case has a **site** as its subject instead of a patient. Everything else in the case workflow is unchanged.
 3. **Environmental micro details.** Environmental Enter Order adds nothing: the environmental generic culture test is picked in the samples grid like any test. Purpose and replicates are entered on the Case (Microbiology v2 A-03).
 4. **Surveillance boundaries.** Environmental isolates are excluded from the antibiogram and GLASS, can be sent to WHONET by choice, and feed cluster detection's environmental stream.
 
@@ -52,28 +51,9 @@ This feature makes the microbiology module work for environmental samples withou
 
 1. **One workflow, two subjects.** A Case is a Case. The subject is a patient or a site; nothing else forks.
 2. **One lab unit, one domain.** A lab unit never mixes domains. Work that spans domains is organised by giving people more than one lab unit, not by mixing them.
-3. **Routing follows the generic culture test.** A generic culture test on a sample opens a Case, in every domain, keyed on the sample and culture type; the Case lab unit is a label. No per-domain routing rule (Microbiology v2 D-124, D-129).
+3. **Routing follows eligible tests.** Group by order, sample type, lab unit and site; Program is independent. Transfers preserve separate cases.
 4. **Surveillance populations never mix silently.** Environmental isolates enter a clinical output only by an explicit, labelled choice.
 5. **One place per test.** A culture test is worked in its Case; every other test on Results. Never both.
-
-### Navigation & URL
-
-No new pages. Existing pages change:
-
-| Page | SideNav | Breadcrumb | Route | Change |
-|---|---|---|---|---|
-| Results | Workplan → Results | `Home / Workplan / Results` | `/Results` | Case-linked tests excluded (section B) |
-| Validation | Validation | `Home / Validation` | `/Validation` | Same (section B) |
-| Lab Units | Admin → Config → Test Catalog → Lab Units | `Home / Admin Management / Test Catalog Management / Lab Units` | `/admin/TestCatalogList?entity=labunits` | No change to the page; an Environmental Microbiology lab unit is added (section A) |
-| Environmental Enter Order | Orders & Patients → Add Order, Environmental (clinical FR-A17) | `Home / Orders / Environmental Orders / Enter Order` | `/order/environmental/enter` | Generic culture tests in the samples grid (section C); no micro section |
-| Microbiology Case | Microbiology → Worklist → a case | existing | `/Microbiology/cases/:caseId` | Site subject for environmental cases (section D) |
-| Microbiology Worklist | Microbiology → Worklist | existing | `/Microbiology/worklist` | Subject column, Lab unit filter (section E) |
-| Case search | Microbiology → Case search | not built (new with Microbiology v2) | route defined with v2 | Search by site (section E) |
-| WHONET export | Reports → WHONET export | existing | `/reports/whonet-export` | Include environmental isolates option (section F) |
-
-All routes must be verified against the live app before build.
-
----
 
 ## User Stories
 
@@ -92,8 +72,8 @@ All routes must be verified against the live app before build.
 
 | ID | Requirement | Notes |
 |---|---|---|
-| FR-A1 | Environmental culture work uses its **own lab unit**, for example **Environmental Microbiology**, with the domain **Environmental**. Environmental culture tests (surface swab culture, Legionella culture, Salmonella culture on food) are assigned to it. The existing Microbiology lab unit stays Clinical. | Casey, 2026-09-28. D-120. |
-| FR-A2 | Lab units keep **exactly one domain** (D-004). A test can only be assigned to a lab unit of its own domain (D-030 guard). | Proposed D-094 (a lab unit serving several domains) is withdrawn. |
+| FR-A1 | Environmental culture work uses its **own lab unit**, for example **Environmental Microbiology**, with the domain **Environmental**. Environmental culture tests (surface swab culture, Legionella culture, Salmonella culture on food) are assigned to it. The existing Microbiology lab unit stays Clinical. | Casey, 2026-09-28. . |
+| FR-A2 | Lab units keep **exactly one domain** . A test can only be assigned to a lab unit of its own domain ( guard). | Proposed  (a lab unit serving several domains) is withdrawn. |
 | FR-A3 | The lab unit is created in the Lab Units page or loaded through the test catalog CSV loader like any other lab unit. No new admin setting. | Docs impact: catalog guidance names the pattern. |
 | FR-A4 | Staff who work both benches are given both lab units through the existing user lab unit assignment. A user who has only one of them sees only that lab unit's cultures. | Existing user and role administration. |
 | FR-A5 | Order entry offers Environmental Microbiology tests only on environmental orders, because their sample types are environmental (clinical FR-B14 filters by the order's domain). | No order entry change. |
@@ -102,42 +82,42 @@ All routes must be verified against the live app before build.
 
 | ID | Requirement | Notes |
 |---|---|---|
-| FR-B1 | **Culture tests stay in the Case.** A test linked to a Microbiology Case (`micro_case_analysis`) never appears on the Results or Validation worklists, in any domain. It is entered in the Case workbench and released by the Case's preliminary and final release, which already marks the test finished. | D-121. Applies to clinical cultures today, not only environmental ones. |
+| FR-B1 | **Culture tests stay in the Case.** A test linked to a Microbiology Case  never appears on the Results or Validation worklists, in any domain. It is entered in the Case workbench and released by the case’s partial and final release, which already marks the test finished. | Applies to clinical cultures today, not only environmental ones. |
 | FR-B2 | When the selected lab unit has culture tests in open Cases, the Results and Validation pages show one line above the table: "{count} cultures in this lab unit are worked in the Microbiology worklist", linking to the worklist filtered to that lab unit. | So a technician never wonders where the cultures went. |
-| FR-B3 | A culture test that is **not** linked to a Case (a legacy order created before Microbiology v2, or a non-generic environmental test such as a coliform count) stays on Results as today. | No test is ever unreachable. |
+| FR-B3 | Tests whose Opens a Microbiology case switch is off remain on ordinary Results. Case-owned tests never acquire a second editing path. | No retained legacy routing authority. |
 | FR-B4 | Validation follows FR-B1 to FR-B3. | Validation v4 section I. |
 
 ### C. Environmental order entry: generic culture tests
 
 | ID | Requirement | Notes |
 |---|---|---|
-| FR-C1 | **Routing (v2).** An environmental **micro test** on a sample (a culture such as "Environmental bacterial culture" in the Environmental Microbiology lab unit, or a direct test whose Microbiology case field is not None), picked in the samples grid like any test, opens one Case per sample and culture type on save (v2 D-162). Program is not set or read (v2 FR-02.2, D-146). Replicate swabs from one sampling point, collected together, are one culture set and open one Case; swabs from different sampling points open separate Cases; the technician can split a set on the Case (v2 FR-02.4a). | Microbiology v2 A-02; D-124, D-129, D-138, D-146. Replaces the Culture-workflow resolver of v0.3 and the Culture rows of v0.6 and v0.7. |
-| FR-C2 | Without a generic culture test no Case opens, in any domain. Water and food counts (for example total coliforms per 100 mL, heterotrophic plate count) stay in environmental results entry with their regulatory limits. | Guidance for catalog managers in the docs impact. |
-| FR-C3 | **Retired in v0.8.** There is no Microbiology section on Environmental Enter Order. | D-146. |
-| FR-C4 | **Nothing micro is entered at order entry.** No culture protocol is shown (retired, v2 A-01). **Purpose** and **Replicates** are entered on the Case's Case information section (v2 A-03), stored in the micro order detail. | Replicates use the existing `number_of_sets`; clinical wording "Number of sets" becomes "Replicates" (`.env` key). |
-| FR-C5 | **Purpose** (entered in Case information, v2 A-03) is the existing micro **culture purpose** (`culture_purpose`). Clinical Cases use the five values of Microbiology v2 FR-19.1 (Diagnostic, Screening, Treatment follow-up, Survey or study, EQA / proficiency). Environmental Cases offer four new values: **Routine monitoring** (default), **Post-cleaning check**, **Outbreak investigation**, **Complaint**. Each Case offers only its own domain's values. | A code list, not a dictionary: the column is `varchar(32)`, so new values need no schema change. On a culture order, env v4's separate sample purpose (EV-M2) is not shown (X-08). |
-| FR-C5a | **Purpose per Case, replicates per order.** Purpose is stored per Case and defaults to Routine monitoring (there is no order-level purpose now that order entry shows no micro fields); a technician sets Outbreak investigation or another value on the Case, so an investigation sample on the same order can differ. Replicates apply per order: on Case information they show the helper "Applies to all {count} cases on this order", and a change shows on every Case of that order, recorded on each Timeline. | D-137. |
+| FR-C1 | An environmental test with **Opens a Microbiology case** enabled opens or joins a case on the same order, sample type, lab unit and site. Different sites or lab units produce separate cases. Sampling points remain visible per sample and do not replace the site grouping rule. Program is not set or read for routing. | [V2 grouping](amr-micro-v2-amendments.md#fr-02.4). |
+| FR-C2 | A sample with no eligible micro test opens no case. Quantitative water/food tests whose switch is off stay in environmental Results with their regulatory limits. | [Catalog switch](amr-micro-v2-amendments.md#fr-01.1). |
+| FR-C3 | **Retired in v0.8.** There is no Microbiology section on Environmental Enter Order. | |
+| FR-C4 | Purpose and Replicates are entered in Case information. Environmental order entry retains its normal sample/site fields and adds no Microbiology section or protocol. | [Case information](amr-micro-v2-amendments.md#fr-03.1). |
+| FR-C5 | Environmental purposes are **Routine monitoring** (default), **Post-cleaning check**, **Outbreak investigation** and **Complaint**. Each case offers its domain’s values, with no duplicate order-entry culture-purpose field. | [Populations](amr-micro-v2-amendments.md#fr-19.6). |
+| FR-C5a | **Purpose per Case, replicates per order.** Purpose is stored per Case and defaults to Routine monitoring (there is no order-level purpose now that order entry shows no micro fields); a technician sets Outbreak investigation or another value on the Case, so an investigation sample on the same order can differ. Replicates apply per order: on Case information they show the helper "Applies to all {count} cases on this order", and a change shows on every Case of that order, recorded on each Timeline. | |
 | FR-C7 | Clinical-only micro fields never appear for environmental Cases, at order entry or in Case information: patient origin, date of admission, clinical history, prior antibiotics, TB history. | v2 A-03 fields stay clinical. |
-| FR-C8 | The Cases open in the order's one all-or-nothing Save (D-072), created by the existing post-save hook. | |
-| FR-C9 | **Site for an environmental culture (interim).** The sample's site is required to complete (env v4 EV-I). Until Locations & Organizations ships, it is always a **sampling site**, stored as today (`envSamplingSiteId`): a laboratory that swabs hospital wards sets up a sampling site for each ward it monitors ("Medical Ward 3, Port Moresby General Hospital"), next to its sites for food, water and outside samples. The **sampling point** names the exact spot or object ("Bed 12 rail", "Endoscope EG-4471"). **Target (D-101):** once Locations & Organizations lands, the site can also be a ward, department or facility chosen directly, and the per-ward sampling sites are merged into those locations (Dependency 3). | Casey, 2026-09-28; D-101, D-106. |
+| FR-C8 | The Cases open in the order's one all-or-nothing Save , using the same all-or-nothing order save. | |
+| FR-C9 | **Site for an environmental culture (interim).** The sample's site is required to complete (env v4 EV-I). Until Locations & Organizations ships, it is always a **sampling site**, selected from Sampling Sites: a laboratory that swabs hospital wards sets up a sampling site for each ward it monitors ("Medical Ward 3, Port Moresby General Hospital"), next to its sites for food, water and outside samples. The **sampling point** names the exact spot or object ("Bed 12 rail", "Endoscope EG-4471"). **Target :** once Locations & Organizations lands, the site can also be a ward, department or facility chosen directly, and the per-ward sampling sites are merged into those locations (Dependency 3). | Casey, 2026-09-28; , . |
 
 ### D. Microbiology Case with a site subject
 
 | ID | Requirement | Notes |
 |---|---|---|
-| FR-D1 | A Case's **subject** is derived from its sample: the patient for a clinical sample, the site for an environmental one. The Case record gains no subject column; it is keyed on the sample item and the culture type of its generic culture test (v2 A-01, D-129). | v2 keeps the built `(sample_item_id, workflow_type)` key, read as culture type. |
-| FR-D2 | **Context strip (environmental).** In place of the patient identity: site name, sampling point, field ID, collection date and time, purpose, compliance standard when set, and requester. A teal "Environmental" Tag follows the lab number. | M-04 context strip. |
-| FR-D3 | The workbench uses the v2 case layout (Case information, Initial testing, Culture, Growth work-up, Isolates, AST / DST, Additional testing, Report). The clinical-only fields (patient origin, department, admission date, clinical history, prior antibiotics, TB history) are hidden, not shown empty. | Microbiology v2 Overview. |
+| FR-D1 | An environmental case has a **site**, not a patient, as its subject. Grouping follows order, sample type, lab unit and site. Replicates retain their sampling points and collection details. | [V2 grouping](amr-micro-v2-amendments.md#fr-02.4). |
+| FR-D2 | **Context strip (environmental).** In place of the patient identity: site name, sampling point, field ID, collection date and time, purpose, compliance standard when set, and requester. A teal "Environmental" Tag follows the lab number. | V2 case context strip. |
+| FR-D3 | The workbench uses the v2 case layout (Case information, Initial testing, Culture (with tests and subcultures beneath each row), Isolates, AST / DST, Additional testing, Report). The clinical-only fields (patient origin, department, admission date, clinical history, prior antibiotics, TB history) are hidden, not shown empty. | Microbiology v2 Overview. |
 | FR-D4 | **Expert rules (M-06).** Organism and phenotype rules apply. Rules that read patient data (age, sex, patient origin) are skipped for environmental Cases and the skip is shown in the rule trace ("Not applied: needs patient data"). | |
-| FR-D5 | **Critical notification (M-11).** A test's existing notification setting applies. For an environmental Case the recipient is the order's requester contact instead of the provider; the acknowledgment record is the same. | |
+| FR-D5 | **Critical notification (V2 callbacks).** A test's existing notification setting applies. For an environmental Case the recipient is the order's requester contact instead of the provider; the acknowledgment record is the same. | |
 | FR-D6 | **Report.** An environmental Case prints on the environmental results certificate shipped today (Reports → Environmental Reports → Laporan Hasil, `ComplianceReportRestController`): site information, collection conditions, the compliance table (parameter, result, threshold, status), analyst and manager signatures and numbered amendments. The Case's results print in the compliance table, and isolates with susceptibilities as a susceptibility block after it (v2 FR-11.8). It never prints on the patient report (OGC-1111 FR-A52). | Built certificate; the micro block is v2 work. |
-| FR-D7 | **Linked cases.** Sibling Cases on one sample (M-03 §2A) work the same in both domains. | |
+| FR-D7 | Related cases show each other as in the clinical case. A transfer changes worklist/rights but preserves each case’s identity, members and history even when the destination has a matching case. Joining existing cases is deferred. | [Transfers](amr-micro-v2-amendments.md#fr-02.6). |
 
 ### E. Worklists and case search
 
 | ID | Requirement | Notes |
 |---|---|---|
-| FR-E1 | The M-07 **Cultures** and **AST runs** views show Cases from every lab unit the user is assigned to. The Patient column becomes **Patient or site**: a clinical row shows the patient; an environmental row shows the site name, sampling point and field ID, with a teal "Environmental" Tag after the lab number. | |
+| FR-E1 | The V2 Worklist **Cultures** and **AST runs** views show Cases from every lab unit the user is assigned to. The Patient column becomes **Patient or site**: a clinical row shows the patient; an environmental row shows the site name, sampling point and field ID, with a teal "Environmental" Tag after the lab number. | |
 | FR-E1a | When the user has rights in more than one lab unit with a generic culture test, a **Lab unit** filter appears (All, Microbiology, Environmental Microbiology, with counts). Default All. | A filter on an existing attribute, not a domain mix. |
 | FR-E2 | Due actions, priorities and stage logic are the same for both domains. | |
 | FR-E3 | Case search matches site name, site code and sampling point, in addition to lab number, patient, organism and date. Results show the subject per row. | |
@@ -146,12 +126,12 @@ All routes must be verified against the live app before build.
 
 | ID | Requirement | Notes |
 |---|---|---|
-| FR-F1 | **Antibiogram (M-13) and preset analyses built on it:** environmental isolates are always excluded. There is no option to include them. | CLSI M39 antibiograms describe patient isolates. D-123. |
+| FR-F1 | **Antibiogram (M-13) and preset analyses built on it:** environmental isolates are always excluded. There is no option to include them. | CLSI M39 antibiograms describe patient isolates. |
 | FR-F2 | **GLASS (M-15):** environmental isolates are always excluded. | GLASS AMR reports human isolates. |
-| FR-F3 | **WHONET export (M-09):** a new checkbox, **Include environmental isolates**, off by default. When on, environmental isolates are exported with the environmental origin and specimen codes from the M-01 WHONET dictionary pack and the site in place of patient fields. An environmental specimen with no mapped code is listed in Code Mapping as unmapped and is not exported until mapped. An environmental isolate is never exported as a patient isolate. | D-123. The choice is recorded in the export history. |
+| FR-F3 | **WHONET export (M-09):** a new checkbox, **Include environmental isolates**, off by default. When on, environmental isolates are exported with the environmental origin and specimen codes from the M-01 WHONET dictionary pack and the site in place of patient fields. An environmental specimen with no mapped code is listed in Code Mapping as unmapped and is not exported until mapped. An environmental isolate is never exported as a patient isolate. | The choice is recorded in the export history. |
 | FR-F4 | The M-09 first-isolate de-duplication is per patient and does not apply to environmental isolates; each environmental isolate is its own record, as M-16 §5.4 already states for environmental events. | |
 
-### G. Cluster detection (M-16)
+### G. Cluster detection (future, outside V2 delivery)
 
 | ID | Requirement | Notes |
 |---|---|---|
@@ -161,42 +141,13 @@ All routes must be verified against the live app before build.
 
 ---
 
-## Information & Data
-
-### Reused as is
-
-- `Test.domain` (NOT NULL, CLINICAL / ENVIRONMENTAL / VECTOR): the source of every row's domain and of lab unit domains.
-- The Culture-workflow test attribute is **narrowed**, not retired: renamed Culture type and set only on generic culture tests (v2 A-01, D-125). The M-03 trigger resolver is replaced by routing on generic culture tests (v2 A-02).
-- `micro_case`, keyed on `sample_item_id` + `workflow_type` read as culture type (built key kept, v2 A-01); the lab unit is a changeable label; `culture_method_id` no longer read.
-- `micro_case_order_detail`, one row per order: `culture_purpose` (purpose) and `number_of_sets` (replicates). Its patient fields stay empty for environmental orders.
-- The environmental order's sampling site, stored in observation history (`envSamplingSiteId`).
-- The WHONET export's saved selection (`MicroWhonetExportSelection`, stored as JSON).
-- Sampling point, field ID and a site per sample come from env v4 (EV-D3, EV-D4, EV-G5), which declares them as its own new data. Without them a Case shows the order's one site.
-
-### Changed or new
-
-| Item | Change |
-|---|---|
-| Results and Validation worklist queries | Exclude analyses linked through `micro_case_analysis`. |
-| M-07 worklist rows | Add the Case's lab unit and, for environmental Cases, site and sampling point. |
-| Culture purpose code list | Four environmental values added to `MicroCulturePurpose` and its request validation. Code only. |
-| WHONET export selection | New `includeEnvironmental` field in the saved JSON selection. Code only. |
-
-**No schema change of its own.** M-18 fits the tables develop already has. The case lab unit and the other new data elements belong to Microbiology v2 and are declared there.
-
-### Lifecycle
-
-An environmental Case follows the same stages as a clinical Case (M-00). Nothing is deleted (D-002).
-
----
-
 ## Access
 
 Accessible via existing roles; no new permission names.
 
 - **Reception** enters environmental orders, including environmental culture tests, like any other test.
-- **Results role** works environmental Cases in the Case workbench, exactly as clinical Cases. Culture tests never appear on Results (D-121); non-culture environmental tests in the lab unit (for example coliform counts) stay on Results.
-- **Validation role** releases environmental Case results.
+- **Results rights in the case lab unit** permit work on environmental cases in the Case workbench, exactly as clinical Cases. Culture tests never appear on Results; non-culture environmental tests in the lab unit (for example coliform counts) stay on Results.
+- **Results rights** permit partial release; **Validation rights** permit validation, final release and amendments in the case lab unit, as in the V2 Access table.
 - **Test Catalog Manager and Admin** create the Environmental Microbiology lab unit and assign tests, as for any lab unit.
 - **Admin** sets up sampling sites for monitored wards in the existing Sampling Sites admin.
 - **Admin** assigns the lab unit to users through the existing user administration.
@@ -206,7 +157,7 @@ Accessible via existing roles; no new permission names.
 
 ## Localization
 
-Keys follow constitution Principle VII. Run `npm run i18n:find` for each NEW key.
+Visible text follows the shared localization conventions. Translation implementation belongs to engineering.
 
 | Key | English | Where | Status |
 |---|---|---|---|
@@ -223,8 +174,8 @@ Keys follow constitution Principle VII. Run `npm run i18n:find` for each NEW key
 | `microbiology.case.subject.site` | Site | Context strip | NEW |
 | `microbiology.case.samplingPoint` | Sampling point | Context strip | NEW |
 | `microbiology.rules.skipped.patientData` | Not applied: needs patient data | Expert rule trace | NEW |
-| `microbiology.worklist.subject` | Patient or site | M-07 column | NEW |
-| `microbiology.worklist.filter.labUnit` | Lab unit | M-07 filter | NEW |
+| `microbiology.worklist.subject` | Patient or site | V2 Worklist column | NEW |
+| `microbiology.worklist.filter.labUnit` | Lab unit | V2 Worklist filter | NEW |
 | `reports.whonetExport.includeEnvironmental` | Include environmental isolates | WHONET export | NEW |
 | `reports.whonetExport.includeEnvironmental.help` | Coded as environmental, never as patient isolates. Off by default. | WHONET export | NEW |
 
@@ -232,43 +183,10 @@ Keys follow constitution Principle VII. Run `npm run i18n:find` for each NEW key
 
 ## Dependencies
 
-1. **Worklist changes** (Results, Validation): exclude Case-linked analyses; count open-Case cultures for the FR-B2 line. *Backend, small.*
-2. **Culture purpose values:** four environmental values in `MicroCulturePurpose` and its validation; the WHONET purpose filter treats Outbreak investigation like Active screening. *Backend, small.*
-3. **Wards as sites (later):** when the Locations & Organizations redesign makes sampling sites part of Organizations, the site picker offers wards directly and the per-ward sampling sites are merged into them. *Owned by Locations & Organizations.*
-4. **Environmental case report:** the Laporan Hasil certificate (built) gains the susceptibility block (Microbiology v2 FR-11.8). Its labels are hard-coded English today; adding the block is the moment to move them to translation keys.
-5. ~~M-03 on Clinical Order Entry v4.~~ Resolved by Microbiology v2 A-03: the clinical micro fields move to Case information; clinical order entry v4 FR-B12a (v0.13) adds nothing micro to order entry.
-6. **M-16 environmental stream reads site coordinates** (FR-G1, FR-G3). *M-16.*
-7. **Env v4 per-sample fields:** field ID, sampling point code and a site per sample (env v4 Dependencies 3, 6). *Env v4.*
-
----
-
-## Crosscheck
-
-**Verdict:** Proceed with coordination. No active GLOBAL decision is violated; D-004 is kept (no combined domain value anywhere). Two sibling specs change shape (Results Entry v4 FR-M1 and Validation v4 FR-I1) and one sibling holds a factual error (M-16 §5.4).
-
-| ID | With | Finding | Severity | Resolution |
-|---|---|---|---|---|
-| X-02 | Proposed D-094 (lab unit serving one or more domains) in Clinical Order Entry v4 FRS v0.9 | Withdrawn by Casey's call for a separate lab unit | HIGH | D-120. Done 2026-09-29: clinical order entry v4 marks D-094 superseded and rewords Dependency 33 |
-| X-03 | M-16 §5.4 | Says environmental samples have no sampling-site record; develop stores one (`envSamplingSiteId`) | MEDIUM | FR-G3 |
-| X-04 | Test catalog data model reference, D-032 | Say `test_section` has no domain column; develop has one (OGC-1020) | LOW | Update the reference; the column is used as is |
-| X-05 | M-03 v2.2 | Written for the old order wizard | MEDIUM | Resolved by Microbiology v2 A-03 and clinical order entry v4 FR-B12a |
-| X-06 | Micro module numbering | M-00 reserves M-17 for Parasitology while the preset reports library was also discussed as M-17 | LOW | This spec takes M-18; renumber the reports library when it is written |
-| X-07 | M-04, M-07, Results Entry v4, Validation v4, develop | No spec or code keeps Case-linked culture tests off Results and Validation | HIGH | FR-B1 (D-121) |
-| X-08 | Env v4 EV-M2 (sample purpose, planned as new data) | Two purpose fields on an environmental culture order | MEDIUM | Culture orders use `culture_purpose` (FR-C5). Done 2026-09-29: env v4 EV-M2 is hidden on samples that open a Microbiology Case |
-| X-09 | M-16 | The link from environmental samples to a cluster investigation needs M-16's investigation records, which are not built | MEDIUM | Moved to M-16 scope (Out of Scope) |
-
-### Proposed decisions
-
-Recorded in the decision log on 2026-09-29 as **D-120 to D-123**. The provisional numbers D-095 to D-098 were already taken by Environmental and Vector Order Entry v4. D-120 supersedes D-094.
-
-| ID | Decision | Scope |
-|---|---|---|
-| D-120 | Lab units keep exactly one domain. Work spanning domains, such as environmental microbiology, gets its own lab unit, and staff are given more than one lab unit. Proposed D-094 is withdrawn. | GLOBAL |
-| D-121 | A test linked to a Microbiology Case is worked and released only in the Case; it never appears on the Results or Validation worklists. | GLOBAL |
-| D-122 | A Microbiology Case can have a patient or a site as its subject. Generic culture tests route every domain (Microbiology v2 D-124, D-146; amended from "Program = Microbiology"); there is no second environmental culture workflow. | FEATURE (micro) |
-| D-123 | Environmental isolates never enter the antibiogram or GLASS, and enter WHONET only by an explicit per-export choice, coded as environmental. | FEATURE (micro) |
-
----
+The V2 case, shared environmental order entry, Inventory, Test Catalog,
+Locations & Organizations and environmental certificate remain shared owners.
+Future cluster detection, antibiogram and GLASS are not V2 dependencies or
+delivery claims.
 
 ## Out of Scope
 

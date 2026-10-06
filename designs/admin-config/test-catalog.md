@@ -623,6 +623,13 @@ Complete table extracted from v2.1 JSX preview and compiled below as Markdown ta
 
 ---
 
+**Microbiology V2 — Reagents and media:** culture tests link Inventory media
+by optional sample type, display order, duration/unit, check interval and optional
+loop volume, atmosphere and temperature. Start inoculation proposes these editable
+rows. Media links carry no quantity and never consume stock. Other reagent links
+retain their method, requiredness and eligibility behavior. There is no separate
+plating-template or culture-protocol administration. See [media defaults](../microbiology/amr-micro-v2-amendments.md#fr-05.2a).
+
 ## New Features Summary
 
 | Feature | Description |
@@ -650,6 +657,14 @@ Complete table extracted from v2.1 JSX preview and compiled below as Markdown ta
 ---
 
 ## Test Editor Status Flags
+
+**Microbiology V2:** Basic Info includes **Opens a Microbiology case** (default
+No), **Case role** (Culture, Direct or Case; shown when enabled, default Direct)
+and **Collected in sets** for culture tests. These replace the workflow/culture-type
+attribute. This switch is independent of the existing **AMR** surveillance flag
+and its WHONET fields (OGC-936/952 keep their owners). Case tests route a sample
+to their lab unit but hold no result. Reportable supplies the default In lab only
+choice. See [catalog behavior](../microbiology/amr-micro-v2-amendments.md#fr-01.1).
 
 The Basic Info section includes the following status flags:
 

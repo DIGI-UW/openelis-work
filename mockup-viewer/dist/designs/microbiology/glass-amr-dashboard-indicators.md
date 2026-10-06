@@ -1,5 +1,13 @@
 # AMR dashboard indicators — the content layer on W3
 
+> Functional authority: the V2 baseline owns case behavior; this document owns its scoped laboratory outcomes. Technical examples are non-normative. Engineering decisions and verification belong to specs/amr.
+
+
+> **Future capability, outside V2 delivery.** This document defines follow-on
+> outcomes; it is not a V2 prerequisite or implementation/acceptance claim.
+> Population boundaries follow [V2 selection](amr-micro-v2-amendments.md#fr-19.2).
+
+
 **Version** 1.0 · **Date** 2026-08-08 · **Status** Draft for review
 **Companion to** `glass-on-aspect-parity.md` v2.0 · **Extends** `designs/reports/disease-surveillance-dashboard.md` v1.0
 **Jira** OGC-918 / OGC-794
@@ -101,7 +109,7 @@ That is a reasonable division and this document does not disturb it. This is the
 
 | Panel | Measures | Why it earns its place |
 |---|---|---|
-| **Origin completeness** | % records with `ORIGIN = UNK`, by site | A direct readout of admission-date capture. Today this is **100% everywhere**; it is the single number that shows M-03 v2.1 working in the field |
+| **Origin completeness** | % records with `ORIGIN = UNK`, by site | A direct readout of admission-date capture. Today this is **100% everywhere**; it is the single number that shows [V2 reception](amr-micro-v2-amendments.md#fr-02.3) v2.1 working in the field |
 | **Negatives captured** | Whether each site reports no-growth results | Gates §3.2 entirely. A site at zero silently caps the whole country at percentages |
 | **AST coverage** | % isolates of GLASS pathogens with any AST | An identified isolate with no AST contributes nothing to RIS |
 | **Unmapped codes** | Count and record impact, by site | Held records are excluded from submission; this is the queue that unblocks them |

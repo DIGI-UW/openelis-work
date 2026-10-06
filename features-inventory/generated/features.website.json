@@ -940,7 +940,7 @@
           "manual_status": null,
           "enhancements": [],
           "mockup": null,
-          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/microbiology/m-00-micro-module-parent.md"
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/microbiology/amr-micro-v2-amendments.md"
         },
         {
           "id": "micro-case-workbench",
@@ -956,7 +956,7 @@
           "manual_status": null,
           "enhancements": [],
           "mockup": null,
-          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/microbiology/m-04-case-workbench-core.md"
+          "spec": "https://github.com/DIGI-UW/openelis-work/blob/main/designs/microbiology/amr-micro-v2-amendments.md#fr-17.6"
         }
       ]
     },

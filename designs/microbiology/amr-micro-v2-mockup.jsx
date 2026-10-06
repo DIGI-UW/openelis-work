@@ -1,15 +1,10 @@
 // Microbiology v2: Case view, Worklist Needs attention, order entry (generic culture tests in the ordinary test picker)
-// Routes:
-//   /Microbiology/cases/:caseId                 Case view (existing route, v2 sections): TB example and blood culture (AMR) example
-//   /Microbiology/worklist?status=attention      Worklist, Needs attention filter (existing page)
-//   Worklist bench work (FR-12.6, D-172): Awaiting inoculation, Check due, Final read due; No growth and Inoculate, no run
-//   Enter Order (Clinical Order Entry v4)        Samples and tests: no Microbiology section, no Program coupling (FR-B12a v0.13, D-146)
+// Views: clinical case, worklist, reception and shared administration.
 // SideNav: Microbiology -> Worklist -> (row); Orders & Patients -> Add Order
 // Breadcrumbs: Home / Microbiology / Worklist / Case {labNumber}; Home / Microbiology / Worklist
 // FRS: amr-micro-v2-amendments.md draft 10.4; patient-report-and-report-management-frs.md v2.4.3 §7.4 (FR-A42a groups)
-// Decisions: D-113 to D-119, D-121, D-124 to D-138, D-146, D-147 and D-162 to D-210 (D-131 retired; D-175 superseded by D-177; culture type removed by D-178; D-148 replaced by D-164; D-167 amended by D-172; D-171 superseded)
-// Regions marked <ExistingFence> are shipped UI (M-04 Case view on develop): reuse, do not
-// re-implement. They are drawn abbreviated; only the listed v2 additions are new (D-063, A-16).
+// Functional source: the Microbiology V2 requirements and environmental follow-on.
+// Abbreviated shared workflow examples are functional mock content.
 
 import React, { useState, useMemo, createContext, useContext } from 'react';
 import {
@@ -40,7 +35,7 @@ const PURPOSES = [
 ];
 const BODY_SITES = ['Lower respiratory tract', 'Upper respiratory tract', 'Bronchoalveolar lavage', 'Pleural fluid', 'Cerebrospinal fluid', 'Wound, lower leg', 'Wound, forearm', 'Urethra', 'Cervix', 'Nasopharynx', 'Throat', 'Ear, middle'];
 // Microbiology medium items (FR-05.1b to FR-05.1d): tracked items have lots in Inventory; not tracked items are names only.
-// A culture row records the lot but never changes stock (D-169).
+// A culture row records the lot but never changes stock .
 const MEDIA_SEED = [
   { id: 'mgit', text: 'BBL MGIT 7 mL tube', tracked: true, unit: 'tube', atm: 'aerobic', temp: 37, lots: [{ n: '5327611', exp: '01/2027', left: 212 }, { n: '5311020', exp: '08/2026', why: 'Expired' }] },
   { id: 'lj', text: 'Löwenstein-Jensen slope', tracked: true, unit: 'slope', atm: 'aerobic', temp: 37, lots: [{ n: 'LJ-2609 (prepared in-house)', exp: '11/2026', left: 40 }, { n: 'LJ-2608', exp: '10/2026', why: 'QC failed' }] },
@@ -54,7 +49,7 @@ const MEDIA_SEED = [
   { id: 'm7h11', text: 'Middlebrook 7H11 agar (from QMRL)', tracked: false, atm: 'co2', temp: 37, lots: [] },
 ];
 const MediaContext = createContext(null);
-// Linked media of the culture test (FR-05.2a, D-208), from the Test catalog Reagents and media section
+// Linked media of the culture test (FR-05.2a, FR-05.2a), from the Test catalog Reagents and media section
 const PLATING_TEMPLATES = [
   { id: 'pt1', sampleType: 'Urine', culture: 'Any', rows: [{ medium: 'cled', atm: 'aerobic', temp: 35, dur: 24, unit: 'Hours' }, { medium: 'ba', atm: 'aerobic', temp: 35, dur: 24, unit: 'Hours' }] },
   { id: 'pt2', sampleType: 'Sputum', culture: 'TB culture', rows: [{ medium: 'mgit', atm: 'aerobic', temp: 37, dur: 42, unit: 'Days' }, { medium: 'lj', atm: 'aerobic', temp: 37, dur: 56, unit: 'Days' }] },
@@ -105,16 +100,8 @@ const DST_READINGS = [
 const stateKind = (s) => ({ Positive: 'green', 'Check due': 'warm-gray', Incubating: 'blue', 'No growth': 'gray', Contaminated: 'red' }[s] || 'gray');
 
 /* ---------- shared bits ---------- */
-function ExistingFence({ owner, additions, children }) {
-  return (
-    <div style={{ border: '1px dashed var(--cds-border-strong)', padding: 'var(--cds-spacing-05)' }}>
-      <div style={{ marginBottom: 'var(--cds-spacing-03)' }}>
-        <Tag type="gray" size="sm">{t('microbiology.mockup.existing', 'Existing component')}</Tag>{' '}
-        <small>{t('microbiology.mockup.existingHelp', 'Reuse, do not re-implement')}: {owner}. {t('microbiology.mockup.abbreviated', 'Drawing abbreviated.')} {additions ? `${t('microbiology.mockup.additions', 'v2 additions')}: ${additions}` : ''}</small>
-      </div>
-      {children}
-    </div>
-  );
+function ExistingFence({ children }) {
+  return <div>{children}</div>;
 }
 
 function Section({ n, title, isNew, children }) {
@@ -244,7 +231,7 @@ function ResultEditor({ row, onClose, printable }) {
         {row.state && row.state !== 'Not started' && <Column lg={16}><small>{t('microbiology.case.history.enteredBy', 'Entered by {0}, {1}').replace('{0}', row.by || 'J. Kaupa').replace('{1}', '02 Oct 08:40')}{row.state === 'Validated' ? ` · ${t('microbiology.case.history.validatedBy', 'Validated by {0}, {1}').replace('{0}', 'R. Opa').replace('{1}', '02 Oct 09:15')}` : ''}</small></Column>}
         <Column lg={16}><NotesSection id={row.id} printable={printable} /></Column>
       </Grid>
-      <p><small>{t('microbiology.case.flagsFromCatalog', 'Flags come from the test catalog, exactly as on Results Entry. Saving records the result as Awaiting validation; a validator validates or returns it (D-191).')}</small></p>
+      <p><small>{t('microbiology.case.flagsFromCatalog', 'Flags come from the test catalog, exactly as on Results Entry. Saving records the result as Awaiting validation; a validator validates or returns it .')}</small></p>
       <Stack orientation="horizontal" gap={3}>
         <Button size="sm" onClick={onClose}>{t('microbiology.case.result.save', 'Save result')}</Button>
         <Button size="sm" kind="ghost" onClick={onClose}>{t('button.cancel', 'Cancel')}</Button>
@@ -314,14 +301,14 @@ function MediumPicker({ id, onPrefill }) {
   );
 }
 
-/* ---------- Plating template proposal (FR-05.2a) ---------- */
+/* ---------- Catalog media proposal (FR-05.2a) ---------- */
 function TemplateProposal({ template }) {
   const { media } = useContext(MediaContext);
   const [on, setOn] = useState(template.rows.map(() => true));
   return (
     <Tile style={{ marginBottom: 'var(--cds-spacing-05)' }}>
-      <h6>{t('microbiology.case.inoc.applyTemplate', 'Apply template: {name}').replace('{name}', `${template.sampleType}, ${template.culture}`)}</h6>
-      <p><small>{t('microbiology.case.inoc.templateHelp', 'A suggestion from the plating templates; untick or change rows. Nothing on the case depends on it.')}</small></p>
+      <h6>{t('microbiology.case.inoc.applyTemplate', 'Linked media: {name}').replace('{name}', `${template.sampleType}, ${template.culture}`)}</h6>
+      <p><small>{t('microbiology.case.inoc.templateHelp', 'A suggestion from the culture test’s media links; untick or change rows. Nothing on the case depends on it.')}</small></p>
       <SimpleTable
         headers={[{ key: 'pick', header: '' }, { key: 'medium', header: t('microbiology.case.inoc.medium', 'Medium') }, { key: 'lot', header: t('microbiology.case.inoc.lot', 'Lot') }, { key: 'inc', header: t('microbiology.case.inoc.duration', 'Incubation duration') }]}
         rows={template.rows.map((r, i) => ({ id: `tr${i}`, idx: i, pick: '', medium: r.medium, lot: '', inc: `${r.dur} ${r.unit}` }))}
@@ -346,9 +333,9 @@ function TemplateProposal({ template }) {
   );
 }
 
-/* ---------- Extend incubation (FR-05.3a, D-179): any open culture row, with a reason; history kept ---------- */
+/* ---------- Extend incubation (FR-05.3a, FR-05.3a): any open culture row, with a reason; history kept ---------- */
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-// mock only: the server computes Incubation ends from the laboratory clock (FR-05.3, D-075)
+// mock only: the server computes Incubation ends from the laboratory clock (FR-05.3)
 const addTime = (str, n, unit) => {
   const [d, m, hm] = String(str).split(' ');
   if (!hm) return str;
@@ -403,8 +390,8 @@ function ExtendIncubation({ row, onSave, onCancel }) {
 const extendRow = (r, x, who) => ({ ...r, ends: x.ends, ext: [...(r.ext || []), x], log: [...r.log, `${t('microbiology.case.inoc.extendedLog', 'Incubation extended')} ${x.n} ${x.unit} (${x.reason}); now ends ${x.ends} · ${who}`] });
 const ExtTags = ({ r }) => (r.ext || []).map((x, j) => <div key={j}><Tag type="cyan" size="sm">+ {x.n} {x.unit} {t('microbiology.case.inoc.extended', 'extended')}</Tag></div>);
 
-/* ---------- Positive at (FR-05.4b, D-180): exact date and time, defaults to the server time, editable ---------- */
-const SERVER_NOW = '02 Oct 10:15'; // mock: the server clock in the laboratory time zone (D-075)
+/* ---------- Positive at (FR-05.4b, FR-05.4b): exact date and time, defaults to the server time, editable ---------- */
+const SERVER_NOW = '02 Oct 10:15'; // mock: the server clock in the laboratory time zone
 const parseT = (str) => {
   const [d, m, hm] = String(str || '').trim().split(/\s+/);
   if (!hm || MON.indexOf(m) < 0) return null;
@@ -462,10 +449,10 @@ const positiveRow = (r, v, who) => ({
   posBy: r.state === 'Positive' && r.posBy && r.posBy.includes('signal') ? `${r.posBy}, time edited by ${who}` : who,
 });
 
-/* ---------- Tests on a culture are catalog tests (D-183); graded observations are multi-component results (D-185) ---------- */
+/* ---------- Tests on a culture are catalog tests ; graded observations are multi-component results  ---------- */
 const GRAM_C = ['Gram-positive cocci in clusters', 'Gram-positive cocci in chains', 'Gram-negative bacilli', 'Gram-positive bacilli', 'Gram-negative diplococci', 'Yeasts', 'Pus cells', 'Epithelial cells'];
 const comps = (list, opts) => list.map((c) => ({ c, v: '', opts }));
-// mock of the test catalog: result components and the Reportable setting (off starts the test In lab only, D-204) of tests set up for a culture
+// mock of the test catalog: result components and the Reportable setting (off starts the test In lab only) of tests set up for a culture
 const CULTURE_TEST_DEFS = {
   'Gram stain, culture': { inLabOnly: false, components: comps(GRAM_C, GRADES) },
   'ZN stain, culture': { inLabOnly: true, components: [{ c: 'Acid-fast bacilli', v: '', opts: ['Not seen', 'Seen'] }, { c: 'Serpentine cording', v: '', opts: ['Absent', 'Present'] }] },
@@ -584,7 +571,7 @@ const BC_EX = {
   children: [
     { id: 'GS-1', kind: 'test', test: 'Gram stain, culture', from: 'BC-004831-1A', components: GRAM_C.map((c) => ({ c, v: c === 'Gram-negative bacilli' ? 'Many' : '', opts: GRADES })), display: 'Gram-negative bacilli: many', state: 'Validated', inLabOnly: false, at: '30 Sep 07:20', by: 'P. Hiri' },
     { id: 'T-1', kind: 'test', test: 'BioFire BCID2 panel', from: 'BC-004831-1A', components: [{ c: 'Klebsiella pneumoniae group', v: 'Detected', opts: ['Not detected', 'Detected'] }, { c: 'Escherichia coli', v: 'Not detected', opts: ['Not detected', 'Detected'] }, { c: 'CTX-M', v: 'Detected', opts: ['Not detected', 'Detected'] }, { c: 'KPC', v: 'Not detected', opts: ['Not detected', 'Detected'] }], display: 'Klebsiella pneumoniae group: Detected; CTX-M: Detected; KPC: Not detected', state: 'Validated', inLabOnly: false, at: '30 Sep 08:45', by: 'BioFire FilmArray (FA-01)' },
-    // FR-10.1g, D-189: added by the reflex rule on the culture result when the anaerobic bottle turned positive; no result yet
+    // FR-10.1g, FR-10.1g: added by the reflex rule on the culture result when the anaerobic bottle turned positive; no result yet
     { id: 'GS-2', kind: 'test', test: 'Gram stain, culture', from: 'BC-004831-1N', components: GRAM_C.map((c) => ({ c, v: '', opts: GRADES })), display: '', state: 'Not started', inLabOnly: false, rule: 'Blood culture result = Positive: Gram stain, culture', at: '30 Sep 03:42', by: '' }],
   template: PLATING_TEMPLATES[4], nextContainer: 'BA-SUB-004831-1N1', otherReagent: 'None linked to Blood culture',
   isolates: [{ id: 'ISO-1', iso: 'ISO-1', from: 'BA-SUB-004831-1A1', gram: 'Gram-negative bacilli · grey mucoid, lactose fermenter', org: 'Klebsiella pneumoniae', idm: 'MALDI-TOF Biotyper (MB-01) · score 2.31', sig: 'Clinically significant' }],
@@ -594,7 +581,7 @@ const BC_EX = {
   ast: { bp: 'CLSI M100 36th ed. (2026)', bpHelp: 'Default from the organism (Enterobacterales: the lab\'s CLSI M100 edition); another standard needs a reason', method: 'VITEK 2', agentLabel: t('label.antibiotic', 'Antibiotic'),
     runNote: 'Run 1 (Original), results in from VITEK 2 Compact VK-01, card 2741 0093 5521, 02 Oct 03:15. QC passed. Expert rules applied: 2 (intrinsic ampicillin resistance; ESBL phenotype).',
     readings: [...BC_AGENTS.map((a, k) => ({ id: `r${k}`, drug: a[0], raw: `${a[1]} µg/mL`, source: 'Analyzer', matchedBy: 'CLSI M100 36th ed. (2026)', interp: a[2], note: a[3] })), { id: 'resbl', drug: 'ESBL test', raw: 'n/a', source: 'Analyzer', matchedBy: 'VITEK 2 AES', interp: 'Positive', note: 'Agrees with CTX-M on BCID2' }],
-    blocked: '', rule: null, classLabel: t('microbiology.case.resistanceProfile', 'Resistance profile'), classTags: ['ESBL', 'MDR'], classNote: 'non-susceptible in 6 antibiotic classes; carbapenems susceptible (D-178).' },
+    blocked: '', rule: null, classLabel: t('microbiology.case.resistanceProfile', 'Resistance profile'), classTags: ['ESBL', 'MDR'], classNote: 'non-susceptible in 6 antibiotic classes; carbapenems susceptible .' },
   critical: [
     { id: 'c1', target: 'Gram stain GS-1', to: 'Dr. Kaia, Medical ward 3', method: 'Phone', msg: 'Positive blood culture, Gram-negative bacilli, set 1', outcome: t('callback.outcome.confirmed', 'Read back confirmed'), status: 'Closed' },
     { id: 'c2', target: 'Test T-1 (BCID2)', to: 'Dr. Kaia, Medical ward 3', method: 'Phone', msg: 'K. pneumoniae with CTX-M (likely ESBL): ceftriaxone not effective', outcome: t('callback.outcome.confirmed', 'Read back confirmed'), status: 'Closed' }],
@@ -652,7 +639,7 @@ function ChildEditor({ m, onSave, onCancel }) {
   );
 }
 
-/* ---------- Program questions: the Program's questionnaire from the existing Programs admin (D-186) ---------- */
+/* ---------- Program questions: the Program's questionnaire from the existing Programs admin  ---------- */
 const QUESTIONNAIRES = {
   'TB Program': [{ q: 'TB history', type: 'select', opts: ['New', 'Previously treated', 'DR-TB contact'], req: true }, { q: 'Treatment month', type: 'number' }, { q: 'Specimen number', type: 'text', value: 'TB-2026-0417/2' }, { q: 'Collection timing', type: 'select', opts: ['Spot', 'Early morning'] }, { q: 'Collection method', type: 'select', opts: ['Expectorated', 'Induced', 'Aspirate'] }],
   'AMR surveillance': [{ q: 'Device in place at collection', type: 'select', opts: ['None', 'Urinary catheter', 'Central line', 'Ventilator'] }, { q: 'Antibiotics in the last 48 hours', type: 'select', opts: ['No', 'Yes', 'Unknown'] }],
@@ -715,7 +702,7 @@ function CaseHeader() {
         )}
         <Column lg={4}><small>{t('microbiology.case.program', 'Program')}</small>
           <div>{program || t('microbiology.case.programNotSet', 'Program not set')} {track && <Tag type={track === 'TB' ? 'purple' : 'teal'} size="sm">{track} track</Tag>}</div>
-          <small>Set in Case information; brings its questions and decides the exports (D-178)</small></Column>
+          <small>Set in Case information; brings its questions and decides the exports </small></Column>
         <Column lg={4}><small>{t('microbiology.case.labUnit', 'Lab unit')}</small>
           <div>{labUnit} <Button kind="ghost" size="sm" onClick={() => setChanging(!changing)}>{t('microbiology.case.changeLabUnit', 'Change lab unit')}</Button></div></Column>
         <Column lg={4}><small>{t('label.stage', 'Stage')}</small><div>{ex.stage.map(([k, l]) => <Tag key={l} type={k}>{l}</Tag>)}{ex.priority && <Tag type="red">{ex.priority}</Tag>}</div></Column>
@@ -732,7 +719,7 @@ function CaseHeader() {
       {changing && (
         <Tile style={{ marginTop: 'var(--cds-spacing-05)' }}>
           <Select id="new-lu" labelText={t('microbiology.case.newLabUnit', 'New lab unit')} value={labUnit} onChange={(e) => setLabUnit(e.target.value)}
-            helperText={t('microbiology.case.changeLabUnit.helper', 'Moves the case: Worklist and edit rights follow the new lab unit. Program and tests do not change; if that lab unit already has a case for this order and sample type, you can join it.')}>
+            helperText={t('microbiology.case.changeLabUnit.helper', 'Moves the case: Worklist and edit rights follow the new lab unit. Program and tests do not change; if that lab unit already has a case for this order and sample type, both cases remain separate. Joining existing cases is deferred.')}>
             <SelectItem value="TB" text="TB" />
             <SelectItem value="Microbiology" text="Microbiology" />
           </Select>
@@ -787,7 +774,7 @@ function CaseInformation() {
         </Column>
         <Column lg={4}>
           <Select id="purpose" labelText={`${t('microbiology.culturePurpose.label', 'Culture purpose')} *`} value={purpose} onChange={(e) => setPurpose(e.target.value)}
-            helperText={t('microbiology.case.purpose.helper', 'Default Diagnostic. Only Diagnostic counts in the antibiogram and GLASS.')}>
+            helperText={t('microbiology.case.purpose.helper', 'Default Diagnostic. Purpose is retained for surveillance selection. Antibiogram and GLASS are future capabilities.')}>
             {PURPOSES.map(([v, l]) => <SelectItem key={v} value={v} text={l} />)}
           </Select>
         </Column>
@@ -972,7 +959,7 @@ function ReferralPoint() {
   );
 }
 
-/* ---------- Culture with the work-up under each row (A-05, A-10, D-173): no separate Growth work-up section ---------- */
+/* ---------- Culture with the work-up under each row (A-05, A-10): no separate Growth work-up section ---------- */
 // A culture can have several subcultures; each gets the next number for its parent (FR-10.1a)
 const subSuffix = (parent) => { const last = parent.split('-').pop(); return parent.includes('-SUB-') ? `${last}.` : last; };
 const nextSubIds = (rows, parent, count, lab) => {
@@ -1008,7 +995,7 @@ function Culture() {
     const r = rows.find((x) => x.id === id);
     setRows(rows.map((x) => (x.id === id ? positiveRow(x, v, ex.tech) : x)));
     if (r && r.state !== 'Positive' && r.bottle && !children.some((c) => c.from === id && c.test === 'Gram stain, culture')) {
-      // FR-10.1g, D-189: an ordinary reflex rule on the culture result adds it
+      // FR-10.1g, FR-10.1g: an ordinary reflex rule on the culture result adds it
       setChildren([...children, newChild('Gram stain, culture', id, children.filter((c) => c.test.startsWith('Gram')).length + 1, { rule: 'Blood culture result = Positive: Gram stain, culture', inLabOnly: false, at: v })]);
     }
   };
@@ -1083,7 +1070,7 @@ function Culture() {
                       <Stack orientation="horizontal" gap={1}>
                         {/* FR-10.1: the same Add menu on every culture and subculture row */}
                         <OverflowMenu size="sm" aria-label={t('microbiology.case.culture.add', 'Add')} iconDescription={t('microbiology.case.culture.add', 'Add')} renderIcon={Add} flipped>
-                          {/* D-183: Gram stain is the chooser with Gram stain, culture already picked; Test on this culture is the standard chooser */}
+                          {/*: Gram stain is the chooser with Gram stain, culture already picked; Test on this culture is the standard chooser */}
                           <OverflowMenuItem itemText={t('microbiology.case.gram.add', 'Gram stain')} onClick={() => setEditChild(addChild('Gram stain, culture', r.id))} />
                           <OverflowMenuItem itemText={t('microbiology.case.growth.testOnCulture', 'Test on this culture')} onClick={() => open('chooser', r)} />
                           <OverflowMenuItem itemText={t('microbiology.case.subculture', 'Subculture')} onClick={() => open('sub', r)} />
@@ -1359,7 +1346,7 @@ function Nonconformance() {
   );
 }
 
-/* ---------- Report (A-11, A-17): choices and the printed block grouped under four sub-headers (OGC-1111 FR-A42a, D-181) ---------- */
+/* ---------- Report (A-11, A-17): choices and the printed block grouped under four sub-headers (OGC-1111 FR-A42a) ---------- */
 const PRINT_GROUPS = [['initial', t('report.patient.micro.group.initial', 'Initial testing')], ['culture', t('report.patient.micro.group.culture', 'Culture')], ['ast', t('report.patient.micro.group.ast', 'AST / DST')], ['additional', t('report.patient.micro.group.additional', 'Additional testing')]];
 function ReportPrint({ items }) {
   const { ex, labUnit } = useEx();
@@ -1440,7 +1427,7 @@ function Report() {
             <Button size="sm" kind="secondary">{t('microbiology.case.report.releasePartial', 'Release partial report')}</Button>
             <Button size="sm" disabled>{t('microbiology.case.report.releaseFinal', 'Release final')}</Button>
           </Stack>
-          <p><small>{PROGRAM_TRACKS[program] === 'Bacterial' ? 'Bacterial track: after final release the isolate goes to the WHONET and GLASS-AMR exports.' : PROGRAM_TRACKS[program] === 'TB' ? 'TB track: the case goes to the NTP and GLASS-TB exports.' : 'No track until a Program is set.'}</small></p>
+          <p><small>{PROGRAM_TRACKS[program] === 'Bacterial' ? 'Bacterial track: eligible Diagnostic isolates can be selected for WHONET after final release. GLASS-AMR is future work.' : PROGRAM_TRACKS[program] === 'TB' ? 'TB track recorded for future NTP and GLASS-TB exports.' : 'No track until a Program is set.'}</small></p>
         </Column>
       </Grid>
     </Section>
@@ -1514,7 +1501,7 @@ export function MicrobiologyCaseView({ example = TB_EX }) {
 }
 
 /* ---------- Worklist: Needs attention (A-12) ---------- */
-/* ---------- Worklist bench work (FR-12.6, D-172): no run, no batch record ---------- */
+/* ---------- Worklist bench work (FR-12.6, FR-12.6): no run, no batch record ---------- */
 const AWAITING = [
   { id: 'a1', lab: 'CPHL26-004820', who: 'Grace Wari', spec: 'Urine, midstream', st: 'Urine', rec: '01 Oct 08:10' },
   { id: 'a2', lab: 'CPHL26-004821', who: 'Peter Gima', spec: 'Urine, catheter', st: 'Urine', rec: '01 Oct 08:22' },
@@ -1535,7 +1522,7 @@ const DUE_ROWS = [
 const INOC_TEMPLATE = { sampleType: 'Urine', name: 'Bacterial culture, Urine (CLED agar plate, Blood agar (sheep) plate)', media: [{ code: 'CLED', name: 'CLED agar plate', lots: ['CLED-26-201, exp 11/2026', 'CLED-26-188, exp 10/2026 (expiring)'] }, { code: 'BA', name: 'Blood agar (sheep) plate', lots: ['BA-26-117, exp 10/2026', 'BA-26-121, exp 12/2026'] }] };
 const skipReason = (r) => (r.instr ? t('microbiology.worklist.skip.instrumentNegative', 'needs Confirm (instrument negative)') : r.growth ? t('microbiology.worklist.skip.growthRecorded', 'growth already recorded, open the case') : null);
 
-// FR-12.6c: one template and one lot per tracked medium for many cases; an inline Tile, not a modal (D-005)
+// FR-12.6c: one template and one lot per tracked medium for many cases; an inline Tile, not a modal
 function InoculatePanel({ cases, onSave, onCancel }) {
   const [lots, setLots] = useState({});
   const missing = INOC_TEMPLATE.media.filter((m) => !lots[m.code]).map((m) => m.name);
@@ -1555,7 +1542,7 @@ function InoculatePanel({ cases, onSave, onCancel }) {
             </Column>
           ))}
         </Grid>
-        <small>{t('microbiology.worklist.inoculateSummary', `Creates ${cases.length * INOC_TEMPLATE.media.length} plates on ${cases.length} cases: ${INOC_TEMPLATE.media.map((m) => `${m.code} ${cases.length}`).join(', ')}`)}. Container IDs {cases[0].lab}-CLED-1 and so on; lots recorded, stock not changed (D-169).</small>
+        <small>{t('microbiology.worklist.inoculateSummary', `Creates ${cases.length * INOC_TEMPLATE.media.length} plates on ${cases.length} cases: ${INOC_TEMPLATE.media.map((m) => `${m.code} ${cases.length}`).join(', ')}`)}. Container IDs {cases[0].lab}-CLED-1 and so on; lots recorded, stock not changed .</small>
         <Stack orientation="horizontal" gap={3}>
           <Button size="sm" disabled={missing.length > 0} onClick={() => onSave(lots)}>{t('common.save', 'Save')}</Button>
           <Button size="sm" kind="ghost" onClick={onCancel}>{t('common.cancel', 'Cancel')}</Button>
@@ -1565,7 +1552,7 @@ function InoculatePanel({ cases, onSave, onCancel }) {
   );
 }
 
-/* ---------- Bench sheet (FR-12.7, D-174): print-ready page from a Worklist filter; Open sheet reopens it by number ---------- */
+/* ---------- Bench sheet (FR-12.7, FR-12.7): print-ready page from a Worklist filter; Open sheet reopens it by number ---------- */
 const SHEET_TITLES = { attention: 'Needs attention', awaiting: 'Awaiting inoculation', check: 'Check due', final: 'Final read due' };
 const SHEET_TEMPLATES = { Urine: ['CLED agar plate', 'Blood agar (sheep) plate'] };
 // reading sheets group by medium, inoculation sheets by sample type, then lab number (FR-12.7b)
@@ -1677,7 +1664,7 @@ export function MicrobiologyWorklist() {
   const say = (msg, undo) => setToast({ msg, undo });
   const [wlExt, setWlExt] = useState(null); // FR-12.6e: Extend 24 h on a Final read due row
   const [wlExtReason, setWlExtReason] = useState('');
-  const byUrgency = (a, b) => (b.stat ? 1 : 0) - (a.stat ? 1 : 0) || (b.over || 0) - (a.over || 0); // D-199: STAT first, then most overdue
+  const byUrgency = (a, b) => (b.stat ? 1 : 0) - (a.stat ? 1 : 0) || (b.over || 0) - (a.over || 0); //: STAT first, then most overdue
   const checks = due.filter((r) => r.kind === 'check').sort(byUrgency);
   const finals = due.filter((r) => r.kind === 'final').sort(byUrgency);
   const filterList = filter === 'check' ? checks : filter === 'final' ? finals : filter === 'awaiting' ? awaiting : [];
@@ -1885,8 +1872,8 @@ export function MicrobiologyWorklist() {
   );
 }
 
-/* ---------- Admin: Test catalog fields (case tests, Reportable), Programs, Dictionary, media links (FR-05.2a, D-208) ---------- */
-/* ---------- Test catalog: Opens a Microbiology case switch, Case role, case tests (FR-01.1, FR-01.1b, D-177, D-178) ---------- */
+/* ---------- Admin: Test catalog fields (case tests, Reportable), Programs, Dictionary, media links (FR-05.2a, FR-05.2a) ---------- */
+/* ---------- Test catalog: Opens a Microbiology case switch, Case role, case tests (FR-01.1, FR-01.1b) ---------- */
 function CaseTestsCatalog() {
   const [opens, setOpens] = useState('yes');
   const [role, setRole] = useState('direct');
@@ -1903,7 +1890,7 @@ function CaseTestsCatalog() {
       <Grid condensed>
         <Column lg={5}>
           <Select id="opens" labelText={t('catalog.test.opensMicroCase', 'Opens a Microbiology case')} value={opens} onChange={(e) => setOpens(e.target.value)}
-            helperText="Yes: the test opens or joins the case for its order, sample type and lab unit. There is no culture type (D-178).">
+            helperText="Yes: the test opens or joins the case for its order, sample type and lab unit. There is no culture type .">
             <SelectItem value="no" text={t('catalog.test.opensMicroCase.no', 'No')} />
             <SelectItem value="yes" text={t('catalog.test.opensMicroCase.yes', 'Yes')} />
           </Select>
@@ -1942,7 +1929,7 @@ function CaseTestsCatalog() {
   );
 }
 
-/* ---------- Programs admin (existing): Show on Microbiology case and Reporting track (FR-03.7, D-178) ---------- */
+/* ---------- Programs admin (existing): Show on Microbiology case and Reporting track (FR-03.7) ---------- */
 function ProgramsMicroColumns() {
   const [progs, setProgs] = useState([
     { id: 'p1', name: 'TB Program', show: true, track: 'tb', questions: 'TB history, treatment month' },
@@ -1971,16 +1958,16 @@ function ProgramsMicroColumns() {
           return c.value;
         }}
       />
-      <p><small>Ticked programs are the Program choices in Case information; the questionnaire shows there, and the track decides the exports (WHONET and GLASS-AMR: Bacterial; NTP and GLASS-TB: TB).</small></p>
+      <p><small>Ticked programs are the Program choices in Case information; the questionnaire shows there, and the track supports WHONET selection. GLASS and NTP exports remain future work.</small></p>
     </ExistingFence>
   );
 }
 
-/* ---------- Dictionary categories and the reflex rule micro uses (existing admin pages; D-187, D-189) ---------- */
+/* ---------- Dictionary categories and the reflex rule micro uses (existing admin pages; FR-06.1a, FR-10.1g) ---------- */
 function DictionaryAndReflex() {
   return (
     <Stack gap={4}>
-      <ExistingFence owner="Admin › Dictionary (built)" additions="seeded micro categories; no micro-only lists (D-187)">
+      <ExistingFence owner="Admin › Dictionary (built)" additions="seeded micro categories; no micro-only lists ">
         <SimpleTable
           headers={[{ key: 'cat', header: t('admin.dictionary.category', 'Category') }, { key: 'entries', header: t('admin.dictionary.entries', 'Seeded entries') }, { key: 'used', header: t('label.usedIn', 'Used in') }]}
           rows={[
@@ -1988,13 +1975,13 @@ function DictionaryAndReflex() {
             { id: 'd2', cat: 'Culture reading', entries: 'NG No growth; NF Normal flora; MG Mixed growth; SG Significant growth', used: 'Record reading; bench sheet codes' },
             { id: 'd3', cat: 'Culture quantity', entries: '<10³ CFU/mL; 10³ to 10⁴; 10⁴ to 10⁵; ≥10⁵ CFU/mL; scanty; +; ++; +++', used: 'Record reading' },
             { id: 'd4', cat: 'Subculture purpose', entries: 'Enrichment; Blind or terminal subculture; Purity; Other', used: 'Subculture from a row with no growth' },
-            { id: 'd7', cat: 'Reporting track', entries: 'Bacterial; TB; Mycology', used: 'Programs admin; surveillance exports (D-207)' },
+            { id: 'd7', cat: 'Reporting track', entries: 'Bacterial; TB; Mycology', used: 'Programs admin; surveillance exports ' },
             { id: 'd5', cat: 'Extend incubation reason', entries: 'Colonies too small to identify or pick; Slow-growing organism suspected; Fastidious organism suspected; Clinician request; Other', used: 'Extend incubation' },
             { id: 'd6', cat: 'Microscopy grade', entries: 'None; Rare; Few; Moderate; Many', used: 'Gram stain and other graded components' },
           ]}
         />
       </ExistingFence>
-      <ExistingFence owner="Admin › Reflex Tests (built)" additions="seeded rule on the culture result (D-189)">
+      <ExistingFence owner="Admin › Reflex Tests (built)" additions="seeded rule on the culture result ">
         <SimpleTable
           headers={[{ key: 'when', header: t('admin.reflex.when', 'When') }, { key: 'then', header: t('admin.reflex.then', 'Then add') }, { key: 'on', header: t('label.on', 'On') }, { key: 'status', header: t('label.status', 'Status') }]}
           rows={[{ id: 'rx1', when: 'Blood culture result = Positive', then: 'Gram stain, culture (In lab only off)', on: 'the bottle that turned positive', status: 'Active' }]}
@@ -2005,7 +1992,7 @@ function DictionaryAndReflex() {
   );
 }
 
-/* ---------- Workplan (existing page): Microbiology bench type and print layout (FR-12.7, D-188) ---------- */
+/* ---------- Workplan (existing page): Microbiology bench type and print layout (FR-12.7, FR-12.7) ---------- */
 // Route: the existing Workplan page (Workplan menu; confirm the route on testing.openelis-global.org); the Microbiology bench type is new
 export function WorkplanMicroBench() {
   const [type, setType] = useState('micro');
@@ -2063,7 +2050,7 @@ const MEDIA_LINKS = [
   { id: 'l4', item: 'Chocolate agar plate', type: 'Medium', sampleType: 'Sputum', order: '2', duration: '48 Hours', check: '24 Hours', atm: 'CO₂-enriched (5 to 10%), 35 °C', loop: '' },
   { id: 'l5', item: 'MacConkey agar plate', type: 'Medium', sampleType: 'Sputum', order: '3', duration: '48 Hours', check: '24 Hours', atm: 'Aerobic (ambient air), 35 °C', loop: '' },
 ];
-// D-208: plating is the culture test's media links in the built Test catalog Reagents section (test_reagent_link); no Plating templates admin
+// FR-05.2a: plating is the culture test's media links in the built Test catalog Reagents section (test_reagent_link); no Plating templates admin
 export function MediaLinksAdmin() {
   const [reqTracked, setReqTracked] = useState(false);
   const [blockSelf, setBlockSelf] = useState(false);
@@ -2077,7 +2064,7 @@ export function MediaLinksAdmin() {
         <BreadcrumbItem href="#">{t('admin.label', 'Admin Management')}</BreadcrumbItem>
         <BreadcrumbItem isCurrentPage>{t('catalog.test.reagentsAndMedia', 'Reagents and media')}: Bacterial culture</BreadcrumbItem>
       </Breadcrumb>
-      <ExistingFence owner="Test catalog Reagents section (built test_reagent_link)" additions="Microbiology medium items; sample type, order, duration, check every, loop volume; no quantity, no stock change (D-169, D-208)">
+      <ExistingFence owner="Test catalog Reagents section (built test_reagent_link)" additions="Microbiology medium items; sample type, order, duration, check every, loop volume; no quantity, no stock change ">
         <div><Button size="sm" renderIcon={Add}>{t('catalog.test.addReagentOrMedium', 'Add reagent or medium')}</Button></div>
         <SimpleTable
           headers={[{ key: 'item', header: t('label.item', 'Item') }, { key: 'type', header: t('label.type', 'Type') }, { key: 'sampleType', header: t('catalog.test.mediaLink.sampleType', 'Sample type') }, { key: 'order', header: t('catalog.test.mediaLink.order', 'Order') }, { key: 'duration', header: t('catalog.test.mediaLink.duration', 'Duration') }, { key: 'check', header: t('catalog.test.mediaLink.checkEvery', 'Check every') }, { key: 'atm', header: t('microbiology.case.inoc.atmTemp', 'Atmosphere, temperature') }, { key: 'loop', header: t('catalog.test.mediaLink.loopVolume', 'Loop volume') }]}
@@ -2086,18 +2073,18 @@ export function MediaLinksAdmin() {
         />
       </ExistingFence>
       <Grid condensed>
-        <Column lg={8}><Toggle id="req-tracked" labelText={t('microbiology.labUnit.requireTrackedMedia', 'Require tracked media')} labelA={t('label.off', 'Off')} labelB={t('label.on', 'On')} toggled={reqTracked} onToggle={setReqTracked} /><small>Lab unit setting (D-196): only tracked media with a usable lot; Add new hidden</small></Column>
-        <Column lg={8}><Toggle id="block-self" labelText={t('siteInfo.blockSelfValidation', 'Block self-validation')} labelA={t('label.off', 'Off')} labelB={t('label.on', 'On')} toggled={blockSelf} onToggle={setBlockSelf} /><small>Site setting (D-191): applies on Validation and on case validation</small></Column>
+        <Column lg={8}><Toggle id="req-tracked" labelText={t('microbiology.labUnit.requireTrackedMedia', 'Require tracked media')} labelA={t('label.off', 'Off')} labelB={t('label.on', 'On')} toggled={reqTracked} onToggle={setReqTracked} /><small>Lab unit setting : only tracked media with a usable lot; Add new hidden</small></Column>
+        <Column lg={8}><Toggle id="block-self" labelText={t('siteInfo.blockSelfValidation', 'Block self-validation')} labelA={t('label.off', 'Off')} labelB={t('label.on', 'On')} toggled={blockSelf} onToggle={setBlockSelf} /><small>Site setting : applies on Validation and on case validation</small></Column>
       </Grid>
     </Stack>
   );
 }
 
-/* ---------- Enter Order: samples and tests (Clinical Order Entry v4 FR-B14, FR-B12a v0.18; D-146, D-177) ---------- */
+/* ---------- Enter Order: samples and tests (Clinical Order Entry v4 FR-B14, FR-B12a v0.18; FR-02.3) ---------- */
 // No Microbiology section and no Program coupling: micro tests and lab unit case tests are picked in the ordinary
 // test picker. Only the "After save" tile is new, and it is drawn for review, not shown to reception.
 const CATALOG = [
-  // D-177: case tests (any number per lab unit) assign the case; the technician chooses the path on the case
+  //: case tests (any number per lab unit) assign the case; the technician chooses the path on the case
   { id: 'mcase', text: 'Microbiology case', note: 'Microbiology case test', generic: true },
   { id: 'tbcase', text: 'TB case', note: 'TB case test', generic: true },
   { id: 'bac', text: 'Bacterial culture', note: 'Microbiology', generic: true },
@@ -2119,7 +2106,7 @@ export function OrderSamplesAndTests() {
     { id: '-8', type: 'Isolate', site: '', time: '27 Sep 15:00', tests: ['Bacterial culture', 'VITEK 2 AST-N405'], elsewhere: { test: 'Bacterial culture', lab: 'Port Moresby General Hospital Laboratory', value: 'Escherichia coli' } },
   ]);
   const [split, setSplit] = useState(false);
-  const [sets, setSets] = useState({ '-2': '1', '-3': '1', '-4': '2', '-5': '2' }); // D-192: reception gives each bottle its set
+  const [sets, setSets] = useState({ '-2': '1', '-3': '1', '-4': '2', '-5': '2' }); //: reception gives each bottle its set
   const setWarn = [];
   ['1', '2', '3'].forEach((n) => { const b = samples.filter((sm) => sets[sm.id] === n); if (b.length === 1) setWarn.push(t('order.sample.set.warn.single', 'Set {0} has one bottle').replace('{0}', n)); const ty = b.map((x) => x.type); ty.forEach((x, k) => { if (ty.indexOf(x) !== k) setWarn.push(t('order.sample.set.warn.sameType', 'Set {0} has two {1} bottles').replace('{0}', n).replace('{1}', x.includes('anaerobic') ? 'anaerobic' : 'aerobic')); }); });
   const nSets = new Set(Object.values(sets)).size;
@@ -2137,11 +2124,11 @@ export function OrderSamplesAndTests() {
     { id: 'tb', test: 'TB case (first micro test on -1)', samples: '-1 Sputum', unit: 'TB', note: s1.includes('TB culture') ? 'The culture joins the same case' : 'No culture ordered: releases on the Xpert result; a reflex TB culture on RR joins it' },
     s1.includes('Bacterial culture') && { id: 'bac', test: 'Bacterial culture', samples: '-1 Sputum', unit: 'Microbiology', note: 'Another lab unit than the TB case: a related case on the same sample' },
     s1.includes('Fungal culture') && { id: 'fun', test: 'Fungal culture', samples: '-1 Sputum', unit: 'Microbiology', note: 'Same lab unit as a bacterial culture, so it joins that case' },
-    { id: 'bc', test: 'Blood culture case in Microbiology', samples: split ? '-2, -3 (split: -4, -5 are a related case)' : `-2 to -5: ${nSets} sets, 4 bottles`, unit: 'Microbiology', note: 'One case for the order; reception set the set numbers; site and time only warn (D-192)' },
-    iso && { id: 'iso', test: 'Bacterial culture case in Microbiology (received isolate)', samples: `${iso.id} Isolate`, unit: 'Microbiology', note: `Tested elsewhere: ${iso.elsewhere.lab}, reported ${iso.elsewhere.value}; opens with ISO-1 Received from that laboratory (D-194)` },
+    { id: 'bc', test: 'Blood culture case in Microbiology', samples: split ? '-2, -3 (split: -4, -5 are a related case)' : `-2 to -5: ${nSets} sets, 4 bottles`, unit: 'Microbiology', note: 'One case for the order; reception set the set numbers; site and time only warn ' },
+    iso && { id: 'iso', test: 'Bacterial culture case in Microbiology (received isolate)', samples: `${iso.id} Isolate`, unit: 'Microbiology', note: `Tested elsewhere: ${iso.elsewhere.lab}, reported ${iso.elsewhere.value}; opens with ISO-1 Received from that laboratory ` },
     { id: 'none', test: t('order.micro.tag.staysInResults', 'Stays in Results'), samples: '-6 Serum (RPR)', unit: 'Microbiology (serology)', note: 'RPR has Opens a Microbiology case: No, so it stays on Results' },
     { id: 'reflex', test: t('order.micro.summary.reflex', 'If {0}: adds {1}').replace('{0}', 'Blood culture result = Positive').replace('{1}', 'Gram stain, culture'), samples: 'the bottle that turns positive', unit: 'Microbiology', note: 'Reflex rule (Admin › Reflex Tests)' },
-    // D-177: a lab unit case test opens a case in that lab unit with Path: not chosen
+    //: a lab unit case test opens a case in that lab unit with Path: not chosen
     ...samples.filter((sm) => sm.tests.includes('Microbiology case') || sm.tests.includes('TB case')).map((sm) => ({ id: `case${sm.id}`, test: `${sm.tests.includes('TB case') ? 'TB case' : 'Microbiology case'} (lab unit case test)`, samples: `${sm.id} ${sm.type}`, unit: sm.tests.includes('TB case') ? 'TB' : 'Microbiology', note: 'No tests yet; the technician sets the Program and adds the tests on the case' })),
   ].filter(Boolean);
   return (
@@ -2154,7 +2141,7 @@ export function OrderSamplesAndTests() {
       <ExistingFence owner="Clinical Order Entry v4 samples and tests step (FR-B14 chooser)" additions="none; generic culture tests are ordinary catalog entries">
         <Grid condensed>
           <Column lg={6}>
-            <Select id="prog" labelText={t('common.program', 'Program')} defaultValue="tb" helperText="Never routes micro work (D-146); its questionnaire answers are the same record on the case (D-198)">
+            <Select id="prog" labelText={t('common.program', 'Program')} defaultValue="tb" helperText="Never routes micro work ; its questionnaire answers are the same record on the case ">
               <SelectItem value="" text="None" />
               <SelectItem value="tb" text="TB Program" />
               <SelectItem value="hiv" text="HIV Program" />
@@ -2199,7 +2186,7 @@ export function OrderSamplesAndTests() {
       </ExistingFence>
       <Tile>
         <h6>{t('order.micro.summary.title', 'What this order will open')}</h6>
-        <p><small>Live: updates as tests and samples change; saves nothing (D-190)</small></p>
+        <p><small>Live: updates as tests and samples change; saves nothing </small></p>
         {setWarn.length > 0 && <InlineNotification kind="warning" lowContrast hideCloseButton title="Check the sets" subtitle={`${setWarn.join('; ')}. You can still save.`} />}
         <SimpleTable
           headers={[{ key: 'test', header: 'Case opens for' }, { key: 'samples', header: 'Samples' }, { key: 'unit', header: 'Lab unit' }, { key: 'note', header: 'Note' }]}

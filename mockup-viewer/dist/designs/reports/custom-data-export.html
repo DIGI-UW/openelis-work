@@ -61,6 +61,7 @@
       border-left: 3px solid transparent; transition: background 0.1s;
       text-decoration: none; position: relative;
     }
+    button.nav-item { width:100%; background:transparent; border-top:0; border-right:0; border-bottom:0; font-family:inherit; text-align:left; }
     .nav-item:hover { background: #353535; color: #fff; }
     .nav-item.active { background: #393939; color: #fff; border-left-color: #0f62fe; }
     .nav-item.section-header { font-weight: 600; color: #e0e0e0; }
@@ -101,17 +102,6 @@
     .step-line { flex: 1; height: 2px; background: #e0e0e0; margin-top: 0.875rem; }
     .step-line.done { background: #0f62fe; }
 
-    /* ── Saved config bar ── */
-    .saved-config-bar {
-      background: #e8f0fe; border: 1px solid #a8c4f0; border-radius: 4px;
-      padding: 0.75rem 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
-    }
-    .saved-config-bar label { font-size: 0.8125rem; font-weight: 600; color: #1d3461; white-space: nowrap; }
-    .saved-config-select {
-      flex: 1; min-width: 200px; max-width: 380px;
-      border: 1px solid #a8c4f0; border-radius: 2px; padding: 0.375rem 0.625rem;
-      font-size: 0.8125rem; background: #fff; color: #161616;
-    }
     .btn-ghost-sm {
       background: none; border: 1px solid #0f62fe; color: #0f62fe;
       padding: 0.375rem 0.875rem; font-size: 0.8125rem; border-radius: 2px; cursor: pointer; font-family: inherit;
@@ -123,28 +113,108 @@
     .card-header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 0.875rem 1rem; border-bottom: 1px solid #e0e0e0; cursor: pointer;
-      user-select: none;
+      user-select: none; width: 100%; background: #fff; color: inherit; border-top: 0; border-left: 0; border-right: 0;
+      text-align: left; font-family: inherit;
     }
     .card-header:hover { background: #f9f9f9; }
     .card-title { font-size: 0.875rem; font-weight: 600; color: #161616; display: flex; align-items: center; gap: 0.5rem; }
     .card-body { padding: 1rem; }
 
-    /* ── PII badge ── */
-    .pii-badge {
-      font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 8px;
-      letter-spacing: 0.05em; text-transform: uppercase;
-      background: #fff0f0; color: #da1e28; border: 1px solid #ffb3b8;
-      cursor: help;
-    }
-    .var-count-badge { font-size: 10px; background: #dde1e7; color: #697077; padding: 2px 7px; border-radius: 8px; font-weight: 600; }
-    .var-count-badge.has-sel { background: #0f62fe; color: #fff; }
+    /* ── Start and report-type choices ── */
+    .start-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.35fr); gap:1rem; margin-bottom:1.5rem; }
+    .start-card { background:#fff; border:1px solid #c6c6c6; padding:1.25rem; min-height:180px; }
+    .start-card h2 { font-size:1rem; margin:0 0 0.5rem; }
+    .start-card p { color:#525252; font-size:0.8125rem; line-height:1.5; margin:0 0 1rem; }
+    .saved-report-list { display:flex; flex-direction:column; gap:0.5rem; }
+    .saved-report { display:flex; justify-content:space-between; gap:1rem; align-items:center; border-top:1px solid #e0e0e0; padding:0.75rem 0; }
+    .saved-report:first-child { border-top:0; padding-top:0; }
+    .saved-report strong { display:block; font-size:0.875rem; }
+    .saved-report span { display:block; color:#6f6f6f; font-size:0.75rem; margin-top:0.25rem; }
+    .type-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0.75rem; margin-bottom:1rem; }
+    .type-card { border:1px solid #8d8d8d; background:#fff; color:#161616; padding:1rem; text-align:left; cursor:pointer; font-family:inherit; min-height:120px; }
+    .type-card:hover { background:#f4f4f4; }
+    .type-card.selected { outline:2px solid #0f62fe; outline-offset:-2px; background:#edf5ff; }
+    .type-card strong { display:block; font-size:0.875rem; margin-bottom:0.375rem; }
+    .type-card span { display:block; font-size:0.75rem; color:#525252; line-height:1.45; }
+    .more-filters { margin-top:1rem; border-top:1px solid #e0e0e0; padding-top:1rem; }
+    .filter-summary { font-size:0.75rem; color:#525252; margin-left:0.5rem; }
+    .review-heading { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:0.5rem; }
+    .review-heading h4 { margin:0; }
+    .queue-actions { display:flex; flex-wrap:wrap; gap:0.375rem; }
+    .btn-table { border:0; background:#e8e8e8; color:#161616; padding:0.375rem 0.625rem; cursor:pointer; font-family:inherit; font-size:0.75rem; }
+    a.btn-table { text-decoration:none; display:inline-flex; align-items:center; }
+    .btn-table.primary { background:#0f62fe; color:#fff; }
+    .btn-table:hover { filter:brightness(0.96); }
+    .queue-detail td { background:#f4f4f4 !important; color:#525252; }
 
-    /* ── Variable grid ── */
-    .var-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.5rem; }
-    .var-check { display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.25rem; }
-    .var-check input[type=checkbox] { margin-top: 2px; cursor: pointer; flex-shrink: 0; accent-color: #0f62fe; }
-    .var-check label { font-size: 0.8125rem; color: #161616; cursor: pointer; line-height: 1.4; }
-    .var-note { font-size: 10px; color: #8d8d8d; font-style: italic; margin-left: 1.375rem; }
+    /* Column builder: the selected list is also the CSV output order. */
+    .column-builder { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:24px; align-items:start; background:#fff; padding:24px; border:1px solid #e0e0e0; }
+    .column-builder h2,.column-preview h2 { font-size:1rem; margin:0 0 8px; font-weight:600; }
+    .field-browser,.columns-pane { min-width:0; }
+    .columns-pane { padding-left:24px; border-left:1px solid #e0e0e0; position:sticky; top:16px; max-height:calc(100dvh - 160px); overflow:auto; }
+    .field-search { margin:16px 0 12px; }
+    .field-search .form-input { font-size:16px; }
+    .column-mobile-nav button { font:inherit; background:transparent; border:0; border-bottom:2px solid transparent; padding:8px; cursor:pointer; font-size:0.75rem; color:#525252; }
+    .column-mobile-nav button[aria-pressed=true] { border-bottom-color:#0f62fe; color:#161616; font-weight:600; }
+    .column-actions button:hover,.field-add:hover { background:#f4f4f4; }
+    .catalog-tools { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:32px; margin-bottom:8px; }
+    .catalog-tools .column-hint { margin:0; }
+    .catalog-expansion { display:flex; gap:16px; margin-bottom:8px; }
+    .catalog-expansion .btn-link { min-height:32px; font-size:0.75rem; }
+    .catalog-expansion .btn-link[aria-disabled=true] { color:#8d8d8d; cursor:default; text-decoration:none; }
+    .field-catalog { max-height:clamp(260px,52dvh,560px); overflow-y:auto; scrollbar-gutter:stable; padding-right:6px; }
+    .field-domain { border-top:1px solid #e0e0e0; }
+    .field-domain-heading { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    .field-domain-heading h3 { flex:1; min-width:0; font-size:0.875rem; font-weight:600; margin:0; }
+    .field-group-toggle { width:100%; display:flex; align-items:center; gap:8px; min-height:44px; text-align:left; border:0; background:transparent; padding:8px 0; color:#161616; font:inherit; cursor:pointer; }
+    .field-group-toggle:hover { background:#f4f4f4; }
+    .field-group-count { white-space:nowrap; font-size:0.75rem; color:#525252; }
+    .field-group-tools { display:flex; justify-content:space-between; align-items:baseline; gap:8px; padding-left:20px; }
+    .field-group-tools .column-hint { margin:0; }
+    .field-group-tools .btn-link { margin-left:auto; padding:4px 0; font-size:0.75rem; }
+    .column-hint { font-size:0.75rem; color:#525252; line-height:1.5; margin:6px 0 12px; }
+    .available-field-list,.selected-columns { list-style:none; padding:0; margin:8px 0 0; }
+    .available-field-list { margin:0 0 12px; }
+    .available-field-list li { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:44px; padding-left:20px; border-bottom:1px solid #f4f4f4; font-size:0.875rem; }
+    .field-add { color:#0f62fe; background:transparent; border:0; padding:10px 8px; font:inherit; font-size:0.8125rem; cursor:pointer; white-space:nowrap; }
+    .field-add[aria-disabled=true] { color:#6f6f6f; cursor:default; }
+    .selected-columns li { position:relative; display:grid; grid-template-columns:24px 18px minmax(0,1fr) auto; gap:6px; align-items:center; min-height:56px; padding:4px 0; border-bottom:1px solid #e0e0e0; }
+    .column-drag-handle { display:grid; place-items:center; align-self:stretch; min-height:36px; padding:0; border:0; background:transparent; color:#6f6f6f; cursor:grab; }
+    .column-drag-handle:active { cursor:grabbing; }
+    .column-drag-handle:hover { color:#161616; background:#f4f4f4; }
+    .selected-columns li.dragging { opacity:0.45; }
+    .selected-columns li.drop-before::before,.selected-columns li.drop-after::after { content:''; position:absolute; left:0; right:0; height:3px; background:#0f62fe; pointer-events:none; }
+    .selected-columns li.drop-before::before { top:-2px; }
+    .selected-columns li.drop-after::after { bottom:-2px; }
+    .column-number { color:#6f6f6f; font-size:0.75rem; }
+    .column-name { font-size:0.875rem; overflow-wrap:anywhere; }
+    .column-actions { display:flex; align-items:center; gap:4px; }
+    .column-actions button { display:grid; place-items:center; border:0; background:transparent; color:#525252; font:inherit; padding:0; width:28px; min-height:32px; cursor:pointer; }
+    .column-order-buttons { display:flex; flex-direction:column; }
+    .column-actions .column-order-buttons button { width:28px; min-width:28px; min-height:24px; height:24px; }
+    .column-actions button[aria-disabled=true] { color:#c6c6c6; cursor:default; }
+    .column-actions button[aria-disabled=true]:hover { background:transparent; }
+    .column-remove:hover { color:#da1e28; }
+    .column-empty { color:#525252; font-size:0.875rem; padding:20px 0; }
+    .column-feedback { min-height:20px; margin:8px 0 16px; color:#525252; font-size:0.75rem; }
+    .column-preview { background:#fff; border:1px solid #e0e0e0; padding:20px; }
+    .column-preview-scroll { overflow-x:auto; }
+    .column-preview table { width:100%; border-collapse:collapse; text-align:left; font-size:0.8125rem; }
+    .column-preview th,.column-preview td { min-width:130px; padding:12px; border-bottom:1px solid #e0e0e0; }
+    .column-preview th { background:#f4f4f4; font-weight:600; }
+    .review-columns { padding-left:24px; font-size:0.875rem; }
+    .review-columns li { padding:4px 0; }
+    .column-mobile-nav { display:none; }
+    @media(max-width:1050px) { .column-builder { padding:16px; gap:16px; } .columns-pane { padding-left:16px; } }
+    @media(max-width:700px) {
+      .column-mobile-nav { display:flex; border-bottom:1px solid #c6c6c6; margin-bottom:12px; }
+      .column-mobile-nav button { flex:1; font-size:0.875rem; min-height:44px; }
+      .column-builder { display:block; }
+      .columns-pane { padding:0; border:0; position:static; max-height:none; overflow:visible; }
+      .column-builder[data-view=browse] .columns-pane,.column-builder[data-view=columns] .field-browser { display:none; }
+      .column-actions button { min-width:40px; min-height:44px; }
+      .column-preview { padding:16px; }
+    }
 
     /* ── Filter panel ── */
     .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
@@ -233,7 +303,6 @@
     .sel-tag { display: inline-flex; align-items: center; gap: 4px; background: #e0e0e0; border-radius: 12px; font-size: 11px; padding: 2px 4px 2px 10px; color: #161616; }
     .sel-tag button { background: none; border: none; cursor: pointer; font-size: 11px; color: #525252; padding: 0 5px; border-radius: 50%; line-height: 1.4; }
     .sel-tag button:hover { background: #c6c6c6; color: #161616; }
-    .family-tag { background: #d0e2ff; color: #0043ce; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
 
     /* ── v1.1: grain-family / PII locking ── */
     .card.locked { opacity: 0.55; background: #fafafa; }
@@ -247,7 +316,6 @@
     .modal-box h4 { margin: 0 0 0.5rem; font-size: 0.95rem; color: #161616; }
     .modal-box p { margin: 0 0 1rem; font-size: 0.8125rem; color: #525252; }
     .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
-    .pii-sim-toggle { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #525252; white-space: nowrap; cursor: pointer; user-select: none; }
 
     /* ── v1.1: family color coding (Carbon tag palette) ── */
     .family-chip { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 12px; letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap; }
@@ -258,28 +326,42 @@
     .card.family-REFERRAL        { border-left: 4px solid #08bdba; }
     .card.family-NON_CONFORMANCE { border-left: 4px solid #ee5396; }
 
-    /* ── v1.1: family legend ── */
-    .family-legend { background: #fff; border: 1px solid #e0e0e0; padding: 0.75rem 1rem; margin-bottom: 1rem; }
-    .family-legend-title { font-size: 0.75rem; font-weight: 600; color: #161616; margin-bottom: 0.625rem; }
-    .family-legend-title span { font-weight: 400; color: #525252; }
-    .family-legend-chips { display: flex; flex-direction: column; gap: 7px; }
-    .family-legend-item { display: flex; align-items: center; gap: 10px; transition: opacity 0.15s; }
-    .family-legend-item.dimmed { opacity: 0.35; }
-    .family-legend-item.active .family-desc { font-weight: 600; color: #161616; }
-    .family-legend-item .family-desc { font-size: 11px; color: #525252; }
     .locked-banner { display: flex; align-items: center; gap: 0.75rem; }
     .locked-banner .btn-ghost-sm { flex-shrink: 0; }
+    @media(max-width:700px) { .locked-banner { flex-wrap:wrap; } .locked-banner > div { min-width:240px; } .locked-banner .btn-ghost-sm { margin-left:24px; } }
+    .product-view { flex:1; min-width:0; }
+    .review-controls { display:flex; flex-wrap:wrap; gap:12px; align-items:center; padding:8px 16px; background:#e0e0e0; color:#161616; font-size:12px; }
+    .review-controls label { display:flex; gap:8px; align-items:center; }
+    .review-controls select { padding:6px; }
+    button:focus-visible, input:focus-visible, select:focus-visible { outline:2px solid #0f62fe; outline-offset:2px; }
+    @media(max-width:700px) {
+      .sidebar { display:none; } .page-header,.page-body { padding:16px; } .page-header { flex-wrap:wrap; gap:12px; }
+      .var-grid,.filter-grid,.start-grid,.type-grid { grid-template-columns:1fr; }
+      .saved-report { align-items:flex-start; flex-direction:column; }
+      .preview-banner { flex-wrap:wrap; } .stepper { margin-top:16px; }
+      .queue-table,.queue-table tbody,.queue-table tr,.queue-table td { display:block; width:100%; }
+      .queue-table thead { display:none; }
+      .queue-table tr { border-bottom:8px solid #f4f4f4; padding:0.5rem 0; }
+      .queue-table td { border:0; display:grid; grid-template-columns:8rem minmax(0,1fr); gap:0.5rem; padding:0.5rem 1rem; }
+      .queue-table td::before { content:attr(data-label); font-size:0.7rem; font-weight:600; color:#6f6f6f; text-transform:uppercase; }
+      .queue-table td[data-label="Actions"] { display:block; }
+      .queue-table td[data-label="Actions"]::before { display:block; margin-bottom:0.5rem; }
+      .queue-detail td { display:block; }
+      .queue-detail td::before { display:none; }
+    }
   </style>
 </head>
 <body>
 <div class="preview-banner">
-  🔬 OpenELIS Design Preview v1.1 — Custom Data Export &amp; My Report Queue &nbsp;|&nbsp; Grain families enforced · QC domain removed · Tag-based selection (labels, not counts) &nbsp;|&nbsp; FRS: custom-data-export-frs-v1.1.md
+  OpenELIS reporting design — fictional examples only · no clinical-data, AI or sign-in requests
 </div>
 
 <div id="root"></div>
 
+<script src="custom-data-export-example.js"></script>
 <script type="text/babel">
-const { useState } = React;
+const { useState, useEffect } = React;
+const Example = OpenElisExportExample;
 
 // ─── Data catalog (FRS v1.1 — Section 5) ────────────────────────────────────
 const FAMILY_LABELS = {
@@ -367,8 +449,8 @@ const DOMAINS = [
     { key:'rejectedBy', label:'Rejected By' },
   ]},
 ];
-// NOTE (v1.1): Quality Control domain removed — no structured QC data model in
-// OpenELIS Global. Reintroduced via follow-up story when a QC model exists.
+// Quality Control export remains outside this approved MVP. OpenELIS now has
+// QC entities; a separate follow-on must define export mapping and row meaning.
 
 const VAR_LOOKUP = {};
 DOMAINS.forEach(d => d.vars.forEach(v => { VAR_LOOKUP[v.key] = { ...v, domain: d.label, family: d.family }; }));
@@ -380,12 +462,18 @@ const SAVED_CONFIGS = [
 ];
 
 const QUEUE_ROWS = [
-  { id:'JOB-1018', name:'HIV Program Monthly — Feb 2026',     status:'ready',      rows:12847, created:'Jul 14, 2026 09:12', size:'2.1 MB', expires:'Jul 21, 2026' },
-  { id:'JOB-1017', name:'Hematology TAT — Q2 2026',           status:'generating', rows:null,  created:'Jul 14, 2026 11:45', size:'—',      expires:'—' },
-  { id:'JOB-1016', name:'All Results Export — Jun 2026',      status:'queued',     rows:null,  created:'Jul 14, 2026 11:50', size:'~2 min wait', expires:'—' },
-  { id:'JOB-1015', name:'Rejections Extract — May 2026',      status:'expired',    rows:4201,  created:'Jun 30, 2026 14:30', size:'0.8 MB', expires:'Jul 7, 2026' },
-  { id:'JOB-1014', name:'Referrals Extract — May 2026',       status:'failed',     rows:null,  created:'Jun 29, 2026 08:05', size:'—',      expires:'—' },
+  { id:'DEMO-READY', name:'August virology example', status:'ready', rows:5, created:'Example', size:'CSV', expires:'7 days after generation', request:structuredClone(Example.august) },
+  { id:'DEMO-FAILED', name:'August virology — interrupted', status:'failed', rows:null, created:'Example', size:'—', expires:'—', request:structuredClone(Example.august) },
+  { id:'DEMO-EXPIRED', name:'July virology — expired', status:'expired', rows:0, created:'Example', size:'CSV', expires:'Expired', request:{...structuredClone(Example.august), startDate:'2026-07-01', endDate:'2026-07-31'} },
 ];
+function downloadExample(request) {
+  const href = URL.createObjectURL(new Blob([Example.csv(request)], {type:'text/csv;charset=utf-8'}));
+  const link = document.createElement('a'); link.href=href; link.download='openelis-virology-example.csv'; link.click();
+  setTimeout(() => URL.revokeObjectURL(href), 1000);
+}
+function exampleDownloadHref(request) {
+  return `data:text/csv;charset=utf-8,${encodeURIComponent(Example.csv(request))}`;
+}
 
 // ─── Components ──────────────────────────────────────────────────────────────
 
@@ -407,7 +495,7 @@ function TopHeader() {
           <option>EN</option><option>FR</option>
         </select>
         <button className="header-icon-btn" title="Notifications">🔔</button>
-        <div className="user-avatar" title="Lab Manager">LM</div>
+        <div className="user-avatar" title="Maya Chen · Virology staff">MC</div>
       </div>
     </header>
   );
@@ -453,14 +541,14 @@ function Sidebar({ activePage, onNav }) {
         <div className="nav-item" onClick={() => onNav('print-queue')}>
           Patient Report Print Queue
         </div>
-        <div className={`nav-item ${activePage === 'builder' ? 'active' : ''}`} onClick={() => onNav('builder')}>
+        <button type="button" className={`nav-item ${activePage === 'builder' ? 'active' : ''}`} onClick={() => onNav('builder')}>
           Custom Data Export
-          {activePage !== 'builder' && <span className="new-badge">NEW</span>}
-        </div>
-        <div className={`nav-item ${activePage === 'queue' ? 'active' : ''}`} onClick={() => onNav('queue')}>
+          {activePage !== 'builder' && <span className="new-badge" aria-hidden="true">NEW</span>}
+        </button>
+        <button type="button" className={`nav-item ${activePage === 'queue' ? 'active' : ''}`} onClick={() => onNav('queue')}>
           My Report Queue
-          {activePage !== 'queue' && <span className="new-badge">NEW</span>}
-        </div>
+          {activePage !== 'queue' && <span className="new-badge" aria-hidden="true">NEW</span>}
+        </button>
       </div>
 
       <hr className="sidebar-divider"/>
@@ -483,57 +571,157 @@ function StatusTag({ status }) {
 }
 
 // ─── Report Builder ───────────────────────────────────────────────────────────
-function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
+function ReportBuilder({ mode, setMode, draftStarted, setDraftStarted, onOverview, onGoToQueue, onSubmit, configs, setConfigs, restoreRequest, piiAccess, newExportToken }) {
   const [step, setStep] = useState(1);
-  const [openDomains, setOpenDomains] = useState(new Set(DOMAINS.map(d => d.id))); // all expanded by default (FR-1-002)
+  const [reportType, setReportType] = useState(null);
+  const [collapsedDomains, setCollapsedDomains] = useState(() => new Set(DOMAINS.map(d => d.id)));
+  const [collapsedSearchDomains, setCollapsedSearchDomains] = useState(new Set());
+  const [columnView, setColumnView] = useState('browse');
+  const [columnMessage, setColumnMessage] = useState('');
+  const columnFocus = React.useRef(null);
+  const draggedColumn = React.useRef(null);
+  const [draggedKey, setDraggedKey] = useState(null);
+  const [columnDrop, setColumnDrop] = useState(null);
   const [selected, setSelected] = useState(new Set());
-  const [startDate, setStartDate] = useState('2026-06-01');
-  const [endDate, setEndDate] = useState('2026-06-30');
-  const [labSection, setLabSection] = useState('all');
-  const [savedConfigId, setSavedConfigId] = useState('');
+  const [fieldSearch, setFieldSearch] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [dateAttempted, setDateAttempted] = useState(false);
+  const [labSection, setLabSection] = useState('Virology');
   const [configName, setConfigName] = useState('');
+  const [saveForLater, setSaveForLater] = useState(false);
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
   const [showOverwriteModal, setShowOverwriteModal] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
+  const [test, setTest] = useState('HIV viral load');
+  const [resultStatus, setResultStatus] = useState('Validated (finalized)');
+  const [sampleStatus, setSampleStatus] = useState('All statuses');
+  const [priority, setPriority] = useState('All priorities');
+  const [referringSite, setReferringSite] = useState('');
+  const [exportName, setExportName] = useState('');
+  const [message, setMessage] = useState('');
+  const request = { vars:[...selected], startDate, endDate, labSection, test, resultStatus, sampleStatus, priority, referringSite };
+  const applyRequest = choices => {
+    setDraftStarted(true);
+    setSelected(new Set(choices.vars)); setStartDate(choices.startDate || ''); setEndDate(choices.endDate || '');
+    const first = choices.vars && choices.vars.length ? VAR_LOOKUP[choices.vars[0]] : null;
+    setReportType(first ? first.family : null);
+    setLabSection(choices.labSection || 'Virology'); setTest(choices.test || ''); setResultStatus(choices.resultStatus || 'All statuses');
+    setSampleStatus(choices.sampleStatus || 'All statuses'); setPriority(choices.priority || 'All priorities'); setReferringSite(choices.referringSite || '');
+    setMessage(''); setDateAttempted(false); setColumnMessage(''); setColumnView('browse'); setFieldSearch(''); setCollapsedDomains(new Set(DOMAINS.map(d => d.id))); setCollapsedSearchDomains(new Set());
+  };
+  const startFresh = () => {
+    setDraftStarted(true);
+    setMode('builder'); setStep(1); setReportType(null); setCollapsedDomains(new Set(DOMAINS.map(d => d.id))); setCollapsedSearchDomains(new Set()); setSelected(new Set()); setFieldSearch('');
+    setStartDate(''); setEndDate(''); setDateAttempted(false); setLabSection('Virology'); setTest(''); setResultStatus('All statuses');
+    setSampleStatus('All statuses'); setPriority('All priorities'); setReferringSite(''); setExportName(''); setConfigName('');
+    setSaveForLater(false); setShowSaveSuccess(false); setMoreFiltersOpen(false); setMessage(''); setColumnMessage(''); setColumnView('browse');
+  };
+  useEffect(() => { if (newExportToken > 0) startFresh(); }, [newExportToken]);
+  useEffect(() => { if (restoreRequest) { applyRequest(Example.restore(restoreRequest)); setMode('builder'); setStep(2); setMessage('Selections restored. Choose a new reporting period.'); } }, [restoreRequest]);
 
-  // ── Grain family lock (FR-1-008): first selection locks the family ──
-  const activeFamily = selected.size > 0 ? VAR_LOOKUP[selected.values().next().value].family : null;
 
-  const toggleDomain = (id) => {
-    const next = new Set(openDomains);
-    next.has(id) ? next.delete(id) : next.add(id);
-    setOpenDomains(next);
+  // The report type is chosen explicitly before field selection. Mixed row grains remain invalid.
+  const activeFamily = reportType || (selected.size > 0 ? VAR_LOOKUP[selected.values().next().value].family : null);
+
+  const chooseReportType = (family) => {
+    if (selected.size > 0 && family !== reportType) return;
+    setReportType(family);
+    setCollapsedDomains(new Set(DOMAINS.map(d => d.id))); setCollapsedSearchDomains(new Set());
+    setFieldSearch('');
   };
 
-  const isDomainFamilyLocked = (d) => activeFamily !== null && d.family !== activeFamily;
-  const isDomainPiiLocked = (d) => d.pii && !piiAccess;
-  const isDomainLocked = (d) => isDomainFamilyLocked(d) || isDomainPiiLocked(d);
+  const changeFieldSearch = value => {
+    setFieldSearch(value);
+    // A new search reveals every matching group; clearing it restores browsing folds.
+    setCollapsedSearchDomains(new Set());
+  };
+  const toggleFieldGroup = id => {
+    const update = fieldSearch.trim() ? setCollapsedSearchDomains : setCollapsedDomains;
+    update(previous => {
+      const next = new Set(previous);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
 
-  const toggleVar = (key) => {
-    const meta = VAR_LOOKUP[key];
-    const domain = DOMAINS.find(d => d.id && d.vars.some(v => v.key === key));
-    if (!selected.has(key) && isDomainLocked(domain)) return; // guarded (checkbox also disabled)
+  const isDomainPiiLocked = domain => domain.pii && !piiAccess;
+  const isDomainLocked = domain => domain.family !== activeFamily || isDomainPiiLocked(domain);
+  useEffect(() => {
+    if (columnFocus.current) {
+      document.getElementById(columnFocus.current)?.focus();
+      columnFocus.current = null;
+    }
+  }, [selected, columnView]);
+
+  const addField = key => {
+    const domain = DOMAINS.find(d => d.vars.some(v => v.key === key));
+    if (selected.has(key) || isDomainLocked(domain)) return;
+    const next = new Set(selected); next.add(key); setSelected(next);
+    setColumnMessage(`${VAR_LOOKUP[key].label} added. ${next.size} columns.`);
+  };
+  const removeField = key => {
+    const keys = [...selected], index = keys.indexOf(key);
+    const next = new Set(selected); next.delete(key); setSelected(next);
+    const nextKey = [...next][Math.min(index, next.size - 1)];
+    columnFocus.current = nextKey ? `remove-column-${nextKey}` : 'field-search';
+    if (!next.size) setColumnView('browse');
+    setColumnMessage(`${VAR_LOOKUP[key].label} removed. ${next.size} columns.`);
+  };
+  const moveFieldTo = (key, to, focusId) => {
+    const keys = [...selected], from = keys.indexOf(key);
+    if (from < 0 || to < 0 || to >= keys.length || from === to) return;
+    keys.splice(from, 1); keys.splice(to, 0, key);
+    setSelected(new Set(keys));
+    columnFocus.current = focusId;
+    setColumnMessage(`${VAR_LOOKUP[key].label} moved to column ${to + 1}.`);
+  };
+  const moveField = (key, direction) => moveFieldTo(key, [...selected].indexOf(key) + direction, `move-${direction < 0 ? 'up' : 'down'}-${key}`);
+  const finishColumnDrag = () => {
+    draggedColumn.current = null; setDraggedKey(null); setColumnDrop(null);
+  };
+  const startColumnDrag = (event, key) => {
+    draggedColumn.current = key; setDraggedKey(key);
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', key);
+    event.dataTransfer.setDragImage(event.currentTarget.closest('li'), 12, 20);
+  };
+  const columnDropPosition = (event, key) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    return {key, after:event.clientY >= rect.top + rect.height / 2};
+  };
+  const overColumn = (event, key) => {
+    if (!draggedColumn.current) return;
+    event.preventDefault(); event.dataTransfer.dropEffect = 'move';
+    setColumnDrop(columnDropPosition(event, key));
+  };
+  const dropColumn = (event, key) => {
+    const source = draggedColumn.current;
+    if (!source) return;
+    event.preventDefault();
+    if (source !== key) {
+      const remaining = [...selected].filter(value => value !== source);
+      const target = remaining.indexOf(key);
+      if (target >= 0) moveFieldTo(source, target + (columnDropPosition(event, key).after ? 1 : 0), `drag-column-${source}`);
+    }
+    finishColumnDrag();
+  };
+  const changeShownFields = domain => {
+    const allAdded = domain.vars.every(v => selected.has(v.key));
+    if (!allAdded && isDomainLocked(domain)) return;
     const next = new Set(selected);
-    next.has(key) ? next.delete(key) : next.add(key);
+    const changedCount = domain.vars.filter(v => allAdded || !selected.has(v.key)).length;
+    domain.vars.forEach(v => allAdded ? next.delete(v.key) : next.add(v.key));
     setSelected(next);
+    setColumnMessage(`${changedCount} shown fields ${allAdded ? 'removed' : 'added'}. ${next.size} columns.`);
   };
 
-  const toggleAllDomain = (domain) => {
-    if (isDomainLocked(domain)) return;
-    const keys = domain.vars.map(v => v.key);
-    const allSel = keys.every(k => selected.has(k));
-    const next = new Set(selected);
-    if (allSel) keys.forEach(k => next.delete(k));
-    else keys.forEach(k => next.add(k));
-    setSelected(next);
+  const loadConfig = (id) => {
+    const cfg = configs.find(c => c.id === id);
+    if (cfg) { applyRequest(Example.restore(cfg)); setMode('builder'); setStep(2); setMessage('Saved report loaded. Choose a fresh reporting period.'); }
   };
 
-  const loadConfig = () => {
-    const cfg = SAVED_CONFIGS.find(c => c.id === savedConfigId);
-    if (cfg) setSelected(new Set(cfg.vars)); // locks family implicitly (FR-7-001)
-  };
-
-  const configNameExists = SAVED_CONFIGS.some(c => c.name.trim().toLowerCase() === configName.trim().toLowerCase());
+  const configNameExists = configs.some(c => c.name.trim().toLowerCase() === configName.trim().toLowerCase());
 
   const handleSaveConfig = () => {
     if (!configName.trim()) return;
@@ -541,52 +729,52 @@ function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
     doSave();
   };
   const doSave = () => {
+    const saved = {...Example.configuration(request), id:Date.now().toString(), name:configName.trim()};
+    setConfigs(previous => [...previous.filter(c => c.name.trim().toLowerCase() !== saved.name.toLowerCase()), saved]);
     setShowOverwriteModal(false);
     setShowSaveSuccess(true);
-    setTimeout(() => setShowSaveSuccess(false), 3000);
+
   };
 
-  const handleSubmit = () => setSubmitted(true);
+  const handleSubmit = () => {
+    const error = Example.dateError(request) || Example.limitation(request);
+    if (error) { setMessage(error); return; }
+    onSubmit(request, exportName.trim() || 'Virology export');
+    setMessage('Export submitted. Open My Report Queue to follow its progress.');
+  };
 
   // ── Date range calc (FR-2-007 / FR-2-010) ──
   const msPerDay = 86400000;
   const dayDiff = startDate && endDate ? Math.round((new Date(endDate) - new Date(startDate)) / msPerDay) + 1 : 0;
-  const rangeInvalid = dayDiff <= 0;
+  const datesMissing = !startDate || !endDate;
+  const rangeInvalid = !datesMissing && dayDiff <= 0;
   const rangeTooLarge = dayDiff > MAX_RANGE_DAYS;
 
   // Simulated estimate
-  const rowEst = 12847;
+  const rowEst = Example.select(request).length;
   const isAsync = dayDiff > 7 || rowEst > 5000;
 
   const hasTestResultVars = [...selected].some(k => VAR_LOOKUP[k].domain === 'Test Results');
 
-  const steps = ['Select Variables', 'Set Filters', 'Review & Submit'];
-  const selectedVarList = DOMAINS.flatMap(d => d.vars.filter(v => selected.has(v.key)).map(v => ({ ...v, domain: d.label })));
+  const steps = ['Choose columns', 'Set Filters', 'Review & Submit'];
+  const selectedVarList = [...selected].map(key => VAR_LOOKUP[key]);
+  const searchTerm = fieldSearch.trim().toLowerCase();
+  const activeCollapsedDomains = searchTerm ? collapsedSearchDomains : collapsedDomains;
+  const visibleDomains = DOMAINS.filter(d => d.family === reportType).map(d => ({
+    ...d,
+    total: d.vars.length,
+    added: d.vars.filter(v => selected.has(v.key)).length,
+    vars: d.vars.filter(v => !searchTerm || `${d.label} ${v.label}`.toLowerCase().includes(searchTerm))
+  })).filter(d => d.vars.length > 0);
+  const allGroupsExpanded = visibleDomains.every(d => !activeCollapsedDomains.has(d.id));
+  const allGroupsCollapsed = visibleDomains.every(d => activeCollapsedDomains.has(d.id));
+  const changeAllFieldGroups = expanded => {
+    const update = searchTerm ? setCollapsedSearchDomains : setCollapsedDomains;
+    update(new Set(expanded ? [] : visibleDomains.map(d => d.id)));
+  };
+  const previewRows = selected.size > 0 && [...selected].every(key => Example.fields.includes(key)) ? Example.select(Example.august).slice(0, 2) : [];
+  const activeExtraFilters = [sampleStatus !== 'All statuses' ? sampleStatus : '', priority !== 'All priorities' ? priority : '', referringSite].filter(Boolean);
 
-  if (submitted) {
-    return (
-      <div className="main-content">
-        <div className="page-header">
-          <div>
-            <div className="breadcrumb">Reports <span onClick={() => setSubmitted(false)}>/ Custom Data Export</span> / Submitted</div>
-            <h1 className="page-title">Report Submitted</h1>
-          </div>
-        </div>
-        <div className="page-body">
-          <div className="inline-notification success">
-            <span>✅</span>
-            <div>
-              <strong>Your export has been queued.</strong> It will appear in <strong>My Report Queue</strong> when ready. Large reports may take a few minutes.
-            </div>
-          </div>
-          <div style={{display:'flex',gap:'0.75rem',marginTop:'1rem'}}>
-            <button className="btn-primary" onClick={onGoToQueue}>Go to My Report Queue</button>
-            <button className="btn-secondary" onClick={() => { setSubmitted(false); setStep(1); setSelected(new Set()); }}>Start New Export</button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="main-content">
@@ -594,18 +782,45 @@ function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
         <div>
           <div className="breadcrumb">Reports <span>/ Custom Data Export</span></div>
           <h1 className="page-title">Custom Data Export</h1>
-          <p className="page-subtitle">Select variables from one data family, set date filters, and download or queue your export.</p>
+          <p className="page-subtitle">Create a CSV for a new question or rerun a familiar report for a new period.</p>
         </div>
-        <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'0.5rem'}}>
+        <div className="queue-actions">
+          {mode === 'builder' && <button className="btn-secondary" onClick={onOverview}>← Export overview</button>}
           <button className="btn-secondary" onClick={onGoToQueue}>My Report Queue →</button>
-          <label className="pii-sim-toggle" title="Preview only: simulate DATA_EXPORT_PII_* permissions">
-            <input type="checkbox" checked={piiAccess} onChange={e => setPiiAccess(e.target.checked)}/>
-            Simulate PII permissions
-          </label>
         </div>
       </div>
 
       <div className="page-body">
+        <div className="inline-notification info" role="status">Fictional preview. The complete downloadable example uses August 2026 Virology results. No live source is connected.</div>
+        {message && <div className="inline-notification info" role="status">{message}</div>}
+
+        {mode === 'start' && (
+          <div className="start-grid">
+            <section className="start-card" aria-labelledby="new-export-title">
+              <h2 id="new-export-title">Create a new export</h2>
+              <p>Choose the kind of report, the fields you need, and a reporting period. Your work remains available if you visit the queue or need to sign in again.</p>
+              <div className="queue-actions">
+                <button className="btn-primary" onClick={startFresh}>Start a new export</button>
+                {draftStarted && <button className="btn-secondary" autoFocus onClick={() => setMode('builder')}>Continue current export</button>}
+              </div>
+            </section>
+            <section className="start-card" aria-labelledby="saved-reports-title">
+              <h2 id="saved-reports-title">Use a saved report</h2>
+              <p>Reuse saved fields and filters, then choose a fresh reporting period.</p>
+              <div className="saved-report-list">
+                {configs.map(c => (
+                  <div className="saved-report" key={c.id}>
+                    <div><strong>{c.name}</strong><span>{c.vars.length} saved fields · reporting period is never saved</span></div>
+                    <button className="btn-ghost-sm" onClick={() => loadConfig(c.id)}>Use report</button>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+        )}
+
+        {mode === 'builder' && (<>
+        <button className="btn-secondary" onClick={() => {applyRequest(Example.august); setMode('builder'); setStep(1);}}>Use fictional virology example</button>
         {/* Stepper */}
         <div className="stepper">
           {steps.map((s, i) => {
@@ -626,102 +841,105 @@ function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
         {/* ── Step 1: Variable Selection ── */}
         {step === 1 && (
           <>
-            {/* Saved config bar */}
-            <div className="saved-config-bar">
-              <label>📂 Load saved configuration:</label>
-              <select className="saved-config-select" value={savedConfigId} onChange={e => setSavedConfigId(e.target.value)}>
-                <option value="">— Select a saved configuration —</option>
-                {SAVED_CONFIGS.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-              <button className="btn-ghost-sm" disabled={!savedConfigId} onClick={loadConfig}>Load</button>
-            </div>
-
-            {/* Family legend (FR-1-009) — teaches the one-family rule before the lock */}
-            <div className="family-legend">
-              <div className="family-legend-title">Export families <span>— an export draws from one family; picking a variable locks the others</span></div>
-              <div className="family-legend-chips">
+            {selected.size === 0 && <><h2 style={{fontSize:'1rem',margin:'1.25rem 0 0.5rem'}}>What kind of information do you need?</h2>
+            <p style={{fontSize:'0.8125rem',color:'#525252',margin:'0 0 1rem'}}>Choose one report type so every CSV row has a clear meaning. You can change the type until you select fields.</p>
+            <div className="type-grid" role="radiogroup" aria-label="Report type">
                 {Object.keys(FAMILY_META).map(fid => (
-                  <div key={fid} className={`family-legend-item ${activeFamily === fid ? 'active' : ''} ${activeFamily && activeFamily !== fid ? 'dimmed' : ''}`}>
-                    <span className={`family-chip ${FAMILY_META[fid].chipClass}`}>{FAMILY_LABELS[fid]}</span>
-                    <span className="family-desc">{FAMILY_META[fid].desc}</span>
-                  </div>
+                  <button key={fid} role="radio" aria-checked={reportType === fid} disabled={selected.size > 0 && reportType !== fid}
+                    className={`type-card ${reportType === fid ? 'selected' : ''}`} onClick={() => chooseReportType(fid)}>
+                    <strong>{FAMILY_LABELS[fid]}</strong><span>{FAMILY_META[fid].desc}</span>
+                  </button>
                 ))}
-              </div>
             </div>
 
-            {/* Helper banner (FR-1-008): intro before lock, escape hatch after */}
-            {!activeFamily ? (
+            </>}
+            {!reportType ? (
               <div className="inline-notification info">
                 <span>ℹ️</span>
-                <div>Select the variables you want in your export. <strong>PII fields</strong> require additional permissions.</div>
+                <div>Choose a report type to see its fields.</div>
               </div>
             ) : (
               <div className="inline-notification info locked-banner">
-                <span>🔒</span>
-                <div style={{flex:1}}>You're building a <strong>{FAMILY_LABELS[activeFamily]}</strong> export. The other families are locked — clear your selections to switch.</div>
-                <button className="btn-ghost-sm" onClick={() => setSelected(new Set())}>Clear all selections</button>
+                <span>ℹ️</span>
+                <div style={{flex:1}}>You're building a <strong>{FAMILY_LABELS[reportType]}</strong> report. Fields with identifying data require additional permission.</div>
+                {selected.size > 0 && <button className="btn-ghost-sm" onClick={() => {setSelected(new Set()); setReportType(null);}}>Change type and clear fields</button>}
               </div>
             )}
 
-            {/* Selection summary — labels + count (Constitution II) */}
-            {selected.size > 0 && (
-              <div className="sel-summary">
-                <span className={`family-chip ${FAMILY_META[activeFamily].chipClass}`}>{FAMILY_LABELS[activeFamily]} export</span>
-                <span className="sel-count">{selected.size} variable{selected.size !== 1 ? 's' : ''} selected:</span>
-                {selectedVarList.map(v => (
-                  <span className="sel-tag" key={v.key}>
-                    {v.label}
-                    <button title={`Remove ${v.label}`} onClick={() => toggleVar(v.key)}>✕</button>
-                  </span>
-                ))}
+            {reportType && <>
+              <div className="column-mobile-nav" role="group" aria-label="Column builder views">
+                <button type="button" aria-pressed={columnView === 'browse'} onClick={() => setColumnView('browse')}>Available fields</button>
+                <button type="button" aria-pressed={columnView === 'columns'} onClick={() => setColumnView('columns')}>Your columns ({selected.size})</button>
               </div>
-            )}
-
-            {DOMAINS.map(domain => {
-              const domainSelCount = domain.vars.filter(v => selected.has(v.key)).length;
-              const familyLocked = isDomainFamilyLocked(domain);
-              const piiLocked = isDomainPiiLocked(domain);
-              const locked = familyLocked || piiLocked;
-              const isOpen = openDomains.has(domain.id) && !locked;
-              return (
-                <div className={`card family-${domain.family} ${locked ? 'locked' : ''}`} key={domain.id}>
-                  <div className="card-header" onClick={() => !locked && toggleDomain(domain.id)}>
-                    <div className="card-title">
-                      {locked && <span title={familyLocked
-                        ? `Not available with ${FAMILY_LABELS[activeFamily]} variables — an export draws from one data family at a time`
-                        : `Requires Data Export PII ${domain.pii === 'DEMOGRAPHICS' ? 'Demographics' : 'Identifiers'} permission`}>🔒</span>}
-                      {domain.label}
-                      <span className={`family-chip ${FAMILY_META[domain.family].chipClass}`}>{FAMILY_LABELS[domain.family]}</span>
-                      {domain.pii && <span className="pii-badge" title="Contains patient-identifying data — requires additional permission; exports including these fields are audited">PII</span>}
-                      <span className={`var-count-badge ${domainSelCount > 0 ? 'has-sel' : ''}`}>{domainSelCount}/{domain.vars.length}</span>
-                      {familyLocked && <span className="lock-note">Not available with {FAMILY_LABELS[activeFamily]} variables</span>}
-                      {!familyLocked && piiLocked && <span className="lock-note">Requires PII permission — visible but locked</span>}
-                    </div>
-                    <div style={{display:'flex',gap:'0.5rem',alignItems:'center'}}>
-                      {isOpen && (
-                        <button className="btn-ghost-sm" style={{fontSize:'11px',padding:'2px 8px'}}
-                          onClick={e => { e.stopPropagation(); toggleAllDomain(domain); }}>
-                          {domain.vars.every(v => selected.has(v.key)) ? 'Deselect all' : 'Select all'}
-                        </button>
-                      )}
-                      <span style={{color:'#8d8d8d',fontSize:'12px'}}>{isOpen ? '▲' : '▼'}</span>
-                    </div>
+              <div className="column-builder" data-view={columnView}>
+                <section className="field-browser" aria-labelledby="available-fields-title">
+                  <h2 id="available-fields-title">Available fields</h2>
+                  <div className="form-group field-search"><label htmlFor="field-search">Find a field</label><input id="field-search" className="form-input" type="search" placeholder="Search all fields and groups…" value={fieldSearch} onChange={e => changeFieldSearch(e.target.value)} aria-describedby="catalog-summary"/></div>
+                  <div className="catalog-tools">
+                    <p className="column-hint" id="catalog-summary" role="status">{visibleDomains.reduce((sum,d) => sum+d.vars.length,0)} {searchTerm ? 'matching fields' : 'fields'} across {visibleDomains.length} groups</p>
+                    {searchTerm && <button type="button" className="btn-link" onClick={() => {changeFieldSearch(''); document.getElementById('field-search')?.focus();}}>Clear search</button>}
                   </div>
-                  {isOpen && (
-                    <div className="card-body">
-                      <div className="var-grid">
-                        {domain.vars.map(v => (
-                          <div key={v.key} className="var-check">
-                            <input type="checkbox" id={v.key} checked={selected.has(v.key)} disabled={locked} onChange={() => toggleVar(v.key)}/>
-                            <label htmlFor={v.key}>{v.label}</label>
-                          </div>
-                        ))}
+                  {visibleDomains.length > 0 && <div className="catalog-expansion" role="group" aria-label="Expand or collapse field groups">
+                    <button type="button" className="btn-link" aria-disabled={allGroupsExpanded} onClick={() => {if (!allGroupsExpanded) changeAllFieldGroups(true);}}>Expand all</button>
+                    <button type="button" className="btn-link" aria-disabled={allGroupsCollapsed} onClick={() => {if (!allGroupsCollapsed) changeAllFieldGroups(false);}}>Collapse all</button>
+                  </div>}
+                  <div className="field-catalog" role="region" aria-label="Scrollable field catalog" tabIndex="0">
+                  {visibleDomains.map(domain => {
+                    const locked = isDomainLocked(domain);
+                    const allAdded = domain.vars.every(v => selected.has(v.key));
+                    const expanded = !activeCollapsedDomains.has(domain.id);
+                    return <section className="field-domain" key={domain.id} aria-labelledby={`domain-title-${domain.id}`}>
+                      <div className="field-domain-heading">
+                        <h3><button type="button" className="field-group-toggle" id={`domain-title-${domain.id}`} aria-expanded={expanded} aria-controls={`domain-fields-${domain.id}`} onClick={() => toggleFieldGroup(domain.id)}><span aria-hidden="true">{expanded ? '⌄' : '›'}</span>{domain.label}</button></h3>
+                        <span className="field-group-count">{domain.added} / {domain.total} added</span>
                       </div>
-                    </div>
-                  )}
+                      <div id={`domain-fields-${domain.id}`} hidden={!expanded}>
+                      <div className="field-group-tools">
+                        {domain.pii && <p className="column-hint">Identifying data{locked ? ' · Additional access required. Contact your administrator.' : ' · Exports are audited.'}</p>}
+                        {(!locked || allAdded) && <button className="btn-link" type="button" aria-label={`${allAdded ? 'Remove' : 'Add'} all shown ${domain.label} fields`} onClick={() => changeShownFields(domain)}>{allAdded ? 'Remove shown' : 'Add all shown'}</button>}
+                      </div>
+                      <ul className="available-field-list">
+                        {domain.vars.map(v => <li key={v.key}><span>{v.label}</span><button type="button" className="field-add" aria-label={`${selected.has(v.key) ? 'Added' : 'Add'} ${v.label}`} aria-disabled={locked || selected.has(v.key)} onClick={() => addField(v.key)}>{selected.has(v.key) ? 'Added' : locked ? 'Restricted' : '+ Add'}</button></li>)}
+                      </ul>
+                      </div>
+                    </section>;
+                  })}
+                  {!visibleDomains.length && <p className="column-empty">No fields match your search.</p>}
+                  </div>
+                </section>
+                <section className="columns-pane" aria-labelledby="your-columns-title">
+                  <h2 id="your-columns-title">Your CSV columns ({selected.size})</h2>
+                  <p className="column-hint" id="column-order-help">Drag a handle to change column order, or use the arrows.</p>
+                  <ol className="selected-columns" aria-label="CSV columns in order">
+                    {selectedVarList.map((v,index) => <li key={v.key} draggable onDragStart={e => startColumnDrag(e,v.key)} onDragEnd={finishColumnDrag} className={draggedKey === v.key ? 'dragging' : columnDrop?.key === v.key ? `drop-${columnDrop.after ? 'after' : 'before'}` : ''} onDragOver={e => overColumn(e,v.key)} onDrop={e => dropColumn(e,v.key)}>
+                      <button type="button" className="column-drag-handle" id={`drag-column-${v.key}`} title="Drag to reorder" aria-label={`Drag ${v.label} to reorder`} aria-description="Arrow keys move one position. Home moves to the first position and End to the last." aria-describedby="column-order-help"
+                        onKeyDown={e => {const destination = {ArrowUp:index-1, ArrowDown:index+1, Home:0, End:selectedVarList.length-1}[e.key]; if (destination !== undefined) {e.preventDefault(); moveFieldTo(v.key,destination,`drag-column-${v.key}`);}}}>
+                        <svg width="16" height="20" viewBox="0 0 16 20" aria-hidden="true" fill="currentColor"><circle cx="5" cy="4" r="1.5"/><circle cx="11" cy="4" r="1.5"/><circle cx="5" cy="10" r="1.5"/><circle cx="11" cy="10" r="1.5"/><circle cx="5" cy="16" r="1.5"/><circle cx="11" cy="16" r="1.5"/></svg>
+                      </button>
+                      <span className="column-number" aria-hidden="true">{index + 1}</span><span className="column-name">{v.label}</span>
+                      <div className="column-actions">
+                        <div className="column-order-buttons" role="group" aria-label={`Move ${v.label}`}>
+                          <button type="button" id={`move-up-${v.key}`} title="Move up" aria-label={`Move ${v.label} up`} aria-disabled={index === 0} onClick={() => moveField(v.key,-1)}><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="m4 10 4-4 4 4"/></svg></button>
+                          <button type="button" id={`move-down-${v.key}`} title="Move down" aria-label={`Move ${v.label} down`} aria-disabled={index === selectedVarList.length-1} onClick={() => moveField(v.key,1)}><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="m4 6 4 4 4-4"/></svg></button>
+                        </div>
+                        <button type="button" className="column-remove" id={`remove-column-${v.key}`} title="Remove column" aria-label={`Remove ${v.label}`} onClick={() => removeField(v.key)}><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="m4 4 8 8m0-8-8 8"/></svg></button>
+                      </div>
+                    </li>)}
+                  </ol>
+                  {!selected.size && <p className="column-empty">Add fields to build your CSV.</p>}
+                </section>
+              </div>
+              <p className="column-feedback" role="status" aria-live="polite">{columnMessage}</p>
+              {selected.size > 0 && <section className="column-preview" aria-labelledby="column-preview-title">
+                <h2 id="column-preview-title">CSV preview</h2>
+                <p className="column-hint">{previewRows.length ? 'Fictional August virology examples. Choose your reporting period and filters next.' : 'Column layout only. Fictional sample rows are available for the seven virology example fields.'}</p>
+                <div className="column-preview-scroll" tabIndex="0" role="region" aria-label="Scrollable CSV preview">
+                  <table aria-label="CSV column preview"><thead><tr>{selectedVarList.map(v => <th scope="col" key={v.key}>{v.label}</th>)}</tr></thead>
+                    <tbody>{previewRows.map((row,index) => <tr key={index}>{selectedVarList.map(v => <td key={v.key}>{row[v.key]}</td>)}</tr>)}</tbody>
+                  </table>
                 </div>
-              );
-            })}
+              </section>}
+            </>}
 
             <div className="action-bar">
               <button className="btn-primary" disabled={selected.size === 0}
@@ -746,18 +964,20 @@ function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
                 </div>
                 <div className="filter-grid">
                   <div className="form-group">
-                    <label>Date From *</label>
-                    <input className="form-input" type="date" value={startDate} onChange={e => setStartDate(e.target.value)}/>
+                    <label htmlFor="date-from">Date From *</label>
+                    <input className="form-input" id="date-from" type="date" aria-invalid={dateAttempted && !startDate} value={startDate} onChange={e => setStartDate(e.target.value)}/>
+                    {dateAttempted && !startDate && <div className="invalid-note" role="alert">Enter a start date.</div>}
                   </div>
                   <div className="form-group">
-                    <label>Date To *</label>
-                    <input className="form-input" type="date" value={endDate} onChange={e => setEndDate(e.target.value)}/>
+                    <label htmlFor="date-to">Date To *</label>
+                    <input className="form-input" id="date-to" type="date" aria-invalid={(dateAttempted && !endDate) || rangeInvalid || rangeTooLarge} value={endDate} onChange={e => setEndDate(e.target.value)}/>
+                    {dateAttempted && !endDate && <div className="invalid-note" role="alert">Enter an end date.</div>}
                     {rangeInvalid && <div className="invalid-note">Date To must be on or after Date From.</div>}
                     {!rangeInvalid && rangeTooLarge && <div className="invalid-note">Date range cannot exceed {MAX_RANGE_DAYS} days.</div>}
                   </div>
                 </div>
                 <div style={{fontSize:'0.8125rem',color:'#6f6f6f'}}>
-                  📅 Range: <strong>{rangeInvalid ? '—' : `${dayDiff} days`}</strong> &nbsp;·&nbsp; Max {MAX_RANGE_DAYS} days. Exports &gt;7 days or &gt;5,000 estimated rows are queued for async generation.
+                  📅 Range: <strong>{datesMissing || rangeInvalid ? 'Choose both dates' : `${dayDiff} days`}</strong> &nbsp;·&nbsp; Max {MAX_RANGE_DAYS} days. Exports &gt;7 days or &gt;5,000 estimated rows are queued for generation.
                 </div>
               </div>
             </div>
@@ -769,19 +989,34 @@ function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
               <div className="card-body">
                 <div className="filter-grid">
                   <div className="form-group">
-                    <label>Lab Sections</label>
-                    <select className="form-input form-select" value={labSection} onChange={e => setLabSection(e.target.value)}>
-                      <option value="all">All accessible sections</option>
-                      <option value="Hematology">Hematology</option>
-                      <option value="Microbiology">Microbiology</option>
-                      <option value="Chemistry">Chemistry</option>
-                      <option value="Serology / Immunology">Serology / Immunology</option>
+                    <label htmlFor="lab-section">Lab Sections</label>
+                    <select id="lab-section" className="form-input form-select" disabled value={labSection} onChange={e => setLabSection(e.target.value)}>
+                      <option value="Virology">Virology</option>
                     </select>
                   </div>
+                  {hasTestResultVars && <div className="form-group"><label htmlFor="test-filter">Test</label><select id="test-filter" className="form-input form-select" value={test} onChange={e=>setTest(e.target.value)}><option value="">All tests</option><option>HIV viral load</option></select></div>}
+                  <div className="form-group" title={!hasTestResultVars ? 'Available when Test Results variables are selected' : undefined}>
+                    <label style={{color: hasTestResultVars ? undefined : '#c6c6c6'}}>Result Status</label>
+                    <select aria-label="Result Status" className="form-input form-select" disabled={!hasTestResultVars} value={resultStatus} onChange={e=>setResultStatus(e.target.value)}>
+                      <option>All statuses</option>
+                      <option>Preliminary (technically accepted)</option>
+                      <option>Validated (finalized)</option>
+                      <option>Corrected</option>
+                    </select>
+                    {!hasTestResultVars && <div style={{fontSize:'10px',color:'#8d8d8d',marginTop:'2px'}}>Available when Test Results fields are selected</div>}
+                  </div>
+                </div>
+                <div className="more-filters">
+                  <button className="btn-link" aria-expanded={moreFiltersOpen} aria-controls="more-filter-fields" onClick={()=>setMoreFiltersOpen(v=>!v)}>
+                    {moreFiltersOpen ? 'Hide more filters' : 'Show more filters'}
+                  </button>
+                  {!moreFiltersOpen && activeExtraFilters.length > 0 && <span className="filter-summary">Active: {activeExtraFilters.join(' · ')}</span>}
+                </div>
+                {moreFiltersOpen && <div id="more-filter-fields" className="filter-grid" style={{marginTop:'1rem'}}>
                   {activeFamily === 'SAMPLE_TESTING' && (
                     <div className="form-group">
-                      <label>Sample Status</label>
-                      <select className="form-input form-select">
+                      <label htmlFor="sample-status">Sample Status</label>
+                      <select id="sample-status" className="form-input form-select" value={sampleStatus} onChange={e=>setSampleStatus(e.target.value)}>
                         <option>All statuses</option>
                         <option>Received</option>
                         <option>In Progress</option>
@@ -790,19 +1025,9 @@ function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
                       </select>
                     </div>
                   )}
-                  <div className="form-group" title={!hasTestResultVars ? 'Available when Test Results variables are selected' : undefined}>
-                    <label style={{color: hasTestResultVars ? undefined : '#c6c6c6'}}>Result Status</label>
-                    <select className="form-input form-select" disabled={!hasTestResultVars}>
-                      <option>All statuses</option>
-                      <option>Preliminary (technically accepted)</option>
-                      <option>Validated (finalized)</option>
-                      <option>Corrected</option>
-                    </select>
-                    {!hasTestResultVars && <div style={{fontSize:'10px',color:'#8d8d8d',marginTop:'2px'}}>Available when Test Results variables are selected</div>}
-                  </div>
                   <div className="form-group">
-                    <label>Priority</label>
-                    <select className="form-input form-select">
+                    <label htmlFor="priority">Priority</label>
+                    <select id="priority" className="form-input form-select" value={priority} onChange={e=>setPriority(e.target.value)}>
                       <option>All priorities</option>
                       <option>Routine</option>
                       <option>Urgent</option>
@@ -811,15 +1036,15 @@ function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
                   </div>
                   <div className="form-group">
                     <label>Referring Site</label>
-                    <input className="form-input" type="text" placeholder="Search referring sites…"/>
+                    <input aria-label="Referring Site" className="form-input" type="text" placeholder="Search referring sites…" value={referringSite} onChange={e=>setReferringSite(e.target.value)}/>
                   </div>
-                </div>
+                </div>}
               </div>
             </div>
 
             <div className="action-bar">
               <button className="btn-secondary" onClick={() => setStep(1)}>← Back</button>
-              <button className="btn-primary" disabled={rangeInvalid || rangeTooLarge} onClick={() => setStep(3)}>Next: Review &amp; Submit →</button>
+              <button className="btn-primary" disabled={rangeInvalid || rangeTooLarge} onClick={() => {setDateAttempted(true); if (!datesMissing && !rangeInvalid && !rangeTooLarge) setStep(3);}}>Next: Review &amp; Submit →</button>
             </div>
           </>
         )}
@@ -848,91 +1073,86 @@ function ReportBuilder({ onGoToQueue, piiAccess, setPiiAccess }) {
                   <span className={`family-chip ${FAMILY_META[activeFamily].chipClass}`}>{FAMILY_LABELS[activeFamily]} export</span>
                 </div>
                 <div className="review-section">
-                  <h4>Date Range</h4>
+                  <div className="review-heading"><h4>Date Range and filters</h4><button className="btn-link" onClick={() => setStep(2)}>Change</button></div>
                   <span className="var-pill">📅 {startDate} → {endDate} ({dayDiff} days, {FAMILY_DATE_ANCHOR[activeFamily]})</span>
                 </div>
                 <div className="review-section">
-                  <h4>Lab Scope</h4>
+                  <h4>Test and status</h4><p>{test || 'All tests'} · {resultStatus} · {sampleStatus} · {priority} {referringSite && '· ' + referringSite}</p><h4>Lab Scope</h4>
                   <span className="var-pill">🔬 {labSection === 'all' ? 'All accessible sections' : labSection}</span>
                 </div>
                 <div className="review-section">
-                  <h4>Selected Variables ({selectedVarList.length})</h4>
-                  {DOMAINS.map(d => {
-                    const dVars = selectedVarList.filter(v => v.domain === d.label);
-                    if (dVars.length === 0) return null;
-                    return (
-                      <div key={d.id} style={{marginBottom:'0.5rem'}}>
-                        <div style={{fontSize:'0.75rem',color:'#525252',marginBottom:'3px',fontWeight:'600'}}>{d.label}</div>
-                        {dVars.map(v => <span key={v.key} className="var-pill">{v.label}</span>)}
-                      </div>
-                    );
-                  })}
+                  <div className="review-heading"><h4>Selected Fields ({selectedVarList.length})</h4><button className="btn-link" onClick={() => setStep(1)}>Change</button></div>
+                  <ol className="review-columns" aria-label="CSV columns in order">{selectedVarList.map(v => <li key={v.key}>{v.label}</li>)}</ol>
                 </div>
               </div>
             </div>
 
-            {/* Export name */}
+            {/* File name */}
             <div className="card">
               <div className="card-header" style={{cursor:'default'}}>
-                <div className="card-title">Export Name <span style={{color:'#8d8d8d',fontSize:'0.75rem',fontWeight:'400'}}>(Optional — auto-generated if blank)</span></div>
+                <div className="card-title">File name <span style={{color:'#8d8d8d',fontSize:'0.75rem',fontWeight:'400'}}>(Optional — generated for you if blank)</span></div>
               </div>
               <div className="card-body">
-                <input className="form-input" type="text" placeholder="e.g. Hematology TAT Q2 2026" style={{maxWidth:'420px'}}/>
+                <input className="form-input" type="text" aria-label="File name" value={exportName} onChange={e=>setExportName(e.target.value)} placeholder="e.g. August virology results" style={{maxWidth:'420px'}}/>
               </div>
             </div>
 
             {/* Save configuration panel */}
             <div className="save-config-panel">
-              <h4>💾 Save this configuration for later</h4>
-              <p>Save your variable selection to quickly reload it next time. Date range is not saved.</p>
+              <label style={{display:'flex',alignItems:'center',gap:'0.5rem',fontWeight:600,fontSize:'0.875rem'}}>
+                <input type="checkbox" checked={saveForLater} onChange={e=>setSaveForLater(e.target.checked)}/>
+                Save these report settings for later
+              </label>
+              <p style={{marginTop:'0.5rem'}}>Saved report settings include fields, column order and filters. You choose a fresh reporting period each time.</p>
               {showSaveSuccess && (
                 <div className="inline-notification success" style={{marginBottom:'0.75rem'}}>
                   ✅ Configuration "<strong>{configName || 'My Config'}</strong>" saved.
                 </div>
               )}
-              <div className="save-config-row">
+              {saveForLater && <div className="save-config-row">
                 <div className="form-group">
-                  <label>Configuration Name</label>
-                  <input className="form-input" type="text" placeholder="e.g. Hematology Monthly TAT"
+                  <label htmlFor="configuration-name">Saved report name</label>
+                  <input className="form-input" type="text" id="configuration-name" placeholder="e.g. Monthly virology"
                     value={configName} onChange={e => setConfigName(e.target.value)}/>
                 </div>
-                <button className="btn-ghost-sm" disabled={!configName.trim()} onClick={handleSaveConfig} style={{marginBottom:'1px'}}>Save Configuration</button>
-              </div>
-              <div style={{fontSize:'11px',color:'#8d8d8d',marginTop:'0.5rem'}}>
+                <button className="btn-ghost-sm" disabled={!configName.trim()} onClick={handleSaveConfig} style={{marginBottom:'1px'}}>Save report settings</button>
+              </div>}
+              {saveForLater && <div style={{fontSize:'11px',color:'#8d8d8d',marginTop:'0.5rem'}}>
                 Tip: try saving as "Hematology Monthly TAT" to preview the overwrite confirmation.
-              </div>
+              </div>}
             </div>
 
             <div className="action-bar">
               <button className="btn-secondary" onClick={() => setStep(2)}>← Back</button>
               <button className="btn-primary" onClick={handleSubmit}>
-                {isAsync ? '⏳ Generate Export (queued)' : '⬇ Generate Export (downloads now)'}
+                {isAsync ? 'Create CSV and add to queue' : 'Create CSV'}
               </button>
             </div>
 
             {/* Overwrite confirmation modal (FR-7-002) */}
             {showOverwriteModal && (
               <div className="modal-overlay" onClick={() => setShowOverwriteModal(false)}>
-                <div className="modal-box" onClick={e => e.stopPropagation()}>
-                  <h4>Overwrite saved configuration?</h4>
-                  <p>A configuration named "<strong>{configName}</strong>" already exists. Overwrite it?</p>
+                <div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="overwrite-title" onClick={e => e.stopPropagation()}>
+                  <h4 id="overwrite-title">Replace saved report settings?</h4>
+                  <p>Saved report settings named "<strong>{configName}</strong>" already exist. Replace them?</p>
                   <div className="modal-actions">
                     <button className="btn-secondary" onClick={() => setShowOverwriteModal(false)}>Cancel</button>
-                    <button className="btn-danger" onClick={doSave}>Overwrite</button>
+                    <button className="btn-danger" onClick={doSave}>Replace</button>
                   </div>
                 </div>
               </div>
             )}
           </>
         )}
+        </>)}
       </div>
     </div>
   );
 }
 
 // ─── Report Queue ─────────────────────────────────────────────────────────────
-function ReportQueue({ onGoToBuilder }) {
-  const [rows, setRows] = useState(QUEUE_ROWS);
+function ReportQueue({ draftStarted, onOverview, onContinueDraft, onStartNew, rows, setRows, onRetry, onRerun }) {
+  const [expandedJob, setExpandedJob] = useState(null);
 
   const cancel = (id) => setRows(r => r.map(row => row.id === id ? {...row, status:'cancelled'} : row));
   const deleteRow = (id) => setRows(r => r.filter(row => row.id !== id));
@@ -945,14 +1165,18 @@ function ReportQueue({ onGoToBuilder }) {
           <h1 className="page-title">My Report Queue</h1>
           <p className="page-subtitle">View and download your queued CSV exports. Ready files are kept for 7 days (configurable).</p>
         </div>
-        <button className="btn-primary" onClick={onGoToBuilder}>+ New Export</button>
+        <div className="queue-actions">
+          <button className="btn-secondary" onClick={onOverview}>← Export overview</button>
+          {draftStarted && <button className="btn-secondary" onClick={onContinueDraft}>Continue current export</button>}
+          <button className="btn-primary" onClick={onStartNew}>New export</button>
+        </div>
       </div>
 
       <div className="page-body">
         {rows.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">📭</div>
-            <p>No export jobs found. <button className="btn-link" onClick={onGoToBuilder}>Create your first export.</button></p>
+            <p>No export jobs found. <button className="btn-link" onClick={onStartNew}>Create your first export.</button></p>
           </div>
         ) : (
           <div className="card" style={{padding:0,overflow:'hidden'}}>
@@ -960,45 +1184,50 @@ function ReportQueue({ onGoToBuilder }) {
               <thead>
                 <tr>
                   <th>Job Name</th>
+                  <th>Report</th>
+                  <th>Date Range</th>
                   <th>Status</th>
                   <th>Rows / File Size</th>
                   <th>Submitted At</th>
-                  <th>Expires</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map(row => (
-                  <tr key={row.id}>
-                    <td>
+                  <React.Fragment key={row.id}>
+                  <tr>
+                    <td data-label="Job Name">
                       <div style={{fontWeight:500}}>{row.name}</div>
                       <div style={{fontSize:'11px',color:'#8d8d8d'}}>{row.id}</div>
                     </td>
-                    <td><StatusTag status={row.status}/></td>
-                    <td>{row.rows ? `${row.rows.toLocaleString()} · ${row.size}` : row.size}</td>
-                    <td>{row.created}</td>
-                    <td style={{color: row.status==='expired' ? '#da1e28' : '#161616'}}>{row.expires}</td>
-                    <td>
-                      <div style={{display:'flex',gap:'4px'}}>
+                    <td data-label="Report">{FAMILY_LABELS[VAR_LOOKUP[row.request.vars[0]]?.family] || 'Report'}</td>
+                    <td data-label="Date Range">{row.request.startDate} – {row.request.endDate}</td>
+                    <td data-label="Status"><StatusTag status={row.status}/></td>
+                    <td data-label="Rows / File Size">{row.rows !== null ? `${row.rows.toLocaleString()} · ${row.size}` : row.size}</td>
+                    <td data-label="Submitted At">{row.created}</td>
+                    <td data-label="Actions">
+                      <div className="queue-actions">
                         {row.status === 'ready' && (
-                          <button className="btn-icon" title="Download CSV">⬇</button>
+                          <a className="btn-table primary" href={exampleDownloadHref(row.request)} download="openelis-virology-example.csv">Download</a>
                         )}
                         {row.status === 'queued' && (
-                          <button className="btn-icon" title="Cancel Job" onClick={() => cancel(row.id)}>✕</button>
+                          <button className="btn-table" onClick={() => cancel(row.id)}>Cancel</button>
                         )}
                         {row.status === 'failed' && (
-                          <button className="btn-icon" title="Retry">↺</button>
+                          <button className="btn-table primary" onClick={()=>onRetry(row.request,row.name + ' · retry')}>Retry</button>
                         )}
                         {row.status === 'expired' && (
-                          <button className="btn-icon" title="Re-run (date range not pre-filled)">▷</button>
+                          <button className="btn-table primary" title="Reporting period will be cleared" onClick={()=>onRerun(row.request)}>Re-run</button>
                         )}
                         {row.status !== 'generating' && (
-                          <button className="btn-icon" title="Delete" onClick={() => deleteRow(row.id)}>🗑</button>
+                          <button className="btn-table" onClick={() => deleteRow(row.id)}>Delete</button>
                         )}
-                        <button className="btn-icon" title="View details">👁</button>
+                        <button className="btn-table" aria-expanded={expandedJob===row.id} onClick={()=>setExpandedJob(expandedJob===row.id?null:row.id)}>Details</button>
                       </div>
                     </td>
                   </tr>
+                  {expandedJob === row.id && <tr className="queue-detail"><td colSpan="7"><strong>{row.request.test || 'All tests'}</strong> · {row.request.labSection || 'All accessible lab sections'} · one row per result · {row.expires}</td></tr>}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>
@@ -1024,22 +1253,46 @@ function ReportQueue({ onGoToBuilder }) {
 // ─── Root App ─────────────────────────────────────────────────────────────────
 function App() {
   const [page, setPage] = useState('builder');
-  const [piiAccess, setPiiAccess] = useState(true);
+  const [builderMode, setBuilderMode] = useState('start');
+  const [draftStarted, setDraftStarted] = useState(false);
+  const [piiAccess, setPiiAccess] = useState(false);
+  const [rows, setRows] = useState(QUEUE_ROWS);
+  const [configs, setConfigs] = useState(SAVED_CONFIGS);
+  const [restoreRequest, setRestoreRequest] = useState(null);
+  const [newExportToken, setNewExportToken] = useState(0);
+  const [outcome, setOutcome] = useState('success');
+  const [access, setAccess] = useState('signed-in');
+  const [jobMessage, setJobMessage] = useState('');
+  const submit = (request, name) => {
+    const copy = structuredClone(request), fail = outcome === 'failure'; setOutcome('success');
+    const count = Example.select(copy).length, days=(Date.parse(copy.endDate)-Date.parse(copy.startDate))/86400000+1;
+    const sync = !fail && count<=5000 && days<=7;
+    const id=Date.now().toString();
+    setRows(previous=>[{id,name,status:sync?'ready':'generating',rows:sync?count:null,size:'CSV',created:'Just now',expires:'7 days after generation',request:copy},...previous]);
+    if(sync) { downloadExample(copy); setJobMessage('Your fictional CSV is downloading.'); }
+    else setTimeout(()=>{setRows(previous=>previous.map(row=>row.id===id?{...row,status:fail?'failed':'ready',rows:fail?null:count}:row)); setJobMessage(fail?'Export failed. Your choices are retained; retry from My Report Queue.':'Your export is ready in My Report Queue.');},1800);
+  };
+  const rerun = request => { setRestoreRequest({...request}); setPage('builder'); };
+  const startNew = () => { setRestoreRequest(null); setNewExportToken(value => value + 1); setPage('builder'); };
 
+
+  const showOverview = () => { setBuilderMode('start'); setPage('builder'); };
+  const continueDraft = () => { setBuilderMode('builder'); setPage('builder'); };
   const handleNav = (dest) => {
-    if (dest === 'builder' || dest === 'queue') setPage(dest);
+    if (dest === 'builder') showOverview();
+    else if (dest === 'queue') setPage('queue');
     // Other nav items are decorative in this preview
   };
 
   return (
     <div className="app-shell">
-      <TopHeader/>
+      <div className="review-controls"><strong>Preview controls</strong><label>User state <select aria-label="User state" value={access} onChange={e=>setAccess(e.target.value)}><option value="signed-in">Maya Chen · Virology</option><option value="signed-out">Sign-in required</option><option value="restricted">No reporting access</option></select></label><label>Next export <select aria-label="Next export" value={outcome} onChange={e=>setOutcome(e.target.value)}><option value="success">Succeeds</option><option value="failure">Fails once</option></select></label><label title="Preview only: simulate identifying-data permissions"><input type="checkbox" checked={piiAccess} onChange={e=>setPiiAccess(e.target.checked)}/> Identifying-data access</label></div><TopHeader/>
+      {jobMessage && <div className="inline-notification info" role="status">{jobMessage}</div>}
       <div className="app-body">
         <Sidebar activePage={page} onNav={handleNav}/>
-        {page === 'builder'
-          ? <ReportBuilder onGoToQueue={() => setPage('queue')} piiAccess={piiAccess} setPiiAccess={setPiiAccess}/>
-          : <ReportQueue onGoToBuilder={() => setPage('builder')}/>
-        }
+        {access !== 'signed-in' && <main className="page-body"><h1>{access==='signed-out'?'Sign in to continue':'Reporting access is unavailable'}</h1><p>{access==='signed-out'?'Use your organization account. Your draft is retained.':'Contact your administrator to review your laboratory permissions.'}</p>{access==='signed-out'&&<button className="btn-primary" onClick={()=>setAccess('signed-in')}>Continue with organization account</button>}</main>}
+        <div className="product-view" style={{display:page==='builder'&&access==='signed-in'?'flex':'none'}}><ReportBuilder draftStarted={draftStarted} setDraftStarted={setDraftStarted} mode={builderMode} setMode={setBuilderMode} onOverview={showOverview} onGoToQueue={() => setPage('queue')} piiAccess={piiAccess} onSubmit={submit} configs={configs} setConfigs={setConfigs} restoreRequest={restoreRequest} newExportToken={newExportToken}/></div>
+        <div className="product-view" style={{display:page==='queue'&&access==='signed-in'?'flex':'none'}}><ReportQueue draftStarted={draftStarted} onOverview={showOverview} onContinueDraft={continueDraft} onStartNew={startNew} rows={rows} setRows={setRows} onRetry={submit} onRerun={rerun}/></div>
       </div>
     </div>
   );

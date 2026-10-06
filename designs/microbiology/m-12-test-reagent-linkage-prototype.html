@@ -25,26 +25,26 @@
  .panel{border:1px solid #0f62fe;background:#f7faff;border-radius:2px;padding:.9rem 1.1rem;margin-top:.8rem;}
 </style></head><body>
 <div class="pv">PREVIEW MOCKUP <strong>M-12</strong> Test–Reagent Linkage — reagents/consumables on a test + lot picker
-<span class="w">Reuses the existing <span style="background:#fff;color:#0f62fe;padding:0 3px;border-radius:2px;">Inventory module</span> — InventoryItem / InventoryLot / InventoryUsage. The ReagentLotPicker reads <code style="background:#fff;color:#0f62fe;">InventoryLot</code>, suggests FIFO, blocks expired/QC-failed lots, and on Select <strong>writes an InventoryUsage</strong> (consumption — already exists).</span></div>
+<span class="w">Shared Inventory lots show expiry and QC eligibility. Selecting a culture-medium lot records traceability only and never changes stock. Other reagents retain their own consumption policy.</span></div>
 <div class="ah"><span class="p">OpenELIS Global</span><span>· Admin · Test Catalog · Reagents</span></div>
 <div class="bc">Admin / Test Catalog / Mycobacterial culture (MGIT) / Reagents</div>
 <div class="main">
  <h2 class="pg">Reagents &amp; consumables — Mycobacterial culture (MGIT)</h2>
- <p class="sub">Link the reagents a test consumes, with usage type and quantity. Current stock shown from inventory.</p>
+ <p class="sub">Link culture media for traceability and other reagents with their usage type and quantity. Current stock shown from inventory.</p>
  <div style="margin-bottom:.6rem;"><button class="btn primary sm">+ Link reagent</button></div>
  <table class="t"><thead><tr><th>Reagent / consumable</th><th>Usage</th><th>Qty/test</th><th>In stock</th><th></th></tr></thead><tbody>
-  <tr><td>MGIT 960 tube</td><td><span class="tag pri">primary</span></td><td>1</td><td>240</td><td><button class="btn ghost sm">Edit</button></td></tr>
+  <tr><td>MGIT 960 tube</td><td><span class="tag pri">culture medium</span></td><td>Traceability only</td><td>240</td><td><button class="btn ghost sm">Edit</button></td></tr>
   <tr><td>NALC-NaOH decontamination kit</td><td><span class="tag">secondary</span></td><td>1</td><td>18</td><td><button class="btn ghost sm">Edit</button></td></tr>
   <tr><td>PANTA antibiotic supplement</td><td><span class="tag">secondary</span></td><td>0.5 mL</td><td>62</td><td><button class="btn ghost sm">Edit</button></td></tr>
  </tbody></table>
 
  <div class="panel">
-  <div style="font-size:13px;font-weight:600;margin-bottom:.6rem;">ReagentLotPicker — choosing a lot at inoculation (M-04)</div>
+  <div style="font-size:13px;font-weight:600;margin-bottom:.6rem;">Choose a culture-medium lot</div>
   <div class="lot exp"><span>MGIT 960 · lot <strong>MG-2304</strong></span><span style="color:#750e13;">expired 2026-04-30</span><span class="r"><span class="pill blk">blocked</span><button class="btn disabled sm">Select</button></span></div>
   <div class="lot ok"><span>MGIT 960 · lot <strong>MG-2511</strong></span><span style="color:#525252;">expires 2026-09-30 · opened 05-02</span><span class="r"><span class="pill fifo">FIFO — use first</span><button class="btn primary sm">Select</button></span></div>
   <div class="lot soon"><span>MGIT 960 · lot <strong>MG-2602</strong></span><span style="color:#684e00;">expires 2026-07-15</span><span class="r"><button class="btn sm">Select</button></span></div>
   <div style="font-size:12px;color:#6f6f6f;margin-top:.4rem;">Expired/locked lots are <strong>blocked</strong>; the picker highlights the <strong>FIFO</strong> recommendation (earliest-expiring open lot). Selecting records the lot on the inoculation for traceability.</div>
  </div>
- <div class="note"><strong>Mostly reuse, not new build.</strong> Lots/expiry/QC come from the existing <span style="font-family:monospace;">InventoryLot</span>; <strong>consumption + per-result traceability already exist</strong> as <span style="font-family:monospace;">InventoryUsage</span> (keyed to analysis_id / test_result_id) — selecting a lot writes one. The only genuinely new piece is the <strong>test↔reagent definition</strong> (<span style="font-family:monospace;">test_reagent_link</span>), which is owned by <strong>Test Catalog v2.5 (OGC-759)</strong> — M-12 contributes the picker + the result-entry wiring. Lot selection appears wherever media/cartridges are consumed (bacterial inoculation, TB decontamination/MGIT, GeneXpert cartridges).</div>
+ <div class="note"><strong>Culture media never consume stock.</strong> The culture records the chosen medium and lot. Inventory shows Used on cultures separately from stock. Required reagent links and non-media consumption retain their shared policy.</div>
 </div>
 </body></html>

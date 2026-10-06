@@ -190,6 +190,19 @@ The order-by MUST show **which tier it used** — e.g. "order by Jul 25 · 14d (
 - **Auto-consume is derived, not set:** an item is auto-consumed from test activity exactly when it has an active **Test↔Reagent link** (`test_reagent_link`). There is no auto-consume flag. Items without a link decrease via **record usage** (§4.6), count mode, and adjustments — and the projection basis (FR-2) reflects that ("based on recorded usage / count history").
 - **Where auto-consume events come from:** the deduction happens at **result entry**, owned by the Results Entry reagent-usage design — it writes a `ReagentConsumptionEvent` (which maps to the inventory `CONSUMPTION`/`InventoryUsage` record) when a result is saved, and credits back on void/downward edit. This Inventory module **consumes those events; it does not re-implement consumption capture at the bench.** Manual "record usage" (§4.6) covers items/tests not yet linked. **Access for recording usage at result entry is simply results-page access (`results.modify`) — no separate reagent permission** (§3).
 
+**Microbiology media:** **Microbiology medium** is a type tag and **Track lots**
+is the shared per-item setting. Tracked media need a usable lot; in-house batches
+are received as lots with batch number, preparing laboratory, preparation/expiry
+information, QC status and storage. Optional usual atmosphere and temperature
+pre-fill culture rows. A lab unit may require tracked media; then the bench cannot
+create an untracked medium or save a new culture row without a usable lot.
+
+**Used on cultures** shows each lot's date-filtered count and culture rows (lab
+number, container, date, technician). This is traceability: creating, editing or
+undoing a culture row never changes stock. Receipt, consumption and adjustment
+remain Inventory actions; non-media reagent consumption keeps its own policy.
+See [V2 media](../microbiology/amr-micro-v2-amendments.md#fr-05.1b).
+
 ### 4.3 Receive (adding stock — two entry points)
 
 Receiving has two entry points, mirroring how counting works (a full surface plus a per-row shortcut), so the common "just got more of one item" case is one click and the periodic "whole delivery" case has a dedicated flow:

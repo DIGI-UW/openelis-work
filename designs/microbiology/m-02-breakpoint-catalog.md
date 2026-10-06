@@ -1,15 +1,18 @@
 # M-02 Breakpoint Catalog — Functional Requirements Specification
 
+> Functional authority: the V2 baseline owns case behavior; this document owns its scoped laboratory outcomes. Technical examples are non-normative. Engineering decisions and verification belong to specs/amr.
+
+
 **Version:** 2.0 (consolidated — folds review edits inline; no separate addendum)
 **Date:** 2026-06-07
 **Module:** Admin → Breakpoint Catalog
 **Phase:** 1A
-**Owner:** Microbiology Module (M-00 parent)
+**Owner:** Microbiology Module ([V2 baseline](amr-micro-v2-amendments.md) parent)
 **Status:** Draft
 
-> This FRS is self-contained. The AMR design-review edits — the Active/Loaded/Archived legibility banner + snapshot rule, the effective-date explanation, CSV row-level import errors, and the note that BreakpointLookup precedence is shown to users in M-05 — are written **inline** in the relevant sections below; there is no separate edits doc or addendum.
+> This FRS is self-contained. The AMR design-review edits — the Active/Loaded/Archived legibility banner + snapshot rule, the effective-date explanation, CSV row-level import errors, and the note that BreakpointLookup precedence is shown to users in [V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b) — are written **inline** in the relevant sections below; there is no separate edits doc or addendum.
 
-This spec covers the versioned reference catalog of breakpoint tables — CLSI M100 (annually updated) and EUCAST clinical breakpoints (versioned). The catalog drives AST interpretation (MIC or zone → S/I/R) in M-05 and is version-aware: AST Runs snapshot the breakpoint version at result time so subsequent publisher updates don't retroactively change historical interpretations.
+This spec covers the versioned reference catalog of breakpoint tables — CLSI M100 (annually updated) and EUCAST clinical breakpoints (versioned). The catalog drives AST interpretation (MIC or zone → S/I/R) in [V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b) and is version-aware: AST Runs snapshot the breakpoint version at result time so subsequent publisher updates don't retroactively change historical interpretations.
 
 ---
 
@@ -27,7 +30,7 @@ This spec covers the versioned reference catalog of breakpoint tables — CLSI M
 
 ### 2.1 Purpose
 
-Hold the lab's set of breakpoint reference standards. Multiple versions of each standard coexist (CLSI 2024, CLSI 2025, EUCAST v14.0, EUCAST v14.1) so the lab can transition between versions on its own schedule. The `BreakpointLookupService` (called by M-05) takes (organism, antibiotic, method, breakpoint_standard_id) and returns S/I/R thresholds.
+Hold the lab's set of breakpoint reference standards. Multiple versions of each standard coexist (CLSI 2024, CLSI 2025, EUCAST v14.0, EUCAST v14.1) so the lab can transition between versions on its own schedule. The `BreakpointLookupService` (called by [V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b)) takes (organism, antibiotic, method, breakpoint_standard_id) and returns S/I/R thresholds.
 
 **Breakpoint-standard selection is flexible per AST run.** Each AST Run picks the standard it interprets against: it **defaults to the active standard** for the relevant publisher, but the tech may select **any loaded standard or version**. Whatever is chosen is **snapshotted** onto the run (`breakpoint_standard_id` + `breakpoint_version`) and never changes afterward. The catalog manages *which standards are loaded and which is active*; the run records *which was used*.
 
@@ -51,8 +54,8 @@ Hold the lab's set of breakpoint reference standards. Multiple versions of each 
 ### 2.4 Integration
 
 - **M-01 Reference Data** — breakpoints FK to `organism_master` (or `organism_group` for group-level breakpoints) and `antibiotic_master`.
-- **M-05 AST Entry & Interpretation** — calls `BreakpointLookupService(organism_id, antibiotic_id, method, breakpoint_standard_id)`. Returns S, I, R thresholds. **M-05 surfaces which precedence level matched** (organism-specific / group / none) so the tech can trust the interpretation — see §6.2.
-- **M-04 Case Workbench** — AST Run header records `breakpoint_standard_id` + `breakpoint_version` at setup time. Snapshots survive subsequent catalog changes.
+- **[V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b) AST Entry & Interpretation** — calls `BreakpointLookupService(organism_id, antibiotic_id, method, breakpoint_standard_id)`. Returns S, I, R thresholds. **[V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b) surfaces which precedence level matched** (organism-specific / group / none) so the tech can trust the interpretation — see §6.2.
+- **[V2 case](amr-micro-v2-amendments.md#fr-17.6) Case Workbench** — AST Run header records `breakpoint_standard_id` + `breakpoint_version` at setup time. Snapshots survive subsequent catalog changes.
 - **M-09 WHONET Export** — writes `breakpoint_standard` value (e.g., `CLSI_M100_2024`) into each exported AST result column.
 - **Catalog Subscription & Metadata Sync** (existing) — automated import of new breakpoint-standard versions (FHIR PlanDefinition) from a central catalog; lands them `Loaded`, activated here. *(M-10's bespoke hub retired.)*
 
@@ -89,7 +92,7 @@ This **snapshot rule** is surfaced to the user, not just enforced in the data mo
 
 ### 3.3 The lab's "active" standard
 
-For each publisher (CLSI, EUCAST, other), the lab has zero or one **active** standard at a time. The active standard is the one M-05's `BreakpointLookupService` defaults to for new AST Runs. The lab can have CLSI 2024 active for one period and switch to CLSI 2025 active at a controlled point.
+For each publisher (CLSI, EUCAST, other), the lab has zero or one **active** standard at a time. The active standard is the one [V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b)'s `BreakpointLookupService` defaults to for new AST Runs. The lab can have CLSI 2024 active for one period and switch to CLSI 2025 active at a controlled point.
 
 Switching the active standard is a deliberate admin action:
 
@@ -105,7 +108,7 @@ The lab can run a validation period where both standards are loaded but only one
 
 Most labs use one publisher's breakpoints (CLSI in the US, EUCAST in Europe and most WHO-supported settings). Some labs deliberately use both — e.g., a country where the national reference lab follows EUCAST but a national-tier hospital follows CLSI for chemistry parity.
 
-M-02 supports having **both an active CLSI standard and an active EUCAST standard** simultaneously. The AST Setup modal in M-04 lets the tech pick which standard to interpret against per AST Run (per the flexible-per-run rule, §2.1). Default is per the active-standard-for-this-publisher logic.
+M-02 supports having **both an active CLSI standard and an active EUCAST standard** simultaneously. The AST Setup modal in [V2 case](amr-micro-v2-amendments.md#fr-17.6) lets the tech pick which standard to interpret against per AST Run (per the flexible-per-run rule, §2.1). Default is per the active-standard-for-this-publisher logic.
 
 ### 3.5 WHO TB critical concentrations (publisher: WHO_TB)
 
@@ -132,7 +135,7 @@ WHO TB 2023  (publisher: WHO_TB)
 └────────────────────────┴─────────────┴─────────────────┴─────────────────────┘
 ```
 
-**Critical concentration is not a molecular result.** Phenotypic DST against a critical concentration is what this section covers. Molecular resistance detection — **GeneXpert MTB/RIF** (rpoB → rifampicin resistance) and **line probe assays (LPA)** for isoniazid/rifampicin/fluoroquinolone/aminoglycoside resistance — is reported as a **genotypic resistance flag on the isolate**, captured in M-14 (Mycobacteriology/TB), **not** through `BreakpointLookupService`. There is no concentration to look up for a molecular call; the result is the assay's R/S/indeterminate verdict per locus.
+**Critical concentration is not a molecular result.** Phenotypic DST against a critical concentration is what this section covers. Molecular resistance detection — **GeneXpert MTB/RIF** (rpoB → rifampicin resistance) and **line probe assays (LPA)** for isoniazid/rifampicin/fluoroquinolone/aminoglycoside resistance — is reported as a **genotypic resistance flag on the isolate**, captured in [V2 DST](amr-micro-v2-amendments.md#fr-14.1) (Mycobacteriology/TB), **not** through `BreakpointLookupService`. There is no concentration to look up for a molecular call; the result is the assay's R/S/indeterminate verdict per locus.
 
 **Data-model note.** WHO TB CC rows reuse the existing `breakpoint` table with two adjustments captured in §6: `publisher = WHO_TB` on the standard, and the breakpoint row stores a single `critical_concentration` value with `interpretation_model = CRITICAL_CONCENTRATION` (R if measured concentration ≥ CC, else S) rather than the S/I/R triad. The `method` enum gains the TB DST methods (`MGIT`, `LJ`, `AGAR_PROPORTION`). The Active/Loaded/Archived + snapshot machinery is unchanged.
 
@@ -293,7 +296,7 @@ Constraints:
 
 ## 7. BreakpointLookupService
 
-The service called by M-05 (and any future module that needs to interpret AST values).
+The service called by [V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b) (and any future module that needs to interpret AST values).
 
 ### 7.1 Signature
 
@@ -322,9 +325,9 @@ The service walks through possible matches in this order:
 1. **Specimen-specific organism-specific breakpoint** — most specific. Example: `Escherichia coli` × `Ceftriaxone` × `MIC` × specimen filter `urine` in `CLSI M100 2024`.
 2. **Specimen-agnostic organism-specific breakpoint** — same but no specimen filter.
 3. **Group-level breakpoint** — `Enterobacterales` × `Ampicillin` × `MIC` in `CLSI M100 2024`.
-4. **No match** — return `{ matched_by: NONE }`. M-05 then displays the raw MIC/zone with interpretation "Unable to interpret — no breakpoint" and prompts manual entry of S/I/R.
+4. **No match** — return `{ matched_by: NONE }`. [V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b) then displays the raw MIC/zone with interpretation "Unable to interpret — no breakpoint" and prompts manual entry of S/I/R.
 
-**Precedence is shown to the user in M-05 (review edit R-05).** The `matched_by` value is surfaced next to the run header / interpretation in M-05 — "matched: organism-specific" / "matched: group-level (Enterobacterales)" / "no standard breakpoint" — so the tech knows how specific the interpretation is and can trust (or question) it. M-02 owns the service contract; the user-facing display lives in M-05 §6.
+**Precedence is shown to the user in [V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b) (review edit R-05).** The `matched_by` value is surfaced next to the run header / interpretation in [V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b) — "matched: organism-specific" / "matched: group-level (Enterobacterales)" / "no standard breakpoint" — so the tech knows how specific the interpretation is and can trust (or question) it. M-02 owns the service contract; the user-facing display lives in [V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b)
 
 ### 7.3 Interpretation logic
 
@@ -343,11 +346,11 @@ For disk diffusion zones (`threshold_comparator = GE`):
 Edge cases:
 
 - Standard has S ≤ X, R ≥ Y with no I (S/R only): zone X+1 through Y-1 → I (computed) only if `intermediate_threshold` is set; otherwise return error.
-- Lab-customized breakpoints flagged with `locally_customized = true` get a "custom" badge in M-04 AST result display so the supervisor knows the value isn't the publisher's default.
+- Lab-customized breakpoints flagged with `locally_customized = true` get a "custom" badge in [V2 case](amr-micro-v2-amendments.md#fr-17.6) AST result display so the supervisor knows the value isn't the publisher's default.
 
 ### 7.4 Critical-concentration interpretation (TB DST — WHO_TB standards)
 
-`BreakpointLookupService` is extended for TB phenotypic DST. When the AST Run's interpretation method = **`CRITICAL_CONCENTRATION`** (set on TB DST runs — see M-14) and the chosen standard's publisher is `WHO_TB`, the service does **not** return an S/I/R threshold triad. Instead it looks up the **critical concentration** for `(M. tuberculosis complex [or organism], drug, method ∈ {MGIT, LJ, AGAR_PROPORTION}, breakpoint_standard_id)` and returns:
+`BreakpointLookupService` is extended for TB phenotypic DST. When the AST Run's interpretation method = **`CRITICAL_CONCENTRATION`** (set on TB DST runs — see [V2 DST](amr-micro-v2-amendments.md#fr-14.1)) and the chosen standard's publisher is `WHO_TB`, the service does **not** return an S/I/R threshold triad. Instead it looks up the **critical concentration** for `(M. tuberculosis complex [or organism], drug, method ∈ {MGIT, LJ, AGAR_PROPORTION}, breakpoint_standard_id)` and returns:
 
 ```
 → {
@@ -359,9 +362,9 @@ Edge cases:
 }
 ```
 
-The R/S call is binary: the measured/tested concentration **≥ critical concentration → Resistant**, otherwise **Susceptible**. There is no Intermediate category for TB CC interpretation. M-14 records the phenotypic R/S per drug × method on the TB DST run, snapshotting `breakpoint_standard_id` + `breakpoint_version` exactly as the bacterial path does.
+The R/S call is binary: the measured/tested concentration **≥ critical concentration → Resistant**, otherwise **Susceptible**. There is no Intermediate category for TB CC interpretation. [V2 DST](amr-micro-v2-amendments.md#fr-14.1) records the phenotypic R/S per drug × method on the TB DST run, snapshotting `breakpoint_standard_id` + `breakpoint_version` exactly as the bacterial path does.
 
-**Molecular resistance is out of this service.** Xpert MTB/RIF and LPA results are genotypic R/S flags recorded on the isolate by M-14; they are **not** a breakpoint lookup (there is no concentration). The service is consulted only for phenotypic critical-concentration DST.
+**Molecular resistance is out of this service.** Xpert MTB/RIF and LPA results are genotypic R/S flags recorded on the isolate by [V2 DST](amr-micro-v2-amendments.md#fr-14.1); they are **not** a breakpoint lookup (there is no concentration). The service is consulted only for phenotypic critical-concentration DST.
 
 ---
 
@@ -369,7 +372,7 @@ The R/S call is binary: the measured/tested concentration **≥ critical concent
 
 ### 8.1 Automated import (via the existing Catalog Subscription feature)
 
-For connected sites, the existing **Catalog Subscription & Metadata Sync** feature pulls breakpoint sets (as FHIR `PlanDefinition`) from a EUCAST/WHO/national-ref-lab catalog or the OpenELIS Community Hub. New `breakpoint_standard` rows are added; new `breakpoint` rows populate; existing standards' `seeded = true` rows refresh from the source. **New standards land `status = Loaded`, never auto-active** — a lab manager activates them here in §8 (the "Activate in Breakpoint Catalog" hand-off). *(M-10's bespoke hub is retired — see m-10 v3.0; this path is Catalog Subscription + the offline §8.2 CSV import.)*
+For connected sites, the existing **Catalog Subscription & Metadata Sync** feature pulls breakpoint sets (as FHIR `PlanDefinition`) from a EUCAST/WHO/national-ref-lab catalog or the OpenELIS Community Hub. New `breakpoint_standard` rows are added; new `breakpoint` rows populate; existing standards' `seeded = true` rows refresh from the source. **New standards land `status = Loaded`, never auto-active** — a lab manager activates them here in §8 (the "Activate in Breakpoint Catalog" hand-off). *(Uses the shared Catalog Subscription workflow)*
 
 In Phase 1A — and at any offline site — breakpoint catalogs are seeded by the **initial deployment process** (data migration) and updated via the §8.2 file import, not an in-app pull.
 
@@ -448,7 +451,7 @@ On confirm:
 1. `breakpoint_standard_activation_event` row written for both standards (old → DEACTIVATED, new → ACTIVATED).
 2. `breakpoint_standard.is_active_for_publisher` flipped.
 3. `breakpoint_standard.activation_effective_date` set on the new standard.
-4. M-05 AST Setup modal default updates immediately for new AST Runs (the default standard for the publisher is reread on each AST setup); the tech can still pick any loaded version per run (§2.1).
+4. [V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b) AST Setup modal default updates immediately for new AST Runs (the default standard for the publisher is reread on each AST setup); the tech can still pick any loaded version per run (§2.1).
 5. A notification appears in the Admin landing page: "CLSI standard changed to M100 2025 effective 2026-06-01."
 
 ---
@@ -482,7 +485,7 @@ The comparison view supports the validation period before a switchover. Not in P
 - **AC-M02-03**: At most one Active standard per publisher at a time.
 - **AC-M02-04**: Drilldown shows up to 50 breakpoints per page with search and filter; the detail header shows status tooltip + effective date.
 - **AC-M02-05**: BreakpointLookupService returns correct precedence (specimen-specific > organism-specific > group-level > none).
-- **AC-M02-06**: BreakpointLookupService returns `matched_by`; M-05 displays which precedence level matched next to the interpretation (review edit R-05).
+- **AC-M02-06**: BreakpointLookupService returns `matched_by`; [V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b) displays which precedence level matched next to the interpretation (review edit R-05).
 - **AC-M02-07**: AST Run records the `breakpoint_standard_id` AND `breakpoint_version` (denormalized snapshot) at setup time; selection is flexible per run (default active, any loaded version selectable) per §2.1.
 - **AC-M02-08**: After a standard transition, historical AST Runs against the prior version still show the original interpretation; the snapshot rule is stated in the list banner.
 - **AC-M02-09**: CSV import validates every row, imports valid rows, surfaces per-row errors with row number + specific cause, and offers a failed-rows CSV download; rows marked `seeded = true` (review edit R-04).
@@ -491,7 +494,7 @@ The comparison view supports the validation period before a switchover. Not in P
 - **AC-M02-12**: All actions respect `micro.breakpoint.view` and `micro.breakpoint.manage`.
 - **AC-M02-13**: Empty state renders before any standard is loaded.
 - **AC-M02-14**: WHO TB critical-concentration standards (publisher `WHO_TB`, e.g., WHO TB 2021 / 2023) load, version, activate (with effective date), and snapshot onto TB DST runs using the identical Active/Loaded/Archived + per-run snapshot machinery as CLSI/EUCAST; CC rows are stored per drug × method (MGIT / LJ / AGAR_PROPORTION) with `interpretation_model = CRITICAL_CONCENTRATION`.
-- **AC-M02-15**: When an AST Run's interpretation method = `CRITICAL_CONCENTRATION` (TB DST per M-14), `BreakpointLookupService` returns the critical concentration and a binary R/S (R if tested concentration ≥ CC, else S; no Intermediate); molecular resistance (Xpert/LPA) is recorded by M-14 as a genotypic flag and is **not** a breakpoint lookup.
+- **AC-M02-15**: When an AST Run's interpretation method = `CRITICAL_CONCENTRATION` (TB DST per [V2 DST](amr-micro-v2-amendments.md#fr-14.1)), `BreakpointLookupService` returns the critical concentration and a binary R/S (R if tested concentration ≥ CC, else S; no Intermediate); molecular resistance (Xpert/LPA) is recorded by [V2 DST](amr-micro-v2-amendments.md#fr-14.1) as a genotypic flag and is **not** a breakpoint lookup.
 
 ---
 
@@ -548,14 +551,14 @@ admin.micro.breakpoint.matchedBy.none          "No standard breakpoint — inter
 
 ## 15. References
 
-- M-00 Microbiology Module Parent Specification
+- [V2 baseline](amr-micro-v2-amendments.md) Microbiology functional baseline
 - M-01 AMR Reference Data (for organism / antibiotic FK targets)
-- M-05 AST Entry & Interpretation (primary consumer; displays `matched_by` precedence and the per-run standard picker)
-- M-04 Case Workbench Core (records breakpoint_standard_id + version on AST Run)
+- [V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b) AST Entry & Interpretation (primary consumer; displays `matched_by` precedence and the per-run standard picker)
+- [V2 case](amr-micro-v2-amendments.md#fr-17.6) Case Workbench Core (records breakpoint_standard_id + version on AST Run)
 - Catalog Subscription & Metadata Sync (automated breakpoint import; M-10 retired)
 - `amr-crosswalk-working.md` Q4 (versioning rules)
 - `amr-pre-frs-planning-v1.md` §4 (versioning + time edge cases)
 - CLSI M100 reference standard (current version)
 - EUCAST clinical breakpoints reference
 - WHO technical report on critical concentrations for TB DST (WHO TB 2021 / 2023 guidance)
-- M-14 Mycobacteriology / TB (consumer of CRITICAL_CONCENTRATION interpretation; owns molecular Xpert/LPA flags)
+- [V2 DST](amr-micro-v2-amendments.md#fr-14.1) Mycobacteriology / TB (consumer of CRITICAL_CONCENTRATION interpretation; owns molecular Xpert/LPA flags)
