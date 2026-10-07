@@ -214,5 +214,5 @@ delivery claims.
 - **AC-M18-11** An expert rule that reads patient age is shown as "Not applied: needs patient data" on an environmental Case.
 - **AC-M18-12** The antibiogram and GLASS outputs contain no environmental isolates; WHONET contains them only when Include environmental isolates is ticked, coded as environmental.
 - **AC-M18-13** An environmental culture with Purpose Outbreak investigation is not counted by cluster detection; a Routine monitoring one is, in the environmental stream only.
-- **AC-M18-07b** On an order with three environmental Cases, changing Purpose on one Case shows the new Purpose on all three, with the helper "Applies to all 3 Cases on this order" and a Timeline entry on each.
+- **AC-M18-07b** On an order with three environmental Cases, changing Replicates on one Case updates all three, with the helper "Applies to all 3 Cases on this order" attached to Replicates and a Timeline entry on each. Changing Purpose affects only the selected Case: a Routine monitoring Case and an Outbreak investigation Case on the same order keep their own purposes. Purpose is not labelled as shared across the order.
 - **AC-M18-14** Every new string appears in French when the interface is in French; no raw keys are shown.

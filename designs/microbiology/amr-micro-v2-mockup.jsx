@@ -472,7 +472,7 @@ const newChild = (test, from, n, extra = {}) => ({ id: `${test.startsWith('Gram'
 const TB_ISO = 'Isolate 1: Mycobacterium tuberculosis complex';
 const TB_EX = {
   lab: 'CPHL26-004812', labShort: '004812', tech: 'J. Kaupa', patient: 'Kila Nou, M, 34 y · UHID 88120034', sampleSummary: 'CPHL26-004812-1 · Sputum', sampleType: 'Sputum', site: 'Lower respiratory tract',
-  labUnit: 'TB', program: 'TB Program', stage: [['blue', t('microbiology.case.stage.astDst', 'AST / DST in progress')], ['purple', t('microbiology.case.stage.referred', 'Referred')]], related: 'Bacterial culture · Microbiology', priority: '',
+  labUnit: 'TB', program: 'TB Program', stage: [['blue', t('microbiology.case.stage.astDst', 'AST / DST in progress')], ['purple', t('microbiology.case.stage.referred', 'Referred')]], related: 'MC-004812-B · Sample -1 · Microbiology', priority: '',
   history: [
     { id: 'h1', date: '12 Jun 2026', lab: 'CPHL26-002981', spec: 'Sputum, lower respiratory tract', type: 'TB Program', finding: 'MTB detected (Xpert), rifampicin resistance not detected', state: 'Final' },
     { id: 'h2', date: '03 Mar 2026', lab: 'CPHL26-000884', spec: 'Urine, midstream', type: 'Bacteriology (routine)', finding: 'E. coli ≥10⁵ CFU/mL (ESBL)', state: 'Final' }],
@@ -706,7 +706,7 @@ function CaseHeader() {
         <Column lg={4}><small>{t('microbiology.case.labUnit', 'Lab unit')}</small>
           <div>{labUnit} <Button kind="ghost" size="sm" onClick={() => setChanging(!changing)}>{t('microbiology.case.changeLabUnit', 'Change lab unit')}</Button></div></Column>
         <Column lg={4}><small>{t('label.stage', 'Stage')}</small><div>{ex.stage.map(([k, l]) => <Tag key={l} type={k}>{l}</Tag>)}{ex.priority && <Tag type="red">{ex.priority}</Tag>}</div></Column>
-        <Column lg={6}>{ex.related && <><small>{t('microbiology.case.relatedOnSpecimen', 'Also on this specimen')}</small><div><Button kind="ghost" size="sm">{ex.related}</Button></div></>}</Column>
+        <Column lg={6}>{ex.related && <><small>{t('microbiology.case.relatedCases', 'Related cases')}</small><div><Button kind="ghost" size="sm">{ex.related}</Button></div><small>{t('microbiology.case.relatedCases.help', 'Shared sample or split relationship; retained after transfer, including within the same lab unit.')}</small></>}</Column>
         <Column lg={2}>
           <OverflowMenu aria-label={t('label.moreActions', 'More actions')} iconDescription={t('label.moreActions', 'More actions')} flipped>
             <OverflowMenuItem itemText={t('microbiology.case.logCritical', 'Log critical notification')} />
@@ -2106,6 +2106,7 @@ export function OrderSamplesAndTests() {
     { id: '-8', type: 'Isolate', site: '', time: '27 Sep 15:00', tests: ['Bacterial culture', 'VITEK 2 AST-N405'], elsewhere: { test: 'Bacterial culture', lab: 'Port Moresby General Hospital Laboratory', value: 'Escherichia coli' } },
   ]);
   const [split, setSplit] = useState(false);
+  const [awaitingExample, setAwaitingExample] = useState(false);
   const [sets, setSets] = useState({ '-2': '1', '-3': '1', '-4': '2', '-5': '2' }); //: reception gives each bottle its set
   const setWarn = [];
   ['1', '2', '3'].forEach((n) => { const b = samples.filter((sm) => sets[sm.id] === n); if (b.length === 1) setWarn.push(t('order.sample.set.warn.single', 'Set {0} has one bottle').replace('{0}', n)); const ty = b.map((x) => x.type); ty.forEach((x, k) => { if (ty.indexOf(x) !== k) setWarn.push(t('order.sample.set.warn.sameType', 'Set {0} has two {1} bottles').replace('{0}', n).replace('{1}', x.includes('anaerobic') ? 'anaerobic' : 'aerobic')); }); });
@@ -2194,11 +2195,14 @@ export function OrderSamplesAndTests() {
           render={(c) => (c.info.header === 'test' && !['none', 'reflex'].includes(c.id.split(':')[0]) ? <span><Tag type="teal" size="sm">{t('order.micro.tag.opensCase', 'Opens a case')}</Tag> {c.value}</span> : c.value)}
         />
         <Tile style={{ marginTop: 'var(--cds-spacing-05)' }}>
+          <Checkbox id="mock-awaiting-sample" labelText="Show order saved before sample arrival" checked={awaitingExample} onChange={(_, { checked }) => setAwaitingExample(checked)} />
+          {awaitingExample && <InlineNotification kind="info" lowContrast hideCloseButton title="MC-URINE-1 · Microbiology · Awaiting sample" subtitle="Urine culture ordered; no physical sample or collection/receipt time recorded. When the urine is recorded, it attaches to MC-URINE-1. Repeated saves keep the same case and sample." />}
           <div><small>{t('microbiology.mockup.bloodCaseHeader', 'Blood culture case header')}</small></div>
           <Stack orientation="horizontal" gap={5}>
             <div><strong>{t('microbiology.case.cultureSet.summary', '{test}: {sets} sets, {bottles} bottles').replace('{test}', 'Blood culture').replace('{sets}', split ? '1' : '2').replace('{bottles}', split ? '2' : '4')}</strong></div>
             {!split && <Button kind="ghost" size="sm" onClick={() => setSplit(true)}>{t('microbiology.case.splitCases', 'Split into separate cases')}</Button>}
-            <small>{t('microbiology.case.splitCases.help', 'Reason required. Only a sample with no results on the case can be split off.')}</small>
+            {split && <div><small>{t('microbiology.case.relatedCases', 'Related cases')}</small><div>MC-BLOOD-A · Samples -2, -3 · Microbiology ↔ MC-BLOOD-B · Samples -4, -5 · Microbiology</div></div>}
+            <small>{t('microbiology.case.splitCases.help', 'Reason required. Only a sample with no results on the case can be split off. Related-case links remain on both cases, including after transfer.')}</small>
           </Stack>
         </Tile>
       </Tile>

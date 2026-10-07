@@ -123,13 +123,13 @@ export function EnvironmentalCase() {
         <Grid narrow>
           <Column lg={5}>
             <Select id="purpose" labelText={`${t('microbiology.culturePurpose.label', 'Purpose')} *`} value={purpose} onChange={(e) => setPurpose(e.target.value)}
-              helperText={t('microbiology.case.appliesToOrder', 'Replicates apply to all {count} cases on this order; purpose defaults from the order').replace('{count}', 3)}>
+              helperText={t('microbiology.case.purposeScope', 'Applies to this case only. Defaults to Routine monitoring.')}>
               {PURPOSES.map((p) => <SelectItem key={p.id} value={p.id} text={p.label} />)}
             </Select>
           </Column>
           <Column lg={3}>
             <NumberInput id="replicates" label={t('microbiology.orderDetail.replicates', 'Replicates')} min={1} max={10} value={replicates}
-              onChange={(e, { value }) => setReplicates(value)} />
+              onChange={(e, { value }) => setReplicates(value)} helperText={t('microbiology.case.replicatesScope', 'Applies to all 3 cases on this order. A change is recorded on each case timeline.')} />
           </Column>
         </Grid>
         {purpose === 'OUTBREAK_INVESTIGATION' && (

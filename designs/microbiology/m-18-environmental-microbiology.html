@@ -273,10 +273,9 @@ function CaseScreen() {
       <div className="sec-h">1 Case information <span className="chip-new">v2</span></div>
       <div className="row-flex" style={{ gap: 24, alignItems: 'flex-end' }}>
         <div className="field" style={{ minWidth: 260 }}><label htmlFor="purp">Purpose *</label>
-          <select id="purp" className="cds--select-input" value={purpose} onChange={e => setPurpose(e.target.value)}>{PURP.map(p => <option key={p}>{p}</option>)}</select></div>
+          <select id="purp" className="cds--select-input" value={purpose} onChange={e => setPurpose(e.target.value)}>{PURP.map(p => <option key={p}>{p}</option>)}</select><div className="hint">Applies to this case only. Defaults to Routine monitoring.</div></div>
         <div className="field" style={{ minWidth: 120 }}><label htmlFor="reps">Replicates</label>
-          <input id="reps" className="inp" type="number" min="1" max="10" value={reps} style={{ width: 100 }} onChange={e => setReps(e.target.value)} /></div>
-        <div className="hint" style={{ flex: 1, minWidth: 220 }}>Applies to all 3 Cases on this order (FR-C5a). A change is recorded on each Case's Timeline.</div>
+          <input id="reps" className="inp" type="number" min="1" max="10" value={reps} style={{ width: 100 }} onChange={e => setReps(e.target.value)} /><div className="hint">Applies to all 3 cases on this order. A change is recorded on each case timeline.</div></div>
       </div>
       {purpose === 'Outbreak investigation' && <div className="notif">Outbreak investigation samples are not counted by cluster detection, so swabs taken because of a signal never feed it (FR-G2).</div>}
       <div className="hint" style={{ marginTop: 6 }}>Hidden for environmental Cases (not shown empty): patient origin, department, date of admission, clinical history, prior antibiotics, TB history.</div>

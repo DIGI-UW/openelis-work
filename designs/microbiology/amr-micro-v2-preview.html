@@ -518,7 +518,7 @@ function CaseView({ ex }) {
       <div><b>{t('microbiology.case.program', 'Program')}</b>{program || <span className="muted">{t('microbiology.case.programNotSet', 'Program not set')}</span>} {track && <Tag kind={track === 'TB' ? 'purple' : 'teal'}>{track} track</Tag>} <span className="muted">(Case information; drives questions and exports)</span></div>
       <div><b>{t('microbiology.case.labUnit', 'Lab unit')}</b>{labUnit} <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => setChangingLU(!changingLU)}>{t('microbiology.case.changeLabUnit', 'Change lab unit')}</button></div>
       <div><b>Stage</b>{ex.stage.map(([k, l]) => <Tag key={l} kind={k}>{l}</Tag>)}</div>
-      {ex.related ? <div><b>{t('microbiology.case.relatedOnSpecimen', 'Also on this specimen')}</b><a href="#" style={{ color: '#0f62fe' }}>{ex.related}</a></div> : <div><b>Priority</b><Tag kind="red">{ex.priority}</Tag> <span className="muted">from the order</span></div>}
+      {ex.related ? <div><b>{t('microbiology.case.relatedCases', 'Related cases')}</b><a href="#" style={{ color: '#0f62fe' }}>{ex.related}</a><div className="helper">Shared sample or split relationship; retained after transfer, including within the same lab unit.</div></div> : <div><b>Priority</b><Tag kind="red">{ex.priority}</Tag> <span className="muted">from the order</span></div>}
       <div className="row-actions" style={{ marginTop: 0 }}><Btn kind="secondary">Log critical notification</Btn><Btn kind="tertiary">Report NCE</Btn><Btn kind="tertiary" onClick={() => setHistOpen(!histOpen)}>{t('microbiology.case.patientHistory', 'Patient history')} ({ex.history.length})</Btn></div>
     </div>
     {histOpen && <PatientHistory ex={ex} />}
@@ -753,7 +753,7 @@ const PROGRAM_TRACKS = { 'TB Program': 'TB', 'AMR surveillance': 'Bacterial', 'B
 const TB_EX = {
   lab: 'CPHL26-004812', labShort: '004812', tech: 'J. Kaupa', patientName: 'Kila Nou', patient: 'Kila Nou, M, 34 y · UHID 88120034',
   samplesLabel: 'Sample', sampleSummary: 'CPHL26-004812-1 · Sputum', sampleIds: ['CPHL26-004812-1'], sampleType: 'Sputum', site: 'Lower respiratory tract',
-  labUnit: 'TB', program: 'TB Program', stage: [['blue', 'AST / DST in progress'], ['purple', 'Referred']], related: 'Bacterial culture · Microbiology (switch)',
+  labUnit: 'TB', program: 'TB Program', stage: [['blue', 'AST / DST in progress'], ['purple', 'Referred']], related: 'MC-004812-B · Sample -1 · Microbiology',
   history: [['12 Jun 2026', 'CPHL26-002981', 'Sputum, lower respiratory tract', 'TB Program', 'MTB detected (Xpert), rifampicin resistance not detected', 'Final'], ['03 Mar 2026', 'CPHL26-000884', 'Urine, midstream', 'Bacteriology (routine)', 'E. coli ≥10⁵ CFU/mL, ESBL', 'Final']],
   historyNote: 'For a Treatment follow-up case this panel also shows the baseline TB case and the follow-up smear, Xpert and culture results by treatment month.',
   notes: NOTE_SEED,
@@ -1255,9 +1255,10 @@ function OrderEntry() {
             <tr><td><Tag kind="gray">{t('order.micro.tag.staysInResults', 'Stays in Results')}</Tag> RPR</td><td>-6 Serum</td><td>Microbiology (serology)</td><td className="muted">RPR has Opens a Microbiology case: No, so it stays on Results even in the micro lab unit</td></tr>
             <tr><td colSpan={4} className="muted">{t('order.micro.summary.reflex', 'If {0}: adds {1}').replace('{0}', 'Blood culture result = Positive').replace('{1}', 'Gram stain, culture on that bottle')} (reflex rule)</td></tr></tbody></table>
         <div style={{ marginTop: '.75rem', background: '#fff', border: '1px solid #e0e0e0', padding: '.75rem' }}>
+          <div className="note-box"><b>Order saved before sample arrival</b><div>MC-URINE-1 · Microbiology · Awaiting sample</div><div>Urine culture ordered; no physical sample or collection/receipt time recorded. The actual urine attaches to this same case when recorded. Repeated saves keep the same case and sample.</div></div>
           <div className="muted" style={{ fontSize: 12 }}>Blood culture case header</div>
           <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}><span><b>{t('microbiology.case.cultureSet.summary', '{test}: {sets} sets, {bottles} bottles').replace('{test}', 'Blood culture').replace('{sets}', '2').replace('{bottles}', '4')}</b> <span className="muted">Set 1: left arm, 07:25, aerobic and anaerobic | Set 2: right arm, 07:31, aerobic and anaerobic</span></span>
-            <Btn kind="ghost">{t('microbiology.case.splitCases', 'Split into separate cases')} (reason)</Btn><span className="muted">Only a sample with no results on the case can be split off.</span></div>
+            <Btn kind="ghost">{t('microbiology.case.splitCases', 'Split into separate cases')} (reason)</Btn><span className="muted">Only a sample with no results on the case can be split off. Both cases keep a related-case link identifying the case, samples and current lab unit, including after transfer.</span></div>
         </div>
         <div className="note-box" style={{ marginTop: '.75rem' }}>Removed from order entry in v2: the Microbiology section, Culture rows, + Another culture, culture protocol, culture purpose, patient origin, admission date, number of sets as a typed field (it is counted from the Set numbers), clinical history, antibiotic exposure. Case details are entered on the case; Program questions are answered here or on the case, one record .</div>
       </div>
