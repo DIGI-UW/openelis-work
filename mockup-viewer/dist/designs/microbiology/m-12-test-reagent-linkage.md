@@ -1,30 +1,18 @@
-# M-12 Reagent Lot at Result Entry (micro) — Functional Requirements Specification
+# M-12 Reagent and medium lot selection — functional requirements
 
-**Version:** 3.0 (rescoped — picker + wiring only) · **Date:** 2026-06-12
-**Module:** Microbiology result entry (consumes Test Catalog v2.5 + Inventory)
-**Phase:** with M-04 / M-05
-**Owner:** Microbiology Module (M-00 parent)
-**Status:** Draft
+> Functional authority: the V2 baseline owns case behavior; this document owns its scoped laboratory outcomes. Technical examples are non-normative. Engineering decisions and verification belong to specs/amr.
 
-> **⚠ SCOPE NARROWED (2026-06-12, Casey).** M-12 was over-scoped — it overlapped Test Catalog v2.5 (which owns the test↔reagent definition), the Inventory module (which owns lots + consumption), and the existing **Reagent Usage on Result Entry** design (`designs/results-validation/results-page-reagent-usage-v1.md` / `…-v2.1`) on `main`, which already establishes the lot-picker-at-result-entry pattern. **M-12 is now just two things:**
-> 1. the **shared `ReagentLotPicker`** component (FIFO, QC status, expired/locked blocked, specific errors) — reused from / consistent with the existing Reagent-Usage design, extended for micro's media / AST-card / disc lots; and
-> 2. **wiring it into M-04 Inoculation and M-05 AST Setup**, consuming `test_reagent_link` (defined by **Test Catalog v2.5, OGC-759**) and writing an **`InventoryUsage`** (Inventory module) on selection.
->
-> **M-12 does NOT own:** the `test_reagent_link` schema or the Test Catalog **Reagents tab** (→ Test Catalog v2.5 / OGC-759); reagent **lots / consumption / traceability** (→ Inventory module — `InventoryItem`/`InventoryLot`/`InventoryUsage`, already keyed to `analysis_id`/`test_result_id`); the **reverse Reagent→Tests view** and **seed data** (→ Test Catalog / Inventory admin). Sections §3.1, §4, §6, §7 below are retained as **context for those owners**, not as M-12 build scope.
 
-> This FRS is self-contained. The AMR design-review edits — REQUIRED/OPTIONAL/SUBSTITUTE and consumption-unit helper text, specific lot-validation errors, the FIFO tooltip, the reverse Reagent→Tests view, empty states, and the Phase-1A seed tests — are written **inline** in the relevant sections below; there is no separate edits doc or addendum.
+**V2 baseline, synchronized 2026-10-06.** Test Catalog defines allowed reagents,
+methods and requiredness; Inventory defines lots and their eligibility. Case
+result entry uses the shared lot-selection behavior. Engineering decisions and
+storage contracts belong to specs/amr, not this functional source.
 
-This spec adds a long-deferred OE foundation: the ability to declare which reagent lots are required (or optional) for a given test. Per memory `project_reagent_test_catalog_link`, the Test → Reagent linkage doesn't exist today even though reagent concepts (lots, expiration, QC status) do. Micro is the forcing function for this work — AST cards, discs, and culture media are all reagents with lot numbers that ISO 15189 §7.3 expects traceable to each patient result.
-
-> **⚠ Reuse update (verified in code + Jira) — supersedes the old `reagent`/`qc_lot` framing below.** Two pieces already exist and M-12 must build on them, not duplicate:
-> - **In code now — the Inventory module:** `InventoryItem` (ItemType REAGENT / CARTRIDGE / kit), `InventoryLot` (lot, expiry, `LotStatus` = ACTIVE/IN_USE/EXPIRED/CONSUMED/QUARANTINED, `QCStatus` = PENDING/PASSED/FAILED/QUARANTINED), `InventoryTransaction`, and **`InventoryUsage` — which already records consumption and is keyed to `analysis_id` + `test_result_id`.** So per-result lot **consumption + traceability already has a home**; it is *not* new work.
-> - **In Jira (not code yet) — the definitional link:** the Test↔Reagent "which reagents does this test use" link (`test_reagent_link`) is planned in **Test Catalog v2.5 v2 (OGC-759)**.
->
-> **Therefore M-12 = reuse + wire, not build:** the **`ReagentLotPicker` over `InventoryLot`** (FIFO / expiry / QC blocking from `LotStatus`/`QCStatus`) whose selection **writes an `InventoryUsage`** (consumption + traceability — reuse), consuming the `test_reagent_link` definition from OGC-759. The picker UI + the result-entry wiring are the only net-new parts; the old `reagent` / `qc_lot` references in §3 below are superseded by the Inventory module.
-
-Several parked specs benefit: Reagent Forecasting, Reagent QC, Catalog Subscription, future Phase 2 chemistry reagent tracking improvements.
-
----
+**Culture media are traceability only:** selection records which medium and lot
+were used, with no quantity, stock consumption or automatic credit on undo.
+Other reagents retain their method, requiredness and stock policies. See
+[V2 media](amr-micro-v2-amendments.md#fr-05.1b) and
+[shared Inventory](../inventory/inventory-redesign.md).
 
 ## 1. Lab Context
 
@@ -66,59 +54,25 @@ Define the relationship between Tests and Reagents so that:
 
 ### 2.4 Integration
 
-- **Test Catalog v2.5 (OGC-759)** — owns the Reagents tab **and the `test_reagent_link` definitional table**; M-12 fills the tab content + the picker. Coordinate so the link isn't double-built.
-- **Inventory module (existing, in code)** — `InventoryItem` (REAGENT/CARTRIDGE/kit), `InventoryLot` (lot/expiry/`LotStatus`/`QCStatus`), `InventoryUsage` (consumption, keyed to `analysis_id`/`test_result_id`), `InventoryTransaction`. The `ReagentLotPicker` reads `InventoryLot` and **writes an `InventoryUsage`** on selection. Supersedes the old `reagent`/`qc_lot` for this purpose.
-- **M-04 Case Workbench Core** — Inoculation modal picks reagent lots for media types via the shared `ReagentLotPicker`.
-- **M-05 AST Entry & Interpretation** — AST Setup modal picks reagent lots for AST cards / discs via the same `ReagentLotPicker`.
+- **[Shared Test Catalog](../admin-config/test-catalog.md)** owns the allowed reagent/media definitions, methods and requiredness.
+- **[Shared Inventory](../inventory/inventory-redesign.md)** owns lots, their eligibility, stock and traceability policies; culture-row selection never changes stock.
+- **[V2 case](amr-micro-v2-amendments.md#fr-17.6) Case Workbench Core** — inoculation section picks reagent lots for media types via the shared `ReagentLotPicker`.
+- **[V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b) AST Entry & Interpretation** — susceptibility setup section picks reagent lots for AST cards / discs via the same `ReagentLotPicker`.
 - **FRS_Reagent_Forecasting** (parked) — unblocked by this spec.
 - **Reagent QC FRS** (referenced in qa-release-bundle) — unblocked by this spec.
 - **Catalog Subscription FRS** (parked) — benefits from this spec.
 
 ---
 
-## 3. Data model
+## 3. Linkage behavior
 
-### 3.1 Tables (owned by Test Catalog v2.5 / Inventory — context, NOT M-12 build scope)
+### 3.1 Information shown to laboratory users
 
-> `test_reagent_link` is **created and owned by Test Catalog v2.5 (OGC-759)**; M-12 only *consumes* it. The shape below is reproduced for reference so the picker contract (§5) is clear — M-12 does not run this migration.
-
-```
-test_reagent_link   (← built by Test Catalog v2.5 / OGC-759; M-12 consumes)
-├── link_id (UUID PK)
-├── test_id (FK to test catalog — existing OE table)
-├── inventory_item_id (FK to InventoryItem — existing Inventory module; the reagent/cartridge/kit)
-│        NOTE: this table is owned/built by Test Catalog v2.5 (OGC-759); M-12 consumes it.
-├── linkage_type (enum: REQUIRED, OPTIONAL, SUBSTITUTE)
-├── consumption_unit (enum: PER_TEST, PER_RUN, PER_BATCH, PER_DAY)
-├── consumption_quantity (numeric, default 1 — e.g., 1 card per AST Run, 1 plate per culture)
-├── notes (text, nullable)
-├── active (bool, default true)
-└── audit columns
-
-test_reagent_method_constraint (sub-junction, optional refinement)
-├── constraint_id (PK)
-├── link_id (FK to test_reagent_link)
-├── method (text — e.g., "VITEK_2", "DISK_DIFFUSION", null = applies to all methods)
-└── audit columns
-```
-
-### 3.2 Existing tables augmented
-
-```
-test (existing OE table; no schema changes; gain inverse relation)
-   └── test_reagent_link (1:N via test_id)
-
-InventoryItem (existing Inventory module — ItemType REAGENT / CARTRIDGE / kit; replaces the old `reagent`)
-   └── test_reagent_link (1:N via inventory_item_id)
-
-InventoryLot (existing — the lot-picker surface at result entry; replaces the old `qc_lot`)
-   ├── lot_number, expiry, LotStatus (ACTIVE/IN_USE/EXPIRED/CONSUMED/QUARANTINED), QCStatus (PENDING/PASSED/FAILED/QUARANTINED)
-   └── picker blocks selection when EXPIRED / QUARANTINED / QC FAILED
-
-InventoryUsage (existing — consumption is ALREADY recorded here; M-12 writes a row on lot selection)
-   ├── inventory_item_id, lot_id, analysis_id, test_result_id, quantity_used, usage_date, performed_by_user
-   └── this IS the per-result lot traceability (ISO 15189 §7.3) — reused, not rebuilt
-```
+The test's allowed reagents and media show their name, method restrictions,
+requiredness, permitted substitutions and active state. A lot shows its number,
+expiry and eligibility with a reason when unavailable. The result history names
+the selected reagent lot; the culture row names its medium and tracked lot.
+Culture-medium links have editable timing and atmosphere defaults but no quantity.
 
 ### 3.3 Linkage semantics
 
@@ -214,24 +168,14 @@ The Linkage-type radio group and the Consumption-unit dropdown each display the 
 
 ## 5. Reagent lot picker (component)
 
-A reusable component (`ReagentLotPicker`) — the **generic lot-selection component reused across the app**: M-04 Inoculation, M-05 AST Setup, and any future module that consumes reagents at result entry. In every host it behaves identically: **FIFO ordering (oldest expiry first), QC status shown per lot, and expired or QC-locked lots blocked from selection**.
+A reusable component (`ReagentLotPicker`) — the **generic lot-selection component reused across the app**: [V2 case](amr-micro-v2-amendments.md#fr-17.6) Inoculation, [V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b) AST Setup, and any future module that consumes reagents at result entry. In every host it behaves identically: **FIFO ordering (oldest expiry first), QC status shown per lot, and expired or QC-locked lots blocked from selection**.
 
-### 5.1 Component contract
+### 5.1 Shared selection behavior
 
-```
-ReagentLotPicker(
-   test_id: UUID,
-   method: text | null,
-   target_field: <reagent_id or null>
-) → Component that returns selected reagent_lot_id
-```
-
-The component:
-
-1. Looks up `test_reagent_link` rows for the test_id (and optionally filtered by method) — the definition owned by Test Catalog v2.5 (OGC-759).
-2. For each linkage, queries available **`InventoryLot`** rows (Inventory module): `LotStatus` ACTIVE/IN_USE (excludes EXPIRED / QUARANTINED / CONSUMED), `QCStatus` not FAILED, sorted FIFO (**oldest expiry first**). *(Reuses the Inventory module — supersedes the old `qc_lot`.)*
-3. Renders one `ComboBox` per REQUIRED linkage, plus one per OPTIONAL the user enables, and a single ComboBox per SUBSTITUTE group from which one lot is chosen.
-4. Validates selection on form submit.
+1. Offer the test's permitted reagents, filtered by its method where configured.
+2. List usable lots first by earliest expiry. Show expired, failed, quarantined or consumed lots disabled with their reason.
+3. Require a lot for required links, allow optional links, and allow one permitted alternative for a substitute group.
+4. Recheck eligibility on save. Culture-media selection records traceability only, with no stock change.
 
 **FIFO tooltip (review edit H5).** The lot dropdown carries a tooltip on its header: *"Lots are listed oldest-expiry first (FIFO) — use the top one unless you have a reason not to."* This makes the ordering rule legible rather than implicit.
 
@@ -242,7 +186,7 @@ For each REQUIRED linkage:
 - A lot must be selected.
 - The selected lot must be UNLOCKED.
 - The selected lot must not be expired (expires_at > now).
-- If the lot's QC has failed recently, surfaces a warning (not blocking — supervisor can override).
+- Failed, quarantined and consumed lots are ineligible; pending QC follows the shared Inventory policy and shows its explanation.
 
 If validation fails, save is blocked with **specific, actionable per-linkage error messages** (review edit H5) — not a generic "invalid lot":
 
@@ -251,11 +195,11 @@ If validation fails, save is blocked with **specific, actionable per-linkage err
 - *"Blood agar plate (BAP) is required — select a lot before saving."* (no selection)
 - (warning, non-blocking) *"QC for VITEK GN card lot AST-GN-26-04-117 is pending — a supervisor may need to approve."*
 
-Expired and locked lots are **not selectable** in the dropdown in the first place (they're filtered out per §5.1); the explicit error covers the case where a previously valid selection expires or locks between load and save.
+Expired and locked lots are **not selectable** in the dropdown (shown disabled with a reason per §5.1); the explicit error covers the case where a previously valid selection expires or locks between load and save.
 
 ### 5.3 UI in consuming modals
 
-In M-04's Inoculation modal:
+In [V2 case](amr-micro-v2-amendments.md#fr-17.6)'s inoculation section:
 
 ```
 Media: BAP, MAC
@@ -268,7 +212,7 @@ Reagent lots (required): *                                        (ⓘ FIFO)
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-In M-05's AST Setup modal:
+In [V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b)'s susceptibility setup section:
 
 ```
 Reagent Lot: *                                                    (ⓘ FIFO)
@@ -293,8 +237,8 @@ For inventory planning, lab managers can see which tests consume a given reagent
 │ ┌─────────────────────────────────────────────────────────────────────────┐ │
 │ │ Test Name         │ Linkage  │ Consumption │ Specimen Type │ Method   │ │
 │ ├───────────────────┼──────────┼─────────────┼───────────────┼──────────┤ │
-│ │ Blood Culture     │ REQUIRED │ 1 PER_RUN   │ Blood         │ (all)    │ │
-│ │ Blood Culture (Ped)│ REQUIRED│ 1 PER_RUN   │ Blood         │ (all)    │ │
+│ │ Blood Culture     │ Tracked  │ Trace only   │ Blood         │ (all)    │ │
+│ │ Blood Culture (Ped)│ Tracked │ Trace only   │ Blood         │ (all)    │ │
 │ └───────────────────┴──────────┴─────────────┴───────────────┴──────────┘ │
 │                                                                              │
 │ Current lots:                                                                │
@@ -315,15 +259,14 @@ This view enables Reagent Forecasting (parked spec) to compute expected consumpt
 
 ---
 
-## 7. Migration considerations
+## 7. Shared setup
 
-This spec adds new tables; no migration of existing data. Phase 1A workflow:
-
-1. Schema migration creates `test_reagent_link` table.
-2. Lab manager seeds initial linkages for the **Phase-1A seed tests** (review edit R-07): **Blood Culture, Urine Culture, Wound Culture, and the AST setup tests** (GN/GP/Enterococcus/Strep/Pseudomonas panels). These cover the common micro tests that drive Phase-1A workflow; the seed includes the media/card linkages shown in §4.1.
-3. Chemistry / hematology tests can be linked incrementally as those modules adopt.
-
-No existing data writes are blocked by this spec — at result entry, if a test has no linkages defined, the picker shows no required lots (graceful fallback for tests not yet linked).
+Laboratory managers configure the permitted media for Blood Culture, Urine
+Culture and Wound Culture, and reagent links for the susceptibility setup tests.
+The same shared catalog behavior applies to other laboratory sections. A test
+with no reagent links requires no reagent selection. A tracked culture medium
+requires a valid lot; a Not tracked medium records its name without a lot.
+Engineering owns cutover and any storage transformation.
 
 ---
 
@@ -333,20 +276,20 @@ No existing data writes are blocked by this spec — at result entry, if a test 
 |--------|-----------|
 | View linkages (Test Catalog Reagents tab) | `test_catalog.view` (existing) |
 | Edit linkages | `test_catalog.manage` (existing) |
-| Use ReagentLotPicker at result entry | The consuming surface's permission (e.g., `micro.case.edit`) |
+| Use ReagentLotPicker at result entry | The consuming surface's permission (e.g., Results rights in the case lab unit) |
 
 ---
 
 ## 9. Acceptance criteria
 
-> **Scope note (v3.0):** M-12's own acceptance is **AC-M12-06, -07, -08, -11** (the `ReagentLotPicker` component + its behavior in M-04/M-05). The rest below — AC-M12-01 (table), -02 (Reagents tab), -03/-04/-05 (linkage editor), -09 (reverse view), -10/-12 (inventory/seed) — are **owned by Test Catalog v2.5 (OGC-759) / Inventory** and listed here only as the contract M-12 depends on.
+> **Scope note (v3.0):** M-12's own acceptance is **AC-M12-06, -07, -08, -11** (the `ReagentLotPicker` component + its behavior in [V2 case](amr-micro-v2-amendments.md#fr-17.6)/[V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b)). The rest below — AC-M12-01 (table), -02 (Reagents tab), -03/-04/-05 (linkage editor), -09 (reverse view), -10/-12 (inventory/seed) — are **owned by Test Catalog v2.5 (OGC-759) / Inventory** and listed here only as the contract M-12 depends on.
 
-- **AC-M12-01** *(Test Catalog v2.5 / OGC-759)*: `test_reagent_link` table created with the schema in §3.1.
+- **AC-M12-01** *(Shared Test Catalog)*: administrators can link a test to its allowed reagents and media, with method and requiredness shown; culture media carry no consumption quantity.
 - **AC-M12-02**: Test Catalog editor's Reagents tab shows linkages for the selected test, with an empty state for tests with no linkages (review edit R-07).
 - **AC-M12-03**: Link New modal validates all required fields; the Linkage-type radio group and Consumption-unit dropdown show downstream helper text per selection (review edit H5).
 - **AC-M12-04**: Linkage types: REQUIRED blocks save without lot, OPTIONAL doesn't, SUBSTITUTE accepts one of N.
 - **AC-M12-05**: Method constraint (optional) restricts linkage to specific test methods.
-- **AC-M12-06**: The single generic `ReagentLotPicker` component renders correctly in both M-04 Inoculation and M-05 AST Setup, behaving identically (FIFO, QC status, expired/locked blocked).
+- **AC-M12-06**: The single generic `ReagentLotPicker` component renders correctly in both [V2 case](amr-micro-v2-amendments.md#fr-17.6) Inoculation and [V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b) AST Setup, behaving identically (FIFO, QC status, expired/locked blocked).
 - **AC-M12-07**: Lot picker filters to UNLOCKED, unexpired lots; sorts FIFO (oldest expiry first); shows a FIFO tooltip (review edit H5).
 - **AC-M12-08**: Validation rejects save with LOCKED or expired lots, with specific messages naming the lot, the reason, and "pick another lot" (review edit H5).
 - **AC-M12-09**: Reverse view (`/admin/reagents/:reagentId/tests`) shows tests consuming the reagent, with an empty state (review edit H5/R-07).
@@ -411,9 +354,9 @@ admin.reagentInventory.currentLots.column.quantity "Quantity"
 
 ## 12. References
 
-- M-00 Microbiology Module Parent Specification
-- M-04 Case Workbench Core (Inoculation modal consumes the shared `ReagentLotPicker`)
-- M-05 AST Entry & Interpretation (AST Setup consumes the shared `ReagentLotPicker`)
+- [V2 baseline](amr-micro-v2-amendments.md) Microbiology functional baseline
+- [V2 case](amr-micro-v2-amendments.md#fr-17.6) Case Workbench Core (inoculation section consumes the shared `ReagentLotPicker`)
+- [V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b) AST Entry & Interpretation (AST Setup consumes the shared `ReagentLotPicker`)
 - Test Catalog v2.5 (`test-catalog-requirements-v2.5.md` Reagents tab placeholder)
 - `FRS_Reagent_Forecasting.md` (parked spec, unblocked by M-12)
 - `project_reagent_test_catalog_link` memory

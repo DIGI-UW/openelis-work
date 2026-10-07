@@ -1,10 +1,18 @@
 # M-16 Cluster Detection & Outbreak Signals — Functional Requirements Specification
 
+> Functional authority: the V2 baseline owns case behavior; this document owns its scoped laboratory outcomes. Technical examples are non-normative. Engineering decisions and verification belong to specs/amr.
+
+
+> **Future capability, outside V2 delivery.** This document defines follow-on
+> outcomes; it is not a V2 prerequisite or implementation/acceptance claim.
+> Population boundaries follow [V2 selection](amr-micro-v2-amendments.md#fr-19.2).
+
+
 **Version:** 1.0 (canonical — reuse-first; no separate addendum)
 **Date:** 2026-09-04
 **Module:** Surveillance → Cluster Detection
 **Routes:** `/surveillance/clusters` · `/surveillance/clusters/history` · `/MasterListsPage/clusterDetection`
-**Owner:** Microbiology Module (M-00 parent) — but scope spans all three domains
+**Owner:** Microbiology Module ([V2 baseline](amr-micro-v2-amendments.md) parent) — but scope spans all three domains
 **Status:** Draft
 **Companion:** `m-16-cluster-detection-crosscheck-and-brief.md`
 
@@ -13,7 +21,7 @@
 > **(2)** The engine consumes a **domain-aware detection-event stream**, not isolates directly, so one
 > scan serves clinical, environmental and vector surveillance without three engines (§5.2). **(3)** The
 > scan **never crosses a domain boundary** — a clinical *E. coli* and an environmental *E. coli* are not
-> the same population (§5.6, extends D-004). **(4)** Clinical isolate selection **reuses the M-09
+> the same population (§5.6, extends the scoped functional requirements). **(4)** Clinical isolate selection **reuses the M-09
 > first-isolate de-duplication unchanged**, as M-13 already does; this module defines no second
 > denominator (§5.3). **(5)** Alert volume is a **design target of roughly 3–6 signals per lab per
 > year**, not an outcome (§5.9). All interaction is inline; the only modal is the outbound-send confirm.
@@ -101,7 +109,7 @@ follow-through.
 domains, so it cannot sit under `Microbiology` without hiding it from the environmental and vector
 users who need it. The existing tree has no home for cross-domain surveillance. This FRS therefore
 proposes a new top-level **`Surveillance`** group, in the same way `Analyzers` is a top-level group
-(D-027), and flags it as an IA gap for explicit approval rather than inventing it silently. If the
+(the scoped functional requirements), and flags it as an IA gap for explicit approval rather than inventing it silently. If the
 group is rejected, the fallback is `Microbiology → Cluster Detection` with the environmental and
 vector signals reachable only from there.
 
@@ -118,12 +126,12 @@ vector signals reachable only from there.
   - `Home / Surveillance / Cluster Detection / Signals`
   - `Home / Surveillance / Cluster Detection / Detection History`
   - `Home / Admin Management / Microbiology Reference Data / Cluster Detection`
-    (preserving the shipped `Admin` → `Admin Management` breadcrumb drift, D-013)
+    (preserving the shipped `Admin` → `Admin Management` breadcrumb drift, the scoped functional requirements)
 - **URL routes:**
   - `/surveillance/clusters` — signal queue. Deep-linkable to one signal:
-    `/surveillance/clusters?signal=<uuid>` (identifiers in the query string, D-012).
+    `/surveillance/clusters?signal=<uuid>` (identifiers in the query string, the scoped functional requirements).
   - `/surveillance/clusters/history` — detection runs and dispositioned signals.
-  - `/MasterListsPage/clusterDetection` — admin configuration (path-segment `editorKey`, D-012).
+  - `/MasterListsPage/clusterDetection` — admin configuration (path-segment `editorKey`, the scoped functional requirements).
 
 > ⚠ **Route verification owed.** The microbiology module is not on `develop`, so `/surveillance/*`
 > cannot be confirmed against `testing.openelis-global.org`. Per MUST C the shipped app is the source
@@ -133,8 +141,8 @@ vector signals reachable only from there.
 
 Detection is operational, single-laboratory and real-time, so it lives in OpenELIS. Multi-site
 analytics, national AMR dashboards and GLASS indicator reporting stay in the external Superset/Power BI
-layer over the consolidated FHIR store — the boundary M-15 §4.7 and D-041 already draw. M-16 never
-aggregates across laboratories and has no site selector (D-001).
+layer over the consolidated FHIR store — the boundary M-15 §4.7 and the scoped functional requirements already draw. M-16 never
+aggregates across laboratories and has no site selector (the earlier single-deployment assumption).
 
 ---
 
@@ -201,7 +209,7 @@ aggregates across laboratories and has no site selector (D-001).
 | FR-20 | Signal strength is reported as a **recurrence interval** — how rarely a pattern this strong would arise by chance — expressed in plain language ("expected about once every 4 years"), not as a *p*-value. | §5.8 |
 | FR-21 | A signal is raised only when its recurrence interval exceeds a configurable threshold (default 365 days). | Matches the published WHONET-SaTScan threshold. |
 | FR-22 | The scan runs over: organism alone; organism with resistance phenotype; and, for environmental and vector domains, pathogen alone. | Broad organism coverage, not AMR only. |
-| FR-23 | **The scan never crosses a domain boundary.** Clinical, environmental and vector events are scanned as separate populations and are never pooled. | §5.6. Extends D-004. |
+| FR-23 | **The scan never crosses a domain boundary.** Clinical, environmental and vector events are scanned as separate populations and are never pooled. | §5.6. Extends the scoped functional requirements. |
 | FR-24 | Overlapping and adjacent windows describing the same event set are **merged into a single signal** before the signal is presented. | §5.7. This is the step WHONET leaves to the user. |
 | FR-25 | The maximum temporal window scanned is configurable (default 60 days), as is the baseline period (default 365 days). | Matches the published WHONET-SaTScan parameters. |
 
@@ -236,13 +244,13 @@ aggregates across laboratories and has no site selector (D-001).
 
 | ID | Requirement | Notes |
 |---|---|---|
-| FR-38 | Selecting a signal opens an investigation panel **inline** — no modal — showing everything below. | D-005 |
+| FR-38 | Selecting a signal opens an investigation panel **inline** — no modal — showing everything below. | the scoped functional requirements |
 | FR-39 | **Line list** — every event in the signal: laboratory number, collection date, patient identifier or sampling site, specimen or sample type, location, agent, and the resistance interpretations where present. Each row links to its case or order. | The evidence, assembled. |
 | FR-40 | **Epidemic curve** — event counts over time across the signal window and the preceding baseline, so the rise is visible rather than asserted. Rendered with **`@carbon/charts-react`**, already a frontend dependency; no new charting library. | A text-equivalent table accompanies it (WCAG 2.1 AA). |
 | FR-41 | **Location breakdown** — counts by ward, department or grid cell, as a table plus a `@carbon/charts-react` visualisation; a map where coordinates are available. | |
 | FR-42 | **Resistance profile comparison** — for clinical signals with AST results, the per-antibiotic interpretations of the isolates side by side, so a supervisor can see at a glance whether they share a phenotype. | Shared phenotype is the strongest available evidence of a common source without sequencing. |
 | FR-43 | **Comparison to normal** — observed count against the expected count for that agent, location and window length, in plain numbers. | |
-| FR-44 | A signal carries a free-text investigation note with an activity trail of who changed what and when. | Reuses the existing history and note mechanism, as M-04's case timeline does. |
+| FR-44 | A signal carries a free-text investigation note with an activity trail of who changed what and when. | Reuses the existing history and note mechanism, as [V2 case](amr-micro-v2-amendments.md#fr-17.6)'s case timeline does. |
 
 ### 4.9 Disposition
 
@@ -251,7 +259,7 @@ aggregates across laboratories and has no site selector (D-001).
 | FR-45 | A signal is dispositioned as **Under investigation**, **Confirmed outbreak**, or **Ruled out**. A reason is required for Ruled out. | |
 | FR-46 | Disposition changes are traceable — who, when, from what state to what state, with the reason. | |
 | FR-47 | A dispositioned signal moves out of the open queue to Detection History and remains readable there permanently. | |
-| FR-48 | **Signals and investigations are never deleted.** There is no delete action anywhere in this feature. | D-002 |
+| FR-48 | **Signals and investigations are never deleted.** There is no delete action anywhere in this feature. | the scoped functional requirements |
 | FR-49 | A signal left undispositioned beyond a configurable age (default 14 days) is marked overdue in the queue and in the attention feed. | A queue nobody clears is a queue nobody reads. |
 | FR-50 | A confirmed cluster does **not** create a non-conforming event. | Decision, Casey 2026-09-04. A cluster is an epidemiological finding, not a laboratory quality failure. |
 
@@ -271,8 +279,8 @@ aggregates across laboratories and has no site selector (D-001).
 |---|---|---|
 | FR-56 | Detection is enabled or disabled **per domain**, independently. | |
 | FR-57 | Scan parameters are editable: schedule, baseline period, maximum temporal window, Monte Carlo replications, recurrence-interval threshold, grid edge length, minimum baseline before the scan activates, and overdue age. Each shows its default and a plain-language explanation of what raising or lowering it does to alert volume. | Tuning is the difference between 3 signals a year and 287. |
-| FR-58 | A **sentinel watchlist** of agents — organism, or organism with resistance phenotype — that alert on first occurrence. Entries are added, deactivated and reactivated; **never deleted**. Deactivated entries are hidden by default behind a "Show deactivated" toggle. | D-002. Organism and antibiotic pickers are filterable (D-007). |
-| FR-59 | The tests whose positive results count as environmental or vector detection events are selected from the test catalogue using a filterable picker. | D-007. No inline test creation (MUST E). |
+| FR-58 | A **sentinel watchlist** of agents — organism, or organism with resistance phenotype — that alert on first occurrence. Entries are added, deactivated and reactivated; **never deleted**. Deactivated entries are hidden by default behind a "Show deactivated" toggle. | the scoped functional requirements. Organism and antibiotic pickers are filterable (the scoped functional requirements). |
+| FR-59 | The tests whose positive results count as environmental or vector detection events are selected from the test catalogue using a filterable picker. | the scoped functional requirements. No inline test creation (MUST E). |
 | FR-60 | Infection prevention notification recipients are configured here. **This recipient list is new information** — see Dependencies. Message *delivery* reuses the existing notification channels and templates unchanged. | The existing notification system addresses patients and providers; it has no concept of a standing surveillance contact list. |
 | FR-61 | A **tuning view** shows, for the current parameters, how many signals would have been raised over the past year and how they were dispositioned — so a change to a threshold can be judged before it is saved. | Makes the alert budget a controllable design target rather than a hope. |
 | FR-62 | Configuration changes are traceable, and the parameters in force are recorded on every detection run. | A signal must be interpretable against the settings that produced it. |
@@ -385,7 +393,7 @@ control for that, and the default is deliberately coarse.
 A clinical *Escherichia coli* isolate from a patient and an environmental *Escherichia coli* detection
 in a water sample are the same species and are **not** the same population, do not share a baseline
 rate, and must never be pooled into one count. The scan runs independently per domain and a signal
-belongs to exactly one domain. This extends D-004's rule that the domain enumeration has no combined
+belongs to exactly one domain. This extends the scoped functional requirements's rule that the domain enumeration has no combined
 value into the analytical layer.
 
 A cluster of the same organism appearing in two domains in the same place and period is exactly the
@@ -474,7 +482,7 @@ No microbiology case, isolate, AST run or result is created or modified by clust
 
 ## 7. Access
 
-Attached to existing role bundles. No new per-action permission keys are introduced (D-006).
+Attached to existing role bundles. No new per-action permission keys are introduced (the scoped functional requirements).
 
 | Capability | Who can do it |
 |---|---|
@@ -663,7 +671,7 @@ department, organism, AST interpretation, specimen type, or collection date — 
 
 ## 10. Out of Scope
 
-- **Cross-laboratory or national cluster views.** Single tenant (D-001). Confirmed clusters are pushed
+- **Cross-laboratory or national cluster views.** Single tenant (the earlier single-deployment assumption). Confirmed clusters are pushed
   outward; they are never aggregated in the application.
 - **Genomic or whole-genome-sequencing cluster confirmation.** Signals are phenotypic. Sequencing is
   what an investigator does after the alert, outside OpenELIS.
@@ -757,12 +765,12 @@ department, organism, AST interpretation, specimen type, or collection date — 
 
 ## 13. References
 
-- M-00 Microbiology Module Parent Specification — module scope, glossary, domain and workflow rules
+- [V2 baseline](amr-micro-v2-amendments.md) Microbiology functional baseline — module scope, glossary, domain and workflow rules
 - M-09 WHONET Export — **first-isolate de-duplication routine, invoked unchanged**; surveillance export
 - M-13 Antibiogram — precedent for reusing the M-09 de-duplication; shared isolate set and reporting
   infrastructure
 - M-15 GLASS Surveillance via Consolidated FHIR — the in-app / central boundary; priority export path
-- M-11 Critical Result Acknowledgment — alert and acknowledgment model
+- [V2 callbacks](amr-micro-v2-amendments.md#fr-18.1) Critical Result Acknowledgment — alert and acknowledgment model
 - `m-16-cluster-detection-crosscheck-and-brief.md` — portfolio crosscheck, design brief, decision record
 - Kulldorff scan statistic — space-time permutation and Poisson models, as used by SaTScan and WHONET
 - WHONET-SaTScan evaluation, Italian hospital 2012–2014 — parameter set and signal-volume evidence

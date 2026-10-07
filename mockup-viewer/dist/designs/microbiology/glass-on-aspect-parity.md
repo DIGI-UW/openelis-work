@@ -1,5 +1,13 @@
 # GLASS submission on an Aspect-parity platform
 
+> Functional authority: the V2 baseline owns case behavior; this document owns its scoped laboratory outcomes. Technical examples are non-normative. Engineering decisions and verification belong to specs/amr.
+
+
+> **Future capability, outside V2 delivery.** This document defines follow-on
+> outcomes; it is not a V2 prerequisite or implementation/acceptance claim.
+> Population boundaries follow [V2 selection](amr-micro-v2-amendments.md#fr-19.2).
+
+
 **Version** 2.0 · **Date** 2026-08-08 · **Status** Draft for review
 **Supersedes** `glass-downstream-impacts-and-slotting.md` v1.0 (2026-08-05), which scoped this against **WHONET** parity and a bespoke consolidated server. Casey's steer — *"we need to start with feature parity with Aspect"* — changes the substrate, and two of v1.0's conclusions were wrong as a result. Both corrections are recorded in §1.
 **Basis** WHO GLASS manual 2023 (9789240076600) · `Aspect_GxAlert_to_OpenELIS_Gap_Analysis_v2.docx` (Jul 2026) · `DIGI_Engagement_Scope_Aspect_GxAlert.docx` (Aug–Dec 2026) · M-09 FRS v2.0 · M-15 FRS v1.0 · OGC-794 / OGC-918
@@ -10,7 +18,7 @@
 
 ## 1. What changed, and why it matters
 
-v1.0 assumed OpenELIS stays strictly single-tenant per **D-001**, concluded that cross-lab aggregation therefore had to happen in a separate system nobody owned, and reasoned from there. The Aspect engagement invalidates that premise.
+v1.0 assumed OpenELIS stays strictly single-tenant per the earlier single-deployment assumption, concluded that cross-lab aggregation therefore had to happen in a separate system nobody owned, and reasoned from there. The Aspect engagement invalidates that premise.
 
 **Correction 1 — the consolidated server is not unowned, unbuilt, or hypothetical.** v1.0's §5 open question 1 read: *"Who owns, builds and hosts the consolidated server? This is the largest unresolved question."* **[ASPECT]** It is **W9 — Central Multi-Facility Data Model & Headless Auto-Validation**, rated HIGH, described as *"the second genuine build after TextIt"*, staffed to Engineer 2, handoff November 2026. DIGI builds; the country hosts, with data held in-country. That question is closed for this deployment.
 
@@ -56,11 +64,11 @@ The requirements GLASS places on that decision, whichever option wins, are only 
 3. **Retention and reproducibility.** Countries revise prior years. A prior period's submission must be reproducible exactly — versioned scope profiles, versioned dedup parameters, immutable source records.
 4. **A non-OpenELIS ingest route.** Not every lab in a country runs OpenELIS. This is the one place Aspect parity genuinely helps: **[ASPECT]** Aspect already connects *"any device"* across 3,500+ labs, so a file/API intake path is native to the platform being replaced, and dropping it would be a regression.
 
-### 2.1 D-001 is now in tension and needs an explicit ruling
+### 2.1 the earlier single-deployment assumption is now in tension and needs an explicit ruling
 
-**D-001** (GLOBAL, active) reads: *"Single-tenant per deployment; no lab/site/tenant selector."* Options A and B both contradict it directly; option C preserves it by pushing the multi-site view outside OpenELIS.
+the earlier single-deployment assumption (GLOBAL, active) reads: *"Single-tenant per deployment; no lab/site/tenant selector."* Options A and B both contradict it directly; option C preserves it by pushing the multi-site view outside OpenELIS.
 
-**[REC]** This is not a GLASS decision to make, but GLASS is the second workstream to hit it, so it is worth surfacing now rather than discovering it twice. Either D-001 gets scoped ("single-tenant for facility deployments; the national instance is a distinct deployment profile") or it gets superseded by whatever W9 rules. Leaving it silently contradicted is the bad outcome — the decision log exists so that a design can be checked against it, and an active GLOBAL row that the flagship engagement is about to break makes every future `/crosscheck` unreliable.
+**[REC]** This is not a GLASS decision to make, but GLASS is the second workstream to hit it, so it is worth surfacing now rather than discovering it twice. Either the earlier single-deployment assumption gets scoped ("single-tenant for facility deployments; the national instance is a distinct deployment profile") or it gets superseded by whatever W9 rules. Leaving it silently contradicted is the bad outcome — Any future national aggregation decision belongs to that future capability and does not block V2.
 
 ---
 
@@ -79,9 +87,9 @@ Unchanged from v1.0 in substance. These are cheap, they prevent classes of silen
 
 **Change 3 remains the highest-value single item in this analysis.** Without negatives the SAMPLE dataset cannot be built, so a country can report **percentage resistance only, never infection rates per 100 000**. That ceiling is invisible until an NCC tries to build SAMPLE and cannot — and it is a ceiling created by a LIMS design choice, not by the country's data.
 
-### 3.2 M-03 Order Entry — dependency now satisfied
+### 3.2 [V2 reception](amr-micro-v2-amendments.md#fr-02.3) Order Entry — dependency now satisfied
 
-**[WHO]** ORIGIN derivation needs date of admission. v1.0 flagged this as an open dependency on already-shipped work. **Closed 2026-08-05**: M-03 v2.1 adds Date of Admission (OGC-789, PR #254), and v2.2 refines the surrounding tile. Degradation is specified — outpatients resolve to `CO` without a date; admitted patients without one are `UNK` — so partial adoption still improves on today, where every record is `UNK`.
+**[WHO]** ORIGIN derivation needs date of admission. v1.0 flagged this as an open dependency on already-shipped work. **Closed 2026-08-05**: [V2 reception](amr-micro-v2-amendments.md#fr-02.3) v2.1 adds Date of Admission (OGC-789, PR #254), and v2.2 refines the surrounding tile. Degradation is specified — outpatients resolve to `CO` without a date; admitted patients without one are `UNK` — so partial adoption still improves on today, where every record is `UNK`.
 
 ### 3.3 M-15 FHIR push (OGC-918) — now the natural fit, not an optimisation
 
@@ -133,7 +141,7 @@ Renumbered; v1.0's #1 (ownership) is closed, and #2–#6 survive with the Aspect
 2. Flip the dedup default to send-everything, with `surveillance.dedup.performedBy = NCC | SITE`, defaulting `NCC`.
 3. Reword OGC-924 from *"generates the GLASS submission"* to *"produces GLASS-conformant RIS + SAMPLE files for the focal point to upload."* No system submits to GLASS — **[WHO]** platform credentials are personal and non-shareable, so the pipeline's job ends at a conformant file and a human who can see it is ready.
 4. Housekeeping — reconcile OGC-921/923 and OGC-879/881 showing Done under Backlog parents; retitle OGC-918 to separate GLASS-AMR from DR-TB, since *M. tuberculosis* is not a GLASS-AMR pathogen.
-5. **Raise the D-001 ruling** (§2.1) before W9 commits, not after.
+5. **Raise the the earlier single-deployment assumption ruling** (§2.1) before W9 commits, not after.
 
 **Next — the export that makes SAMPLE possible.**
 

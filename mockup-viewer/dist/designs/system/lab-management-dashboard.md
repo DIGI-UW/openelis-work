@@ -237,6 +237,10 @@ If the Inventory module is enabled but has zero stock data, the section renders 
 
 ---
 
+> **Cross-reference (2026-09-10):** The Management Dashboard's Positivity Rate section (one `PositivityRateTile` per configured test) is owned by `designs/reports/positivity-rate.md` (OGC-433), not this FRS. Tiles are provisioned via a new `PositivityDashboardTile` entity, seeded and updated through the same CSV-import tooling this FRS introduces below for `TestSurveillanceMapping` — no change to this FRS's own scope, entities, or card list is required.
+
+---
+
 ## 5. Data Model
 
 ### 5.1 Reused entities — verified against `OpenELIS-Global-2/develop` 2026-06-05

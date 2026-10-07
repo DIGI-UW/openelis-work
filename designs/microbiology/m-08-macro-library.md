@@ -1,10 +1,13 @@
 # M-08 Macro Library — Functional Requirements Specification
 
+> Functional authority: the V2 baseline owns case behavior; this document owns its scoped laboratory outcomes. Technical examples are non-normative. Engineering decisions and verification belong to specs/amr.
+
+
 **Version:** 2.0 (consolidated — folds review edits inline; no separate addendum)
 **Date:** 2026-06-07
 **Module:** Admin → Macro Library (cross-cutting; Micro is first consumer)
 **Phase:** 1A
-**Owner:** Microbiology Module (M-00 parent), but cross-cutting OE feature
+**Owner:** Microbiology Module ([V2 baseline](amr-micro-v2-amendments.md) parent), but cross-cutting OE feature
 **Status:** Draft
 
 > This FRS is self-contained. The AMR design-review edits — category helper text, the category chip on the macro dropdown, the seeded-vs-user-added distinction, the bulk-edit confirm, reserved-code handling, client cache refresh, and export/import legibility — are written **inline** in the relevant sections below; there is no separate edits doc or addendum.
@@ -54,9 +57,9 @@ The macro mechanism has three parts:
 
 ### 2.4 Integration
 
-- **M-04 Case Workbench Core** — every macro-enabled field references the Library.
-- **M-05 AST Entry & Interpretation** — override justification fields use macros.
-- **M-03 Order Entry Hook** — Clinical History field uses macros (per Micro Order Entry hook).
+- **[V2 case](amr-micro-v2-amendments.md#fr-17.6) Case Workbench Core** — every macro-enabled field references the Library.
+- **[V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b) AST Entry & Interpretation** — override justification fields use macros.
+- **V2 Case information** — Clinical history uses macros on the case.
 - **M-09 WHONET Export** — comment/annotation fields could use macros (Phase 1B).
 - **Future modules** — pathology, cytology, chemistry can opt fields in.
 
@@ -537,9 +540,9 @@ field.macro.aria.expanded                   "Macro {{code}} expanded"
 
 ## 14. References
 
-- M-00 Microbiology Module Parent Specification
+- [V2 baseline](amr-micro-v2-amendments.md) Microbiology functional baseline
 - M-NFR Non-Functional Requirements (NFR-04 a11y, NFR-05 perf, NFR-07 i18n)
-- M-04 Case Workbench Core (consumer)
-- M-05 AST Entry & Interpretation (consumer)
+- [V2 case](amr-micro-v2-amendments.md#fr-17.6) Case Workbench Core (consumer)
+- [V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b) AST Entry & Interpretation (consumer)
 - `amr-crosswalk-working.md` — Macros as cross-cutting feature
 - v1.1 AMR Configuration FRS §10 — original Macro Library spec; M-08 supersedes

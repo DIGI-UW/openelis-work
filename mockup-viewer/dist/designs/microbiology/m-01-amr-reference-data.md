@@ -1,17 +1,20 @@
 # M-01 AMR Reference Data — Functional Requirements Specification
 
+> Functional authority: the V2 baseline owns case behavior; this document owns its scoped laboratory outcomes. Technical examples are non-normative. Engineering decisions and verification belong to specs/amr.
+
+
 **Version:** 2.0 (consolidated — folds review edits inline; no separate addendum)
 **Date:** 2026-06-07
 **Module:** Admin → Microbiology Reference Data
 **Phase:** 1A
-**Owner:** Microbiology Module (M-00 parent)
+**Owner:** Microbiology Module ([V2 baseline](amr-micro-v2-amendments.md) parent)
 **Status:** Draft
 
 > This FRS is self-contained. The clarity/legibility edits from the AMR design review (downstream-effect helper text, the "Initial significance" rename, cascade-tier info, deactivation impact, empty states, and AST-panel version toast) are written **inline** in the relevant sections below — there is no separate edits doc or addendum.
 
-This spec covers the reference data that drives the Micro workflow: the **Organism Master, Antibiotic Master, and AST Panels** (three new masters under `Admin → Microbiology Reference Data`, sidenav submenus per `feedback_openelis_sidenav_submenus`), plus **Culture Protocols, which are realized as extended `Method`s** (reuse — A-REUSE-1 / OGC-841; managed in the existing Method admin, see §6), not a new master.
+This spec covers the reference data that drives the Micro workflow: the **Organism Master, Antibiotic Master, and AST Panels** (three new masters under `Admin → Microbiology Reference Data`, sidenav submenus per `feedback_openelis_sidenav_submenus`).
 
-This is the foundation that M-02 Breakpoint Catalog, M-04 Case Workbench, M-05 AST Entry, and M-09 WHONET Export all reference.
+This is the foundation that M-02 Breakpoint Catalog, [V2 case](amr-micro-v2-amendments.md#fr-17.6) Case Workbench, [V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b) AST Entry, and M-09 WHONET Export all reference.
 
 ---
 
@@ -21,7 +24,7 @@ This is the foundation that M-02 Breakpoint Catalog, M-04 Case Workbench, M-05 A
 
 **Pain.** Because the vocabularies aren't a single source of truth, the same organism gets spelled three ways, an antibiotic is tested but has no breakpoint loaded, and a tech setting up AST has to remember which panel applies to which organism. Nothing tells the configuring manager what a field actually *does downstream* — e.g., that "intrinsic resistance" silently forces an R in AST, or that a default panel pre-selects at setup.
 
-**What Changes.** Four admin masters become the canonical vocabularies. Each editable field now carries **inline helper text that names its downstream effect**, so a manager configuring a record sees where it lands in the workflow. Day-to-day workflow consumes these masters but never modifies them.
+**What Changes.** Three admin masters become the canonical vocabularies. Each editable field now carries **inline helper text that names its downstream effect**, so a manager configuring a record sees where it lands in the workflow. Day-to-day workflow consumes these masters but never modifies them.
 
 ---
 
@@ -29,12 +32,11 @@ This is the foundation that M-02 Breakpoint Catalog, M-04 Case Workbench, M-05 A
 
 ### 2.1 Purpose
 
-Maintain the four reference-data vocabularies that power Micro:
+Maintain the three reference-data vocabularies that power Micro:
 
 - **Organism Master** — every organism the lab can identify, with WHONET codes for surveillance and groupings for rule application.
 - **Antibiotic Master** — every antibiotic the lab can test, with WHONET codes and classification.
 - **AST Panels** — which antibiotics get tested against which organism × specimen combinations, with tier ordering for cascade reporting.
-- **Culture Protocols** (realized as `Method`s — §6) — recipe per specimen type: which media to inoculate, incubation time, temperature, atmosphere.
 
 These are admin-only surfaces. Day-to-day workflow consumes them but doesn't modify them.
 
@@ -45,7 +47,6 @@ These are admin-only surfaces. Day-to-day workflow consumes them but doesn't mod
 | Organism Master list | `/admin/microbiology/organisms` | Admin → Microbiology Reference Data → Organisms |
 | Antibiotic Master list | `/admin/microbiology/antibiotics` | Admin → Microbiology Reference Data → Antibiotics |
 | AST Panels list | `/admin/microbiology/ast-panels` | Admin → Microbiology Reference Data → AST Panels |
-| Culture Protocols | (existing **Method** admin — culture protocols are Methods, §6; not a new M-01 page) | Admin → Test Catalog → Methods |
 | Add/Edit modals | (modal overlay on respective list views) | — |
 
 ### 2.3 Users
@@ -60,10 +61,8 @@ These are admin-only surfaces. Day-to-day workflow consumes them but doesn't mod
 ### 2.4 Integration
 
 - **M-02 Breakpoint Catalog** consumes Organism Master and Antibiotic Master as FK targets.
-- **M-04 Case Workbench** consumes the culture protocol (= the test's default **Method**, A-REUSE-1), Organism Master (Isolate ID), AST Panels (AST setup default).
-- **M-05 AST Entry** consumes AST Panels + Antibiotic Master.
+- **[V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b) AST Entry** consumes AST Panels + Antibiotic Master.
 - **M-09 WHONET Export** reads WHONET codes from Organism Master, Antibiotic Master, and the Specimen Type and Origin coded vocabularies (latter two extend existing OE vocabularies — see Q7 in `amr-crosswalk-working.md`).
-- **Test Catalog (existing OE)** designates a test's default culture protocol as its **default Method** (`test_method.is_default`, per A-REUSE-1 — no `default_culture_protocol_id` column) and carries a `valid_organisms` multi-select reference to Organism Master (per crosswalk Q6).
 
 ---
 
@@ -122,8 +121,8 @@ The list surfaces the **Default panel** column so a manager can see, without ope
 | `gram_stain` | enum | No | POSITIVE / NEGATIVE / VARIABLE / NA | |
 | `morphology` | enum | No | COCCI / BACILLI / COCCOBACILLI / YEAST / OTHER | |
 | `oxygen_requirement` | enum | No | AEROBIC / ANAEROBIC / FACULTATIVE / MICROAEROPHILIC | |
-| `initial_significance` | enum | Yes | ALWAYS / USUALLY / SOMETIMES / RARELY / CONTAMINANT | **Pre-fills the isolate's significance** on first creation in M-04; tech can override per case. (Renamed from "Clinical Significance Default" per review edit H1.) |
-| `default_ast_panel_id` | FK | No | FK to `ast_panel` | **Pre-selected at AST set-up** in M-04 when this organism is the isolate's organism |
+| `initial_significance` | enum | Yes | ALWAYS / USUALLY / SOMETIMES / RARELY / CONTAMINANT | **Pre-fills the isolate's significance** on first creation in [V2 case](amr-micro-v2-amendments.md#fr-17.6); tech can override per case. (Renamed from "Clinical Significance Default" per review edit H1.) |
+| `default_ast_panel_id` | FK | No | FK to `ast_panel` | **Pre-selected at AST set-up** in [V2 case](amr-micro-v2-amendments.md#fr-17.6) when this organism is the isolate's organism |
 | `intrinsic_resistances` | M:N to antibiotic_master | No | — | Junction table; antibiotics this organism is always resistant to. **Auto-set R in AST regardless of MIC/zone** (review edit H1) |
 | `active` | bool | Yes | Default true | Soft delete |
 | `seeded` | bool | Yes | Default false | True if seeded from WHONET / Catalog Subscription |
@@ -144,7 +143,7 @@ A small fixed-set vocabulary that drives Expert Rule application. Stored in `org
 | Non-fermenter | P. aeruginosa, Acinetobacter spp., Stenotrophomonas | Glucose non-fermenters |
 | Anaerobe | Bacteroides, Clostridium, Peptostreptococcus | Strict anaerobes |
 | Yeast | Candida spp., Cryptococcus spp. | Fungal — Phase 1B/2 |
-| Mycobacterium | M. tuberculosis, NTM | Phase 4+ (M-14) |
+| Mycobacterium | M. tuberculosis, NTM | Phase 4+ ([V2 DST](amr-micro-v2-amendments.md#fr-14.1)) |
 | HACEK | Haemophilus, Aggregatibacter, Cardiobacterium, Eikenella, Kingella | Slow growers |
 | Other | — | Catch-all |
 
@@ -190,7 +189,7 @@ A small fixed-set vocabulary that drives Expert Rule application. Stored in `org
 
 ### 3.7 Import reference-data updates (via Catalog Subscription)
 
-Reference-data updates arrive through the existing **Catalog Subscription & Metadata Sync** feature (M-10's bespoke hub is retired — see m-10 v3.0). When a subscribed catalog has organism/antibiotic updates, the admin reviews a field-level diff and applies it: local additions are preserved; remote updates apply to records where `seeded = true` only. *(Open: organism/antibiotic master may need a dedicated catalog resource type — flagged for the Catalog Subscription owner in m-10 §2.)*
+Reference-data updates arrive through the existing **Catalog Subscription & Metadata Sync** feature (shared catalog administration owns updates). When a subscribed catalog has organism/antibiotic updates, the admin reviews a field-level diff and applies it: local additions are preserved; remote updates apply to records where `seeded = true` only. *(Open: organism/antibiotic master may need a dedicated catalog resource type — tracked with the Catalog Subscription owner.)*
 
 In Phase 1A the list is **seeded from WHONET** at deployment (`seeded = true`); reference-data updates later flow through the existing Catalog Subscription feature (no separate Hub button — M-10 retired).
 
@@ -284,7 +283,7 @@ Smaller than Organism — single column.
 
 ### 5.1 Purpose
 
-Define which antibiotics get tested for which organism × specimen combinations. Drives the AST Setup defaults in M-04. Carries tier information for cascade reporting in M-06.
+Define which antibiotics get tested for which organism × specimen combinations. Drives the AST Setup defaults in [V2 case](amr-micro-v2-amendments.md#fr-17.6). Carries tier information for cascade reporting in M-06.
 
 ### 5.2 List view
 
@@ -378,7 +377,7 @@ The same copy is available as inline helper text under the Tier column header.
 
 **Version note + save toast (review edit H1).**
 
-When the antibiotic list changes (add, remove, reorder, tier change), the panel `version` increments on save. On a version-incrementing save, the UI shows a **toast**: *"AST panel '{name}' saved as version {n}. In-flight and historical AST Runs keep the version they were set up against."* Historical AST Runs against prior versions are unaffected — they snapshot the panel version at AST setup time (per crosswalk Q4 versioning rules and M-04 §AST Run model).
+When the antibiotic list changes (add, remove, reorder, tier change), the panel `version` increments on save. On a version-incrementing save, the UI shows a **toast**: *"AST panel '{name}' saved as version {n}. In-flight and historical susceptibility attempts keep the published version used at setup."* Historical AST Runs against prior versions are unaffected — they snapshot the panel version at AST setup time (per crosswalk Q4 versioning rules and [V2 case](amr-micro-v2-amendments.md#fr-17.6) §AST Run model).
 
 ### 5.6 Acceptance criteria
 
@@ -386,119 +385,18 @@ When the antibiotic list changes (add, remove, reorder, tier change), the panel 
 - **AC-M01-P-02**: Adding/removing antibiotics from a panel increments version and shows the version-saved toast (review edit H1).
 - **AC-M01-P-03**: Tier 1/2/3 dropdown, Report Default dropdown work inline.
 - **AC-M01-P-04**: Cannot add the same antibiotic twice to one panel.
-- **AC-M01-P-05**: Target Organism Group + Target Specimen Type drive AST Setup default selection in M-04.
+- **AC-M01-P-05**: Target Organism Group + Target Specimen Type drive AST Setup default selection in [V2 case](amr-micro-v2-amendments.md#fr-17.6).
 - **AC-M01-P-06**: Deactivating a panel removes it from AST Setup dropdown but preserves historical AST Runs; the confirmation states this downstream impact.
 - **AC-M01-P-07**: A cascade-tier info popover (Tier 1 always / Tier 2 cascade-if-all-T1-R / Tier 3 reserve) is reachable from the panel editor (review edit H2).
 - **AC-M01-P-08**: Empty state renders for the panels list.
 
 ---
 
-## 6. Culture Protocols — realized as Methods (reuse, A-REUSE-1)
+## 6. Culture media defaults
 
-### 6.1 Purpose & data-model decision
-
-A culture protocol is the recipe per specimen type: media to inoculate, incubation duration, temperature, atmosphere. **Per the ratified reuse decision (A-REUSE-1 / OGC-841), a culture protocol is NOT a new master — it is realized as the existing OpenELIS `Method` entity, extended with `incubation_hours / temp / atmosphere / subculture_at_hours`.** Therefore:
-- Culture protocols are **managed in the existing Method admin** (Admin → Test Catalog → Methods), not a separate M-01 page; the list view and fields below describe the culture-protocol attributes **as carried on Method** (illustrative), not a standalone `culture_protocol` / `protocol_id` table.
-- A test's default culture protocol = its **default Method** (`test_method.is_default`) — there is **no `default_culture_protocol_id` column**.
-- Order Entry (M-03 §2.1a) and the Inoculation panel (M-04) resolve the protocol from the test's default Method; media link via `method_reagent` (M-12).
-
-Read "protocol" below as "the culture-workflow Method."
-
-### 6.2 List view
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ Admin / Microbiology Reference Data / Culture Protocols                      │
-│                                                                              │
-│ Culture Protocols                                                [+ Add New] │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ [Search...]   Status: [Active ▼]                                             │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ Code         │ Name                  │ Media          │ Hours │ Status      │
-├──────────────┼───────────────────────┼────────────────┼───────┼─────────────┤
-│ BC-STD       │ Blood Culture Std     │ FA, FN         │ 120   │ Active      │
-│ UR-RTN       │ Urine Routine         │ BAP, MAC       │ 24    │ Active      │
-│ RESP-STD     │ Respiratory Standard  │ BAP, CHOC, MAC │ 48    │ Active      │
-│ WOUND        │ Wound Culture         │ BAP, MAC, CNA, │ 48    │ Active      │
-│              │                       │ THIO           │       │             │
-│ CSF-URG      │ CSF Urgent            │ BAP, CHOC      │ 48    │ Active      │
-│ STOOL-ENT    │ Stool Enteric         │ MAC, SS, XLD,  │ 48    │ Active      │
-│              │                       │ CAMPY          │       │             │
-└──────────────┴───────────────────────┴────────────────┴───────┴─────────────┘
-  Showing 1-6 of 6                                                              
-```
-
-Typical small lab has 5-10 protocols total. Pagination rarely needed in practice but present for consistency.
-
-**Empty state.** "No culture protocols yet. **+ Add New** to define a media/incubation recipe per specimen type."
-
-### 6.3 Data model
-
-| Field | Type | Required | Notes |
-|-------|------|----------|-------|
-| `protocol_id` | UUID PK | — | — |
-| `code` | text | Yes | Unique, ≤ 20 chars |
-| `name` | text | Yes | Unique, ≤ 100 chars |
-| `default_media_list` | JSON array of media codes | Yes | E.g., `["BAP", "MAC"]` |
-| `default_incubation_hours` | int | Yes | Max read time |
-| `max_incubation_days` | int | Yes | When to finalize as no growth |
-| `default_temperature_c` | numeric | Yes | E.g., 35.0 |
-| `default_atmosphere` | enum | Yes | AEROBIC, ANAEROBIC, CO2, MICROAEROPHILIC |
-| `default_subculture_at_hours` | JSON array | No | E.g., `[24, 48]` for blood cultures that get subcultured at those points |
-| `active` | bool | Yes | Default true |
-| `seeded` | bool | Yes | Default false |
-| `notes` | text | No | — |
-| audit columns | — | — | — |
-
-### 6.4 Media catalog (sub-table)
-
-Stored in `media_type` table; seed data only in Phase 1A:
-
-| Code | Name | Notes |
-|------|------|-------|
-| BAP | Blood Agar Plate | Sheep blood; non-selective |
-| MAC | MacConkey | Gram-negative selective, lactose differential |
-| CHOC | Chocolate Agar | Fastidious Gram-negatives |
-| CNA | Colistin-Nalidixic Acid | Gram-positive selective |
-| THIO | Thioglycollate Broth | Anaerobic enrichment |
-| FA | Aerobic Blood Culture Bottle | BacT/Alert FA or equivalent |
-| FN | Anaerobic Blood Culture Bottle | BacT/Alert FN or equivalent |
-| SS | Salmonella-Shigella | Enteric selective |
-| XLD | Xylose Lysine Deoxycholate | Enteric selective |
-| CAMPY | Campylobacter Selective | Campylobacter (microaerophilic) |
-| LJ | Löwenstein-Jensen | TB solid culture (M-14 Phase 4+) |
-| SDA | Sabouraud Dextrose Agar | Fungal (Phase 1B/2) |
-
-### 6.5 Add / Edit modal
-
-`ComposedModal` size `md`.
-
-- Code (TextInput, required, uppercase auto)
-- Name (TextInput, required)
-- Default Media (MultiSelect from `media_type` catalog, required)
-- Max Incubation Days (NumberInput, 1-30)
-- Default Read Hours (NumberInput, 1-720)
-- Default Subculture At (TagInput accepting comma-separated hours; optional)
-- Default Temperature (NumberInput, 25-45, step 0.5; default 35)
-- Default Atmosphere (Dropdown, required)
-- Active / Inactive toggle
-- Notes (TextArea)
-
-### 6.6 Test Catalog integration
-
-On the existing Test Catalog (v2.5), a micro Test's default culture protocol is its **default Method** (`test_method.is_default`) — **no `default_culture_protocol_id` column is added** (A-REUSE-1). The Test Catalog editor's existing Method picker selects it; culture-workflow Methods are surfaced via the Culture-workflow test attribute (M-03 §2.1a).
-
-### 6.7 Acceptance criteria
-
-- **AC-M01-C-01**: List, search, filter, pagination as for other masters.
-- **AC-M01-C-02**: Default Media MultiSelect references active `media_type` records.
-- **AC-M01-C-03**: Default Temperature accepts decimals; defaults to 35.
-- **AC-M01-C-04**: Max Incubation Days drives the Worklist incubating-stage detail (e.g., "Day 2 of 5").
-- **AC-M01-C-05**: A micro Test's default culture protocol is its default **Method** (`test_method.is_default`); no `default_culture_protocol_id` column exists (A-REUSE-1); culture protocols are managed in the existing Method admin, not a separate master.
-- **AC-M01-C-06**: Deactivating a culture-workflow Method removes it from new selections but preserves historical Cases; the confirmation states this downstream impact.
-- **AC-M01-C-07**: Empty state renders for the protocols list.
-
----
+Culture protocols and workflow-based setup administration are retired. Editable
+media defaults live on the culture test’s Reagents and media links; see
+[V2 media defaults](amr-micro-v2-amendments.md#fr-05.2a).
 
 ## 7. Coded vocabularies that extend existing OE
 
@@ -567,7 +465,7 @@ admin.micro.ref.panel.version.saved.toast           "AST panel '{name}' saved as
 ...
 ```
 
-Similar key trees for antibiotic, panel, culture protocol. Full key table to be enumerated in the i18n catalog at code time.
+Similar key trees for antibiotic and panel. Full key table to be enumerated in the i18n catalog at code time.
 
 ---
 
@@ -587,12 +485,11 @@ All AC-M01-* items above, totaling roughly 30 criteria across the four masters p
 
 ## 12. References
 
-- M-00 Microbiology Module Parent Specification
+- [V2 baseline](amr-micro-v2-amendments.md) Microbiology functional baseline
 - M-02 Breakpoint Catalog (depends on Organism Master + Antibiotic Master)
-- M-04 Case Workbench Core (consumes Culture Protocols at Order Entry, Organism Master at Isolate ID, AST Panels at AST Setup)
-- M-05 AST Entry & Interpretation (consumes AST Panels + Antibiotic Master)
+- [V2 susceptibility](amr-micro-v2-amendments.md#fr-07.2b) AST Entry & Interpretation (consumes AST Panels + Antibiotic Master)
 - M-06 Expert Rules (matches on Organism Group; consumes cascade tiers)
-- M-07 Worklist (incubating-stage day count from `max_incubation_days`)
+- [V2 Worklist](amr-micro-v2-amendments.md#fr-12.1) Worklist (incubating-stage due times from individual culture rows)
 - M-08 Macro Library (provides `organisms` category macros that reference Organism Master)
 - M-09 WHONET Export (reads WHONET codes from Organism Master + Antibiotic Master)
 - Catalog Subscription & Metadata Sync (provides reference-data update import; M-10 retired)

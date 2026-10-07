@@ -4,8 +4,8 @@
 //   /Microbiology/cases/:caseId           Microbiology Case with a site subject (section D, v2 layout)
 //   /Microbiology/worklist                Worklist, Patient or site column and Lab unit filter (section E)
 // SideNav: Orders & Patients -> Add Order (Environmental); Microbiology -> Worklist
-// FRS: m-18-environmental-microbiology-frs.md v0.8; amr-micro-v2-amendments.md draft 8
-// Decisions: D-115, D-117, D-119, D-120 to D-125, D-129, D-137, D-138, D-146
+// FRS: m-18-environmental-microbiology-frs.md v0.8; amr-micro-v2-amendments.md draft 10.4
+// Functional source: the Microbiology V2 requirements and environmental follow-on.
 
 import React, { useState } from 'react';
 import {
@@ -46,7 +46,7 @@ function SimpleTable({ headers, rows }) {
   );
 }
 
-/* ---------- Environmental Enter Order: culture tests like any test (FR-C1, FR-C4; v2 D-146) ---------- */
+/* ---------- Environmental Enter Order: culture tests like any test (FR-C1, FR-C4; v2 FR-02.3) ---------- */
 // No Microbiology section and no Program coupling. The env v4 samples table is unchanged; the
 // "After save" tile is drawn for review only and is not shown to reception.
 export function EnvOrderCultureTests() {
@@ -71,9 +71,9 @@ export function EnvOrderCultureTests() {
             { key: 'unit', header: t('microbiology.order.labUnit', 'Lab unit') },
             { key: 'purpose', header: t('microbiology.culturePurpose.label', 'Culture purpose') },
           ]}
-          rows={SAMPLES.map((s) => ({ id: s.num, caseFor: s.test, num: `${s.num} (${s.point})`, unit: 'Environmental Microbiology', purpose: PURPOSES[0].label }))}
+          rows={[{ id: 'shared-case', caseFor: 'One shared surface-swab culture case', num: SAMPLES.map(s => `${s.num} (${s.point})`).join('; '), unit: 'Environmental Microbiology', purpose: PURPOSES[0].label }]}
         />
-        <p><small>One Case per sampling point; replicate swabs from one point would share a Case, split on the Case. Purpose (default Routine monitoring) and replicates are edited in Case information. Program is not set or read.</small></p>
+        <p><small>One case per order, sample type, lab unit and sampling site. Matching swabs share a case; a sample without results can be split into a separate case. Purpose (default Routine monitoring) and replicates are edited in Case information. Program is not set or read.</small></p>
       </Tile>
     </Stack>
   );
@@ -123,13 +123,13 @@ export function EnvironmentalCase() {
         <Grid narrow>
           <Column lg={5}>
             <Select id="purpose" labelText={`${t('microbiology.culturePurpose.label', 'Purpose')} *`} value={purpose} onChange={(e) => setPurpose(e.target.value)}
-              helperText={t('microbiology.case.appliesToOrder', 'Replicates apply to all {count} cases on this order; purpose defaults from the order').replace('{count}', 3)}>
+              helperText={t('microbiology.case.purposeScope', 'Applies to this case only. Defaults to Routine monitoring.')}>
               {PURPOSES.map((p) => <SelectItem key={p.id} value={p.id} text={p.label} />)}
             </Select>
           </Column>
           <Column lg={3}>
             <NumberInput id="replicates" label={t('microbiology.orderDetail.replicates', 'Replicates')} min={1} max={10} value={replicates}
-              onChange={(e, { value }) => setReplicates(value)} />
+              onChange={(e, { value }) => setReplicates(value)} helperText={t('microbiology.case.replicatesScope', 'Applies to all 3 cases on this order. A change is recorded on each case timeline.')} />
           </Column>
         </Grid>
         {purpose === 'OUTBREAK_INVESTIGATION' && (
@@ -171,9 +171,9 @@ export function EnvironmentalCase() {
         />
       </Column>
 
-      {/* 4 Growth work-up (v2 A-10) */}
+      {/* 4 Culture work-up (v2 A-10) */}
       <Column lg={16}>
-        <h4>{t('microbiology.case.section.growthWorkup', 'Growth work-up')}</h4>
+        <h4>{t('microbiology.case.section.growthWorkup', 'Culture work-up')}</h4>
         <div>Gram: Gram-positive cocci in clusters <Tag type="gray" size="sm">{t('microbiology.case.growth.internalOnly', 'Internal only, not reported')}</Tag></div>
       </Column>
 

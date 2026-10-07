@@ -27,7 +27,6 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Test Catalog Completion v2 [Completed] | [test-catalog-completion-v2.jsx](designs/admin-config/test-catalog-completion-v2.jsx) | [test-catalog-completion-v2.md](designs/admin-config/test-catalog-completion-v2.md) |
 | Test Catalog — QC Targets & LOD/LOQ | [preview](designs/admin-config/test-catalog-qc-targets-preview.html) | [test-catalog-qc-targets.md](designs/admin-config/test-catalog-qc-targets.md) |
 | Test Catalog [Completed] | [test-catalog.jsx](designs/admin-config/test-catalog.jsx) · [preview](designs/admin-config/test-catalog.html) | [test-catalog.md](designs/admin-config/test-catalog.md) |
-| Test Catalog — Microbiology Workflow Attribute (narrowed by Microbiology v2) | [preview](designs/admin-config/test-catalog-microbiology-workflow-attribute.html) | [test-catalog-microbiology-workflow-attribute.md](designs/admin-config/test-catalog-microbiology-workflow-attribute.md) |
 | RBAC Management | [rbac-ui-mockup.html](designs/rbac/rbac-ui-mockup.html) | [rbac-revamp-prd.md](designs/rbac/rbac-revamp-prd.md) |
 | Password Policy Enhancements | [password-enhancements.jsx](designs/admin-config/password-enhancements.jsx) | [password-enhancements.md](designs/admin-config/password-enhancements.md) |
 | Catalog Subscription | [catalog-subscription-carbon.jsx](designs/admin-config/catalog-subscription-carbon.jsx) \| [preview](designs/admin-config/catalog-subscription.html) | [catalog-subscription.md](designs/admin-config/catalog-subscription.md) |
@@ -99,10 +98,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 
 | Feature | Mockup | Spec |
 |---------|--------|------|
-| AMR Module | [amr-module.jsx](designs/microbiology/amr-module.jsx) | [amr-module.md](designs/microbiology/amr-module.md) |
-| Case Workbench | — | [case-workbench.md](designs/microbiology/case-workbench.md) |
-| Guided Workflow Walkthrough | [amr-micro-workflow-flow.html](designs/microbiology/amr-micro-workflow-flow.html) | [amr-micro-narrative.md](designs/microbiology/amr-micro-narrative.md) |
-| Microbiology v2 Amendments (draft 9) | [amr-micro-v2-mockup.jsx](designs/microbiology/amr-micro-v2-mockup.jsx) · [preview](designs/microbiology/amr-micro-v2-preview.html) | [amr-micro-v2-amendments.md](designs/microbiology/amr-micro-v2-amendments.md) |
+| Microbiology V2 (draft 10.4) | [amr-micro-v2-mockup.jsx](designs/microbiology/amr-micro-v2-mockup.jsx) · [preview](designs/microbiology/amr-micro-v2-preview.html) | [amr-micro-v2-amendments.md](designs/microbiology/amr-micro-v2-amendments.md) |
 | M-18 Environmental Microbiology (v0.9) | [m-18-environmental-microbiology.jsx](designs/microbiology/m-18-environmental-microbiology.jsx) · [preview](designs/microbiology/m-18-environmental-microbiology.html) | [m-18-environmental-microbiology.md](designs/microbiology/m-18-environmental-microbiology.md) |
 
 ## Non-Conforming Events (NCE)

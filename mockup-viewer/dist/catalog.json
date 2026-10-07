@@ -1,7 +1,7 @@
 {
-  "generated": "2026-09-10T16:48:30.719Z",
+  "generated": "2026-10-06T20:19:11.243Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
-  "totalDesigns": 232,
+  "totalDesigns": 220,
   "categories": [
     "admin-config",
     "analyzer-integration",
@@ -22,6 +22,37 @@
     "vector-surveillance"
   ],
   "designs": [
+    {
+      "name": "Provider Titles",
+      "slug": "provider-titles",
+      "category": "admin-config",
+      "description": "A Title (honorific/cadre) field on the Provider record, separate from first and last name, plus a small admin page under Provider Management for maintaining the list — title, abbreviation, sort order, active/inactive, and how many providers use each. Titles are configured per deployment (PNG needs HEO and RMO; other countries differ), seeded with the common honorifics. Provider search never matches on title; a shared display helper renders the abbreviation ahead of first and last name everywhere. Deactivate, never delete. From the CPHL PNG duplicate-provider cleanup.",
+      "type": "html",
+      "added": "2026-09-17",
+      "status": "draft",
+      "tags": [
+        "provider",
+        "title",
+        "honorific",
+        "dictionary",
+        "admin",
+        "configuration",
+        "PNG",
+        "CPHL"
+      ],
+      "jira": [
+        "OGC-1223"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/admin-config/provider-titles.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/provider-titles",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/provider-titles",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/provider-titles",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/provider-titles.md",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/provider-titles.html"
+      }
+    },
     {
       "name": "Test Catalog — Specimen Many-to-Many [Completed]",
       "slug": "test-catalog-specimen-many-to-many-completed",
@@ -150,7 +181,7 @@
       "name": "Report Management",
       "slug": "report-management",
       "category": "admin-config",
-      "description": "Admin registry to choose, version, and override the report templates OpenELIS uses to render reports — see the active template per report, whether it is the shipped default or a custom override, pick a bundled variant, upload a custom template, preview, and revert to the shipped default (OGC-1111, Epic).",
+      "description": "Report Management admin page, now Part B of the consolidated Patient Report & Report Management FRS v2.4.3 (page spec moving to the Admin Redesign FRS section 13): choose, version and override the report templates OpenELIS uses, see the active template per report, shipped default or custom override, pick a bundled variant, upload, preview and revert, with V1 and V2 split (OGC-1111, Epic).",
       "type": "jsx",
       "added": "2026-07-01",
       "status": "draft",
@@ -259,7 +290,7 @@
       "name": "Organizations Management",
       "slug": "organizations-management",
       "category": "admin-config",
-      "description": "Organizations and referring facilities management",
+      "description": "Superseded by Locations & Organizations (2026-09-28), which drops the separate Region/District/Facility/Ward tables this spec assumed. Organizations and referring facilities management",
       "type": "jsx",
       "added": "2026-03-03",
       "status": "draft",
@@ -278,6 +309,38 @@
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/organizations-management",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/organizations-management.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/organizations-management.jsx"
+      }
+    },
+    {
+      "name": "Locations & Organizations",
+      "slug": "locations-organizations",
+      "category": "admin-config",
+      "description": "Locations & Organizations FRS v0.3: one admin menu for the places a lab works with (facilities and their wards and departments, sampling sites, geographic areas) with codes, search, filters, a GUI CSV import that matches the startup loader, and deactivation instead of delete. Supersedes Organizations Management. Companion slicing guide (10 PR-sized slices).",
+      "type": "jsx",
+      "added": "2026-09-28",
+      "status": "draft",
+      "tags": [
+        "locations",
+        "organizations",
+        "facilities",
+        "wards",
+        "sampling-sites",
+        "geography",
+        "csv-import",
+        "admin"
+      ],
+      "jira": [
+        "OGC-1363"
+      ],
+      "githubIssue": 344,
+      "specPath": "designs/admin-config/locations-organizations.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/locations-organizations",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/locations-organizations",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/locations-organizations",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/locations-organizations.md",
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/locations-organizations.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/locations-organizations.html"
       }
     },
     {
@@ -784,35 +847,6 @@
         "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/test-catalog-v2-5-v2-jira-story-breakdown-superseded",
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/test-catalog-v2-5-v2-jira-story-breakdown-superseded",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog/test-catalog-v2.5-v2-jira.md"
-      }
-    },
-    {
-      "name": "Test Catalog — Microbiology Workflow Attribute",
-      "slug": "test-catalog-microbiology-workflow-attribute",
-      "category": "admin-config",
-      "description": "Test Catalog Basic Info: a nullable culture_workflow_type enum (None / Bacteriology / Mycobacteriology\\u2013TB; Mycology reserved), orthogonal to Domain and the AMR flag; drives micro case routing (M-03/M-04). Foldable into Test Catalog v2.5 \\u00a72.1 Basic Info.",
-      "type": "html",
-      "added": "2026-06-08",
-      "status": "draft",
-      "tags": [
-        "test-catalog",
-        "microbiology",
-        "png",
-        "workflow-type",
-        "basic-info",
-        "admin"
-      ],
-      "jira": [
-        "OGC-925"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/admin-config/test-catalog-microbiology-workflow-attribute.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-microbiology-workflow-attribute",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/test-catalog-microbiology-workflow-attribute",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/test-catalog-microbiology-workflow-attribute",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-microbiology-workflow-attribute.md",
-        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-microbiology-workflow-attribute.html"
       }
     },
     {
@@ -2345,31 +2379,6 @@
       }
     },
     {
-      "name": "M-00 Microbiology Module Parent",
-      "slug": "m-00-microbiology-module-parent",
-      "category": "microbiology",
-      "description": "Spine spec for the M-* bundle: glossary, RBAC matrix, data model overview, phase plan, out-of-scope, v1.1 → v2 diff map. v2.1: NO_GROWTH_FINAL → NO_GROWTH_READY (releases to FINAL_REPORTED, not terminal).",
-      "type": "spec-only",
-      "added": "2026-05-15",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "parent-spec",
-        "mvp-1a"
-      ],
-      "jira": [
-        "OGC-782"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-00-micro-module-parent.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-00-microbiology-module-parent",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-00-microbiology-module-parent",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-00-microbiology-module-parent",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-00-micro-module-parent.md"
-      }
-    },
-    {
       "name": "M-NFR Non-Functional Requirements",
       "slug": "m-nfr-non-functional-requirements",
       "category": "microbiology",
@@ -2399,7 +2408,7 @@
       "name": "M-01 AMR Reference Data (Organism Master)",
       "slug": "m-01-amr-reference-data-organism-master",
       "category": "microbiology",
-      "description": "Organism / Antibiotic / AST Panel / Culture Protocol masters with WHONET codes and groupings. Mockup shows Organism Master admin list.",
+      "description": "Organism / Antibiotic / published AST Panel administration with WHONET codes and groupings. Mockup shows Organism Master admin list.",
       "type": "html",
       "added": "2026-05-15",
       "status": "draft",
@@ -2453,39 +2462,10 @@
       }
     },
     {
-      "name": "M-03 Order Entry Micro Hook",
-      "slug": "m-03-order-entry-micro-hook",
-      "category": "microbiology",
-      "description": "Order Entry Step 1 amendment: when Program = MICROBIOLOGY, five editable micro fields appear inline (Patient Origin, Date of Admission, Number of Sets, Clinical History, Antibiotic Exposure) alongside a read-only derived Culture Protocol. Date of Admission supplies the missing input for the WHO GLASS hospital- vs community-origin classification. v2.2 makes Culture Protocol derived (override moves to the bench, M-04) and removes Critical Value Notify as a duplicate of the Test Catalog notify flag / Alerts section and TestNotificationConfig.",
-      "type": "html",
-      "added": "2026-05-15",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "order-entry",
-        "mvp-1a",
-        "glass",
-        "surveillance",
-        "reuse"
-      ],
-      "jira": [
-        "OGC-789"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-03-order-entry-micro-hook.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-03-order-entry-micro-hook",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-03-order-entry-micro-hook",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-03-order-entry-micro-hook",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-03-order-entry-micro-hook.md",
-        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-03-order-entry-step1.html"
-      }
-    },
-    {
       "name": "GLASS Submission Console",
       "slug": "glass-submission-console",
       "category": "microbiology",
-      "description": "National surveillance surface that produces WHO GLASS-conformant RIS + SAMPLE files: per-site ingest (FHIR push and WHONET file upload), unmapped-code resolution queue, first-isolate de-duplication with a before/after funnel, and an explicit human upload step \\u2014 no system submits to GLASS.",
+      "description": "Future capability, outside V2 delivery. National surveillance surface that produces WHO GLASS-conformant RIS + SAMPLE files: per-site ingest (FHIR push and WHONET file upload), unmapped-code resolution queue, first-isolate de-duplication with a before/after funnel, and an explicit human upload step \\u2014 no system submits to GLASS.",
       "type": "html",
       "added": "2026-08-08",
       "status": "draft",
@@ -2515,7 +2495,7 @@
       "name": "GLASS on Aspect Parity \\u2014 scoping",
       "slug": "glass-on-aspect-parity-u2014-scoping",
       "category": "microbiology",
-      "description": "Rescopes GLASS submission onto the Aspect/GxAlert replacement platform: the consolidated server is W9 (multi-facility + headless auto-validation) and national dashboards are W3, not bespoke builds. Records that the Aspect engagement contains zero mentions of AMR, WHONET or first-isolate \\u2014 parity is the floor, not partial progress.",
+      "description": "Future capability, outside V2 delivery. Rescopes GLASS submission onto the Aspect/GxAlert replacement platform: the consolidated server is W9 (multi-facility + headless auto-validation) and national dashboards are W3, not bespoke builds. Records that the Aspect engagement contains zero mentions of AMR, WHONET or first-isolate \\u2014 parity is the floor, not partial progress.",
       "type": "spec-only",
       "added": "2026-08-08",
       "status": "draft",
@@ -2542,7 +2522,7 @@
       "name": "AMR Dashboard Indicators",
       "slug": "amr-dashboard-indicators",
       "category": "microbiology",
-      "description": "The AMR content layer on the W3 analytics pipe: %R vs rate-per-100k and their denominator traps, GLASS stratifications, and data-quality panels (origin completeness, negatives captured, AST coverage). Flags that Specimen, Patient demographics and Encounter are absent from the current FHIR publication spec, which makes every AMR panel unbuildable.",
+      "description": "Future capability, outside V2 delivery. The AMR content layer on the W3 analytics pipe: %R vs rate-per-100k and their denominator traps, GLASS stratifications, and data-quality panels (origin completeness, negatives captured, AST coverage). Flags that Specimen, Patient demographics and Encounter are absent from the current FHIR publication spec, which makes every AMR panel unbuildable.",
       "type": "spec-only",
       "added": "2026-08-08",
       "status": "draft",
@@ -2567,38 +2547,10 @@
       }
     },
     {
-      "name": "M-04 Isolate Modal",
-      "slug": "m-04-isolate-modal",
-      "category": "microbiology",
-      "description": "Add / Edit Isolate modal — Gram stain, colony morphology, final ID, significance. Second example shows reidentification mode with versioning.",
-      "type": "html",
-      "added": "2026-05-15",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "case-workbench",
-        "modal",
-        "mvp-1a",
-        "phase-1a-plus"
-      ],
-      "jira": [
-        "OGC-790"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-04-case-workbench-core.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-04-isolate-modal",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-04-isolate-modal",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-04-isolate-modal",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-case-workbench-core.md",
-        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-isolate-modal.html"
-      }
-    },
-    {
       "name": "M-06 Expert Rules Engine",
       "slug": "m-06-expert-rules-engine",
       "category": "microbiology",
-      "description": "Configurable rules engine: MRSA inference, D-test required, ESBL screen/confirm, cascade reporting, intrinsic resistance verification. Phase 1B.",
+      "description": "Configurable rules engine: MRSA inference, D-test required, ESBL screen/confirm, cascade reporting, intrinsic resistance verification. Shared V2 dependency.",
       "type": "spec-only",
       "added": "2026-05-15",
       "status": "draft",
@@ -2620,144 +2572,10 @@
       }
     },
     {
-      "name": "M-07 Pending Cultures Worklist",
-      "slug": "m-07-pending-cultures-worklist",
-      "category": "microbiology",
-      "description": "Primary morning-rounds tech surface — Cases by stage with red-highlighted positives and green-highlighted ready-to-finalize.",
-      "type": "html",
-      "added": "2026-05-15",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "worklist",
-        "mvp-1a"
-      ],
-      "jira": [
-        "OGC-792"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-07-worklists.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-07-pending-cultures-worklist",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-07-pending-cultures-worklist",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-07-pending-cultures-worklist",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-07-worklists.md",
-        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-07-pending-cultures.html"
-      }
-    },
-    {
-      "name": "M-04 Case Workbench \\u2014 Interactive Prototype",
-      "slug": "m-04-case-workbench-u2014-interactive-prototype",
-      "category": "microbiology",
-      "description": "Clickable end-to-end case workup \\u2014 start inoculation, add/identify isolates, set up + receive AST, log critical, release reports; stage, sidebar and next-step guidance update live; opens on the current step. v2.1: release gate keys on a recorded outcome (isolate workup complete / no growth / all-contaminant / TB CONTAMINATED|NTM_IDENTIFIED), NO_GROWTH_FINAL to NO_GROWTH_READY.",
-      "type": "html",
-      "added": "2026-06-05",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "case-workbench",
-        "interactive",
-        "prototype",
-        "mvp-1a"
-      ],
-      "jira": [
-        "OGC-790"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-04-case-workbench-core.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-04-case-workbench-u2014-interactive-prototype",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-04-case-workbench-u2014-interactive-prototype",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-04-case-workbench-u2014-interactive-prototype",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-case-workbench-core.md",
-        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-case-workbench-prototype.html"
-      }
-    },
-    {
-      "name": "M-07 Worklist \\u2014 Interactive Prototype",
-      "slug": "m-07-worklist-u2014-interactive-prototype",
-      "category": "microbiology",
-      "description": "Single shared Worklist (no per-case ownership) with a culture / AST grain toggle, needs-action cards, urgency sort, and folded-in resistance strip + recent activity; rows open the case. Analyzer results arrive automatically (no manual import).",
-      "type": "html",
-      "added": "2026-06-05",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "worklist",
-        "interactive",
-        "prototype",
-        "mvp-1a"
-      ],
-      "jira": [
-        "OGC-792"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-07-worklists.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-07-worklist-u2014-interactive-prototype",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-07-worklist-u2014-interactive-prototype",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-07-worklist-u2014-interactive-prototype",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-07-worklists.md",
-        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-07-worklists-prototype.html"
-      }
-    },
-    {
-      "name": "Microbiology \\u2014 Epic Dependency Graph",
-      "slug": "microbiology-u2014-epic-dependency-graph",
-      "category": "microbiology",
-      "description": "Build-order dependency graph across the 14 micro epics (OGC-782\\u2013795): foundations \\u2192 catalog \\u2192 case hub \\u2192 operational \\u2192 surveillance/hub. Planning aid.",
-      "type": "html",
-      "added": "2026-06-05",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "dependency-graph",
-        "planning"
-      ],
-      "jira": [
-        "OGC-782"
-      ],
-      "githubIssue": null,
-      "specPath": null,
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/microbiology-u2014-epic-dependency-graph",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/microbiology-u2014-epic-dependency-graph",
-        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-dependency-graph.svg"
-      }
-    },
-    {
-      "name": "M-05 AST Entry \\u2014 Interactive Prototype",
-      "slug": "m-05-ast-entry-u2014-interactive-prototype",
-      "category": "microbiology",
-      "description": "Inline AST entry (no modals) \\u2014 type MIC to auto-interpret; switch breakpoint standard to re-compute (EUCAST vs CLSI); inline override with revert + reading history; no-breakpoint guidance; QC-fail recovery. Analyzer results auto-ingest, no manual import.",
-      "type": "html",
-      "added": "2026-06-05",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "ast",
-        "interactive",
-        "prototype",
-        "mvp-1a"
-      ],
-      "jira": [
-        "OGC-791"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-05-ast-entry-and-interpretation.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-05-ast-entry-u2014-interactive-prototype",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-05-ast-entry-u2014-interactive-prototype",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-05-ast-entry-u2014-interactive-prototype",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-05-ast-entry-and-interpretation.md",
-        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-05-ast-entry-prototype.html"
-      }
-    },
-    {
       "name": "M-08 Macro Library",
       "slug": "m-08-macro-library",
       "category": "microbiology",
-      "description": "Cross-cutting typing shortcuts: type .gpc, get \"Gram positive cocci in clusters\". 85 default macros across 8 categories. First Phase 1A+ feature.",
+      "description": "Cross-cutting typing shortcuts: type .gpc, get \"Gram positive cocci in clusters\". 85 default macros across 8 categories. Used by V2 notes and clinical history.",
       "type": "html",
       "added": "2026-05-15",
       "status": "draft",
@@ -2785,7 +2603,7 @@
       "name": "M-09 WHONET Export",
       "slug": "m-09-whonet-export",
       "category": "microbiology",
-      "description": "Surveillance export with dedup parameters, validation pass, phenotype flag columns, lab profile bootstrap. To national reference lab. Phase 1B. v2.1 adds no-growth rows and the sample-based denominator (include-negatives toggle; export gated on recorded outcome).",
+      "description": "Surveillance export with dedup parameters, validation pass, phenotype flag columns, lab profile bootstrap. To national reference lab. Shared V2 dependency. v2.1 adds no-growth rows and the sample-based denominator (include-negatives toggle; export gated on recorded outcome).",
       "type": "html",
       "added": "2026-05-15",
       "status": "draft",
@@ -2807,35 +2625,6 @@
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-09-whonet-export",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-09-whonet-export.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-09-whonet-export.html"
-      }
-    },
-    {
-      "name": "M-10 Hub Subscription",
-      "slug": "m-10-hub-subscription",
-      "category": "microbiology",
-      "description": "Unified admin for breakpoint + WHONET code + organism/antibiotic master updates from a central repository. OE pulls; never pushes. Phase 1B.",
-      "type": "html",
-      "added": "2026-05-15",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "hub-subscription",
-        "reference-data",
-        "phase-1b",
-        "interactive",
-        "prototype"
-      ],
-      "jira": [
-        "OGC-795"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-10-hub-subscription.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-10-hub-subscription",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-10-hub-subscription",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-10-hub-subscription",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-10-hub-subscription.md",
-        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-10-hub-subscription-prototype.html"
       }
     },
     {
@@ -2870,67 +2659,10 @@
       }
     },
     {
-      "name": "Microbiology — Guided Workflow Walkthrough",
-      "slug": "microbiology-guided-workflow-walkthrough",
-      "category": "microbiology",
-      "description": "Guided step-through that sequences the split micro prototypes into one flow — per step a description + the embedded mockup + Prev/Next, with a Bacterial/TB branch toggle. Covers admin/config setup → order & routing → bacterial or TB work-up → reporting.",
-      "type": "html",
-      "added": "2026-06-25",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "walkthrough",
-        "flow",
-        "guided",
-        "interactive"
-      ],
-      "jira": [
-        "OGC-782"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/amr-micro-narrative.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/microbiology-guided-workflow-walkthrough",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/microbiology-guided-workflow-walkthrough",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/microbiology-guided-workflow-walkthrough",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-narrative.md",
-        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-workflow-flow.html"
-      }
-    },
-    {
-      "name": "M-14 TB Case — Interactive Prototype",
-      "slug": "m-14-tb-case-interactive-prototype",
-      "category": "microbiology",
-      "description": "The M-04 Case Workbench shell as a TB profile: smear, MGIT/LJ culture, species ID, critical-concentration DST, molecular flags, staged interim reports. v1.1 aligns the TB bench with the no-growth amendment (NO_GROWTH_READY + release; CONTAMINATED is not a result).",
-      "type": "html",
-      "added": "2026-06-08",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "mycobacteriology",
-        "tb",
-        "interactive",
-        "prototype",
-        "phase-2"
-      ],
-      "jira": [
-        "OGC-901"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-14-mycobacteriology-tb.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-14-tb-case-interactive-prototype",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-14-tb-case-interactive-prototype",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-14-tb-case-interactive-prototype",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-14-mycobacteriology-tb.md",
-        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-14-tb-case-prototype.html"
-      }
-    },
-    {
       "name": "M-13 Antibiogram — Interactive Prototype",
       "slug": "m-13-antibiogram-interactive-prototype",
       "category": "microbiology",
-      "description": "Cumulative %S antibiogram (CLSI M39): organism × antibiotic matrix, first-isolate dedup, threshold suppression, PDF/CSV export.",
+      "description": "Future capability, outside V2 delivery. Cumulative %S antibiogram (CLSI M39): organism × antibiotic matrix, first-isolate dedup, threshold suppression, PDF/CSV export.",
       "type": "html",
       "added": "2026-06-08",
       "status": "draft",
@@ -2956,157 +2688,10 @@
       }
     },
     {
-      "name": "M-04 Change Workflow / Unassigned",
-      "slug": "m-04-change-workflow-unassigned",
-      "category": "microbiology",
-      "description": "M-04 §4.9 runtime escape hatch: re-classify an UNASSIGNED or mis-routed Case to the correct workflow_type (BACTERIOLOGY / MYCOBACTERIOLOGY_TB). 3 demo scenarios: unassigned, mis-routed-with-results, released-blocked.",
-      "type": "html",
-      "added": "2026-06-08",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "case-workbench",
-        "workflow-type",
-        "interactive",
-        "prototype",
-        "phase-1a-plus"
-      ],
-      "jira": [
-        "OGC-926"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-04-case-workbench-core.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-04-change-workflow-unassigned",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-04-change-workflow-unassigned",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-04-change-workflow-unassigned",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-case-workbench-core.md",
-        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-change-workflow-prototype.html"
-      }
-    },
-    {
-      "name": "M-04 Linked Cases — Shared Specimen",
-      "slug": "m-04-linked-cases-shared-specimen",
-      "category": "microbiology",
-      "description": "Demonstrates Case keyed to sample_item_id × workflow_type: bacterial + TB on one sputum = two sibling Cases sharing one SampleItem. Worklist grouped siblings → bacterial case ↔ TB case sibling chip → order-entry 2-case preview.",
-      "type": "html",
-      "added": "2026-06-08",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "case-workbench",
-        "shared-specimen",
-        "sibling-cases",
-        "interactive",
-        "prototype",
-        "phase-1a-plus"
-      ],
-      "jira": [
-        "OGC-790"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-04-case-workbench-core.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-04-linked-cases-shared-specimen",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-04-linked-cases-shared-specimen",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-04-linked-cases-shared-specimen",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-case-workbench-core.md",
-        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-linked-cases-shared-specimen-prototype.html"
-      }
-    },
-    {
-      "name": "M-09 WHONET — Painless Export",
-      "slug": "m-09-whonet-painless-export",
-      "category": "microbiology",
-      "description": "Extends the existing OpenELIS WHONetReportService seam: readiness indicator, bulk auto-map by name/OCL, 3-click export with WHO-GLASS defaults, configure-once unattended delivery.",
-      "type": "html",
-      "added": "2026-06-08",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "WHONET",
-        "surveillance",
-        "painless",
-        "interactive",
-        "prototype",
-        "phase-1b"
-      ],
-      "jira": [
-        "OGC-794"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-09-whonet-export.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-09-whonet-painless-export",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-09-whonet-painless-export",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-09-whonet-painless-export",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-09-whonet-export.md",
-        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-09-whonet-painless-prototype.html"
-      }
-    },
-    {
-      "name": "M-06 Expert Review — Inline Decision",
-      "slug": "m-06-expert-review-inline-decision",
-      "category": "microbiology",
-      "description": "Expert Review section → inline Review & Decide panel: accept override / order confirmation / reject + confirmation loop. No modals (Principle 3).",
-      "type": "html",
-      "added": "2026-06-08",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "expert-rules",
-        "inline",
-        "interactive",
-        "prototype",
-        "phase-1b"
-      ],
-      "jira": [
-        "OGC-793"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-06-expert-rules-engine.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-06-expert-review-inline-decision",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-06-expert-review-inline-decision",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-06-expert-review-inline-decision",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-06-expert-rules-engine.md",
-        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-06-expert-review-prototype.html"
-      }
-    },
-    {
-      "name": "M-11 Critical Notification — Inline",
-      "slug": "m-11-critical-notification-inline",
-      "category": "microbiology",
-      "description": "Inline Log/Acknowledge/Close flow over the existing OpenELIS notifications entity. Open → Acknowledged → Closed. Reuses alerts dashboard as criticals filter; no new Alerts Dashboard build.",
-      "type": "html",
-      "added": "2026-06-08",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "critical-ack",
-        "inline",
-        "interactive",
-        "prototype",
-        "phase-1a-plus"
-      ],
-      "jira": [
-        "OGC-785"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-11-critical-result-acknowledgment.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-11-critical-notification-inline",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-11-critical-notification-inline",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-11-critical-notification-inline",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-11-critical-result-acknowledgment.md",
-        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-11-critical-notification-prototype.html"
-      }
-    },
-    {
       "name": "M-13 Antibiogram",
       "slug": "m-13-antibiogram",
       "category": "microbiology",
-      "description": "Cumulative %S antibiogram (CLSI M39): organism × antibiotic matrix, first-isolate dedup, threshold suppression, data quality indicators, PDF/CSV export. Phase 2 reporting module.",
+      "description": "Future capability, outside V2 delivery. Cumulative %S antibiogram (CLSI M39): organism × antibiotic matrix, first-isolate dedup, threshold suppression, data quality indicators, PDF/CSV export. Phase 2 reporting module.",
       "type": "spec-only",
       "added": "2026-06-08",
       "status": "draft",
@@ -3131,39 +2716,10 @@
       }
     },
     {
-      "name": "M-14 Mycobacteriology / TB",
-      "slug": "m-14-mycobacteriology-tb",
-      "category": "microbiology",
-      "description": "M-04 Case Workbench extended for TB: workflow_type = MYCOBACTERIOLOGY_TB, smear microscopy, MGIT/LJ culture, species ID, WHO critical-concentration DST, molecular resistance flags (GeneXpert, Hain LPA), staged interim reports, WHONET-TB export.",
-      "type": "spec-only",
-      "added": "2026-06-08",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "mycobacteriology",
-        "tb",
-        "dst",
-        "whonet-tb",
-        "glass",
-        "phase-2"
-      ],
-      "jira": [
-        "OGC-901"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/m-14-mycobacteriology-tb.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-14-mycobacteriology-tb",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-14-mycobacteriology-tb",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-14-mycobacteriology-tb",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-14-mycobacteriology-tb.md"
-      }
-    },
-    {
       "name": "M-15 GLASS — FHIR Surveillance",
       "slug": "m-15-glass-fhir-surveillance",
       "category": "microbiology",
-      "description": "OE pushes finalized AMR results to a consolidated FHIR server (WHO GLASS reporting path). Reuses FhirTransformService / FhirPersistanceService + EQA submission pattern. Backend/admin spec — no clinical mockup. Cross-lab aggregation stays outside OE. v1.1 adds the negative / no-growth path (case-keyed transform, include-negatives, release gated on recorded outcome).",
+      "description": "Future capability, outside V2 delivery. OE pushes finalized AMR results to a consolidated FHIR server (WHO GLASS reporting path). Reuses FhirTransformService / FhirPersistanceService + EQA submission pattern. Backend/admin spec — no clinical mockup. Cross-lab aggregation stays outside OE. v1.1 adds the negative / no-growth path (case-keyed transform, include-negatives, release gated on recorded outcome).",
       "type": "spec-only",
       "added": "2026-06-08",
       "status": "draft",
@@ -3188,39 +2744,10 @@
       }
     },
     {
-      "name": "Microbiology AMR Narrative — v2.1",
-      "slug": "microbiology-amr-narrative-v2-1",
-      "category": "microbiology",
-      "description": "v2.1 narrative: folds in four post-v2.0 decisions — Case keying is SampleItem × workflow_type (not 1:1 with Sample); WHONET (M-09) extends the existing export; M-11 critical notification reuses the notifications dashboard + TestNotificationService; Expert Review (M-06) and critical log-and-acknowledge (M-11) are inline panels, not modals. Cross-module context doc for the full M-00–M-15 bundle.",
-      "type": "spec-only",
-      "added": "2026-06-08",
-      "status": "draft",
-      "tags": [
-        "microbiology",
-        "narrative",
-        "workflow-selection",
-        "tb",
-        "antibiogram",
-        "glass",
-        "v2.1"
-      ],
-      "jira": [
-        "OGC-782"
-      ],
-      "githubIssue": null,
-      "specPath": "designs/microbiology/amr-micro-narrative.md",
-      "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/microbiology-amr-narrative-v2-1",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/microbiology-amr-narrative-v2-1",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/microbiology-amr-narrative-v2-1",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-narrative.md"
-      }
-    },
-    {
       "name": "M-16 Cluster Detection & Outbreak Signals",
       "slug": "m-16-cluster-detection-outbreak-signals",
       "category": "microbiology",
-      "description": "Native-Java scan-statistic cluster/outbreak detection across all three surveillance domains (clinical, environmental, vector). Consumes a domain-aware detection-event stream — no SaTScan binary, works air-gapped; reuses M-09 first-isolate de-duplication; a scan never crosses a domain boundary (extends D-004). Inline signal queue + Detection History; the only modal is the outbound-send confirm. Alert-volume design target ~3-6 signals/lab/year. FRS v1.0 + interactive preview. Depends on the OGC-782 microbiology module (stacked, not yet on develop).",
+      "description": "Future capability, outside V2 delivery. Native-Java scan-statistic cluster/outbreak detection across all three surveillance domains (clinical, environmental, vector). Consumes a domain-aware detection-event stream — no SaTScan binary, works air-gapped; reuses M-09 first-isolate de-duplication; a scan never crosses a domain boundary (extends D-004). Inline signal queue + Detection History; the only modal is the outbound-send confirm. Alert-volume design target ~3-6 signals/lab/year. FRS v1.0 + interactive preview. Future capability, outside V2 delivery; population rules follow V2.",
       "type": "html",
       "added": "2026-09-04",
       "status": "draft",
@@ -3242,6 +2769,72 @@
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-16-cluster-detection-outbreak-signals",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-16-cluster-detection.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-16-cluster-detection-preview.html"
+      }
+    },
+    {
+      "name": "Microbiology v2 Amendments",
+      "slug": "microbiology-v2-amendments",
+      "category": "microbiology",
+      "description": "Self-contained draft 10.4 functional baseline: test-driven case grouping, separate lab-unit transfers, row-local cultures, per-agent reporting, incoming placement, shared callbacks and immutable report history. Joining existing cases is deferred.",
+      "type": "jsx",
+      "added": "2026-09-28",
+      "status": "draft",
+      "tags": [
+        "microbiology",
+        "amr",
+        "v2",
+        "amendments",
+        "cphl",
+        "png",
+        "case-view",
+        "worklist",
+        "order-entry",
+        "plating-templates",
+        "inventory",
+        "labels"
+      ],
+      "jira": [
+        "OGC-1383"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/microbiology/amr-micro-v2-amendments.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/microbiology-v2-amendments",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/microbiology-v2-amendments",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/microbiology-v2-amendments",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-v2-amendments.md",
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-v2-amendments.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-v2-preview.html"
+      }
+    },
+    {
+      "name": "M-18 Environmental Microbiology",
+      "slug": "m-18-environmental-microbiology",
+      "category": "microbiology",
+      "description": "Environmental follow-on to V2: cases grouped by order, sample type, lab unit and site; no fake patients; culture-media traceability without stock changes; explicit export populations.",
+      "type": "jsx",
+      "added": "2026-09-28",
+      "status": "draft",
+      "tags": [
+        "microbiology",
+        "environmental",
+        "m-18",
+        "sampling-sites",
+        "replicates",
+        "v2-aligned"
+      ],
+      "jira": [
+        "OGC-1382"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/microbiology/m-18-environmental-microbiology.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-18-environmental-microbiology",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-18-environmental-microbiology",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-18-environmental-microbiology",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-18-environmental-microbiology.md",
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-18-environmental-microbiology.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-18-environmental-microbiology.html"
       }
     },
     {
@@ -4202,6 +3795,39 @@
       }
     },
     {
+      "name": "Validation Clearance Rule & Empty-State Explanation",
+      "slug": "validation-clearance-rule-empty-state-explanation",
+      "category": "results-validation",
+      "description": "Fixes the permanently-empty Clear lane on the Validation screen. Defines the clearance predicate (a row is Clear when it carries no risk signal it actually has — a missing QC input reads as absence, not risk) and replaces the greyed-out \"Release all clear (0)\" button with a plain-language explanation of why a lane is empty. One predicate, two consumers: the server-side rule and its display mirror. Supersedes validation-page-v4 FR-B1. Epic OGC-817, slice OGC-1029.",
+      "type": "jsx",
+      "added": "2026-09-20",
+      "status": "draft",
+      "tags": [
+        "validation",
+        "results",
+        "review",
+        "clearance",
+        "empty-state",
+        "qc",
+        "bulk-release",
+        "predicate"
+      ],
+      "jira": [
+        "OGC-817",
+        "OGC-1029"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/results-validation/validation-clearance-rule.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/results-validation/validation-clearance-rule-empty-state-explanation",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/results-validation/validation-clearance-rule-empty-state-explanation",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/results-validation/validation-clearance-rule-empty-state-explanation",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/validation-clearance-rule.md",
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/validation-clearance-rule.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/validation-clearance-rule.html"
+      }
+    },
+    {
       "name": "Results Entry — Multi-Component (integrated)",
       "slug": "results-entry-multi-component-integrated",
       "category": "results-validation",
@@ -4587,8 +4213,8 @@
       }
     },
     {
-      "name": "Multi-Component Result Entry v1",
-      "slug": "multi-component-result-entry-v1",
+      "name": "Multi-Component Result Entry v1 [Superseded]",
+      "slug": "multi-component-result-entry-v1-superseded",
       "category": "results-validation",
       "description": "V1 additive multi-value capture on the existing Results Entry & Validation page (SearchResultForm.jsx). A test that defines more than one result_component renders one result-entry field PER component, each produced by the same result-cell renderer the primary result uses today (chosen by the component result_type). Single-component tests are unchanged. First use case: molecular target gene + Ct (Xpert MTB/RIF, SARS-CoV-2). Consumes the OGC-949 M1 test_result_component model; replaces the PR #3831 scalar-column approach (no new analysis/test columns, no data migration). Self-contained module intended for a future fold-in to the OGC-811/817 inline results redesign.",
       "type": "jsx",
@@ -4610,9 +4236,9 @@
       "githubIssue": null,
       "specPath": "designs/results-validation/results-entry-multicomponent-v1.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/results-validation/multi-component-result-entry-v1",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/results-validation/multi-component-result-entry-v1",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/results-validation/multi-component-result-entry-v1",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/results-validation/multi-component-result-entry-v1-superseded",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/results-validation/multi-component-result-entry-v1-superseded",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/results-validation/multi-component-result-entry-v1-superseded",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-multicomponent-v1.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-multicomponent-v1.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-multicomponent-v1-preview.html"
@@ -4622,7 +4248,7 @@
       "name": "Runs — QC, Reagent Lot & Result Review",
       "slug": "runs-qc-reagent-lot-result-review",
       "category": "results-validation",
-      "description": "The run as the shared unit of QC, reagent-lot provenance and result review across all three ways results enter OpenELIS: analyzer messages, workplan batches, and single manual entries. Every result belongs to a run; controls, the reagent lot and a per-test QC verdict live on the run. Converges the Analyzer Results Import review onto the Results worklist as a run-filtered view (/Results?run=<id>) with a run header, defines run-aware worklist row states (waiting/held), and a per-test QC gate (a failed potassium control holds only that test’s rows). States the consumption contracts for QC persistence (OGC-1147), Batch Workplan (OGC-427), the QC dashboard, and Validation. FRS v0.2, approved for handoff; supersedes-in-part Analyzer Import v2 (OGC-288), Batch Workplan reagent QC (OGC-427), and Manual/RDT QC persistence (OGC-1147) FR-C1.",
+      "description": "The run as the shared unit of QC, reagent-lot provenance and result review across all three ways results enter OpenELIS: analyzer messages, workplan batches, and single manual entries. Every result belongs to a run; controls, the reagent lot and a per-test QC verdict live on the run. Converges the Analyzer Results Import review onto the Results worklist as a run-filtered view (/Results?run=<id>) with a run header, defines run-aware worklist row states (waiting/held), and a per-test QC gate (a failed potassium control holds only that test’s rows). States the consumption contracts for QC persistence (OGC-1147), Batch Workplan (OGC-427), the QC dashboard, and Validation. FRS v0.4 (2026-09-22), approved for handoff — simplifies the review surface on Casey’s direction: a single paginated run table driven by the worklist’s existing filter chips (FR-E1a/E1b), each row expanding into the Results Entry panel with the analyzer value prefilled and editable (FR-E10), the Accept contract corrected against D-057, and the Validation contract routed to the clearance rule’s row QC slot (FR-G3). Supersedes-in-part Analyzer Import v2 (OGC-288), Batch Workplan reagent QC (OGC-427), and Manual/RDT QC persistence (OGC-1147) FR-C1.",
       "type": "jsx",
       "added": "2026-09-09",
       "status": "draft",
@@ -4885,7 +4511,7 @@
       "name": "Laporan Hasil — Compliance Report",
       "slug": "laporan-hasil-compliance-report",
       "category": "vector-surveillance",
-      "description": "Laporan Hasil (S-06) — formal Sertifikat Hasil Uji (Test Results Certificate) PDF generation for validated environmental orders. Dual e-signature, batch ZIP download, shared Report Print Configuration admin page. Amended 2026-06-15 with §7a Domain Variants cross-reference to S06c (Environmental LHU) + S06d (Vector LHU) siblings.",
+      "description": "Laporan Hasil (S-06) — formal Sertifikat Hasil Uji (Test Results Certificate) PDF generation for validated environmental orders. Dual e-signature, batch ZIP download, shared Report Print Configuration admin page. Amended 2026-06-15 with §7a Domain Variants cross-reference to S06c (Environmental LHU) + S06d (Vector LHU) siblings. List page (§5.2) and batch (§5.5) superseded by Report Print Queue r4.",
       "type": "jsx",
       "added": "2026-04-05",
       "status": "draft",
@@ -5024,7 +4650,7 @@
       "name": "Report Print Queue",
       "slug": "report-print-queue",
       "category": "reports",
-      "description": "Report-type-agnostic print queue (v1.3): auto-surfaces validated-but-unprinted reports; completeness indicators, print recording via existing report tracking. r3 filter bar redesign — Facility / Ward / Requestor are FilterableMultiSelect with server-side typeahead, Lab No is a first-class toolbar lookup, Search by Patient opens inline, and targeted searches are exclusive (suspend browse filters).",
+      "description": "Report-type-agnostic print queue (r4, FRS v2.2): rebuilt on the shipped Compliance Report page (/LaporanHasil merges into /ReportPrintQueue). Patient reports, environmental and vector certificates in one list; report state Partial / Final / Amended with a separate Print status filter; every released version archived with SHA-256 and returned on reprint; inline reissue-with-correction; Custom Data Export jobs appear as a row type. Supersedes r3 (v1.3).",
       "type": "jsx",
       "added": "2026-06-10",
       "status": "draft",
@@ -5051,7 +4677,7 @@
       "name": "Patient Report Redesign",
       "slug": "patient-report-redesign",
       "category": "reports",
-      "description": "Full redesign of the patient result report — Carbon-aligned layout, accreditation logo, digital signature block, reference range display, result interpretation flagging. Ships two JRXML templates: patient_letter.jrxml (US Letter) and patient_a4.jrxml (A4), selected via Admin → General Configuration → Printed Reports Configuration. Companion patient_letter.jrxml implementation file co-located in designs/reports/. Covers the admin config surface, rendered output spec, and Jasper coordinate-level implementation notes.",
+      "description": "Patient Report & Report Management FRS v2.4.3: the printed patient report (Part A); Report Management (Part B) moved to the Admin Redesign FRS section 13. Labels come from the UI translation catalogue so every lab gets its own language and wording; completed date and time per test; accreditation, signatures and reference ranges; microbiology rows (notes under the culture row, tests on a positive culture, refer to previous susceptibility). OGC-932 is the V1 PNG / CPHL deliverable (breakdown slices 1 to 4b). Supersedes rounds 1 to 5 and the accredited tests notes handoff.",
       "type": "html",
       "added": "2026-04-24",
       "status": "draft",
@@ -5066,7 +4692,10 @@
         "letter",
         "jrxml"
       ],
-      "jira": [],
+      "jira": [
+        "OGC-1111",
+        "OGC-932"
+      ],
       "githubIssue": 102,
       "specPath": "designs/reports/patient-report-redesign.md",
       "urls": {
@@ -5081,7 +4710,7 @@
       "name": "Positivity Rate Report",
       "slug": "positivity-rate-report",
       "category": "reports",
-      "description": "Positivity rate report and dashboard widget — per-test result-code-based positivity definitions, date-range filtering, DataTable with CSV export, and reusable tile for the home dashboard",
+      "description": "Positivity rate report and dashboard widget (Carbon, inline-only positivity definition) — per-test result-code-based positivity definitions for coded tests, all-non-normal-only for numeric tests, date-range filtering, DataTable with CSV export, and a tile hosted on the Lab Management Dashboard (v1.2). Swapped in 2026-09-10 from the earlier admin-CRUD mockup, archived under designs/_archive/2026-09-10/.",
       "type": "jsx",
       "added": "2026-03-19",
       "status": "draft",
@@ -5197,7 +4826,7 @@
       "name": "Custom Data Export",
       "slug": "custom-data-export",
       "category": "reports",
-      "description": "3-step CSV report builder wizard with grain-family variable selection, filters, and sync/async routing — plus async My Report Queue and Saved Export Configurations. v1.1 (2026-07-15): grain families with color coding + legend, QC domain removed, single PII tag, overwrite-confirm for saved configs.",
+      "description": "OpenELIS CSV reporting design with new-export and saved-report entry paths, a searchable catalog with expandable category groups beside ordered CSV columns, progressive filters, review changes, queue recovery and a fictional virology CSV. v1.5 interaction candidate for review; independent of Catalyst and AI. My Report Queue (FR-6) now renders inside Report Print Queue r4 as the Data export type.",
       "type": "jsx",
       "added": "2026-03-25",
       "status": "draft",
@@ -5360,7 +4989,7 @@
       "name": "Inventory Item-Type Management",
       "slug": "inventory-item-type-management",
       "category": "inventory",
-      "description": "Move the hard-coded \"Type of Item\" list into the Data Dictionary: managed item-type admin with add/edit/deactivate, replacing hardcoded values.",
+      "description": "Amended by Microbiology v2 (D-147: Microbiology medium item type, FR-05.1d). Move the hard-coded \"Type of Item\" list into the Data Dictionary: managed item-type admin with add/edit/deactivate, replacing hardcoded values.",
       "type": "jsx",
       "added": "2026-06-12",
       "status": "draft",
@@ -5461,6 +5090,37 @@
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/system/help-menu.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/system/help-menu.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/system/in-app-help-preview.html"
+      }
+    },
+    {
+      "name": "Navigation Redesign",
+      "slug": "navigation-redesign",
+      "category": "system",
+      "description": "Information-architecture redesign of the main side menu and the Admin sidebar (FRS v0.1, approved 2026-09-24). The main menu reads in the order of a lab\\",
+      "type": "html",
+      "added": "2026-09-26",
+      "status": "draft",
+      "tags": [
+        "navigation",
+        "menu",
+        "side-nav",
+        "admin",
+        "information-architecture",
+        "menu-configuration",
+        "redesign",
+        "system"
+      ],
+      "jira": [
+        "OGC-1241"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/system/navigation-redesign.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/system/navigation-redesign",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/system/navigation-redesign",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/system/navigation-redesign",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/system/navigation-redesign.md",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/system/navigation-redesign-preview.html"
       }
     },
     {
@@ -5892,7 +5552,7 @@
       "name": "Clinical Order Entry (v4)",
       "slug": "clinical-order-entry-v4",
       "category": "vector-surveillance",
-      "description": "Clinical Enter Order stage under Order Entry FRS v4. Explicit save model (Save & Next / Save & Exit / Discard, no autosave), lab number reserved on form load, restored Ward / Unit / Department typeahead disabled until a facility is chosen, restored Order Date plus the new Order Time alongside Required By with distinguishing helper text, and the corrected saved-state indicator which reads \\u201cNo changes yet\\u201d on an untouched form rather than \\u201cSaved\\u201d. Interactive: edit a field to move the state chip, clear the facility to disable the ward field, press Discard for the confirmation naming the spent lab number.",
+      "description": "Clinical Order Entry v4 (FRS v0.20: order-entry clean-up, possible matches before create, Handling group, fewer low-value fields; FR-B12a follows Microbiology V2 draft 10.4): Add Order reworked into two steps, Enter Order (in paper-form order: order, patient, requester, request details, tests) and Prepare Samples, plus an optional Sample check. Every save is one all-or-nothing transaction. Container Types and Body Sites join the test catalog so each test declares its expected tubes, and swabs carry a coded site. Shared ordered-tests table, samples table and order summary strip show which tube each test is on. Search-first patient, facility and provider creation; lab time zone for collection and receipt times; working label buttons. Two-phase plan (MVP on current screens, Phase 2 new model). Supersedes the 2026-09-10 Enter Order preview (archived) and OGC-1066. Companion slicing guide, acceptance test scripts, research brief and environmental/vector alignment note.",
       "type": "html",
       "added": "2026-09-10",
       "status": "draft",
@@ -5902,21 +5562,25 @@
         "sample-collection",
         "save-model",
         "lab-number",
-        "requester",
-        "ward",
-        "order-date"
+        "containers",
+        "body-sites",
+        "test-catalog",
+        "labels",
+        "search-first",
+        "time-zone"
       ],
       "jira": [
+        "OGC-1266",
         "OGC-1146",
         "OGC-1066"
       ],
       "githubIssue": 311,
-      "specPath": "designs/sample-collection/order-entry-three-workflows.md",
+      "specPath": "designs/sample-collection/clinical-order-entry-v4.md",
       "urls": {
         "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/clinical-order-entry-v4",
         "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/clinical-order-entry-v4",
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/clinical-order-entry-v4",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-three-workflows.md",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/clinical-order-entry-v4.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/clinical-order-entry-v4.html"
       }
     },
@@ -6650,6 +6314,35 @@
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/patient/patient-search.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/patient/patient-search.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/patient/patient-search.html"
+      }
+    },
+    {
+      "name": "Optional Patient Sex and Age at Order Entry",
+      "slug": "optional-patient-sex-and-age-at-order-entry",
+      "category": "patient",
+      "description": "FRS v0.2: lets a lab make patient sex and age optional at order entry (Order Entry Configuration toggles), renames the \"Gender\" label to \"Sex\", and defines how reference ranges behave when sex or age is missing; results whose normals are age-banded or sex-differentiated land in Needs review with a Range not applied chip (FR-16a). Spec only; no mockup.",
+      "type": "spec-only",
+      "added": "2026-09-28",
+      "status": "draft",
+      "tags": [
+        "patient",
+        "order-entry",
+        "sex",
+        "age",
+        "reference-ranges",
+        "validation",
+        "configuration"
+      ],
+      "jira": [
+        "OGC-1362"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/patient/optional-sex-age.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/patient/optional-patient-sex-and-age-at-order-entry",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/patient/optional-patient-sex-and-age-at-order-entry",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/patient/optional-patient-sex-and-age-at-order-entry",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/patient/optional-sex-age.md"
       }
     },
     {

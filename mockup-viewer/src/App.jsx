@@ -399,20 +399,6 @@ export const MOCKUP_REGISTRY = [
     tags: ['test-catalog', 'jira', 'v2', 'story-breakdown', 'admin'],
   },
   {
-    name: 'Test Catalog — Microbiology Workflow Attribute',
-    project: ['png'],
-    category: 'admin-config',
-    component: null,
-    description: 'Narrowed by Microbiology v2 (2026-10-01): the attribute stays, renamed Culture type and set only on generic culture tests (A-01, D-125); one Microbiology case dropdown in the test catalog (None, Bacteriology, Mycobacteriology, Mycology). Test Catalog Basic Info: a nullable culture_workflow_type enum orthogonal to Domain and the AMR flag; drives micro case routing (M-03/M-04). Foldable into Test Catalog v2.5 \u00a72.1 Basic Info.',
-    specPath: 'designs/admin-config/test-catalog-microbiology-workflow-attribute.md',
-    htmlUrl: 'designs/admin-config/test-catalog-microbiology-workflow-attribute.html',
-    added: '2026-06-08',
-    updated: '2026-10-01',
-    status: 'draft',
-    jira: ['OGC-925'],
-    tags: ['test-catalog', 'microbiology', 'png', 'workflow-type', 'basic-info', 'admin'],
-  },
-  {
     name: 'Admin Redesign — MVP Scope',
     category: 'admin-config',
     component: null,
@@ -1075,18 +1061,6 @@ export const MOCKUP_REGISTRY = [
   },
   // ─── Microbiology — M-* bundle (supersedes OGC-293 / amr-module) ───
   {
-    name: 'M-00 Microbiology Module Parent',
-    category: 'microbiology',
-    component: null,
-    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Spine spec for the M-* bundle: glossary, RBAC matrix, data model overview, phase plan, out-of-scope, v1.1 → v2 diff map. v2.1: NO_GROWTH_FINAL → NO_GROWTH_READY (releases to FINAL_REPORTED, not terminal).',
-    specPath: 'designs/microbiology/m-00-micro-module-parent.md',
-    added: '2026-05-15',
-    updated: '2026-09-29',
-    status: 'draft',
-    jira: ['OGC-782'],
-    tags: ['microbiology', 'parent-spec', 'mvp-1a'],
-  },
-  {
     name: 'M-NFR Non-Functional Requirements',
     category: 'microbiology',
     component: null,
@@ -1101,7 +1075,7 @@ export const MOCKUP_REGISTRY = [
     name: 'M-01 AMR Reference Data (Organism Master)',
     category: 'microbiology',
     component: null,
-    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Organism / Antibiotic / AST Panel / Culture Protocol masters with WHONET codes and groupings. Mockup shows Organism Master admin list.',
+    description: 'Organism / Antibiotic / published AST Panel administration with WHONET codes and groupings. Mockup shows Organism Master admin list.',
     specPath: 'designs/microbiology/m-01-amr-reference-data.md',
     htmlUrl: 'designs/microbiology/m-01-organism-master.html',
     added: '2026-05-15',
@@ -1114,7 +1088,7 @@ export const MOCKUP_REGISTRY = [
     name: 'M-02 Breakpoint Catalog',
     category: 'microbiology',
     component: null,
-    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Versioned CLSI + EUCAST breakpoint tables; AST Runs snapshot the breakpoint version at result time so publisher updates do not retroactively change interpretations.',
+    description: 'Versioned CLSI + EUCAST breakpoint tables; AST Runs snapshot the breakpoint version at result time so publisher updates do not retroactively change interpretations.',
     specPath: 'designs/microbiology/m-02-breakpoint-catalog.md',
     htmlUrl: 'designs/microbiology/m-02-breakpoint-catalog.html',
     added: '2026-05-15',
@@ -1124,23 +1098,10 @@ export const MOCKUP_REGISTRY = [
     tags: ['microbiology', 'breakpoint', 'CLSI', 'EUCAST', 'versioned', 'mvp-1a'],
   },
   {
-    name: 'M-03 Order Entry Micro Hook',
-    category: 'microbiology',
-    component: null,
-    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Order Entry Step 1 amendment: when Program = MICROBIOLOGY, five editable micro fields appear inline (Patient Origin, Date of Admission, Number of Sets, Clinical History, Antibiotic Exposure) alongside a read-only derived Culture Protocol. Date of Admission supplies the missing input for the WHO GLASS hospital- vs community-origin classification. v2.2 makes Culture Protocol derived (override moves to the bench, M-04) and removes Critical Value Notify as a duplicate of the Test Catalog notify flag / Alerts section and TestNotificationConfig.',
-    specPath: 'designs/microbiology/m-03-order-entry-micro-hook.md',
-    htmlUrl: 'designs/microbiology/m-03-order-entry-step1.html',
-    added: '2026-05-15',
-    updated: '2026-09-29',
-    status: 'draft',
-    jira: ['OGC-789'],
-    tags: ['microbiology', 'order-entry', 'mvp-1a', 'glass', 'surveillance', 'reuse'],
-  },
-  {
     name: 'GLASS Submission Console',
     category: 'microbiology',
     component: null,
-    description: 'National surveillance surface that produces WHO GLASS-conformant RIS + SAMPLE files: per-site ingest (FHIR push and WHONET file upload), unmapped-code resolution queue, first-isolate de-duplication with a before/after funnel, and an explicit human upload step \u2014 no system submits to GLASS.',
+    description: 'Future capability, outside V2 delivery. National surveillance surface that produces WHO GLASS-conformant RIS + SAMPLE files: per-site ingest (FHIR push and WHONET file upload), unmapped-code resolution queue, first-isolate de-duplication with a before/after funnel, and an explicit human upload step \u2014 no system submits to GLASS.',
     specPath: 'designs/microbiology/glass-on-aspect-parity.md',
     htmlUrl: 'designs/microbiology/glass-submission-console.html',
     added: '2026-08-08',
@@ -1152,7 +1113,7 @@ export const MOCKUP_REGISTRY = [
     name: 'GLASS on Aspect Parity \u2014 scoping',
     category: 'microbiology',
     component: null,
-    description: 'Rescopes GLASS submission onto the Aspect/GxAlert replacement platform: the consolidated server is W9 (multi-facility + headless auto-validation) and national dashboards are W3, not bespoke builds. Records that the Aspect engagement contains zero mentions of AMR, WHONET or first-isolate \u2014 parity is the floor, not partial progress.',
+    description: 'Future capability, outside V2 delivery. Rescopes GLASS submission onto the Aspect/GxAlert replacement platform: the consolidated server is W9 (multi-facility + headless auto-validation) and national dashboards are W3, not bespoke builds. Records that the Aspect engagement contains zero mentions of AMR, WHONET or first-isolate \u2014 parity is the floor, not partial progress.',
     specPath: 'designs/microbiology/glass-on-aspect-parity.md',
     added: '2026-08-08',
     status: 'draft',
@@ -1163,7 +1124,7 @@ export const MOCKUP_REGISTRY = [
     name: 'AMR Dashboard Indicators',
     category: 'microbiology',
     component: null,
-    description: 'The AMR content layer on the W3 analytics pipe: %R vs rate-per-100k and their denominator traps, GLASS stratifications, and data-quality panels (origin completeness, negatives captured, AST coverage). Flags that Specimen, Patient demographics and Encounter are absent from the current FHIR publication spec, which makes every AMR panel unbuildable.',
+    description: 'Future capability, outside V2 delivery. The AMR content layer on the W3 analytics pipe: %R vs rate-per-100k and their denominator traps, GLASS stratifications, and data-quality panels (origin completeness, negatives captured, AST coverage). Flags that Specimen, Patient demographics and Encounter are absent from the current FHIR publication spec, which makes every AMR panel unbuildable.',
     specPath: 'designs/microbiology/glass-amr-dashboard-indicators.md',
     added: '2026-08-08',
     status: 'draft',
@@ -1171,23 +1132,10 @@ export const MOCKUP_REGISTRY = [
     tags: ['microbiology', 'glass', 'amr', 'dashboards', 'fhir', 'surveillance'],
   },
   {
-    name: 'M-04 Isolate Modal',
-    category: 'microbiology',
-    component: null,
-    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Add / Edit Isolate modal — Gram stain, colony morphology, final ID, significance. Second example shows reidentification mode with versioning.',
-    specPath: 'designs/microbiology/m-04-case-workbench-core.md',
-    htmlUrl: 'designs/microbiology/m-04-isolate-modal.html',
-    added: '2026-05-15',
-    updated: '2026-09-29',
-    status: 'draft',
-    jira: ['OGC-790'],
-    tags: ['microbiology', 'case-workbench', 'modal', 'mvp-1a', 'phase-1a-plus'],
-  },
-  {
     name: 'M-06 Expert Rules Engine',
     category: 'microbiology',
     component: null,
-    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Configurable rules engine: MRSA inference, D-test required, ESBL screen/confirm, cascade reporting, intrinsic resistance verification. Phase 1B.',
+    description: 'Configurable rules engine: MRSA inference, D-test required, ESBL screen/confirm, cascade reporting, intrinsic resistance verification. Shared V2 dependency.',
     specPath: 'designs/microbiology/m-06-expert-rules-engine.md',
     added: '2026-05-15',
     updated: '2026-10-01',
@@ -1196,73 +1144,10 @@ export const MOCKUP_REGISTRY = [
     tags: ['microbiology', 'expert-rules', 'phase-1b'],
   },
   {
-    name: 'M-07 Pending Cultures Worklist',
-    category: 'microbiology',
-    component: null,
-    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Primary morning-rounds tech surface — Cases by stage with red-highlighted positives and green-highlighted ready-to-finalize.',
-    specPath: 'designs/microbiology/m-07-worklists.md',
-    htmlUrl: 'designs/microbiology/m-07-pending-cultures.html',
-    added: '2026-05-15',
-    updated: '2026-09-29',
-    status: 'draft',
-    jira: ['OGC-792'],
-    tags: ['microbiology', 'worklist', 'mvp-1a'],
-  },
-  {
-    name: 'M-04 Case Workbench \u2014 Interactive Prototype',
-    category: 'microbiology',
-    component: null,
-    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Clickable end-to-end case workup \u2014 start inoculation, add/identify isolates, set up + receive AST, log critical, release reports; stage, sidebar and next-step guidance update live; opens on the current step. v2.1: release gate keys on a recorded outcome (isolate workup complete / no growth / all-contaminant / TB CONTAMINATED|NTM_IDENTIFIED), NO_GROWTH_FINAL to NO_GROWTH_READY.',
-    specPath: 'designs/microbiology/m-04-case-workbench-core.md',
-    htmlUrl: 'designs/microbiology/m-04-case-workbench-prototype.html',
-    added: '2026-06-05',
-    updated: '2026-09-29',
-    status: 'draft',
-    jira: ['OGC-790'],
-    tags: ['microbiology', 'case-workbench', 'interactive', 'prototype', 'mvp-1a'],
-  },
-  {
-    name: 'M-07 Worklist \u2014 Interactive Prototype',
-    category: 'microbiology',
-    component: null,
-    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Single shared Worklist (no per-case ownership) with a culture / AST grain toggle, needs-action cards, urgency sort, and folded-in resistance strip + recent activity; rows open the case. Analyzer results arrive automatically (no manual import).',
-    specPath: 'designs/microbiology/m-07-worklists.md',
-    htmlUrl: 'designs/microbiology/m-07-worklists-prototype.html',
-    added: '2026-06-05',
-    updated: '2026-09-29',
-    status: 'draft',
-    jira: ['OGC-792'],
-    tags: ['microbiology', 'worklist', 'interactive', 'prototype', 'mvp-1a'],
-  },
-  {
-    name: 'Microbiology \u2014 Epic Dependency Graph',
-    category: 'microbiology',
-    component: null,
-    description: 'Build-order dependency graph across the 14 micro epics (OGC-782\u2013795): foundations \u2192 catalog \u2192 case hub \u2192 operational \u2192 surveillance/hub. Planning aid.',
-    htmlUrl: 'designs/microbiology/amr-micro-dependency-graph.svg',
-    added: '2026-06-05',
-    status: 'draft',
-    jira: ['OGC-782'],
-    tags: ['microbiology', 'dependency-graph', 'planning'],
-  },
-  {
-    name: 'M-05 AST Entry \u2014 Interactive Prototype',
-    category: 'microbiology',
-    component: null,
-    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Inline AST entry (no modals) \u2014 type MIC to auto-interpret; switch breakpoint standard to re-compute (EUCAST vs CLSI); inline override with revert + reading history; no-breakpoint guidance; QC-fail recovery. Analyzer results auto-ingest, no manual import.',
-    specPath: 'designs/microbiology/m-05-ast-entry-and-interpretation.md',
-    htmlUrl: 'designs/microbiology/m-05-ast-entry-prototype.html',
-    added: '2026-06-05',
-    updated: '2026-10-01',
-    status: 'draft',
-    jira: ['OGC-791'],
-    tags: ['microbiology', 'ast', 'interactive', 'prototype', 'mvp-1a'],
-  },
-  {
     name: 'M-08 Macro Library',
     category: 'microbiology',
     component: null,
-    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Cross-cutting typing shortcuts: type .gpc, get "Gram positive cocci in clusters". 85 default macros across 8 categories. First Phase 1A+ feature.',
+    description: 'Cross-cutting typing shortcuts: type .gpc, get "Gram positive cocci in clusters". 85 default macros across 8 categories. Used by V2 notes and clinical history.',
     specPath: 'designs/microbiology/m-08-macro-library.md',
     htmlUrl: 'designs/microbiology/m-08-macro-library.html',
     added: '2026-05-15',
@@ -1275,7 +1160,7 @@ export const MOCKUP_REGISTRY = [
     name: 'M-09 WHONET Export',
     category: 'microbiology',
     component: null,
-    description: 'Surveillance export with dedup parameters, validation pass, phenotype flag columns, lab profile bootstrap. To national reference lab. Phase 1B. v2.1 adds no-growth rows and the sample-based denominator (include-negatives toggle; export gated on recorded outcome).',
+    description: 'Surveillance export with dedup parameters, validation pass, phenotype flag columns, lab profile bootstrap. To national reference lab. Shared V2 dependency. v2.1 adds no-growth rows and the sample-based denominator (include-negatives toggle; export gated on recorded outcome).',
     specPath: 'designs/microbiology/m-09-whonet-export.md',
     htmlUrl: 'designs/microbiology/m-09-whonet-export.html',
     added: '2026-05-15',
@@ -1285,24 +1170,10 @@ export const MOCKUP_REGISTRY = [
     tags: ['microbiology', 'WHONET', 'surveillance', 'export', 'phase-1b'],
   },
   {
-    name: 'M-10 Hub Subscription [Superseded]',
-    category: 'microbiology',
-    archived: true,
-    component: null,
-    description: 'Unified admin for breakpoint + WHONET code + organism/antibiotic master updates from a central repository. OE pulls; never pushes. Phase 1B.',
-    specPath: 'designs/microbiology/m-10-hub-subscription.md',
-    htmlUrl: 'designs/microbiology/m-10-hub-subscription-prototype.html',
-    added: '2026-05-15',
-    updated: '2026-06-08',
-    status: 'draft',
-    jira: ['OGC-795'],
-    tags: ['microbiology', 'hub-subscription', 'reference-data', 'phase-1b', 'interactive', 'prototype'],
-  },
-  {
     name: 'M-12 Test to Reagent Linkage',
     category: 'microbiology',
     component: null,
-    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. General OE foundation: declare which reagent lots are required for a given test (ISO 15189 §7.3). Micro is the forcing function. Parallel pre-track to MVP-1A.',
+    description: 'General OE foundation: declare which reagent lots are required for a given test (ISO 15189 §7.3). Micro is the forcing function. Parallel pre-track to MVP-1A.',
     specPath: 'designs/microbiology/m-12-test-reagent-linkage.md',
     htmlUrl: 'designs/microbiology/m-12-test-reagent-linkage-prototype.html',
     added: '2026-05-15',
@@ -1314,39 +1185,14 @@ export const MOCKUP_REGISTRY = [
 
   // ─── Microbiology — Guided Workflow Walkthrough (sequences the split prototypes) ─
 
-  {
-    name: 'Microbiology — Guided Workflow Walkthrough',
-    category: 'microbiology',
-    component: null,
-    description: 'Guided step-through that sequences the split micro prototypes into one flow — per step a description + the embedded mockup + Prev/Next, with a Bacterial/TB branch toggle. Covers admin/config setup → order & routing → bacterial or TB work-up → reporting.',
-    specPath: 'designs/microbiology/amr-micro-narrative.md',
-    htmlUrl: 'designs/microbiology/amr-micro-workflow-flow.html',
-    added: '2026-06-25',
-    status: 'draft',
-    jira: ['OGC-782'],
-    tags: ['microbiology', 'walkthrough', 'flow', 'guided', 'interactive'],
-  },
 
   // ─── Microbiology — Sync 5: TB / Antibiogram / GLASS / workflow-selection ─
 
   {
-    name: 'M-14 TB Case — Interactive Prototype',
-    category: 'microbiology',
-    component: null,
-    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. The M-04 Case Workbench shell as a TB profile: smear, MGIT/LJ culture, species ID, critical-concentration DST, molecular flags, staged interim reports. v1.1 aligns the TB bench with the no-growth amendment (NO_GROWTH_READY + release; CONTAMINATED is not a result).',
-    specPath: 'designs/microbiology/m-14-mycobacteriology-tb.md',
-    htmlUrl: 'designs/microbiology/m-14-tb-case-prototype.html',
-    added: '2026-06-08',
-    updated: '2026-09-29',
-    status: 'draft',
-    jira: ['OGC-901'],
-    tags: ['microbiology', 'mycobacteriology', 'tb', 'interactive', 'prototype', 'phase-2'],
-  },
-  {
     name: 'M-13 Antibiogram — Interactive Prototype',
     category: 'microbiology',
     component: null,
-    description: 'Cumulative %S antibiogram (CLSI M39): organism × antibiotic matrix, first-isolate dedup, threshold suppression, PDF/CSV export.',
+    description: 'Future capability, outside V2 delivery. Cumulative %S antibiogram (CLSI M39): organism × antibiotic matrix, first-isolate dedup, threshold suppression, PDF/CSV export.',
     specPath: 'designs/microbiology/m-13-antibiogram.md',
     htmlUrl: 'designs/microbiology/m-13-antibiogram-prototype.html',
     added: '2026-06-08',
@@ -1355,73 +1201,10 @@ export const MOCKUP_REGISTRY = [
     tags: ['microbiology', 'antibiogram', 'reporting', 'interactive', 'prototype', 'phase-2'],
   },
   {
-    name: 'M-04 Change Workflow / Unassigned [Completed]',
-    category: 'microbiology',
-    archived: true,
-    component: null,
-    description: 'M-04 §4.9 runtime escape hatch: re-classify an UNASSIGNED or mis-routed Case to the correct workflow_type (BACTERIOLOGY / MYCOBACTERIOLOGY_TB). 3 demo scenarios: unassigned, mis-routed-with-results, released-blocked.',
-    specPath: 'designs/microbiology/m-04-case-workbench-core.md',
-    htmlUrl: 'designs/microbiology/m-04-change-workflow-prototype.html',
-    added: '2026-06-08',
-    status: 'draft',
-    jira: ['OGC-926'],
-    tags: ['microbiology', 'case-workbench', 'workflow-type', 'interactive', 'prototype', 'phase-1a-plus'],
-  },
-  {
-    name: 'M-04 Linked Cases — Shared Specimen',
-    category: 'microbiology',
-    component: null,
-    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Demonstrates Case keyed to sample_item_id × workflow_type: bacterial + TB on one sputum = two sibling Cases sharing one SampleItem. Worklist grouped siblings → bacterial case ↔ TB case sibling chip → order-entry 2-case preview.',
-    specPath: 'designs/microbiology/m-04-case-workbench-core.md',
-    htmlUrl: 'designs/microbiology/m-04-linked-cases-shared-specimen-prototype.html',
-    added: '2026-06-08',
-    updated: '2026-09-29',
-    status: 'draft',
-    jira: ['OGC-790'],
-    tags: ['microbiology', 'case-workbench', 'shared-specimen', 'sibling-cases', 'interactive', 'prototype', 'phase-1a-plus'],
-  },
-  {
-    name: 'M-09 WHONET — Painless Export',
-    category: 'microbiology',
-    component: null,
-    description: 'Extends the existing OpenELIS WHONetReportService seam: readiness indicator, bulk auto-map by name/OCL, 3-click export with WHO-GLASS defaults, configure-once unattended delivery.',
-    specPath: 'designs/microbiology/m-09-whonet-export.md',
-    htmlUrl: 'designs/microbiology/m-09-whonet-painless-prototype.html',
-    added: '2026-06-08',
-    status: 'draft',
-    jira: ['OGC-794'],
-    tags: ['microbiology', 'WHONET', 'surveillance', 'painless', 'interactive', 'prototype', 'phase-1b'],
-  },
-  {
-    name: 'M-06 Expert Review — Inline Decision',
-    category: 'microbiology',
-    component: null,
-    description: 'Expert Review section → inline Review & Decide panel: accept override / order confirmation / reject + confirmation loop. No modals (Principle 3).',
-    specPath: 'designs/microbiology/m-06-expert-rules-engine.md',
-    htmlUrl: 'designs/microbiology/m-06-expert-review-prototype.html',
-    added: '2026-06-08',
-    status: 'draft',
-    jira: ['OGC-793'],
-    tags: ['microbiology', 'expert-rules', 'inline', 'interactive', 'prototype', 'phase-1b'],
-  },
-  {
-    name: 'M-11 Critical Notification — Inline',
-    category: 'microbiology',
-    component: null,
-    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Inline Log/Acknowledge/Close flow over the existing OpenELIS notifications entity. Open → Acknowledged → Closed. Reuses alerts dashboard as criticals filter; no new Alerts Dashboard build.',
-    specPath: 'designs/microbiology/m-11-critical-result-acknowledgment.md',
-    htmlUrl: 'designs/microbiology/m-11-critical-notification-prototype.html',
-    added: '2026-06-08',
-    updated: '2026-10-01',
-    status: 'draft',
-    jira: ['OGC-785'],
-    tags: ['microbiology', 'critical-ack', 'inline', 'interactive', 'prototype', 'phase-1a-plus'],
-  },
-  {
     name: 'M-13 Antibiogram',
     category: 'microbiology',
     component: null,
-    description: 'Cumulative %S antibiogram (CLSI M39): organism × antibiotic matrix, first-isolate dedup, threshold suppression, data quality indicators, PDF/CSV export. Phase 2 reporting module.',
+    description: 'Future capability, outside V2 delivery. Cumulative %S antibiogram (CLSI M39): organism × antibiotic matrix, first-isolate dedup, threshold suppression, data quality indicators, PDF/CSV export. Phase 2 reporting module.',
     specPath: 'designs/microbiology/m-13-antibiogram.md',
     added: '2026-06-08',
     status: 'draft',
@@ -1429,22 +1212,10 @@ export const MOCKUP_REGISTRY = [
     tags: ['microbiology', 'antibiogram', 'reporting', 'CLSI', 'surveillance', 'phase-2'],
   },
   {
-    name: 'M-14 Mycobacteriology / TB',
-    category: 'microbiology',
-    component: null,
-    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. M-04 Case Workbench extended for TB: workflow_type = MYCOBACTERIOLOGY_TB, smear microscopy, MGIT/LJ culture, species ID, WHO critical-concentration DST, molecular resistance flags (GeneXpert, Hain LPA), staged interim reports, WHONET-TB export.',
-    specPath: 'designs/microbiology/m-14-mycobacteriology-tb.md',
-    added: '2026-06-08',
-    updated: '2026-09-29',
-    status: 'draft',
-    jira: ['OGC-901'],
-    tags: ['microbiology', 'mycobacteriology', 'tb', 'dst', 'whonet-tb', 'glass', 'phase-2'],
-  },
-  {
     name: 'M-15 GLASS — FHIR Surveillance',
     category: 'microbiology',
     component: null,
-    description: 'OE pushes finalized AMR results to a consolidated FHIR server (WHO GLASS reporting path). Reuses FhirTransformService / FhirPersistanceService + EQA submission pattern. Backend/admin spec — no clinical mockup. Cross-lab aggregation stays outside OE. v1.1 adds the negative / no-growth path (case-keyed transform, include-negatives, release gated on recorded outcome).',
+    description: 'Future capability, outside V2 delivery. OE pushes finalized AMR results to a consolidated FHIR server (WHO GLASS reporting path). Reuses FhirTransformService / FhirPersistanceService + EQA submission pattern. Backend/admin spec — no clinical mockup. Cross-lab aggregation stays outside OE. v1.1 adds the negative / no-growth path (case-keyed transform, include-negatives, release gated on recorded outcome).',
     specPath: 'designs/microbiology/m-15-glass-fhir-surveillance.md',
     added: '2026-06-08',
     updated: '2026-08-27',
@@ -1452,24 +1223,12 @@ export const MOCKUP_REGISTRY = [
     jira: ['OGC-918'],
     tags: ['microbiology', 'glass', 'fhir', 'surveillance', 'fhir-server', 'phase-2'],
   },
-  {
-    name: 'Microbiology AMR Narrative — v2.1',
-    category: 'microbiology',
-    component: null,
-    description: 'v2.1 narrative: folds in four post-v2.0 decisions — Case keying is SampleItem × workflow_type (not 1:1 with Sample); WHONET (M-09) extends the existing export; M-11 critical notification reuses the notifications dashboard + TestNotificationService; Expert Review (M-06) and critical log-and-acknowledge (M-11) are inline panels, not modals. Cross-module context doc for the full M-00–M-15 bundle.',
-    specPath: 'designs/microbiology/amr-micro-narrative.md',
-    added: '2026-06-08',
-    updated: '2026-06-12',
-    status: 'draft',
-    jira: ['OGC-782'],
-    tags: ['microbiology', 'narrative', 'workflow-selection', 'tb', 'antibiogram', 'glass', 'v2.1'],
-  },
 
   {
     name: 'M-16 Cluster Detection & Outbreak Signals',
     category: 'microbiology',
     component: null,
-    description: 'Native-Java scan-statistic cluster/outbreak detection across all three surveillance domains (clinical, environmental, vector). Consumes a domain-aware detection-event stream — no SaTScan binary, works air-gapped; reuses M-09 first-isolate de-duplication; a scan never crosses a domain boundary (extends D-004). Inline signal queue + Detection History; the only modal is the outbound-send confirm. Alert-volume design target ~3-6 signals/lab/year. FRS v1.0 + interactive preview. Depends on the OGC-782 microbiology module (stacked, not yet on develop).',
+    description: 'Future capability, outside V2 delivery. Native-Java scan-statistic cluster/outbreak detection across all three surveillance domains (clinical, environmental, vector). Consumes a domain-aware detection-event stream — no SaTScan binary, works air-gapped; reuses M-09 first-isolate de-duplication; a scan never crosses a domain boundary (extends D-004). Inline signal queue + Detection History; the only modal is the outbound-send confirm. Alert-volume design target ~3-6 signals/lab/year. FRS v1.0 + interactive preview. Future capability, outside V2 delivery; population rules follow V2.',
     specPath: 'designs/microbiology/m-16-cluster-detection.md',
     htmlUrl: 'designs/microbiology/m-16-cluster-detection-preview.html',
     added: '2026-09-04',
@@ -1482,20 +1241,20 @@ export const MOCKUP_REGISTRY = [
     name: 'Microbiology v2 Amendments',
     category: 'microbiology',
     component: React.lazy(() => import('@designs/microbiology/amr-micro-v2-mockup.jsx')),
-    description: 'Microbiology (AMR) v2 amendments (v2.0 draft 10.4), a delta over M-00 to M-18 reconciled with the CPHL Port Moresby microbiology and mycobacteriology workflow breakdown. Every micro test opens a case, including Xpert or smear alone; blood culture sets as one sample per bottle. Case view with Initial testing, Culture (plating templates, tracked or not tracked media, lot on the row), Growth work-up with reportable tests on a positive culture, AST/DST, Additional testing, plate, isolate and AST labels, patient history; Bench batches proposed. Every reversal of V1 is boxed as "Contradicts V1". Draft 10.4 preview plus a developer JSX mockup (@carbon/react) with shipped panels fenced (D-063). Narrows the Test Catalog microbiology workflow attribute (OGC-925) to Culture type on generic culture tests.',
+    description: 'Self-contained draft 10.4 functional baseline: test-driven case grouping, separate lab-unit transfers, row-local cultures, per-agent reporting, incoming placement, shared callbacks and immutable report history. Joining existing cases is deferred.',
     specPath: 'designs/microbiology/amr-micro-v2-amendments.md',
     htmlUrl: 'designs/microbiology/amr-micro-v2-preview.html',
     added: '2026-09-28',
     updated: '2026-10-02',
     status: 'draft',
-    jira: ['OGC-1383', 'OGC-782'],
+    jira: ['OGC-1383'],
     tags: ['microbiology', 'amr', 'v2', 'amendments', 'cphl', 'png', 'case-view', 'worklist', 'order-entry', 'plating-templates', 'inventory', 'labels'],
   },
   {
     name: 'M-18 Environmental Microbiology',
     category: 'microbiology',
     component: React.lazy(() => import('@designs/microbiology/m-18-environmental-microbiology.jsx')),
-    description: 'M-18 Environmental Microbiology FRS v0.9, follows Microbiology v2 draft 9: any environmental micro test opens a Case; no Microbiology section on environmental order entry, the culture test is ordered like any test; purpose defaults to Routine monitoring on the Case; media are tracked or not tracked Microbiology medium items (search first, Add new) with plating templates. Built on what develop stores today, investigation link moved to M-16, environmental report layout via Report Management. Touches Results Entry v4, Validation v4 and Environmental Order Entry v4. Preview with the samples table and After save review, JSX mockup, /analyze report and slicing guide.',
+    description: 'Environmental follow-on to V2: cases grouped by order, sample type, lab unit and site; no fake patients; culture-media traceability without stock changes; explicit export populations.',
     specPath: 'designs/microbiology/m-18-environmental-microbiology.md',
     htmlUrl: 'designs/microbiology/m-18-environmental-microbiology.html',
     added: '2026-09-28',
@@ -2653,7 +2412,7 @@ export const MOCKUP_REGISTRY = [
     name: 'Clinical Order Entry (v4)',
     category: 'vector-surveillance',
     component: null,
-    description: 'Clinical Order Entry v4 (FRS v0.20: order-entry clean-up, possible matches before create, Handling group, fewer low-value fields; FR-B12a follows Microbiology v2 draft 10, D-178): Add Order reworked into two steps, Enter Order (in paper-form order: order, patient, requester, request details, tests) and Prepare Samples, plus an optional Sample check. Every save is one all-or-nothing transaction. Container Types and Body Sites join the test catalog so each test declares its expected tubes, and swabs carry a coded site. Shared ordered-tests table, samples table and order summary strip show which tube each test is on. Search-first patient, facility and provider creation; lab time zone for collection and receipt times; working label buttons. Two-phase plan (MVP on current screens, Phase 2 new model). Supersedes the 2026-09-10 Enter Order preview (archived) and OGC-1066. Companion slicing guide, acceptance test scripts, research brief and environmental/vector alignment note.',
+    description: 'Clinical Order Entry v4 (FRS v0.20: order-entry clean-up, possible matches before create, Handling group, fewer low-value fields; FR-B12a follows Microbiology V2 draft 10.4): Add Order reworked into two steps, Enter Order (in paper-form order: order, patient, requester, request details, tests) and Prepare Samples, plus an optional Sample check. Every save is one all-or-nothing transaction. Container Types and Body Sites join the test catalog so each test declares its expected tubes, and swabs carry a coded site. Shared ordered-tests table, samples table and order summary strip show which tube each test is on. Search-first patient, facility and provider creation; lab time zone for collection and receipt times; working label buttons. Two-phase plan (MVP on current screens, Phase 2 new model). Supersedes the 2026-09-10 Enter Order preview (archived) and OGC-1066. Companion slicing guide, acceptance test scripts, research brief and environmental/vector alignment note.',
     specPath: 'designs/sample-collection/clinical-order-entry-v4.md',
     htmlUrl: 'designs/sample-collection/clinical-order-entry-v4.html',
     added: '2026-09-10',
@@ -3222,12 +2981,12 @@ export const JOURNEYS = [
     id: 'test-catalog-setup',
     icon: '⚙️',
     title: 'Test Catalog Setup',
-    blurb: 'Admin journey: build a test end-to-end — definition, ranges, workflow type, and reagents.',
+    blurb: 'Admin journey: build a test end-to-end — definition, ranges, microbiology case opening, and reagents.',
     steps: [
       { name: 'Test Catalog [Completed]', blurb: 'The home of every test the lab offers. Start here to browse the catalog and pick (or create) the test you want to configure end-to-end.' },
       { name: 'Test Catalog v2.5 — v1 Preview', blurb: 'The unified editor where a test is actually defined — its name, sample types, result type, and behavior. This single consolidated screen replaces the old scattered admin pages.' },
       { name: 'Reporting Ranges by Method', blurb: 'Reference and reporting ranges depend on the method used to run a test. Here you set those ranges per method so a result is interpreted (normal / abnormal / critical) correctly.' },
-      { name: 'Test Catalog — Microbiology Workflow Attribute', blurb: 'A test can carry a workflow type that routes it down a specialized path — for example bacterial culture vs TB in the AMR module. This is where that attribute is set on the test.' },
+      { name: 'Microbiology v2 Amendments', blurb: 'The catalog switch Opens a Microbiology case sends eligible tests to a case, independently of the AMR surveillance flag. The V2 preview includes the catalog controls, reception summary and case workflow.' },
       { name: 'M-12 Test to Reagent Linkage', blurb: 'Declares which reagent lots a test requires — the ISO 15189 §7.3 traceability link between a result and the materials that produced it. Microbiology forces the issue, but it is a general OpenELIS foundation.' },
       { name: 'Reagent Usage on Result Entry v2.1', blurb: 'Closes the loop: shows how the reagent lots declared above surface to the tech during result entry, so actual usage is captured against each result.' },
     ],
@@ -3354,13 +3113,7 @@ const PERMALINK_ALIASES = {
   'admin-config/test-catalog-v2-5-v1-jira-story-breakdown': 'admin-config/test-catalog-v2-5-v1-jira-story-breakdown-superseded',
   'admin-config/test-catalog-v2-5-v2-jira-story-breakdown': 'admin-config/test-catalog-v2-5-v2-jira-story-breakdown-superseded',
   'sample-collection/combined-collections-at-order-entry': 'sample-collection/combined-collections-at-order-entry-superseded',
-  'microbiology/m-04-case-workbench-core-case-detail': 'microbiology/m-04-case-workbench-interactive-prototype',
-  'microbiology/m-05-ast-entry-interpretation': 'microbiology/m-05-ast-entry-interactive-prototype',
-  'microbiology/m-07-ast-worklist': 'microbiology/m-07-worklist-interactive-prototype',
-  'microbiology/m-11-critical-result-acknowledgment': 'microbiology/m-11-critical-notification-inline',
   // Archived 2026-09-22 — shipped / superseded entries retired with a status marker.
-  'microbiology/m-04-change-workflow-unassigned': 'microbiology/m-04-change-workflow-unassigned-completed',
-  'microbiology/m-10-hub-subscription': 'microbiology/m-10-hub-subscription-superseded',
   'results-validation/multi-component-result-entry-v1': 'results-validation/multi-component-result-entry-v1-superseded',
 };
 
@@ -3425,6 +3178,18 @@ marked.setOptions({
   breaks: true,
 });
 
+/** Resolve source-relative requirement links against their document on GitHub. */
+export function renderSpecMarkdown(content, specPath) {
+  const renderer = new marked.Renderer();
+  const renderLink = renderer.link;
+  renderer.link = function (token) {
+    const href = token.href;
+    const sourceLink = href && (href.startsWith('#') || (!/^(?:[a-z]+:|\/)/i.test(href) && /\.md(?:#|$)/i.test(href)));
+    return renderLink.call(this, sourceLink ? { ...token, href: new URL(href, GITHUB_BASE + specPath).href } : token);
+  };
+  return marked(content, { renderer });
+}
+
 /** Fetch and render a markdown spec from the repo */
 function SpecViewer({ specPath }) {
   const [content, setContent] = useState(null);
@@ -3468,7 +3233,7 @@ function SpecViewer({ specPath }) {
     <div
       className="spec-content"
       style={styles.specContent}
-      dangerouslySetInnerHTML={{ __html: marked(content) }}
+      dangerouslySetInnerHTML={{ __html: renderSpecMarkdown(content, specPath) }}
     />
   );
 }
@@ -3561,7 +3326,7 @@ function StandaloneSpec({ mockup }) {
   const githubUrl = GITHUB_BASE + mockup.specPath;
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#fff' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#fff', color: '#161616' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.5rem 1rem', background: '#161616', color: '#f4f4f4', fontSize: '0.875rem', flexShrink: 0 }}>
         <a href={galleryUrl} style={{ color: '#78a9ff', textDecoration: 'none' }}>← Gallery</a>
         <span style={{ fontWeight: 600 }}>{mockup.name} — Spec</span>
@@ -3575,7 +3340,7 @@ function StandaloneSpec({ mockup }) {
         {loading ? (
           <div style={{ textAlign: 'center', color: '#525252', padding: '2rem' }}>Loading spec...</div>
         ) : content ? (
-          <div className="spec-content" style={styles.specContent} dangerouslySetInnerHTML={{ __html: marked(content) }} />
+          <div className="spec-content" style={styles.specContent} dangerouslySetInnerHTML={{ __html: renderSpecMarkdown(content, mockup.specPath) }} />
         ) : (
           <div style={{ textAlign: 'center', color: '#525252', padding: '2rem' }}>
             <p>Could not load spec.</p>

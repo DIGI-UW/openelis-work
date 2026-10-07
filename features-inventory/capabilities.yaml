@@ -711,7 +711,7 @@ capabilities:
     since: null
     jira: [OGC-782]
     contract_labels: [png-deliverable, PNG, Phase2]
-    gallery: {mockup: null, frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/microbiology/m-00-micro-module-parent.md"}
+    gallery: {mockup: null, frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/microbiology/amr-micro-v2-amendments.md"}
     docs: {manual_page: null, training_doc: null}
     website: {include: true, section: Pathology & microbiology}
 
@@ -724,7 +724,7 @@ capabilities:
     since: null
     jira: [OGC-782]
     contract_labels: [png-deliverable, PNG, Phase2]
-    gallery: {mockup: null, frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/microbiology/m-04-case-workbench-core.md"}
+    gallery: {mockup: null, frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/microbiology/amr-micro-v2-amendments.md#fr-17.6"}
     docs: {manual_page: null, training_doc: null}
     website: {include: true, section: Pathology & microbiology}
 

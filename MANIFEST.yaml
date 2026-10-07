@@ -261,26 +261,6 @@
     gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-frs-v2-5
   added: "2026-05-14"
 
-- id: test-catalog-microbiology-workflow-attribute
-  type: mockup
-  path: designs/admin-config/test-catalog-microbiology-workflow-attribute.html
-  spec: designs/admin-config/test-catalog-microbiology-workflow-attribute.md
-  preview: designs/admin-config/test-catalog-microbiology-workflow-attribute.html
-  category: admin-config
-  status: draft
-  narrowed_by: microbiology-v2-amendments
-  description: >
-    Narrowed by Microbiology v2 (2026-10-01): kept, renamed Culture type and set only on
-    generic culture tests (A-01, D-125). Test Catalog Basic Info microbiology workflow attribute: a nullable culture_workflow_type
-    enum (Bacteriology / Mycobacteriology-TB) orthogonal to Domain and the AMR flag; drives
-    micro case routing (M-03/M-04). Foldable into Test Catalog v2.5 section 2.1 Basic Info.
-  links:
-    jira: ["OGC-925"]
-    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog-microbiology-workflow-attribute
-    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-microbiology-workflow-attribute.html
-  added: "2026-06-08"
-  updated: "2026-10-01"
-
 - id: test-catalog-v2-5-v1-preview
   type: mockup
   path: designs/admin-config/test-catalog/test-catalog-preview-v2.5-v1.html
@@ -613,18 +593,6 @@
 
 # ─── Microbiology — M-* bundle (supersedes amr-module / OGC-293) ───────────
 
-- id: m-00-micro-module-parent
-  type: spec
-  path: designs/microbiology/m-00-micro-module-parent.md
-  category: microbiology
-  description: >
-    Amended by Microbiology v2 (2026-09-28). M-00 spine spec: glossary, RBAC, data model overview, phase plan, OOS, v1.1 → v2 diff map. v2.1: NO_GROWTH_FINAL becomes NO_GROWTH_READY then releases to FINAL_REPORTED.
-  links:
-    jira: ["OGC-782"]
-    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-00-microbiology-module-parent
-  added: "2026-05-15"
-  updated: "2026-09-29"
-
 - id: m-nfr-non-functional-requirements
   type: spec
   path: designs/microbiology/m-nfr-non-functional-requirements.md
@@ -662,24 +630,6 @@
   added: "2026-05-15"
   updated: "2026-10-01"
 
-- id: m-03-order-entry-micro-hook
-  type: spec
-  path: designs/microbiology/m-03-order-entry-micro-hook.md
-  category: microbiology
-  description: >
-    Amended by Microbiology v2 (2026-09-28). M-03: Order Entry Step 1 amendment — five editable micro fields when Program =
-    MICROBIOLOGY, plus a read-only derived Culture Protocol. Includes Date of Admission,
-    the missing input for the WHO GLASS hospital- vs community-origin (HO/CO/UNK)
-    derivation consumed by M-09. v2.2 moves the culture-protocol override to the bench
-    (M-04) and drops Critical Value Notify, which duplicated the Test Catalog notify
-    flag / Alerts section and TestNotificationConfig.
-  links:
-    jira: ["OGC-789"]
-    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-03-order-entry-micro-hook
-    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-03-order-entry-step1.html
-  added: "2026-05-15"
-  updated: "2026-09-29"
-
 - id: glass-submission-console
   type: html
   path: designs/microbiology/glass-submission-console.html
@@ -716,43 +666,6 @@
     jira: ["OGC-918"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/glass-amr-dashboard-indicators
   added: "2026-08-08"
-- id: m-04-case-workbench-core
-  type: spec
-  path: designs/microbiology/m-04-case-workbench-core.md
-  category: microbiology
-  description: >
-    Amended by Microbiology v2 (2026-09-28). M-04: Case + Isolate + Timeline + Reports + state machine + amendment workflow. v2.1: release gate keys on a recorded outcome; NO_GROWTH_FINAL becomes NO_GROWTH_READY.
-  links:
-    jira: ["OGC-790"]
-    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-04-case-workbench-core-case-detail
-    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-case-workbench-prototype.html
-  added: "2026-05-15"
-  updated: "2026-09-29"
-
-- id: m-04-isolate-modal
-  type: mockup
-  path: designs/microbiology/m-04-isolate-modal.html
-  category: microbiology
-  description: >
-    M-04 Isolate Modal: add/edit + reidentification mode.
-  links:
-    jira: ["OGC-790"]
-    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-04-isolate-modal
-  added: "2026-05-15"
-
-- id: m-05-ast-entry-and-interpretation
-  type: spec
-  path: designs/microbiology/m-05-ast-entry-and-interpretation.md
-  category: microbiology
-  description: >
-    Amended by Microbiology v2 (2026-09-28). M-05: AST Setup + AST Edit with BreakpointLookupService and inline override mechanism.
-  links:
-    jira: ["OGC-791"]
-    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-05-ast-entry-interpretation
-    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-05-ast-entry-prototype.html
-  added: "2026-05-15"
-  updated: "2026-10-01"
-
 - id: m-06-expert-rules-engine
   type: spec
   path: designs/microbiology/m-06-expert-rules-engine.md
@@ -764,69 +677,6 @@
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-06-expert-rules-engine
   added: "2026-05-15"
   updated: "2026-10-01"
-
-- id: m-07-pending-cultures
-  type: spec
-  path: designs/microbiology/m-07-worklists.md
-  category: microbiology
-  description: >
-    Amended by Microbiology v2 (2026-09-28). M-07 Pending Cultures: primary morning-rounds worklist with stage-based row highlighting.
-  links:
-    jira: ["OGC-792"]
-    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-07-pending-cultures-worklist
-    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-07-pending-cultures.html
-  added: "2026-05-15"
-  updated: "2026-09-29"
-
-- id: m-04-case-workbench-prototype
-  type: mockup
-  path: designs/microbiology/m-04-case-workbench-prototype.html
-  category: microbiology
-  description: >
-    M-04 Case Workbench interactive prototype — click-through case workup; canonical interactive mockup (supersedes m-04-case-detail.html).
-  paired_with: m-04-case-workbench-core
-  links:
-    jira: ["OGC-790"]
-    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-04-case-workbench-interactive-prototype
-    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-case-workbench-prototype.html
-  added: "2026-06-05"
-
-- id: m-07-worklists-prototype
-  type: mockup
-  path: designs/microbiology/m-07-worklists-prototype.html
-  category: microbiology
-  description: >
-    M-07 single Worklist interactive prototype — culture/AST grain toggle, shared queue, folded-in panels; canonical interactive mockup.
-  paired_with: m-07-pending-cultures
-  links:
-    jira: ["OGC-792"]
-    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-07-worklist-interactive-prototype
-    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-07-worklists-prototype.html
-  added: "2026-06-05"
-
-- id: m-05-ast-entry-prototype
-  type: mockup
-  path: designs/microbiology/m-05-ast-entry-prototype.html
-  category: microbiology
-  description: >
-    M-05 AST entry inline interactive prototype — auto-interpret, flexible breakpoint, inline override + revert, QC-fail recovery; canonical interactive mockup.
-  paired_with: m-05-ast-entry-and-interpretation
-  links:
-    jira: ["OGC-791"]
-    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-05-ast-entry-interactive-prototype
-    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-05-ast-entry-prototype.html
-  added: "2026-06-05"
-
-- id: amr-micro-dependency-graph
-  type: image
-  path: designs/microbiology/amr-micro-dependency-graph.svg
-  category: microbiology
-  description: >
-    Epic dependency graph across the 14 microbiology epics (OGC-782–795).
-  links:
-    jira: ["OGC-782"]
-    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/microbiology-epic-dependency-graph
-  added: "2026-06-05"
 
 - id: m-08-macro-library
   type: spec
@@ -853,33 +703,6 @@
     preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-09-whonet-export.html
   added: "2026-05-15"
   updated: "2026-08-27"
-
-- id: m-10-hub-subscription
-  type: spec
-  path: designs/microbiology/m-10-hub-subscription.md
-  preview: designs/microbiology/m-10-hub-subscription-prototype.html
-  category: microbiology
-  description: >
-    M-10: Unified Hub admin for breakpoint + WHONET code + organism/antibiotic updates. Phase 1B.
-  links:
-    jira: ["OGC-795"]
-    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-10-hub-subscription
-    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-10-hub-subscription-prototype.html
-  added: "2026-05-15"
-  updated: "2026-06-08"
-
-- id: m-11-critical-result-acknowledgment
-  type: spec
-  path: designs/microbiology/m-11-critical-result-acknowledgment.md
-  category: microbiology
-  description: >
-    Amended by Microbiology v2 (2026-09-28). M-11: Polymorphic critical-notification rework. Co-ships with Phase 1A+.
-  links:
-    jira: ["OGC-785"]
-    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-11-critical-result-acknowledgment
-    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-11-critical-notification-prototype.html
-  added: "2026-05-15"
-  updated: "2026-10-01"
 
 - id: m-12-test-reagent-linkage
   type: spec
@@ -921,44 +744,6 @@
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-13-antibiogram-interactive-prototype
   added: "2026-06-08"
 
-- id: m-14-mycobacteriology-tb
-  type: spec
-  path: designs/microbiology/m-14-mycobacteriology-tb.md
-  category: microbiology
-  description: >
-    Amended by Microbiology v2 (2026-09-28). M-14 Mycobacteriology / TB — M-04 Case Workbench TB profile: smear, MGIT/LJ culture,
-    species ID, critical-concentration DST, molecular flags, staged interim reports, WHONET-TB. v1.1 aligns TB bench with the no-growth amendment.
-  links:
-    jira: ["OGC-901"]
-    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-14-mycobacteriology-tb
-  added: "2026-06-08"
-  updated: "2026-09-29"
-
-- id: m-14-tb-case-interactive-prototype
-  type: mockup
-  path: designs/microbiology/m-14-tb-case-prototype.html
-  category: microbiology
-  description: >
-    M-14 TB Case — Interactive Prototype. M-04 Case Workbench shell as a TB profile:
-    smear, MGIT/LJ culture, species ID, DST, molecular flags, staged interim reports.
-  links:
-    jira: ["OGC-901"]
-    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-14-tb-case-interactive-prototype
-  added: "2026-06-08"
-
-- id: microbiology-guided-workflow-walkthrough
-  type: mockup
-  path: designs/microbiology/amr-micro-workflow-flow.html
-  category: microbiology
-  description: >
-    Microbiology — Guided Workflow Walkthrough. Sequences the split micro prototypes into one
-    step-through flow: per step a description + embedded mockup + Prev/Next, with a Bacterial/TB
-    branch toggle. Covers admin/config setup, order & routing, bacterial or TB work-up, and reporting.
-  links:
-    jira: ["OGC-782"]
-    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/microbiology-guided-workflow-walkthrough
-  added: "2026-06-25"
-
 - id: m-15-glass-fhir-surveillance
   type: spec
   path: designs/microbiology/m-15-glass-fhir-surveillance.md
@@ -981,7 +766,7 @@
     clinical, environmental and vector domains; consumes a domain-aware detection-event stream (no
     SaTScan binary, air-gapped), reuses M-09 first-isolate de-duplication, and never scans across a
     domain boundary (extends D-004). Inline signal queue + Detection History. FRS v1.0 + interactive
-    preview. Depends on the OGC-782 microbiology module (not yet on develop).
+    preview. Future capability, outside V2 delivery.
   links:
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-16-cluster-detection-outbreak-signals
     preview: designs/microbiology/m-16-cluster-detection-preview.html
@@ -995,13 +780,9 @@
   preview: designs/microbiology/amr-micro-v2-preview.html
   category: microbiology
   description: >
-    Microbiology (AMR) v2 amendments (v2.0 draft 10.4), a delta over M-00 to M-18 reconciled with
-    the CPHL workflow breakdown. Every micro test opens a case; blood culture sets as one sample
-    per bottle; case view with Initial testing, Culture, Growth work-up with reportable tests on
-    a positive culture, AST/DST, Additional testing, labels, patient history. Draft 10.4 preview
-    plus developer JSX mockup. Narrows the Test Catalog microbiology workflow attribute (OGC-925).
+    Self-contained Microbiology V2 draft 10.4 functional baseline. Eligible-test grouping, separate transfers, row-local culture work, per-agent reporting and shared clinical history. Joining existing cases is deferred.
   links:
-    jira: ["OGC-1383", "OGC-782"]
+    jira: ["OGC-1383"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/microbiology-v2-amendments
     preview: https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-v2-preview.html
   added: "2026-09-28"
@@ -1012,95 +793,15 @@
   path: designs/microbiology/m-18-environmental-microbiology.jsx
   spec: designs/microbiology/m-18-environmental-microbiology.md
   preview: designs/microbiology/m-18-environmental-microbiology.html
-  analyze: designs/microbiology/m-18-environmental-microbiology-analyze.md
-  breakdown: designs/microbiology/m-18-environmental-microbiology-breakdown.md
   category: microbiology
   description: >
-    M-18 Environmental Microbiology FRS v0.9, follows Microbiology v2 draft 9: any environmental
-    micro test opens a Case, no Microbiology section on environmental order entry, purpose
-    defaults to Routine monitoring on the Case, tracked or not tracked media with plating templates.
+    Environmental follow-on to V2: cases grouped by order, sample type, lab unit and site; explicit populations, site certificates and culture-media traceability without stock changes.
   links:
     jira: ["OGC-1382"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-18-environmental-microbiology
     preview: https://digi-uw.github.io/openelis-work/designs/microbiology/m-18-environmental-microbiology.html
   added: "2026-09-28"
   updated: "2026-10-01"
-
-- id: amr-micro-narrative-v2
-  type: spec
-  path: designs/microbiology/amr-micro-narrative.md
-  category: microbiology
-  description: >
-    Microbiology AMR Narrative v2.1 — folds in four post-v2.0 decisions (SampleItem×workflow_type
-    case keying, WHONET reuse, M-11 notification reuse, inline Expert Review/critical panels).
-    Cross-module context doc for the full M-00–M-15 bundle.
-  links:
-    jira: ["OGC-782"]
-    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/microbiology-amr-narrative-v2-0
-  added: "2026-06-08"
-  updated: "2026-06-12"
-
-- id: m-04-change-workflow-unassigned
-  type: mockup
-  path: designs/microbiology/m-04-change-workflow-prototype.html
-  category: microbiology
-  description: >
-    M-04 Change Workflow / Unassigned — runtime escape hatch for UNASSIGNED or mis-routed Cases.
-    3 scenarios: unassigned, mis-routed-with-results, released-blocked.
-  links:
-    jira: ["OGC-926"]
-    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-04-change-workflow-unassigned
-  added: "2026-06-08"
-
-- id: m-04-linked-cases-shared-specimen
-  type: mockup
-  path: designs/microbiology/m-04-linked-cases-shared-specimen-prototype.html
-  category: microbiology
-  description: >
-    M-04 Linked Cases — Shared Specimen. Case keyed to sample_item_id × workflow_type:
-    bacterial + TB on one sputum = two sibling Cases. Worklist grouped siblings → sibling chip.
-  links:
-    jira: ["OGC-790"]
-    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-04-linked-cases-shared-specimen
-  added: "2026-06-08"
-
-- id: m-09-whonet-painless-export
-  type: mockup
-  path: designs/microbiology/m-09-whonet-painless-prototype.html
-  category: microbiology
-  description: >
-    M-09 WHONET — Painless Export. Extends existing WHONetReportService seam: readiness indicator,
-    bulk auto-map, 3-click export with WHO-GLASS defaults, configure-once unattended delivery.
-  links:
-    jira: ["OGC-794"]
-    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-09-whonet-painless-export
-  added: "2026-06-08"
-
-- id: m-06-expert-review-inline-decision
-  type: mockup
-  path: designs/microbiology/m-06-expert-review-prototype.html
-  category: microbiology
-  description: >
-    M-06 Expert Review — Inline Decision panel: accept override / order confirmation / reject +
-    confirmation loop. Inline (no modals), per Principle 3.
-  links:
-    jira: ["OGC-793"]
-    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-06-expert-review-inline-decision
-  added: "2026-06-08"
-
-- id: m-11-critical-notification-inline
-  type: mockup
-  path: designs/microbiology/m-11-critical-notification-prototype.html
-  category: microbiology
-  description: >
-    M-11 Critical Notification — Inline. Log/Acknowledge/Close over existing OpenELIS notifications
-    entity. Open → Acknowledged → Closed. Reuses alerts dashboard as criticals filter.
-  links:
-    jira: ["OGC-785"]
-    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-11-critical-notification-inline
-  added: "2026-06-08"
-
-# ─── Non-Conforming Events (NCE) ───────────────────────────
 
 - id: nce-analytics
   type: mockup

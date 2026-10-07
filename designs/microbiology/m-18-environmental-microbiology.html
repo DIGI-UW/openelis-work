@@ -239,9 +239,9 @@ function EnvOrderScreen() {
         <div className="sec-h" style={{ marginTop: 0 }}>After save <span className="muted" style={{ fontWeight: 400, fontSize: 13 }}>(drawn for review; reception sees nothing extra)</span></div>
         <table className="cds--data-table cds--data-table--md">
           <thead><tr><th>Case opens for</th><th>Sample</th><th>Lab unit</th><th>Culture purpose</th></tr></thead>
-          <tbody>{lines.map(l => <tr key={l.num}><td>{l.test}</td><td><span className="mono">{l.num}</span> <span className="hint">{l.point}</span></td><td>Environmental Microbiology</td><td>Routine monitoring <span className="hint">(default, changed on the Case)</span></td></tr>)}</tbody>
+          <tbody><tr><td>One shared surface-swab culture case</td><td>{lines.map(l => <div key={l.num}><span className="mono">{l.num}</span> <span className="hint">{l.point}</span></div>)}</td><td>Environmental Microbiology</td><td>Routine monitoring <span className="hint">(default, changed on the Case)</span></td></tr></tbody>
         </table>
-        <div className="hint" style={{ marginTop: 10 }}>No Microbiology section and no Program coupling (Microbiology v2 D-146). Surface swab culture is picked in the samples table like any test. One case per sampling point; replicate swabs from one point would share a case, which the technician can split on the Case. Purpose and replicates are entered on the Case (Microbiology v2 A-03); no culture protocol (retired).</div>
+        <div className="hint" style={{ marginTop: 10 }}>No Microbiology section and no Program coupling (Microbiology v2 FR-02.3). Surface swab culture is picked in the samples table like any test. One case per order, sample type, lab unit and sampling site; matching swabs share a case. A sample without results can be split into a separate case. Purpose and replicates are entered on the Case (Microbiology v2 A-03); no culture protocol (retired).</div>
       </NewBlock>
       <Annot>An environmental culture test on the order always opens its Case; Program is not set or read. Counts such as Total coliforms per 100 mL stay in environmental results entry with their regulatory limits (FR-C2). Linking samples to a cluster investigation is specified with M-16.</Annot>
     </div>
@@ -273,10 +273,9 @@ function CaseScreen() {
       <div className="sec-h">1 Case information <span className="chip-new">v2</span></div>
       <div className="row-flex" style={{ gap: 24, alignItems: 'flex-end' }}>
         <div className="field" style={{ minWidth: 260 }}><label htmlFor="purp">Purpose *</label>
-          <select id="purp" className="cds--select-input" value={purpose} onChange={e => setPurpose(e.target.value)}>{PURP.map(p => <option key={p}>{p}</option>)}</select></div>
+          <select id="purp" className="cds--select-input" value={purpose} onChange={e => setPurpose(e.target.value)}>{PURP.map(p => <option key={p}>{p}</option>)}</select><div className="hint">Applies to this case only. Defaults to Routine monitoring.</div></div>
         <div className="field" style={{ minWidth: 120 }}><label htmlFor="reps">Replicates</label>
-          <input id="reps" className="inp" type="number" min="1" max="10" value={reps} style={{ width: 100 }} onChange={e => setReps(e.target.value)} /></div>
-        <div className="hint" style={{ flex: 1, minWidth: 220 }}>Applies to all 3 Cases on this order (FR-C5a). A change is recorded on each Case's Timeline.</div>
+          <input id="reps" className="inp" type="number" min="1" max="10" value={reps} style={{ width: 100 }} onChange={e => setReps(e.target.value)} /><div className="hint">Applies to all 3 cases on this order. A change is recorded on each case timeline.</div></div>
       </div>
       {purpose === 'Outbreak investigation' && <div className="notif">Outbreak investigation samples are not counted by cluster detection, so swabs taken because of a signal never feed it (FR-G2).</div>}
       <div className="hint" style={{ marginTop: 6 }}>Hidden for environmental Cases (not shown empty): patient origin, department, date of admission, clinical history, prior antibiotics, TB history.</div>
@@ -292,7 +291,7 @@ function CaseScreen() {
           <tr><td>Blood agar</td><td>Aerobic, 35</td><td>48 Hours</td><td>24 Hours</td><td>25/09 09:10</td><td>27/09 09:10</td><td>{checked ? <Tag c="green">Growth</Tag> : <Tag c="warm-gray">Check due</Tag>}</td><td className="hint">Day 1: significant growth{checked ? '; Day 2: significant growth, S. aureus colonies · J. Wari' : ''}</td><td>{!checked && <Btn kind="ghost" onClick={() => setChecked(true)}>Record reading</Btn>}</td></tr>
         </tbody></table></div>
 
-      <div className="sec-h">4 Growth work-up <span className="chip-new">v2</span></div>
+      <div className="sec-h">4 Culture work-up <span className="chip-new">v2</span></div>
       <div className="panel-grid">
         <div className="kv"><div className="k">Microscopy exam (CHROMagar, day 1)</div><div className="v">Gram: Gram-positive cocci in clusters <Tag c="gray">Internal only</Tag></div></div>
         <div className="kv"><div className="k">Subculture</div><div className="v">Blood agar, 24 Hours, for MALDI-TOF</div></div>
@@ -392,7 +391,7 @@ function LabUnitsScreen() {
           <select id="as" className="cds--select-input" value={assign} onChange={e => setAssign(e.target.value)}>{U.map(x => <option key={x.n}>{x.n}</option>)}</select></div>
       </div>
       {ok ? <div className="notif">Surface swab culture is in Environmental Microbiology. Ordered on an environmental sample, it opens a Microbiology Case with a site as the subject.</div>
-        : <div className="notif warn">Surface swab culture is an Environmental test. It can only go in an Environmental lab unit, such as Environmental Microbiology (D-030 guard).</div>}
+        : <div className="notif warn">Surface swab culture is an Environmental test. It can only go in an Environmental lab unit, such as Environmental Microbiology ( guard).</div>}
       <Annot>Staff who work both benches are given both Microbiology and Environmental Microbiology in the existing user administration (FR-A4).</Annot>
     </div>
   );
@@ -439,7 +438,7 @@ function App() {
   const m = SCREENS[s - 1];
   return (
     <div>
-      <div className="pv-banner"><span>Visual Preview: M-18 Environmental Microbiology (FRS v0.8, Microbiology v2 draft 8 layout) | OpenELIS Design Mockup | Not a live application</span><span>Screen {s}: {m.route}</span></div>
+      <div className="pv-banner"><span>Visual Preview: M-18 Environmental Microbiology (FRS v0.8, Microbiology v2 draft 10.4 layout) | OpenELIS Design Mockup | Not a live application</span><span>Screen {s}: {m.route}</span></div>
       <header className="app-header"><div className="brand">OpenELIS Global <span>| Central Public Health Laboratory (CPHL), Port Moresby</span></div><div>Signed in: {m.user}</div></header>
       <div className="shell">
         <aside className="rail" aria-label="Preview navigation">

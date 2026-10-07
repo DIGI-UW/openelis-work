@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import userEvent from '@testing-library/user-event';
 import App, {
   toSlug,
+  renderSpecMarkdown,
   toHash,
   findMockupByHash,
   parseRoute,
@@ -328,21 +329,14 @@ describe('permalink stability', () => {
     '#/analyzer-integration/analyzer-file-upload',
     '#/analyzer-integration/quantstudio-5-7-flex-field-mapping',
     '#/analyzer-integration/fluorocycler-xt-integration-spec',
-    '#/microbiology/m-00-microbiology-module-parent',
+    '#/microbiology/microbiology-v2-amendments',
+    '#/microbiology/m-18-environmental-microbiology',
     '#/microbiology/m-nfr-non-functional-requirements',
     '#/microbiology/m-01-amr-reference-data-organism-master',
     '#/microbiology/m-02-breakpoint-catalog',
-    '#/microbiology/m-03-order-entry-micro-hook',
-    '#/microbiology/m-04-case-workbench-core-case-detail',
-    '#/microbiology/m-04-isolate-modal',
-    '#/microbiology/m-05-ast-entry-interpretation',
     '#/microbiology/m-06-expert-rules-engine',
-    '#/microbiology/m-07-pending-cultures-worklist',
-    '#/microbiology/m-07-ast-worklist',
     '#/microbiology/m-08-macro-library',
     '#/microbiology/m-09-whonet-export',
-    '#/microbiology/m-10-hub-subscription',
-    '#/microbiology/m-11-critical-result-acknowledgment',
     '#/microbiology/m-12-test-to-reagent-linkage',
     '#/nce/nce-analytics',
     '#/pathology/pathology-case-view',
@@ -1210,4 +1204,19 @@ describe('JsxMockupPreview Carbon stylesheet injection', () => {
     }, { timeout: 10000 });
     expect(document.head.querySelector('link[data-carbon-preview]')).toBeFalsy();
   }, 15000);
+});
+
+
+describe('rendered requirement links', () => {
+  it('keeps cross-document and same-document anchors reachable from a gallery spec', () => {
+    const html = renderSpecMarkdown(
+      '[Media](../microbiology/amr-micro-v2-amendments.md#fr-05.1b) [This section](#acceptance) [Jira](https://uwdigi.atlassian.net/browse/OGC-1383)',
+      'designs/inventory/inventory-redesign.md'
+    );
+    const element = document.createElement('div');
+    element.innerHTML = html;
+    expect(element.querySelector('a:nth-of-type(1)').href).toBe(GITHUB_BASE + 'designs/microbiology/amr-micro-v2-amendments.md#fr-05.1b');
+    expect(element.querySelector('a:nth-of-type(2)').href).toBe(GITHUB_BASE + 'designs/inventory/inventory-redesign.md#acceptance');
+    expect(element.querySelector('a:nth-of-type(3)').href).toBe('https://uwdigi.atlassian.net/browse/OGC-1383');
+  });
 });
