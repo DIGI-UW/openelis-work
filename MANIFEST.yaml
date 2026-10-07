@@ -995,17 +995,17 @@
   preview: designs/microbiology/amr-micro-v2-preview.html
   category: microbiology
   description: >
-    Microbiology (AMR) v2 amendments (v2.0 draft 10.4), a delta over M-00 to M-18 reconciled with
+    Microbiology (AMR) v2 amendments (v2.0 draft 10.5), a delta over M-00 to M-18 reconciled with
     the CPHL workflow breakdown. Every micro test opens a case; blood culture sets as one sample
     per bottle; case view with Initial testing, Culture, Growth work-up with reportable tests on
-    a positive culture, AST/DST, Additional testing, labels, patient history. Draft 10.4 preview
+    a positive culture, AST/DST, Additional testing, labels, patient history. Draft 10.5 preview
     plus developer JSX mockup. Narrows the Test Catalog microbiology workflow attribute (OGC-925).
   links:
     jira: ["OGC-1383", "OGC-782"]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/microbiology-v2-amendments
     preview: https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-v2-preview.html
   added: "2026-09-28"
-  updated: "2026-10-02"
+  updated: "2026-10-03"
 
 - id: m-18-environmental-microbiology
   type: jsx

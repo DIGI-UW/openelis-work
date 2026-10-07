@@ -107,11 +107,12 @@ const t = (k, f) => f || k;
 
 function Tag({ kind, children }) { return <span className={`cds--tag cds--tag--${kind}`}>{children}</span>; }
 function Btn({ kind = 'primary', children, onClick, disabled }) { return <button className={`cds--btn cds--btn--${kind} cds--btn--sm`} onClick={onClick} disabled={disabled}>{children}</button>; }
-function Field({ label, req, final, missing, children }) {
+function Field({ label, req, final, surv, missing, children }) {
   return <div className={`field ${missing ? 'missing' : ''}`}>
     <label>{label}{req && <span className="req">*</span>}{final && <span className="req">◆</span>}</label>
     {children}
     {final && <div className={`helper ${missing ? 'warn' : ''}`}>{missing ? t('microbiology.case.requiredBeforeFinal', 'Needed before final report') + ' (missing)' : t('microbiology.case.requiredBeforeFinal', 'Needed before final report')}</div>}
+    {surv && <div className={`helper ${missing ? 'warn' : ''}`}>{t('microbiology.case.neededForSurveillance', 'Needed for surveillance')}{missing ? ' (missing; never blocks release)' : ''}</div>}
   </div>;
 }
 function Section({ n, title, isNew, tags, children, open = true, cls = '' }) {
@@ -192,7 +193,7 @@ function CaseTestTable({ rows, labOnly, setLabOnly, showOn }) {
     <tbody>{rows.map(r => <React.Fragment key={r.id}>
       <tr>
         <td>{r.test}<NoteCount id={r.id} />{r.on && <div className="muted">On {r.on}</div>}
-          <div>{r.external && <Tag kind="gray">{t('microbiology.case.external', 'External result')}</Tag>}{labOnly[r.id] && <Tag kind="purple">{t('microbiology.case.inLabOnly', 'In lab only')}</Tag>}</div></td>
+          <div>{r.external && <Tag kind="gray">{t('microbiology.case.external', 'External result')}</Tag>}{labOnly[r.id] && <Tag kind="purple">{t('microbiology.case.inLabOnly', 'In lab only')}</Tag>}{r.addedBy && <Tag kind="cool-gray">{t('microbiology.case.addedBy', 'Added by {user}').replace('{user}', r.addedBy)}</Tag>}{r.placedBy && <Tag kind="blue">{r.placedBy}</Tag>}</div></td>
         <td style={{ whiteSpace: 'normal' }}>{r.display ? r.display : <span className="muted">Not entered</span>}</td>
         <td>{r.flag ? <Tag kind="red">{r.flag}</Tag> : <span className="muted">none</span>}</td>
         <td>{r.by || <span className="muted">n/a</span>}</td>
@@ -484,10 +485,17 @@ function CaseView({ ex }) {
   const [referOpen, setReferOpen] = useState(false);
   const [labOnly, setLabOnly] = useState(ex.labOnly);
   const [reportSel, setReportSel] = useState(Object.fromEntries(ex.report.items.map(i => [i.k, i.on])));
+  const [origin, setOrigin] = useState(ex.info.origin);
+  const [admission, setAdmission] = useState(ex.info.admission);
+  const admMissing = origin !== 'Outpatient' && !admission; // FR-03.5, D-211: never blocks
+  const [tl, setTl] = useState(ex.timeline);
+  const log = (what) => setTl(x => [[SERVER_NOW, what + ' · ' + ex.tech], ...x]); // FR-07.2c, FR-09.7
 
   const accept = (id, where) => {
     const it = incoming.find(i => i.id === id);
-    if (where.startsWith('Initial')) setInitial([...initial, { id: 'inc' + id, test: it.test, type: 'coded', opts: [it.value], result: it.value, display: it.value, flag: '', by: it.source, state: 'Awaiting validation' }]);
+    if (where.startsWith('Initial')) setInitial([...initial, { id: 'inc' + id, test: it.test, type: 'coded', opts: [it.value], result: it.value, display: it.value, flag: '', by: it.source, state: 'Awaiting validation', placedBy: t('microbiology.case.placement.placedBy', 'Placed by {user}').replace('{user}', ex.tech) }]);
+    const withLinked = it.linked && !where.startsWith('Initial') && !where.startsWith('Additional');
+    log(`Placed ${it.test} from Incoming results in ${where}${withLinked ? ` with ${it.linked.length} linked results from the same message` : ''}`);
     setIncoming(incoming.filter(i => i.id !== id));
   };
   const [reading, setReading] = useState(null);
@@ -533,18 +541,20 @@ function CaseView({ ex }) {
       <p className="muted" style={{ marginBottom: '.75rem' }}>Results for tests not yet on this case. One click places a result where you choose; the system does not guess. Placed in the wrong place? Use Move result. A result for a test already on the case goes straight to its row.</p>
       <table className="t"><thead><tr><th>Test</th><th>Value</th><th>Source</th><th>Received</th><th>{t('microbiology.case.incoming.placeIn', 'Place in')}</th></tr></thead>
         <tbody>{incoming.map(i => { const opts = ['Initial testing', ...isolates.map(s => 'Isolate: ' + s.id), ...isolates.map(s => 'AST / DST: ' + s.id), 'Additional testing'];
-          return <tr key={i.id}><td>{i.test}</td><td>{i.value}</td><td>{i.source}</td><td>{i.at}</td>
-          <td><div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{opts.map(o => <Btn key={o} kind="tertiary" onClick={() => accept(i.id, o)}>{o}</Btn>)}</div></td></tr>; })}</tbody></table>
+          const plus = o => i.linked && !o.startsWith('Initial') && !o.startsWith('Additional') ? ` + ${i.linked.length} linked` : '';
+          return <tr key={i.id}><td>{i.test}</td><td>{i.value}{i.linked && <div className="muted" style={{ marginTop: 4 }}>{t('microbiology.case.incoming.linkedResults', '{count} linked results from the same message').replace('{count}', i.linked.length)}: {i.linked.map(l => l[0] + ' ' + l[1]).join('; ')}</div>}</td><td>{i.source}</td><td>{i.at}</td>
+          <td><div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{opts.map(o => <Btn key={o} kind="tertiary" onClick={() => accept(i.id, o)}>{o}{plus(o)}</Btn>)}</div></td></tr>; })}</tbody></table>
+      <p className="muted" style={{ marginTop: '.5rem' }}>Results from one message linked to one organism stay together (FR-09.6). A placed or moved result shows Placed by or Moved from, and the validator confirms the placement (FR-09.7).</p>
     </Section>}
 
-    <Section n="1" title={t('microbiology.case.section.caseInfo', 'Case information')} isNew tags={<span className="muted">&nbsp;moved from order entry · ◆ = needed before final report</span>}>
+    <Section n="1" title={t('microbiology.case.section.caseInfo', 'Case information')} isNew tags={<span className="muted">&nbsp;moved from order entry · ◆ = needed before final report · Needed for surveillance never blocks</span>}>
       <div className="grid">
         <Field label={t('microbiology.case.program', 'Program')} final><select value={program} onChange={e => setProgram(e.target.value)} aria-label="Program"><option value="">Select</option>{Object.keys(PROGRAM_TRACKS).map(p => <option key={p}>{p}</option>)}</select><div className="helper">Programs with Show on Microbiology case (Programs admin). Its questionnaire shows below; its track decides the exports.</div></Field>
         <Field label={t('microbiology.case.purpose', 'Culture purpose')} req><select defaultValue="Diagnostic"><option>Diagnostic</option><option>Screening</option><option>Treatment follow-up</option><option>Survey or study</option><option>EQA / proficiency</option></select><div className="helper">Default Diagnostic. Only Diagnostic counts in the antibiogram and GLASS.</div></Field>
-        <Field label="Patient origin" final><select defaultValue={ex.info.origin}><option>Outpatient</option><option>Inpatient</option><option>ICU</option><option>Emergency</option></select></Field>
-        <Field label="Date of admission" final={ex.info.origin !== 'Outpatient'}>{ex.info.admission ? <input defaultValue={ex.info.admission} /> : <input disabled placeholder="Outpatients are not admitted" />}</Field>
+        <Field label="Patient origin" final><select value={origin} onChange={e => setOrigin(e.target.value)} aria-label="Patient origin"><option>Outpatient</option><option>Inpatient</option><option>ICU</option><option>Emergency</option></select></Field>
+        <Field label="Date of admission" surv={origin !== 'Outpatient'} missing={admMissing}>{origin !== 'Outpatient' ? <input value={admission} onChange={e => setAdmission(e.target.value)} placeholder="DD/MM/YYYY" aria-label="Date of admission" /> : <input disabled placeholder="Outpatients are not admitted" />}</Field>
         {ex.info.ward && <Field label="Ward"><input defaultValue={ex.info.ward} /></Field>}
-        {track === 'Bacterial' && <Field label={t('microbiology.case.infectionOrigin', 'Infection origin (derived)')}><input disabled value={ex.info.origin === 'Outpatient' ? 'Community origin' : 'Hospital origin (collected 5 days after admission)'} /><div className="helper">GLASS rule: more than 2 days after admission is hospital origin. Shown for Bacterial-track Programs.</div></Field>}
+        {track === 'Bacterial' && <Field label={t('microbiology.case.infectionOrigin', 'Infection origin (derived)')}><input disabled value={origin === 'Outpatient' ? 'Community origin' : admission ? 'Hospital origin (collected 5 days after admission)' : t('microbiology.case.infectionOrigin.unknown', 'Unknown (no admission date)')} /><div className="helper">GLASS rule: more than 2 days after admission is hospital origin. Shown for Bacterial-track Programs.</div></Field>}
         <Field label="Clinical diagnosis / reason for test"><input defaultValue={ex.info.diagnosis} /></Field>
         <ProgramQuestionnaire key={program} program={program} />
         <Field label="Number of sets"><input disabled value={ex.info.sets} /></Field>
@@ -566,7 +576,7 @@ function CaseView({ ex }) {
     <Section n="2" title={t('microbiology.case.section.initialTesting', 'Initial testing')} isNew>
       {initial.length ? <CaseTestTable rows={initial} labOnly={labOnly} setLabOnly={setLabOnly} /> : <div className="muted">{ex.noInitial}</div>}
       <div className="muted" style={{ marginTop: '.4rem' }}>Every row enters its result the same way: Enter or Edit opens the full-width editor for the test's result type (coded list, graded observations, several components, or a number with unit). The same editor is used in Additional testing. Reagent lot is required when the test's M-12 link is Required.</div>
-      {adding === 'initial' ? <TestChooser ch={ex.choosers.initial} onCancel={() => setAdding(null)} onAdd={p => { setInitial([...initial, ...p.map((x, k) => ({ id: 'add' + initial.length + k, test: x, type: 'components', components: GRAM_C.map(c => ({ c, v: '', opts: ['', ...GRADES] })), display: '', flag: '', by: '', state: 'Not started' }))]); setAdding(null); }} />
+      {adding === 'initial' ? <TestChooser ch={ex.choosers.initial} onCancel={() => setAdding(null)} onAdd={p => { setInitial([...initial, ...p.map((x, k) => ({ id: 'add' + initial.length + k, test: x, type: 'components', components: GRAM_C.map(c => ({ c, v: '', opts: ['', ...GRADES] })), display: '', flag: '', by: '', state: 'Not started', addedBy: ex.tech }))]); p.forEach(x => log(`Added ${x} to Initial testing, on the specimen`)); setAdding(null); }} />
         : <div className="row-actions"><Btn kind="tertiary" onClick={() => setAdding('initial')}>+ {t('microbiology.case.addTestOrPanel', 'Add test or panel')}</Btn></div>}
     </Section>
 
@@ -699,13 +709,13 @@ function CaseView({ ex }) {
       <div className="muted" style={{ marginTop: '.5rem' }}>Kept as built (A-16): QC failed handling (invalidate and repeat, or override QC with reason), organism mismatch warning, no-breakpoint warning, override history with show original, review gating, Use for reporting across attempts.</div>
       {ex.ast.rule && <div style={{ marginTop: '.75rem' }}><Tag kind="teal">{t('microbiology.case.addedByRule', 'Added by rule')}: {ex.ast.rule[0]}</Tag><span className="muted">{ex.ast.rule[1]}</span></div>}
       <div style={{ marginTop: '.75rem' }}><span className="muted">{ex.ast.classLabel} (derived from organism and results): </span>{ex.ast.classTags.map(c => <Tag key={c} kind="red">{c}</Tag>)}<span className="muted">{ex.ast.classNote}</span></div>
-      {adding === 'ast' ? <TestChooser ch={ex.choosers.ast} onCancel={() => setAdding(null)} onAdd={(p, on) => { setPanels([...panels, ...p.map(x => ({ name: x, on: on.split(' ')[0], added: 'Added with the chooser', method: ex.ast.method + ' · ' + bp, run: 'Not started', val: 'n/a' }))]); setAdding(null); }} />
+      {adding === 'ast' ? <TestChooser ch={ex.choosers.ast} onCancel={() => setAdding(null)} onAdd={(p, on) => { setPanels([...panels, ...p.map(x => ({ name: x, on: on.split(' ')[0], added: 'Added by ' + ex.tech + ' with the chooser', method: ex.ast.method + ' · ' + bp, run: 'Not started', val: 'n/a' }))]); p.forEach(x => log(`Added ${x} to AST / DST, on ${on.split(' ')[0]}`)); setAdding(null); }} />
         : <div className="row-actions"><Btn kind="tertiary" onClick={() => setAdding('ast')}>+ {t('microbiology.case.addTestOrPanel', 'Add test or panel')}</Btn><span className="muted" style={{ alignSelf: 'center' }}>Opens the standard test and panel chooser on the isolate; breakpoints follow the panel, test or antibiotic.</span></div>}
     </Section>
 
     <Section n="7" title={t('microbiology.case.section.additionalTesting', 'Additional testing')} isNew>
       {additional.length ? <CaseTestTable rows={additional} labOnly={labOnly} setLabOnly={setLabOnly} showOn /> : <div className="muted">No additional tests.</div>}
-      {adding === 'additional' ? <TestChooser ch={ex.choosers.additional} onCancel={() => setAdding(null)} onAdd={(p, on) => { setAdditional([...additional, ...p.map((x, k) => ({ id: 'addl' + additional.length + k, test: x, on, type: 'coded', opts: ['Detected', 'Not detected'], display: '', flag: '', by: '', state: 'Not started' }))]); setAdding(null); }} />
+      {adding === 'additional' ? <TestChooser ch={ex.choosers.additional} onCancel={() => setAdding(null)} onAdd={(p, on) => { setAdditional([...additional, ...p.map((x, k) => ({ id: 'addl' + additional.length + k, test: x, on, type: 'coded', opts: ['Detected', 'Not detected'], display: '', flag: '', by: '', state: 'Not started', addedBy: ex.tech }))]); p.forEach(x => log(`Added ${x} to Additional testing, on ${on}`)); setAdding(null); }} />
         : <div className="row-actions"><Btn kind="tertiary" onClick={() => setAdding('additional')}>+ {t('microbiology.case.addTestOrPanel', 'Add test or panel')}</Btn><span className="muted" style={{ alignSelf: 'center' }}>Any catalog test, on the specimen or an isolate. In lab only can be set on any added test and turned off again; changes go to the Timeline.</span></div>}
     </Section>
 
@@ -728,7 +738,7 @@ function CaseView({ ex }) {
           <p className="muted" style={{ marginTop: '.5rem' }}>Grouped the way the report prints (FR-A42a): Initial testing, Culture, AST / DST, Additional testing. Microscopy exams, Gram stains with Report this result off and In lab only tests are never listed. Changing a default is recorded on the Timeline.</p>
         </div>
         <div>
-          <div className="note-box"><b>Final report checklist</b>{ex.report.checklist.map((c, k) => <div key={k}>{c[0] === 'ast' ? (validated ? '✓ AST run 1 validated' : '✗ AST run 1 not validated') : c[0] === 'program' ? (program ? '✓ Program set' : '✗ Program not set') : c}</div>)}</div>
+          <div className="note-box"><b>Final report checklist</b>{ex.report.checklist.map((c, k) => <div key={k}>{c[0] === 'ast' ? (validated ? '✓ AST run 1 validated' : '✗ AST run 1 not validated') : c[0] === 'program' ? (program ? '✓ Program set' : '✗ Program not set') : c}</div>)}{admMissing && <div className="muted">Note, does not block: {t('microbiology.case.report.admissionMissing', 'Admission date missing: exports with infection origin Unknown')}</div>}</div>
           <table className="t" style={{ marginTop: '1rem' }}><thead><tr><th>Version</th><th>Released</th></tr></thead>
             <tbody>{ex.report.releases.map(r => <tr key={r[0]}><td>{r[0]}</td><td>{r[1]}</td></tr>)}</tbody></table>
           <ReportPrint ex={{ ...ex, labUnit }} items={printed} />
@@ -742,7 +752,7 @@ function CaseView({ ex }) {
       <div className="muted">Available after final release: Open amendment (reason), Cancel amendment (reason), Release amended report; history and report versions with "corrects version N".</div>
     </Section>
     <Section n="12" title="Timeline" open={false}>
-      <table className="t"><tbody>{ex.timeline.map((r, k) => <tr key={k}><td className="muted">{r[0]}</td><td>{r[1]}</td></tr>)}</tbody></table>
+      <table className="t"><tbody>{tl.map((r, k) => <tr key={k}><td className="muted">{r[0]}</td><td>{r[1]}</td></tr>)}</tbody></table>
     </Section>
   </div></NotesCtx.Provider></MediaCtx.Provider>;
 }
@@ -760,7 +770,7 @@ const TB_EX = {
   incoming: [
     { id: 1, test: 'Xpert MTB/XDR', value: 'INH resistance detected (katG); FQ resistance not detected', source: 'GeneXpert GX-02', at: '28 Sep 09:12' },
     { id: 2, test: 'Species ID (MALDI-TOF Biotyper)', value: 'Mycobacterium tuberculosis complex', source: 'MALDI-TOF Biotyper (MB-01)', at: '28 Sep 10:40' },
-    { id: 3, test: 'Moxifloxacin (MGIT, 0.25 µg/mL)', value: 'S', source: 'Referral return: QMRL Brisbane', at: '29 Sep 08:05' }],
+    { id: 3, test: 'Identification (QMRL Brisbane)', value: 'Mycobacterium tuberculosis complex', source: 'Referral return: QMRL Brisbane', at: '29 Sep 08:05', linked: [['Moxifloxacin (MGIT, 0.25 µg/mL)', 'S'], ['Bedaquiline (MGIT, 1 µg/mL)', 'S'], ['Linezolid (MGIT, 1 µg/mL)', 'S']] }],
   info: { origin: 'Outpatient', admission: '', diagnosis: 'Presumptive DR-TB, cough 6 weeks', specimenNumber: 'TB-2026-0417/2', sets: '1',
     samples: [['CPHL26-004812-1', 'Sputum · sterile container', '', 'Lower respiratory tract', '28 Sep 07:10', 'Ward nurse']],
     samplesNote: 'A blood culture case from two sets lists its four bottles here, each with its own arm and time (see the blood culture example). Correct site opens the order steps at that sample (FR-04.2).',
