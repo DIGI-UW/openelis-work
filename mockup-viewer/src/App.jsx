@@ -615,7 +615,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 91,
     jira: ['OGC-173', 'OGC-447', 'OGC-527'],
-    relatedTo: ['Test Catalog [Completed]', 'Catalog Subscription', 'Vector Specimen Types & Taxonomy'],
+    relatedTo: ['Test Catalog [Completed]', 'Catalog Subscription', 'Vector Specimen Types & Taxonomy [Completed]'],
     tags: ['terminology', 'LOINC', 'FHIR', 'CodeableConcept', 'multi-coding', 'interoperability', 'vector', 'environmental', 'Indonesia'],
   },
   {
@@ -1719,8 +1719,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['quality', 'QC', 'analyzer', 'manual-entry'],
   },
   {
-    name: 'Environmental QC Rules',
+    name: 'Environmental QC Rules [Completed]',
     category: 'quality',
+    archived: true,
     component: React.lazy(() => import('@designs/quality/environmental-qc-rules.jsx')),
     description: 'Environmental QC Rules (S-08) — field blank, trip blank, duplicate sample (RPD), spike recovery. Per-standard QC protocol configuration, QC sample creation at order entry, inline QC results tab, and QC warning with acknowledgment modal on validation.',
     specPath: 'designs/quality/environmental-qc-rules.md',
@@ -1824,8 +1825,9 @@ export const MOCKUP_REGISTRY = [
 
   // ─── Vector Surveillance ───
   {
-    name: 'Vector Specimen Types & Taxonomy',
+    name: 'Vector Specimen Types & Taxonomy [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/vector-surveillance/vector-reference-data.jsx')),
     description: 'Vector reference data (V-01) — species taxonomy (genus + species + subspecies), trap types, and vector sample types with pooling strategy. Establishes the foundation for vector surveillance by extending SampleType.sampleDomain with VECTOR, adding VectorSpecimenProfile for pooling configuration, and seeding ~40 species and 15 trap types used in Indonesia.',
     specPath: 'designs/vector-surveillance/vector-reference-data.md',
@@ -1837,8 +1839,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['vector', 'species', 'taxonomy', 'trap-types', 'mosquito', 'tick', 'rodent', 'reference-data', 'pooling'],
   },
   {
-    name: 'Vector Collection Workflow',
+    name: 'Vector Collection Workflow [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/vector-surveillance/vector-collection-workflow.jsx')),
     description: 'V-02 Vector Collection Workflow — extends the 4-step Sample Collection Redesign with a Vector domain toggle (Clinical | Environmental / Other | Vector). Adds CollectionLot entity with trap type, GPS coordinates (pre-filled from sampling site), pool flag, organism count, weather conditions, receipt confirmation, and S-09 eligibility gate integration at Step 4.',
     specPath: 'designs/vector-surveillance/vector-collection-workflow.md',
@@ -1849,8 +1852,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['vector', 'collection', 'workflow', 'sample-collection', 'Indonesia', 'mosquito', 'tick', 'GPS', 'pooling', 'eligibility-gate'],
   },
   {
-    name: 'Vector Testing & Identification',
+    name: 'Vector Testing & Identification [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/vector-surveillance/vector-testing-identification.jsx')),
     description: 'V-03 Vector Testing & Identification (v1.11) — species identification workbench with inline per-specimen form, bulk-apply for homogeneous lots, physiological state capture (UNFED/BLOOD_FED/HALF_GRAVID/GRAVID per Detinova classification), molecular detail (target gene, assay, GenBank accession), pool deconvolution (positive pool → LABNO.X-Y aliquots → re-test). Blood-meal analysis, Plasmodium drug-resistance genotyping, and vector insecticide-resistance now in V-03 scope via reflex rules. Auto-suggests Blood-Meal Panel when physiologicalState = BLOOD_FED. Seed Panels: Dengue, Malaria, Chikungunya, Blood-Meal ID, Plasmodium Drug Resistance, Vector Insecticide Resistance. Reflex rules VR-01–VR-06.',
     specPath: 'designs/vector-surveillance/vector-testing-identification.md',
@@ -1861,8 +1865,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['vector', 'identification', 'species', 'pathogen', 'panel', 'deconvolution', 'Indonesia', 'mosquito', 'molecular', 'PCR', 'pool', 'blood-meal', 'reflex', 'physiology'],
   },
   {
-    name: 'Vector Surveillance Reporting',
+    name: 'Vector Surveillance Reporting [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/vector-surveillance/vector-surveillance-reporting.jsx')),
     description: 'V-04 Vector Surveillance Reporting — Apache Superset dashboard embedded via guest token JWT into the Reports → Vector Surveillance page, backed by an OHS SQL-on-FHIR ETL pipeline that flattens HAPI FHIR resources into Postgres analytics views feeding 4–7 charts (trap catch trend, species distribution, MIR heatmap, pathogen positivity). NEW in v1.5 — Manual Entry Helper tab at /reports/vector-surveillance/manual-entry that accelerates manual submission to the Kemenkes Subdit Vektor SILANTOR portal: large-font numeric Tiles per metric with Copy IconButton, Aedes/Anopheles sub-tabs, Sporozoite-rate auto-gating below 95% positive resolution, and a Mark-Week-Submitted modal that writes an audit row. Admin field-map page at /admin/vector/manual-entry-fields lets deployments re-order and relabel metrics without code changes; metric list, cadence, and portal field tags are marked @TBD-Ida pending APHL Indonesia confirmation.',
     specPath: 'designs/vector-surveillance/vector-surveillance-reporting.md',
@@ -2131,8 +2136,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['reagent', 'lot', 'results-entry', 'method', 'usage', 'results', 'v2'],
   },
   {
-    name: 'Compliance Evaluation Engine',
+    name: 'Compliance Evaluation Engine [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/results-validation/compliance-evaluation-engine.jsx')),
     description: 'S-05 v2.0 — Regulation-scoped reference ranges: numeric threshold evaluation per compliance standard × result component. 2026-04-28 amendment: evaluates per regulation (from M:N order_compliance_standard join) and per component (for multi-component tests). Existing fallback chain preserved. Splits descriptive/categorical vocabulary to S-05a.',
     specPath: 'designs/results-validation/compliance-evaluation-engine.md',
@@ -2141,7 +2147,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 76,
     jira: ['OGC-547', 'OGC-527'],
-    relatedTo: ['Reusable Categorical Vocabulary'],
+    relatedTo: ['Reusable Categorical Vocabulary [Completed]'],
     tags: ['compliance', 'evaluation', 'environmental', 'vector', 'results', 'thresholds'],
   },
   {
@@ -2155,21 +2161,23 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
   },
   {
-    name: 'Reusable Categorical Vocabulary',
+    name: 'Reusable Categorical Vocabulary [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: null,
     description: 'S-05a — Reusable categorical result vocabulary, split from S-05 v1.0. Admin surface for defining reusable descriptive tag sets (e.g. specimen quality flags, vector physiological state, clinical morphology) that can be attached to any test result type. Domain-neutral; extends beyond env/compliance use cases.',
     specPath: 'designs/results-validation/reusable-categorical-vocabulary.md',
     added: '2026-04-27',
     status: 'draft',
-    relatedTo: ['Compliance Evaluation Engine'],
+    relatedTo: ['Compliance Evaluation Engine [Completed]'],
     jira: ['OGC-527'],
     tags: ['compliance', 'vocabulary', 'categorical', 'environmental', 'vector', 'clinical', 'results'],
   },
   // ─── Reports ───
   {
-    name: 'Environmental LHU',
+    name: 'Environmental LHU [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/vector-surveillance/environmental-lhu.jsx')),
     description: 'Environmental Laporan Hasil Uji v2.0 — printable test result report for environmental samples (air, water, soil, sediment, food). v2.0 adds ISO/IEC 17025:2017 §7.8 report-face blocks (results-apply-only disclaimer, decision rule, end-of-report marker, reproduction restriction), conditional measurement uncertainty (U) column, subcontract disclosure, sampling responsibility, method validation status annotations, and amendment workflow. Inherits S-06 letterhead, e-signature, and print config. Multi-matrix result table with compliance icons, KAN accreditation handling, and Baku Mutu regulatory reference. Real data from PT. Unggulrejo Wasono & RS Permata Depok.',
     specPath: 'designs/vector-surveillance/environmental-lhu.md',
@@ -2177,12 +2185,13 @@ export const MOCKUP_REGISTRY = [
     added: '2026-04-28',
     updated: '2026-05-26',
     status: 'draft',
-    relatedTo: ['Laporan Hasil — Compliance Report'],
+    relatedTo: ['Laporan Hasil — Compliance Report [Completed]'],
     tags: ['report', 'environmental', 'laporan-hasil', 'LHU', 'pdf', 'certificate', 'Indonesia', 'SILNAS', 'KAN'],
   },
   {
-    name: 'Vector LHU',
+    name: 'Vector LHU [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/vector-surveillance/vector-lhu.jsx')),
     description: 'Vector Laporan Hasil Uji v2.0 — printable surveillance report for BBLKM/Labkesmas. Four result-table modes: Species ID (PCR + arbovirus serotype/genotype), Surveillance Indices (MIR + MLE with 95% CIs per WHO 2021), Larval Population (HI/CI/BI + ABJ vs Kemenkes 95% target), and NEW Mode D Pupae Per Person Index (PPI) per WHO 2003 / Focks et al. 2000. Adds ISO 17025 §7.8 report-face blocks. Trap type, lure, deployment period, hierarchical geographic resolution (province → kelurahan → RT/RW). Deployment-configurable risk thresholds (PAHO 2017 + Permenkes 50/2017). Real data from BBLKM Jakarta Aedes aegypti.',
     specPath: 'designs/vector-surveillance/vector-lhu.md',
@@ -2190,12 +2199,13 @@ export const MOCKUP_REGISTRY = [
     added: '2026-04-28',
     updated: '2026-05-26',
     status: 'draft',
-    relatedTo: ['Laporan Hasil — Compliance Report'],
+    relatedTo: ['Laporan Hasil — Compliance Report [Completed]'],
     tags: ['report', 'vector-surveillance', 'laporan-hasil', 'LHU', 'pdf', 'certificate', 'Indonesia', 'SILNAS', 'KAN', 'mosquito', 'entomology'],
   },
   {
-    name: 'Collection Lot — Trap Details',
+    name: 'Collection Lot — Trap Details [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/vector-surveillance/collection-lot-trap-details.jsx')),
     description: 'V-02 Vector Collection Workflow form enhancement (OGC-777, V-05a STRETCH) — adds a "Trap Configuration" section to the existing CollectionLot edit form with four new optional fields: lure, deployment_start, deployment_end, storage_temperature_c. WHO entomological surveillance reproducibility requirements. Backward-compatible: existing CollectionLots remain valid with NULL values. LHU Mode A footnote auto-degrades when fields are null. STRETCH: partner labs do not yet capture this granularity.',
     specPath: 'designs/vector-surveillance/collection-lot-trap-details.md',
@@ -2204,8 +2214,9 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
   },
   {
-    name: 'Laporan Hasil — Compliance Report',
+    name: 'Laporan Hasil — Compliance Report [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/reports/S06-laporan-hasil-compliance-report-mockup.jsx')),
     description: 'Laporan Hasil (S-06) — formal Sertifikat Hasil Uji (Test Results Certificate) PDF generation for validated environmental orders. Dual e-signature, batch ZIP download, shared Report Print Configuration admin page. Amended 2026-06-15 with §7a Domain Variants cross-reference to S06c (Environmental LHU) + S06d (Vector LHU) siblings. List page (§5.2) and batch (§5.5) superseded by Report Print Queue r4.',
     specPath: 'designs/reports/S06-laporan-hasil-compliance-report-frs-v1.0.md',
@@ -2214,12 +2225,13 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 77,
     jira: ['OGC-552', 'OGC-527'],
-    relatedTo: ['Environmental LHU', 'Vector LHU'],
+    relatedTo: ['Environmental LHU [Completed]', 'Vector LHU [Completed]'],
     tags: ['compliance', 'report', 'environmental', 'vector', 'certificate', 'pdf', 'laporan-hasil'],
   },
   {
-    name: 'S06c — Environmental LHU',
+    name: 'S06c — Environmental LHU [Completed]',
     category: 'reports',
+    archived: true,
     component: React.lazy(() => import('@designs/reports/S06c-environmental-lhu-mockup.jsx')),
     description: 'S-06c — Environmental Laporan Hasil Uji (LHU) sibling spec to S06. Result table columns No. | Parameter | Hasil Uji | Baku Mutu | Satuan | Ket. (Metode dropped, in compact footnote). Water, food, ambient air, surface swabs, and physical conditions matrices. KAN per-parameter asterisk; multi-matrix bundling. Ships canonical Indonesian preview + bilingual annotated sibling.',
     specPath: 'designs/reports/S06c-environmental-lhu-frs-v1.0.md',
@@ -2230,8 +2242,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['report', 'pdf', 'lhu', 'environmental', 'kan', 'indonesia', 'compliance', 'laporan-hasil', 'bilingual'],
   },
   {
-    name: 'S06d — Vector LHU',
+    name: 'S06d — Vector LHU [Completed]',
     category: 'reports',
+    archived: true,
     component: React.lazy(() => import('@designs/reports/S06d-vector-lhu-mockup.jsx')),
     description: 'S-06d — Vector surveillance Laporan Hasil Uji (LHU) sibling spec to S06. Three flexible result-table modes: A (Species ID via PCR), B (Surveillance Indices — MIR, infection rate, density), C (Larval Population Indices — House/Container/Breteau Index, Angka Bebas Jentik). Multi-LHU number bundling. Ships canonical Indonesian preview + bilingual annotated sibling.',
     specPath: 'designs/reports/S06d-vector-lhu-frs-v1.0.md',
@@ -2242,8 +2255,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['report', 'pdf', 'lhu', 'vector', 'surveillance', 'pcr', 'larva', 'mir', 'kan', 'indonesia', 'laporan-hasil', 'bilingual'],
   },
   {
-    name: 'LH Delivery — Sent Messages Tab',
+    name: 'LH Delivery — Sent Messages Tab [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/reports/lh-delivery-sent-messages.jsx')),
     description: 'S-06b Addendum — LH Delivery Notification: Sent Messages global main-menu tab. Per-channel delivery status (Email ✓/✗, WhatsApp ✓/✗) for Laporan Hasil, clinical, and future notifications. Extends OGC-437 (TextIt SMS) + OGC-439 (Email/SMTP) triggers with LH_COMPLETED event. Resend flow, delivery log modal, and secure customer download page with 30-day token.',
     specPath: 'designs/reports/lh-delivery-sent-messages.md',
@@ -2296,8 +2310,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['reports', 'positivity', 'HIV', 'malaria', 'dashboard-widget'],
   },
   {
-    name: 'Environmental Dashboard & Trend Analysis',
+    name: 'Environmental Dashboard & Trend Analysis [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/reports/environmental-dashboard.jsx')),
     description: 'Environmental Dashboard (S-07) — site-level compliance rate trends, per-parameter drill-down, exceedance summary table, site comparison bar chart, CSV export. Monthly aggregation with 12-month default view.',
     specPath: 'designs/reports/environmental-dashboard.md',
@@ -2309,8 +2324,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['compliance', 'environmental', 'vector', 'dashboard', 'trends', 'charts'],
   },
   {
-    name: 'ENV Dashboard — Chart & PDF Export',
+    name: 'ENV Dashboard — Chart & PDF Export [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/reports/environmental-dashboard-chart-export.jsx')),
     description: 'S-07b Addendum — Chart PNG & Dashboard PDF Export. Per-chart hover download button (client-side SVG→PNG, 1200×800px @144dpi). Full-dashboard PDF export: config modal, server-side generation, cover page, one chart per page, exceedance table, footer. ROLE_ENV_EXPORT permission gates both actions. Annotated mockup shows new S-07b additions in context of the existing S-07 dashboard (gold dashed border = new, dimmed = existing).',
     specPath: 'designs/reports/environmental-dashboard-chart-export.md',
@@ -2613,8 +2629,9 @@ export const MOCKUP_REGISTRY = [
   },
 
   {
-    name: 'Environmental Order Entry',
+    name: 'Environmental Order Entry [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/sample-collection/environmental-order-entry.jsx')),
     description: 'S-03 v2.0 — 3-step wizard (Branch & Setup / Label & Store / QA-QC + Intake) at Reception for domain-assigned labs. Regulation-driven vs ad-hoc branch selector, sample manifest quantity table + CSV upload, per-sample NCE, QC quick-add. 2026-04-28 amendment: multi-regulation M:N — Compliance Standard is now a MultiSelect; suggested tests union across selected standards; order_compliance_standard join table replaces single complianceStandardId column.',
     specPath: 'designs/sample-collection/environmental-order-entry.md',
@@ -2626,8 +2643,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['environmental', 'order-entry', 'vector', 'compliance', 'sample-collection'],
   },
   {
-    name: 'ENV Order — Sampling Uncertainty Field',
+    name: 'ENV Order — Sampling Uncertainty Field [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/sample-collection/sampling-uncertainty.jsx')),
     description: 'S-03b Addendum — Sampling Uncertainty field added to the Collection Conditions section (S-03 §5.3). ISO 17025 §7.6 field/sampling uncertainty: NumberInput value + unit type Select (%, mg/L, μg/L, CFU/100mL, Other). Mandatory by default, configurable optional per program. Carries forward to Step 2 via ENV-3-002. QA completeness check extended. Laporan Hasil reporting payload extended.',
     specPath: 'designs/sample-collection/sampling-uncertainty.md',
@@ -2638,8 +2656,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['environmental', 'order-entry', 'vector', 'compliance', 'sample-collection', 'ISO-17025', 'uncertainty', 'Indonesia', 'SILNAS'],
   },
   {
-    name: 'Clinical Order Entry (v2)',
+    name: 'Clinical Order Entry (v2) [Superseded]',
     category: 'vector-surveillance',
+    archived: true,
     component: null,
     description: 'v2 clinical order-entry wizard (Enter Order \u2192 Collect \u2192 Label & Store \u2192 QA Review) realigned to the three-workflow spec. Adds the self-describing "Assign to" sample\u2194test menu at Collect, Ward/Unit/Department facility sub-unit, requester with Phone/Fax/Email + admin-gated add-new + edit-lock on found records, test search by name or code, blank-by-default quantity, de-gated print/storage, and the Sample Acceptance Checklist (S-09 / OGC-580) on QA Review.',
     specPath: 'designs/sample-collection/order-entry-three-workflows.md',
@@ -2664,8 +2683,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['clinical', 'order-entry', 'sample-collection', 'save-model', 'lab-number', 'containers', 'body-sites', 'test-catalog', 'labels', 'search-first', 'time-zone'],
   },
   {
-    name: 'Environmental Order Entry (v2)',
+    name: 'Environmental Order Entry (v2) [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: null,
     description: 'v2 environmental order-entry. Requester = Requesting Organization + Requestor contact, both searched & stored like the clinical provider, with full Phone/Fax/Email, admin-gated add-new, and edit-lock on records pulled from search. Collection method optional; CSV bulk intake retained (Env/Vector only).',
     specPath: 'designs/sample-collection/order-entry-three-workflows.md',
@@ -2676,8 +2696,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['environmental', 'order-entry', 'requester', 'organization', 'CSV', 'sample-collection'],
   },
   {
-    name: 'Vector Collection Workflow (v2)',
+    name: 'Vector Collection Workflow (v2) [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: null,
     description: 'v2 vector collection workflow. Requester relabeled to the shared Requesting Organization + Requestor element (identical to Environmental), with full Phone/Fax/Email, admin-gated add-new, and edit-lock on found records.',
     specPath: 'designs/sample-collection/order-entry-three-workflows.md',
@@ -2699,8 +2720,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['order-entry', 'developer-reference', 'spec', 'sample-collection'],
   },
   {
-    name: 'Referral-Out Notification',
+    name: 'Referral-Out Notification [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/notifications/referral-out-notification.jsx')),
     description: 'X-01 Addendum — Configurable REFERRAL_OUT notification trigger added to existing Refer Out module. Extends OGC-437/OGC-439 dispatch pipeline with one new event type, Combined Triggers Page row (default OFF), Combined Templates Page editor with merge fields, and Sent Messages tab "Referral Out" type. Three scenes: triggers config, template editor with live preview, sent messages table.',
     specPath: 'designs/notifications/referral-out-notification.md',
@@ -2711,8 +2733,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['notifications', 'referral', 'email', 'whatsapp', 'vector', 'environmental', 'admin-config', 'OGC-437', 'OGC-439'],
   },
   {
-    name: 'Subcontract Management',
+    name: 'Subcontract Management [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/notifications/subcontract-management.jsx')),
     description: 'S-03c Addendum to S-03 + V-02 — Structured subcontract tracking for ENV/Vector Refer Out referrals. Subcontract Metadata panel (handoff datetime, expected return, agreement ref, chain-of-custody contact). Five-state status workflow (DISPATCHED → RECEIVED → RESULTS_RETURNED → CLOSED). Subcontract Register page with overdue highlighting, status filters, and Advance Status modal. Audit log per transition. ISO 17025 §6.6 / §7.7 compliance. Superseded by S-14 Inter-Lab Transfer (generic to all order types).',
     specPath: 'designs/notifications/subcontract-management.md',
@@ -2734,7 +2757,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 89,
     jira: ['OGC-593', 'OGC-537', 'OGC-527'],
-    relatedTo: ['Required By Field', 'Environmental Order Entry'],
+    relatedTo: ['Required By Field', 'Environmental Order Entry [Completed]'],
     tags: ['order-entry', 'SOP', 'deadline', 'holding-time', 'environmental', 'vector', 'worklist', 'Indonesia', 'SILNAS', 'Bogor', 'ISO-17025'],
   },
   {
@@ -2771,7 +2794,7 @@ export const MOCKUP_REGISTRY = [
     htmlUrl: 'designs/sample-collection/inter-lab-transfer.html',
     added: '2026-04-27',
     status: 'draft',
-    relatedTo: ['Subcontract Management', 'Reference Lab Results'],
+    relatedTo: ['Subcontract Management [Completed]', 'Reference Lab Results'],
     jira: ['OGC-527'],
     tags: ['referral', 'inter-lab', 'subcontract', 'environmental', 'vector', 'clinical', 'chain-of-custody', 'ISO-17025'],
   },
@@ -2814,7 +2837,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 92,
     jira: ['OGC-354', 'OGC-527'],
-    relatedTo: ['Sample Collection Redesign', 'Referral-Out Notification'],
+    relatedTo: ['Sample Collection Redesign', 'Referral-Out Notification [Completed]'],
     tags: ['sample-collection', 'referral', 'refer-out', 'order-status', 'clinical', 'environmental', 'vector'],
   },
   {
@@ -2941,8 +2964,9 @@ export const MOCKUP_REGISTRY = [
 
   // ─── Reference / Planning ───
   {
-    name: 'Environmental & Vector Testing Roadmap',
+    name: 'Environmental & Vector Testing Roadmap [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: null,
     description: 'Architecture roadmap for the Environmental & Vector Testing Module (OGC-527 epic). Covers 3-layer build order: S-01–S-02 foundational infrastructure, S-03–S-04 integration, S-05–S-08 analytics/reporting, V-01–V-04 vector surveillance. Dependency graph, recommended implementation phases, and current spec completion status.',
     specPath: 'designs/other/environmental-vector-roadmap.md',
@@ -3042,6 +3066,23 @@ export const GITHUB_REPO = 'DIGI-UW/openelis-work';
 export const GITHUB_ISSUES_URL = `https://github.com/${GITHUB_REPO}/issues`;
 export const JIRA_BASE = 'https://uwdigi.atlassian.net/browse/';
 export const DEFAULT_ADDED = '2026-03-03'; // Initial gallery import date
+
+/** Entries added or updated within this many days get a New / Updated badge. */
+export const NEW_WINDOW_DAYS = 30;
+
+/** Most recent activity date for an entry (later of added / updated). */
+export function lastActivity(m) {
+  const a = m.added || DEFAULT_ADDED;
+  return m.updated && m.updated > a ? m.updated : a;
+}
+
+/** 'new' if added within the window, 'updated' if updated within it, else null. */
+export function freshness(m, now = new Date()) {
+  const cutoff = new Date(now.getTime() - NEW_WINDOW_DAYS * 86400000).toISOString().slice(0, 10);
+  if ((m.added || DEFAULT_ADDED) >= cutoff) return 'new';
+  if (m.updated && m.updated >= cutoff) return 'updated';
+  return null;
+}
 
 export const categories = [
   'all',
@@ -3197,12 +3238,12 @@ export const JOURNEYS = [
     steps: [
       { name: 'Compliance Standards Administration [Completed]', blurb: 'Where the lab defines the regulatory standards it tests against — each with its analytes, units, and the limit a result must fall within. Everything downstream (order routing, pass/fail evaluation, the certificate) keys off what is configured here, so this is the natural starting point.' },
       { name: 'Sampling Site Registry [Completed]', blurb: 'Environmental samples come from places, not patients. This registers the non-patient sampling sites — rivers, wells, treatment plants, facility rooms — so each sample can be tied to a known location and its history instead of a person.' },
-      { name: 'Environmental Order Entry (v2)', blurb: 'The intake screen for a non-patient sample: choose the site, the applicable standard, and the tests to run. It is the environmental analogue of patient order entry, adapted for site-based, regulation-scoped sampling.' },
+      { name: 'Environmental Order Entry (v2) [Completed]', blurb: 'The intake screen for a non-patient sample: choose the site, the applicable standard, and the tests to run. It is the environmental analogue of patient order entry, adapted for site-based, regulation-scoped sampling.' },
       { name: 'Results Entry — Expanded Uncertainty (U) Capture', blurb: 'Techs enter the measured values and, for accredited tests, the expanded measurement uncertainty (U) required by ISO/IEC 17025 §7.8. Capturing U here lets it flow straight onto the final certificate.' },
-      { name: 'Environmental QC Rules', blurb: 'Before results are trusted, QC is evaluated against the configured rules. Violations are flagged so the run can be reviewed or repeated rather than reported blindly.' },
-      { name: 'Compliance Evaluation Engine', blurb: 'The engine compares each result to its standard’s limit and assigns a compliant / non-compliant verdict. This determination is what the report ultimately certifies.' },
-      { name: 'Environmental Dashboard & Trend Analysis', blurb: 'A monitoring surface across sites and over time — positivity, exceedances, and trends — so a program can spot problems that a single sample would never reveal.' },
-      { name: 'Laporan Hasil — Compliance Report', blurb: 'The formal output: the Sertifikat Hasil Uji (certificate of analysis) reporting each result against its limit, with uncertainty and the compliance verdict, ready to issue.' },
+      { name: 'Environmental QC Rules [Completed]', blurb: 'Before results are trusted, QC is evaluated against the configured rules. Violations are flagged so the run can be reviewed or repeated rather than reported blindly.' },
+      { name: 'Compliance Evaluation Engine [Completed]', blurb: 'The engine compares each result to its standard’s limit and assigns a compliant / non-compliant verdict. This determination is what the report ultimately certifies.' },
+      { name: 'Environmental Dashboard & Trend Analysis [Completed]', blurb: 'A monitoring surface across sites and over time — positivity, exceedances, and trends — so a program can spot problems that a single sample would never reveal.' },
+      { name: 'Laporan Hasil — Compliance Report [Completed]', blurb: 'The formal output: the Sertifikat Hasil Uji (certificate of analysis) reporting each result against its limit, with uncertainty and the compliance verdict, ready to issue.' },
     ],
   },
   {
@@ -3211,11 +3252,11 @@ export const JOURNEYS = [
     title: 'Vector Surveillance',
     blurb: 'Mosquito / vector specimens from field collection through identification to surveillance reporting.',
     steps: [
-      { name: 'Vector Specimen Types & Taxonomy', blurb: 'The reference data the whole module rests on: the vector species and the specimen taxonomy (genus/species, life stage). Identification and reporting later draw from this controlled vocabulary, so it is configured first.' },
-      { name: 'Vector Collection Workflow (v2)', blurb: 'Records a field collection event — trap, location, date, conditions — and the specimens it yielded. This is where a batch of field-caught vectors enters the system as trackable items rather than loose field notes.' },
-      { name: 'Vector Testing & Identification', blurb: 'The workbench where collected specimens are identified to species and run through vector tests (e.g. pathogen detection). Results attach back to the collection event so they stay tied to where and when they were caught.' },
-      { name: 'Vector Surveillance Reporting', blurb: 'Aggregates identifications and test results into surveillance indicators — abundance, infection rates, distribution — the numbers a vector-control program actually acts on.' },
-      { name: 'Vector LHU', blurb: 'The vector results report (Laporan Hasil Uji) that packages the findings for the requesting program or public-health authority.' },
+      { name: 'Vector Specimen Types & Taxonomy [Completed]', blurb: 'The reference data the whole module rests on: the vector species and the specimen taxonomy (genus/species, life stage). Identification and reporting later draw from this controlled vocabulary, so it is configured first.' },
+      { name: 'Vector Collection Workflow (v2) [Completed]', blurb: 'Records a field collection event — trap, location, date, conditions — and the specimens it yielded. This is where a batch of field-caught vectors enters the system as trackable items rather than loose field notes.' },
+      { name: 'Vector Testing & Identification [Completed]', blurb: 'The workbench where collected specimens are identified to species and run through vector tests (e.g. pathogen detection). Results attach back to the collection event so they stay tied to where and when they were caught.' },
+      { name: 'Vector Surveillance Reporting [Completed]', blurb: 'Aggregates identifications and test results into surveillance indicators — abundance, infection rates, distribution — the numbers a vector-control program actually acts on.' },
+      { name: 'Vector LHU [Completed]', blurb: 'The vector results report (Laporan Hasil Uji) that packages the findings for the requesting program or public-health authority.' },
     ],
   },
   {
@@ -3362,6 +3403,31 @@ const PERMALINK_ALIASES = {
   'microbiology/m-04-change-workflow-unassigned': 'microbiology/m-04-change-workflow-unassigned-completed',
   'microbiology/m-10-hub-subscription': 'microbiology/m-10-hub-subscription-superseded',
   'results-validation/multi-component-result-entry-v1': 'results-validation/multi-component-result-entry-v1-superseded',
+  // Archived 2026-10-09 — environmental & vector surveillance work delivered.
+  'quality/environmental-qc-rules': 'quality/environmental-qc-rules-completed',
+  'vector-surveillance/vector-specimen-types-taxonomy': 'vector-surveillance/vector-specimen-types-taxonomy-completed',
+  'vector-surveillance/vector-collection-workflow': 'vector-surveillance/vector-collection-workflow-completed',
+  'vector-surveillance/vector-testing-identification': 'vector-surveillance/vector-testing-identification-completed',
+  'vector-surveillance/vector-surveillance-reporting': 'vector-surveillance/vector-surveillance-reporting-completed',
+  'vector-surveillance/compliance-evaluation-engine': 'vector-surveillance/compliance-evaluation-engine-completed',
+  'vector-surveillance/reusable-categorical-vocabulary': 'vector-surveillance/reusable-categorical-vocabulary-completed',
+  'vector-surveillance/environmental-lhu': 'vector-surveillance/environmental-lhu-completed',
+  'vector-surveillance/vector-lhu': 'vector-surveillance/vector-lhu-completed',
+  'vector-surveillance/collection-lot-trap-details': 'vector-surveillance/collection-lot-trap-details-completed',
+  'vector-surveillance/laporan-hasil-compliance-report': 'vector-surveillance/laporan-hasil-compliance-report-completed',
+  'reports/s06c-environmental-lhu': 'reports/s06c-environmental-lhu-completed',
+  'reports/s06d-vector-lhu': 'reports/s06d-vector-lhu-completed',
+  'vector-surveillance/lh-delivery-sent-messages-tab': 'vector-surveillance/lh-delivery-sent-messages-tab-completed',
+  'vector-surveillance/environmental-dashboard-trend-analysis': 'vector-surveillance/environmental-dashboard-trend-analysis-completed',
+  'vector-surveillance/env-dashboard-chart-pdf-export': 'vector-surveillance/env-dashboard-chart-pdf-export-completed',
+  'vector-surveillance/environmental-order-entry': 'vector-surveillance/environmental-order-entry-completed',
+  'vector-surveillance/env-order-sampling-uncertainty-field': 'vector-surveillance/env-order-sampling-uncertainty-field-completed',
+  'vector-surveillance/clinical-order-entry-v2': 'vector-surveillance/clinical-order-entry-v2-superseded',
+  'vector-surveillance/environmental-order-entry-v2': 'vector-surveillance/environmental-order-entry-v2-completed',
+  'vector-surveillance/vector-collection-workflow-v2': 'vector-surveillance/vector-collection-workflow-v2-completed',
+  'vector-surveillance/referral-out-notification': 'vector-surveillance/referral-out-notification-completed',
+  'vector-surveillance/subcontract-management': 'vector-surveillance/subcontract-management-completed',
+  'vector-surveillance/environmental-vector-testing-roadmap': 'vector-surveillance/environmental-vector-testing-roadmap-completed',
 };
 
 /** Find a mockup by its hash path (e.g. "pathology/cytology-case-view") */
@@ -3375,6 +3441,14 @@ export function findMockupByHash(hash) {
   return MOCKUP_REGISTRY.find(
     (m) => m.category === cat && toSlug(m.name) === slug
   ) || null;
+}
+
+/** Look up by category + slug, following PERMALINK_ALIASES so archived/renamed entries keep resolving. */
+function findByCatSlug(cat, slug) {
+  const key = PERMALINK_ALIASES[`${cat}/${slug}`] || `${cat}/${slug}`;
+  const [c, ...rest] = key.split('/');
+  const sl = rest.join('/');
+  return MOCKUP_REGISTRY.find((m) => m.category === c && toSlug(m.name) === sl) || null;
 }
 
 /**
@@ -3391,13 +3465,13 @@ export function parseRoute(hash) {
   if (parts[0] === 'preview' && parts.length >= 3) {
     const cat = parts[1];
     const slug = parts.slice(2).join('/');
-    const mockup = MOCKUP_REGISTRY.find(m => m.category === cat && toSlug(m.name) === slug) || null;
+    const mockup = findByCatSlug(cat, slug);
     return { mode: 'preview', mockup };
   }
   if (parts[0] === 'spec' && parts.length >= 3) {
     const cat = parts[1];
     const slug = parts.slice(2).join('/');
-    const mockup = MOCKUP_REGISTRY.find(m => m.category === cat && toSlug(m.name) === slug) || null;
+    const mockup = findByCatSlug(cat, slug);
     return { mode: 'spec', mockup };
   }
   if (parts[0] === 'project' && parts[1]) {
@@ -3406,7 +3480,7 @@ export function parseRoute(hash) {
     if (parts.length >= 4) {
       const cat = parts[2];
       const slug = parts.slice(3).join('/');
-      mockup = MOCKUP_REGISTRY.find(m => m.category === cat && toSlug(m.name) === slug) || null;
+      mockup = findByCatSlug(cat, slug);
     }
     return { mode: 'project', project: projectKey, mockup };
   }
@@ -4078,6 +4152,7 @@ function GalleryApp() {
   const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'draft', 'review', 'approved'
   const [activeProject, setActiveProject] = useState('all'); // 'all' or a project key
   const [showArchived, setShowArchived] = useState(false);
+  const [sortOrder, setSortOrder] = useState('newest'); // 'newest' or 'registry'
   const [glossaryOpen, setGlossaryOpen] = useState(false);
   const [localStatuses, setLocalStatuses] = useState(() => {
     // Load persisted status overrides from localStorage
@@ -4180,6 +4255,10 @@ function GalleryApp() {
       (m.tags && m.tags.some((tag) => tag.toLowerCase().includes(q)));
     return matchesArchived && matchesProject && matchesCategory && matchesStatus && matchesTag && matchesSearch;
   });
+  if (sortOrder === 'newest') {
+    // Stable sort: ties keep registry order.
+    filtered.sort((a, b) => lastActivity(b).localeCompare(lastActivity(a)));
+  }
 
   const archivedCount = MOCKUP_REGISTRY.filter((m) => m.archived).length;
   const activeCount = MOCKUP_REGISTRY.length - archivedCount;
@@ -4329,6 +4408,15 @@ function GalleryApp() {
         >
           {showArchived ? '✓ ' : ''}Archived{archivedCount ? ` (${archivedCount})` : ''}
         </button>
+        <select
+          value={sortOrder}
+          onChange={(e) => { setSortOrder(e.target.value); setHome(false); }}
+          style={{ ...styles.statusSelect, background: t.searchBg, borderColor: t.borderInput, color: t.text }}
+          aria-label="Sort order"
+        >
+          <option value="newest">Newest first</option>
+          <option value="registry">Grouped (registry order)</option>
+        </select>
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setHome(false); }}
@@ -4595,10 +4683,18 @@ function GalleryApp() {
                     {mockup.githubIssue && <span style={{ ...styles.specBadge, background: darkMode ? '#00264a' : '#e1f5fe', color: darkMode ? '#78a9ff' : '#0277bd' }}>💬</span>}
                   </div>
                 </div>
+                {(() => { const f = !mockup.archived && freshness(mockup); return f ? (
+                  <span
+                    style={{ ...styles.newBadge, background: f === 'new' ? '#24a148' : (darkMode ? '#00264a' : '#e1f5fe'), color: f === 'new' ? '#fff' : (darkMode ? '#78a9ff' : '#0277bd') }}
+                    title={f === 'new' ? `Added in the last ${NEW_WINDOW_DAYS} days` : `Updated in the last ${NEW_WINDOW_DAYS} days`}
+                  >
+                    {f === 'new' ? 'New' : 'Updated'}
+                  </span>
+                ) : null; })()}
                 <h3 style={{ ...styles.cardTitle, color: t.text }}>{mockup.name}</h3>
                 <p style={{ ...styles.cardDesc, color: t.textSecondary }}>{mockup.description}</p>
                 <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 6 }}>
-                  <span style={{ ...styles.cardDate, margin: 0 }}>{formatDate(mockup.added || DEFAULT_ADDED)}</span>
+                  <span style={{ ...styles.cardDate, margin: 0 }}>{freshness(mockup) === 'updated' ? `Updated ${formatDate(mockup.updated)}` : formatDate(mockup.added || DEFAULT_ADDED)}</span>
                   {(() => { const effSt = getEffectiveStatus(mockup); const st = statusConfig[effSt]; return (
                     <span style={{ ...styles.statusBadge, background: darkMode ? st.darkBg : st.bg, color: st.color, borderColor: st.color + '44', fontSize: 10, padding: '1px 6px' }}>
                       {st.icon} {st.label}
@@ -4705,6 +4801,7 @@ const styles = {
   jiraBadge: { display: 'inline-block', background: '#e8f5e9', color: '#1b5e20', padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600, textDecoration: 'none', border: '1px solid #c8e6c9', cursor: 'pointer' },
   typeBadge: { padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600 },
   cardDate: { display: 'block', marginTop: 6, fontSize: 11, color: '#a8a8a8' },
+  newBadge: { display: 'inline-block', fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 10, letterSpacing: 0.3, marginBottom: 4 },
   dateTag: { display: 'inline-block', marginLeft: 12, fontSize: 12, color: '#a8a8a8', fontStyle: 'italic' },
   relatedRow: { display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap' },
   relatedLink: { color: '#0f62fe', fontSize: 13, textDecoration: 'none', padding: '2px 10px', background: '#edf5ff', borderRadius: 12, fontWeight: 500 },

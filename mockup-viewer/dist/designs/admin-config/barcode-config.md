@@ -2,9 +2,10 @@
 
 ## Functional Requirements Specification
 
-**Version:** 1.2 (scope-narrowed to Order + Specimen; Block / Slide / Freezer migrate to OGC-285)
+**Version:** 1.3 (corrected the §5.1 `site_information` key names; the 1.2 names did not exist and propagated into OGC-285, see OGC-1219)
 **Original Date:** December 2025
 **Rewrite Date:** 2026-05-18
+**Amended:** 2026-09-15
 **Author:** Casey Iiams-Hauser (rewrite via Cowork)
 **Module:** Administration → Master Lists → Barcode Configuration
 **Route:** `/MasterListsPage#barcodeConfiguration`
@@ -116,18 +117,24 @@ Covered by OGC-285. See `barcode-labels-v2.md` §4 for the Enhanced Order Entry 
 
 The Barcode Configuration page reads and writes the existing `site_information` keys for Order and Specimen. No new keys are introduced by v1.
 
+> **Corrected 15 September 2026 (OGC-1219).** Versions 1.0 to 1.2 of this FRS listed these keys as `barcode.order.default`, `barcode.order.height` and so on. **No such keys exist.** The real names, below, come from `ConfigurationProperties.Property` in the application source. The wrong names were inherited by OGC-285 FRS §2.7 and then implemented in changeset `030-seed-system-presets.xml`, which consequently reads nothing and seeds every site from hardcoded fallbacks. This section is where the error originated.
+
 | Key | Type | Description |
 |---|---|---|
-| `barcode.order.default` | Integer | Default order labels per order |
-| `barcode.order.max` | Integer | Max order labels per order |
-| `barcode.order.height` | Decimal | Order label height (mm) |
-| `barcode.order.width` | Decimal | Order label width (mm) |
-| `barcode.specimen.default` | Integer | Default specimen labels per specimen |
-| `barcode.specimen.max` | Integer | Max specimen labels per specimen |
-| `barcode.specimen.height` | Decimal | Specimen label height (mm) |
-| `barcode.specimen.width` | Decimal | Specimen label width (mm) |
+| `numDefaultOrderLabels` | Integer | Default order labels per order |
+| `numMaxOrderLabels` | Integer | Max order labels per order |
+| `heightOrderLabels` | Decimal | Order label height (mm) |
+| `widthOrderLabels` | Decimal | Order label width (mm) |
+| `numDefaultSpecimenLabels` | Integer | Default specimen labels per specimen |
+| `numMaxSpecimenLabels` | Integer | Max specimen labels per specimen |
+| `heightSpecimenLabels` | Decimal | Specimen label height (mm) |
+| `widthSpecimenLabels` | Decimal | Specimen label width (mm) |
 
-> **Note on legacy keys.** Earlier builds of OGC-284 also persisted `barcode.{block,slide,freezer}.*` keys. Those keys remain readable in production but are not editable on the v1 admin page; they migrate to `label_preset` rows at the OGC-285 cut-over (see §10).
+**Label content elements** persist as their own per-type keys, not covered by the table above: `orderLabelPatientName`, `orderLabelPatientDob`, `orderLabelPatientId`, `orderLabelSiteId`, and the `specimenLabel*` equivalents (`PatientName`, `PatientDob`, `PatientId`, `PatientSex`, `CollectionDate`, `CollectedBy`, `Tests`).
+
+**Pre-printed accession settings** persist as `prePrintUseAltAccession` and `prePrintAltAccessionPrefix`. See OGC-285 FRS §5.1.
+
+> **Note on legacy keys.** Earlier builds of OGC-284 also persisted the block, slide and freezer equivalents (`numDefaultSlideLabels`, `heightFreezerLabels`, the `slideLabel*` and `freezerLabel*` element keys, and so on). Those keys remain readable in production but are not editable on the v1 admin page; they migrate to `label_preset` rows at the OGC-285 cut-over (see §10).
 
 ### 5.2 Per-Order Label Persistence & Print Tracking
 
@@ -185,9 +192,9 @@ See `barcode-labels-v2.md` for the full v2 FRS.
 
 | Surface | Outcome |
 |---|---|
-| Order + Specimen default count, max count, dimensions, content fields | ✅ Shipped as documented in §2. Persisted in `site_information` under `barcode.order.*` and `barcode.specimen.*`. |
-| Block + Slide default and max counts | ✅ Settings landed on the Barcode Configuration page in early 2026. Persisted in `site_information` under `barcode.{block,slide}.*`. |
-| Freezer label type (default, max, height, width, content fields) | ✅ Settings landed on the Barcode Configuration page in early 2026. Persisted in `site_information` under `barcode.freezer.*`. |
+| Order + Specimen default count, max count, dimensions, content fields | ✅ Shipped as documented in §2. Persisted in `site_information` under the `*OrderLabels` / `*SpecimenLabels` and `orderLabel*` / `specimenLabel*` keys listed in §5.1. |
+| Block + Slide default and max counts | ✅ Settings landed on the Barcode Configuration page in early 2026. Persisted in `site_information` under `num{Default,Max}{Block,Slide}Labels`. |
+| Freezer label type (default, max, height, width, content fields) | ✅ Settings landed on the Barcode Configuration page in early 2026. Persisted in `site_information` under `num{Default,Max}FreezerLabels`, `{height,width}FreezerLabels` and the `freezerLabel*` element keys. |
 | Combined-PDF print at order save | ✅ Continues to work as-is (all label types printed together as one job, sized to the Order label dimensions). |
 
 ### 10.2 Superseded by OGC-285 (v2)
@@ -216,7 +223,7 @@ The new sample-registration "Label & Store" step described in [OGC-358](https://
 ### 10.5 Disposition
 
 - **OGC-284 stays Done.** v1.2 of this FRS narrows its admin-page scope to Order + Specimen to match what the platform should expose at the baseline level.
-- **Legacy `site_information.barcode.{block,slide,freezer}.*` keys remain in production** and continue to drive the existing combined-PDF print until OGC-285 migrates them into `label_preset` rows.
+- **The legacy block, slide and freezer `site_information` keys remain in production** and continue to drive the existing combined-PDF print until OGC-285 migrates them into `label_preset` rows.
 - **Users continue to use the existing combined-PDF print** at order save until v2 ships the per-type post-save dialog with editable quantities.
 - **No v1 follow-up ticket required.** The remaining v1 FRS surfaces are tracked under OGC-285.
 

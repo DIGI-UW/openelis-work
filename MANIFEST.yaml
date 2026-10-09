@@ -2344,7 +2344,7 @@
   path: designs/sample-collection/environmental-order-entry.jsx
   spec: designs/sample-collection/environmental-order-entry.md
   category: vector-surveillance
-  description: Environmental order entry integration (S-03) — compliance standard selection, sampling site auto-population, sample type & test panel auto-suggestion, collection conditions, and regulatory reference fields for vector/environmental LIMS workflows
+  description: [Completed] Environmental order entry integration (S-03) — compliance standard selection, sampling site auto-population, sample type & test panel auto-suggestion, collection conditions, and regulatory reference fields for vector/environmental LIMS workflows
   links:
     github: https://github.com/DIGI-UW/openelis-work/issues/74
     jira: https://uwdigi.atlassian.net/browse/OGC-537
@@ -2356,7 +2356,7 @@
   path: designs/results-validation/compliance-evaluation-engine.jsx
   spec: designs/results-validation/compliance-evaluation-engine.md
   category: vector-surveillance
-  description: Compliance Evaluation Engine (S-05) — auto-evaluate results against regulatory thresholds with pass/marginal/fail indicators, descriptive tag library, unit conversion, and override workflow. Extends results entry page.
+  description: [Completed] Compliance Evaluation Engine (S-05) — auto-evaluate results against regulatory thresholds with pass/marginal/fail indicators, descriptive tag library, unit conversion, and override workflow. Extends results entry page.
   links:
     github: https://github.com/DIGI-UW/openelis-work/issues/TBD
     jira: https://uwdigi.atlassian.net/browse/OGC-547
@@ -2390,7 +2390,7 @@
   type: spec
   path: designs/other/environmental-vector-roadmap.md
   category: other
-  description: >
+  description: [Completed] >
     Architecture roadmap for the Environmental & Vector Testing Module (OGC-527 epic).
     Covers 3-layer build order: S-01–S-08 environmental specs and V-01–V-04 vector surveillance.
     Dependency graph, recommended implementation phases, and current spec completion status.
@@ -2683,7 +2683,7 @@
   spec: designs/vector-surveillance/vector-collection-workflow.md
   preview: designs/vector-surveillance/vector-collection-workflow.html
   category: vector-surveillance
-  description: >
+  description: [Completed] >
     V-02 Vector Collection Workflow — extends the 4-step Sample Collection Redesign with a
     Vector domain toggle (Clinical | Environmental / Other | Vector). Introduces CollectionLot
     entity with trap type, GPS coordinates (pre-filled from sampling site, overrideable),
@@ -2711,7 +2711,7 @@
   spec: designs/vector-surveillance/vector-testing-identification.md
   preview: designs/vector-surveillance/vector-testing-identification.html
   category: vector-surveillance
-  description: >
+  description: [Completed] >
     V-03 Vector Testing & Identification (v1.11) — species identification workbench with inline
     per-specimen form, bulk-apply for homogeneous lots, physiological state capture (UNFED /
     BLOOD_FED / HALF_GRAVID / GRAVID per Detinova classification), molecular detail (target gene,
@@ -2745,7 +2745,7 @@
   spec: designs/vector-surveillance/vector-surveillance-reporting.md
   preview: designs/vector-surveillance/vector-surveillance-reporting.html
   category: vector-surveillance
-  description: >
+  description: [Completed] >
     V-04 Vector Surveillance Reporting — Apache Superset dashboard embedded via guest token JWT
     into the Reports → Vector Surveillance page, backed by an OHS SQL-on-FHIR ETL pipeline that
     flattens HAPI FHIR resources into Postgres analytics views feeding 4–7 charts (trap catch
@@ -2799,7 +2799,7 @@
   spec: designs/reports/lh-delivery-sent-messages.md
   preview: designs/reports/lh-delivery-sent-messages-preview.html
   category: vector-surveillance
-  description: >
+  description: [Completed] >
     S-06b Addendum to Laporan Hasil — LH Delivery Notification & Sent Messages Tab.
     Extends OGC-437 (TextIt SMS) + OGC-439 (Email/SMTP) with LH_COMPLETED trigger for
     environmental orders. Per-channel delivery status (Email ✓/✗, WhatsApp ✓/✗) in a
@@ -2828,7 +2828,7 @@
   path: designs/reports/environmental-dashboard-chart-export.jsx
   spec: designs/reports/environmental-dashboard-chart-export.md
   category: vector-surveillance
-  description: >
+  description: [Completed] >
     S-07b Addendum to ENV Dashboard — Chart PNG & Full-Dashboard PDF Export.
     Per-chart hover download (client-side SVG→PNG, 1200×800px @144dpi). Full-dashboard
     PDF: config modal with title/prepared-by/cover-page/exceedance-table toggles,
@@ -2855,7 +2855,7 @@
   path: designs/sample-collection/sampling-uncertainty.jsx
   spec: designs/sample-collection/sampling-uncertainty.md
   category: vector-surveillance
-  description: >
+  description: [Completed] >
     S-03b Addendum to Environmental Order Entry — Sampling Uncertainty field in
     Collection Conditions (§5.3). ISO 17025 §7.6 field/sampling uncertainty: NumberInput
     + unit Select (%, mg/L, μg/L, CFU/100mL, Other free-text). Mandatory by default,
@@ -2883,7 +2883,7 @@
   path: designs/notifications/subcontract-management.jsx
   spec: designs/notifications/subcontract-management.md
   category: vector-surveillance
-  description: >
+  description: [Completed] >
     S-03c Addendum to S-03 (ENV Order Entry) + V-02 (Vector Collection) — Structured
     subcontract tracking for ENV/Vector Refer Out referrals. ISO 17025 §6.6/§7.7.
     Subcontract Metadata panel (handoff datetime, expected return, agreement ref,
@@ -2911,7 +2911,7 @@
   path: designs/notifications/referral-out-notification.jsx
   spec: designs/notifications/referral-out-notification.md
   category: vector-surveillance
-  description: >
+  description: [Completed] >
     X-01 Addendum to Existing Referral Out Module — Configurable REFERRAL_OUT notification
     trigger added to OGC-437/OGC-439 dispatch pipeline. Extends Combined Triggers Page with
     one new row (default OFF toggle, Email + WhatsApp channels, Ordering Provider + Submitting
@@ -3403,7 +3403,7 @@
   spec: designs/vector-surveillance/environmental-lhu.md
   preview: designs/vector-surveillance/environmental-lhu-annotated.html
   category: vector-surveillance
-  description: >
+  description: [Completed] >
     Environmental Laporan Hasil Uji v2.0 — printable test result report for env samples
     (air, water, soil, sediment, food). v2.0 adds ISO/IEC 17025:2017 §7.8 report-face
     blocks (disclaimer, decision rule, end-of-report marker, reproduction restriction),
@@ -3436,7 +3436,7 @@
   spec: designs/vector-surveillance/vector-lhu.md
   preview: designs/vector-surveillance/vector-lhu-annotated.html
   category: vector-surveillance
-  description: >
+  description: [Completed] >
     Vector Laporan Hasil Uji v2.0 — printable surveillance report for BBLKM/Labkesmas.
     Four result-table modes: Species ID (PCR + arbovirus serotype/genotype), Surveillance
     Indices (MIR + MLE with 95% CIs per WHO 2021), Larval Population (HI/CI/BI + ABJ vs
@@ -3677,7 +3677,7 @@
   spec: designs/vector-surveillance/collection-lot-trap-details.md
   preview: designs/vector-surveillance/collection-lot-trap-details.html
   category: vector-surveillance
-  description: >
+  description: [Completed] >
     V-02 Vector Collection Workflow form enhancement for OGC-777 (V-05a STRETCH).
     Adds a "Trap Configuration" section to the existing CollectionLot edit form
     with four new optional fields: lure, deployment_start, deployment_end,
@@ -3910,7 +3910,7 @@
   spec: designs/reports/S06-laporan-hasil-compliance-report-frs-v1.0.md
   preview: designs/reports/S06-laporan-hasil-compliance-report-preview.html
   category: reports
-  description: >
+  description: [Completed] >
     S-06 Laporan Hasil — formal Sertifikat Hasil Uji (Test Results Certificate) PDF generation for
     validated environmental orders. Dual e-signature, batch ZIP download, shared Report Print
     Configuration admin page. Amended 2026-04-28 for multi-regulation + multi-component rendering.
@@ -3941,7 +3941,7 @@
   preview: designs/reports/S06c-environmental-lhu-preview.html
   preview_annotated: designs/reports/S06c-environmental-lhu-preview-annotated.html
   category: reports
-  description: >
+  description: [Completed] >
     S-06c — Environmental Laporan Hasil Uji (LHU) sibling spec to S06. Result table columns
     `No. | Parameter | Hasil Uji | Baku Mutu | Satuan | Ket.` (Metode column dropped; methods
     in compact footnote). Covers water (air minum, air limbah), food (pangan/makanan), ambient
@@ -3971,7 +3971,7 @@
   preview: designs/reports/S06d-vector-lhu-preview.html
   preview_annotated: designs/reports/S06d-vector-lhu-preview-annotated.html
   category: reports
-  description: >
+  description: [Completed] >
     S-06d — Vector surveillance Laporan Hasil Uji (LHU) sibling spec to S06. Three flexible
     result-table modes: A (Species ID via PCR), B (Surveillance Indices — MIR, infection rate,
     density, positive_resolution_%), C (Larval Population Indices — House/Container/Breteau
@@ -4052,7 +4052,7 @@
   path: designs/sample-collection/clinical-order-entry-v2.html
   spec: designs/sample-collection/order-entry-three-workflows.md
   category: vector-surveillance
-  description: v2 clinical order-entry wizard realigned to the three-workflow spec — "Assign to" sample/test menu at Collect, Ward/Unit/Department facility sub-unit, requester with phone/fax/email + admin-gated add-new + edit-lock, test search by name or code, blank quantity, de-gated print/storage, Sample Acceptance Checklist (S-09/OGC-580) on QA Review
+  description: [Superseded] v2 clinical order-entry wizard realigned to the three-workflow spec — "Assign to" sample/test menu at Collect, Ward/Unit/Department facility sub-unit, requester with phone/fax/email + admin-gated add-new + edit-lock, test search by name or code, blank quantity, de-gated print/storage, Sample Acceptance Checklist (S-09/OGC-580) on QA Review
   links:
     jira: [OGC-1066, OGC-1067, OGC-1069]
     gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/clinical-order-entry-v2
@@ -4085,7 +4085,7 @@
   path: designs/sample-collection/environmental-order-entry-v2.html
   spec: designs/sample-collection/order-entry-three-workflows.md
   category: vector-surveillance
-  description: v2 environmental order-entry — requester = Requesting Organization + Requestor contact, searched/stored like the clinical provider, full phone/fax/email, admin-gated add-new, edit-lock; collection method optional; CSV bulk intake (Env/Vector only)
+  description: [Completed] v2 environmental order-entry — requester = Requesting Organization + Requestor contact, searched/stored like the clinical provider, full phone/fax/email, admin-gated add-new, edit-lock; collection method optional; CSV bulk intake (Env/Vector only)
   links:
     jira: [OGC-1066, OGC-1068]
     gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/environmental-order-entry-v2
@@ -4095,7 +4095,7 @@
   path: designs/vector-surveillance/vector-collection-workflow-v2.html
   spec: designs/sample-collection/order-entry-three-workflows.md
   category: vector-surveillance
-  description: v2 vector collection workflow — requester relabeled to the shared Requesting Organization + Requestor element (identical to Environmental), full phone/fax/email, admin-gated add-new, edit-lock
+  description: [Completed] v2 vector collection workflow — requester relabeled to the shared Requesting Organization + Requestor element (identical to Environmental), full phone/fax/email, admin-gated add-new, edit-lock
   links:
     jira: [OGC-1066, OGC-1068]
     gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/vector-collection-workflow-v2
@@ -4113,7 +4113,7 @@
   type: spec
   path: designs/sample-collection/order-entry-three-workflows.md
   category: vector-surveillance
-  description: Order Entry FRS v4 (supersedes v3 in place) — three domain-scoped workflows (Clinical/Environmental/Vector) on a shared wizard. Adds the order state lifecycle (reset + lab-number reservation on entry), the explicit save model (Save & Next / Save & Exit / Discard, no autosave), restored Ward/Unit/Department and Order Date, and a new Order Time. Navigation/visibility, Option-C linkage, field behaviour and the required-field matrix carried forward.
+  description: [Completed] Order Entry FRS v4 (supersedes v3 in place) — three domain-scoped workflows (Clinical/Environmental/Vector) on a shared wizard. Adds the order state lifecycle (reset + lab-number reservation on entry), the explicit save model (Save & Next / Save & Exit / Discard, no autosave), restored Ward/Unit/Department and Order Date, and a new Order Time. Navigation/visibility, Option-C linkage, field behaviour and the required-field matrix carried forward.
   links:
     jira: [OGC-1066]
   added: "2026-06-25"
