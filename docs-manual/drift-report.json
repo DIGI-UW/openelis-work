@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-07T01:31:10.708Z",
+  "generatedAt": "2026-10-09T16:49:53.984Z",
   "sections": [
     {
       "id": "add-patient",
@@ -11,24 +11,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:21:36.352Z",
-      "codeChanged": {
-        "count": 19,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/patient"
-        ],
-        "branches": {
-          "develop": 17,
-          "demo-silnas": 2
-        },
-        "latest": {
-          "sha": "420f1a4",
-          "date": "2026-10-03",
-          "msg": "fix(e2e): run every Cypress spec a shard lists, port the valid ones to Playwright, fix the bugs they found (#4479)",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:43:50.691Z"
     },
     {
       "id": "admin-compliance-standards",
@@ -39,25 +22,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:23:58.541Z",
-      "codeChanged": {
-        "count": 6,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/admin/testManagement",
-          "frontend/src/components/admin/compliance"
-        ],
-        "branches": {
-          "develop": 5,
-          "demo-silnas": 1
-        },
-        "latest": {
-          "sha": "5572716",
-          "date": "2026-10-05",
-          "msg": "fix(test-catalog): restore pages without a replacement, add the retired editor's missing fields, route links in-app (#45",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:45:44.855Z"
     },
     {
       "id": "admin-sample-type-management",
@@ -70,19 +35,7 @@
       "routeErrors": [
         "/MasterListsPage/SampleTypeManagement :: redirected to /MasterListsPage/SampleTypeEditor"
       ],
-      "checkedAt": "2026-10-07T01:24:01.517Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-09-22",
-        "paths": [
-          "frontend/src/components/admin/sampleType"
-        ],
-        "branches": {
-          "develop": 0,
-          "demo-silnas": 0
-        },
-        "latest": null
-      }
+      "checkedAt": "2026-10-09T16:45:47.922Z"
     },
     {
       "id": "admin-vector-reference-data",
@@ -95,25 +48,7 @@
       "routeErrors": [
         "/MasterListsPage/vectorSurveillanceSetup/sampling-sites :: redirected to /MasterListsPage/locations/sites"
       ],
-      "checkedAt": "2026-10-07T01:23:43.266Z",
-      "codeChanged": {
-        "count": 2,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/admin/vectorSurveillance",
-          "frontend/src/components/admin/sampleType"
-        ],
-        "branches": {
-          "develop": 1,
-          "demo-silnas": 1
-        },
-        "latest": {
-          "sha": "be3cd7a",
-          "date": "2026-08-21",
-          "msg": "Sync/demo silnas into develop (#3946)",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:45:29.276Z"
     },
     {
       "id": "aliquot",
@@ -125,7 +60,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:25:31.895Z"
+      "checkedAt": "2026-10-09T16:47:20.554Z"
     },
     {
       "id": "analyzer-file-import",
@@ -137,25 +72,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:21:39.378Z",
-      "codeChanged": {
-        "count": 19,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/analyzers",
-          "frontend/src/components/genericSample"
-        ],
-        "branches": {
-          "develop": 18,
-          "demo-silnas": 1
-        },
-        "latest": {
-          "sha": "5572716",
-          "date": "2026-10-05",
-          "msg": "fix(test-catalog): restore pages without a replacement, add the retired editor's missing fields, route links in-app (#45",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:43:53.745Z"
     },
     {
       "id": "analyzer-framework",
@@ -166,24 +83,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:21:42.404Z",
-      "codeChanged": {
-        "count": 17,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/analyzers"
-        ],
-        "branches": {
-          "develop": 16,
-          "demo-silnas": 1
-        },
-        "latest": {
-          "sha": "3711c6f",
-          "date": "2026-10-03",
-          "msg": "fix(analyzers): export pre-Bridge analyzer settings and remove their storage (#4511)",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:43:56.832Z"
     },
     {
       "id": "analyzer-mapping-qc",
@@ -194,29 +94,10 @@
       "manualDoc": "Confluence 1648590851 (draft under 1189609473)",
       "status": "drift",
       "missingAnchors": [
-        "/qa/qc/dashboard :: Overall QC Pass Rate",
-        "/qa/qc/rule-config :: Configure Westgard rules per analyzer and test combination"
+        "/qa/qc/dashboard :: Overall QC Pass Rate"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:26:21.336Z",
-      "codeChanged": {
-        "count": 11,
-        "since": "2026-09-15",
-        "paths": [
-          "frontend/src/components/qc",
-          "frontend/src/components/analyzers"
-        ],
-        "branches": {
-          "develop": 11,
-          "demo-silnas": 0
-        },
-        "latest": {
-          "sha": "3711c6f",
-          "date": "2026-10-03",
-          "msg": "fix(analyzers): export pre-Bridge analyzer settings and remove their storage (#4511)",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:48:11.072Z"
     },
     {
       "id": "analyzer-setup",
@@ -225,29 +106,10 @@
       "instanceVersion": "3.3.0",
       "capturedVersion": "3.2.2.0",
       "manualDoc": "Confluence 1648361491 (draft under 1189609473)",
-      "status": "drift",
-      "missingAnchors": [
-        "/analyzers/types :: The reusable setups behind your analyzers."
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:26:12.265Z",
-      "codeChanged": {
-        "count": 7,
-        "since": "2026-09-15",
-        "paths": [
-          "frontend/src/components/analyzers"
-        ],
-        "branches": {
-          "develop": 7,
-          "demo-silnas": 0
-        },
-        "latest": {
-          "sha": "3711c6f",
-          "date": "2026-10-03",
-          "msg": "fix(analyzers): export pre-Bridge analyzer settings and remove their storage (#4511)",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:48:01.729Z"
     },
     {
       "id": "application-properties",
@@ -259,7 +121,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:24:19.531Z"
+      "checkedAt": "2026-10-09T16:46:06.389Z"
     },
     {
       "id": "barcode-labels",
@@ -270,25 +132,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:21:45.422Z",
-      "codeChanged": {
-        "count": 5,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/printBarcode",
-          "frontend/src/components/barcodeWorkflow"
-        ],
-        "branches": {
-          "develop": 5,
-          "demo-silnas": 0
-        },
-        "latest": {
-          "sha": "ed6e8ee",
-          "date": "2026-10-06",
-          "msg": "fix(label-presets): seed system presets from the real site_information keys and repair upgraded sites (OGC-1219) (#4589)",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:43:59.872Z"
     },
     {
       "id": "calculated-value-tests",
@@ -300,7 +144,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:24:55.598Z"
+      "checkedAt": "2026-10-09T16:46:43.187Z"
     },
     {
       "id": "calendar-management",
@@ -312,7 +156,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:25:19.875Z"
+      "checkedAt": "2026-10-09T16:47:08.297Z"
     },
     {
       "id": "catalog-import-csv",
@@ -324,19 +168,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:27:00.719Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-09-22",
-        "paths": [
-          "frontend/src/components/admin/catalogImport"
-        ],
-        "branches": {
-          "develop": 0,
-          "demo-silnas": 0
-        },
-        "latest": null
-      }
+      "checkedAt": "2026-10-09T16:48:50.988Z"
     },
     {
       "id": "clinical-collect",
@@ -350,7 +182,7 @@
         "/order/clinical/collect?labNumber={{ORDER_IN_PROGRESS}} :: Save & Next"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:25:50.073Z"
+      "checkedAt": "2026-10-09T16:47:39.006Z"
     },
     {
       "id": "clinical-order-enter",
@@ -364,25 +196,7 @@
         "/order/clinical/enter :: Print Labels"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:26:45.500Z",
-      "codeChanged": {
-        "count": 33,
-        "since": "2026-09-15",
-        "paths": [
-          "frontend/src/components/order",
-          "frontend/src/components/addOrder"
-        ],
-        "branches": {
-          "develop": 33,
-          "demo-silnas": 0
-        },
-        "latest": {
-          "sha": "ed6e8ee",
-          "date": "2026-10-06",
-          "msg": "fix(label-presets): seed system presets from the real site_information keys and repair upgraded sites (OGC-1219) (#4589)",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:48:35.548Z"
     },
     {
       "id": "dictionary-menu",
@@ -394,7 +208,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:24:49.612Z"
+      "checkedAt": "2026-10-09T16:46:37.040Z"
     },
     {
       "id": "electronic-lab-notebook",
@@ -405,24 +219,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:21:48.427Z",
-      "codeChanged": {
-        "count": 9,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/notebook"
-        ],
-        "branches": {
-          "develop": 9,
-          "demo-silnas": 0
-        },
-        "latest": {
-          "sha": "5572716",
-          "date": "2026-10-05",
-          "msg": "fix(test-catalog): restore pages without a replacement, add the retired editor's missing fields, route links in-app (#45",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:44:02.899Z"
     },
     {
       "id": "electronic-signatures",
@@ -436,25 +233,7 @@
         "/ResultValidation?type=&test= :: redirected to /validation",
         "/AccessionValidation :: redirected to /validation"
       ],
-      "checkedAt": "2026-10-07T01:21:54.577Z",
-      "codeChanged": {
-        "count": 37,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/esignature",
-          "frontend/src/components/validation"
-        ],
-        "branches": {
-          "develop": 33,
-          "demo-silnas": 4
-        },
-        "latest": {
-          "sha": "5572716",
-          "date": "2026-10-05",
-          "msg": "fix(test-catalog): restore pages without a replacement, add the retired editor's missing fields, route links in-app (#45",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:44:09.035Z"
     },
     {
       "id": "environmental-order-results",
@@ -466,26 +245,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:22:03.780Z",
-      "codeChanged": {
-        "count": 34,
-        "since": "2026-09-22",
-        "paths": [
-          "frontend/src/components/order",
-          "frontend/src/components/addOrder",
-          "frontend/src/components/compliance"
-        ],
-        "branches": {
-          "develop": 34,
-          "demo-silnas": 0
-        },
-        "latest": {
-          "sha": "ed6e8ee",
-          "date": "2026-10-06",
-          "msg": "fix(label-presets): seed system presets from the real site_information keys and repair upgraded sites (OGC-1219) (#4589)",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:44:18.207Z"
     },
     {
       "id": "environmental-surveillance",
@@ -499,43 +259,24 @@
         "/LogbookResults?type= :: redirected to /Results",
         "/ResultValidation?type=&test= :: redirected to /validation"
       ],
-      "checkedAt": "2026-10-07T01:23:34.314Z",
-      "codeChanged": {
-        "count": 103,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/order",
-          "frontend/src/components/resultPage",
-          "frontend/src/components/validation"
-        ],
-        "branches": {
-          "develop": 83,
-          "demo-silnas": 20
-        },
-        "latest": {
-          "sha": "d468631",
-          "date": "2026-10-06",
-          "msg": "feat(order): print barcode labels from Prepare Samples (OGC-1422) (#4590)",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:45:20.189Z"
     },
     {
       "id": "eqa-participant",
       "title": "EQA participant: take part in a proficiency testing scheme",
-      "base": "https://pngtest.openelis-global.org",
+      "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.3.0",
       "capturedVersion": "3.2.2.0",
       "manualDoc": "Confluence 1671987213 (draft under 1189609473)",
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:31:01.617Z"
+      "checkedAt": "2026-10-09T16:49:35.061Z"
     },
     {
       "id": "eqa-provider",
       "title": "EQA provider: run a proficiency testing scheme",
-      "base": "https://pngtest.openelis-global.org",
+      "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.3.0",
       "capturedVersion": "3.2.2.0",
       "manualDoc": "Confluence 1669562408 (draft under 1189609473)",
@@ -553,7 +294,7 @@
         "/qa/eqa/in-house :: Unblind date (submission deadline)"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:30:46.462Z"
+      "checkedAt": "2026-10-09T16:49:19.374Z"
     },
     {
       "id": "general-configurations",
@@ -567,24 +308,7 @@
         "/MasterListsPage/ResultConfigurationMenu :: resultsEntryUnifiedRoute"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:26:42.386Z",
-      "codeChanged": {
-        "count": 30,
-        "since": "2026-09-15",
-        "paths": [
-          "frontend/src/components/admin"
-        ],
-        "branches": {
-          "develop": 30,
-          "demo-silnas": 0
-        },
-        "latest": {
-          "sha": "1c9ee7f",
-          "date": "2026-10-06",
-          "msg": "fix(label-presets): make preset edits save, keep fields on partial updates, confirm saves (OGC-1227) (#4582)",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:48:32.406Z"
     },
     {
       "id": "lab-number-management",
@@ -596,7 +320,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:24:16.536Z"
+      "checkedAt": "2026-10-09T16:46:03.296Z"
     },
     {
       "id": "lab-unit-add",
@@ -608,24 +332,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:26:57.711Z",
-      "codeChanged": {
-        "count": 2,
-        "since": "2026-09-15",
-        "paths": [
-          "frontend/src/components/admin/labUnitManagement"
-        ],
-        "branches": {
-          "develop": 2,
-          "demo-silnas": 0
-        },
-        "latest": {
-          "sha": "ee31183",
-          "date": "2026-09-28",
-          "msg": "OGC-189: Implement Lab unit enable/disable (#4234)",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:48:47.881Z"
     },
     {
       "id": "lab-units-editor",
@@ -637,24 +344,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:27:06.853Z",
-      "codeChanged": {
-        "count": 2,
-        "since": "2026-09-21",
-        "paths": [
-          "frontend/src/components/admin/labUnitManagement"
-        ],
-        "branches": {
-          "develop": 2,
-          "demo-silnas": 0
-        },
-        "latest": {
-          "sha": "ee31183",
-          "date": "2026-09-28",
-          "msg": "OGC-189: Implement Lab unit enable/disable (#4234)",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:48:57.345Z"
     },
     {
       "id": "label-store-shared",
@@ -668,7 +358,7 @@
       "routeErrors": [
         "/order/clinical/label?labNumber={{ORDER_IN_PROGRESS}} :: redirected to /order/clinical/collect"
       ],
-      "checkedAt": "2026-10-07T01:25:53.138Z"
+      "checkedAt": "2026-10-09T16:47:42.089Z"
     },
     {
       "id": "laporan-hasil-report",
@@ -680,24 +370,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:25:43.885Z",
-      "codeChanged": {
-        "count": 2,
-        "since": "2026-09-22",
-        "paths": [
-          "frontend/src/components/reports/compliance"
-        ],
-        "branches": {
-          "develop": 2,
-          "demo-silnas": 0
-        },
-        "latest": {
-          "sha": "420f1a4",
-          "date": "2026-10-03",
-          "msg": "fix(e2e): run every Cypress spec a shard lists, port the valid ones to Playwright, fix the bugs they found (#4479)",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:47:32.762Z"
     },
     {
       "id": "logging-configuration",
@@ -709,7 +382,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:24:43.535Z"
+      "checkedAt": "2026-10-09T16:46:30.863Z"
     },
     {
       "id": "menu-configuration",
@@ -721,7 +394,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:25:16.839Z"
+      "checkedAt": "2026-10-09T16:47:05.221Z"
     },
     {
       "id": "nce-capa",
@@ -732,24 +405,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:22:42.910Z",
-      "codeChanged": {
-        "count": 8,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/nonconform"
-        ],
-        "branches": {
-          "develop": 7,
-          "demo-silnas": 1
-        },
-        "latest": {
-          "sha": "420f1a4",
-          "date": "2026-10-03",
-          "msg": "fix(e2e): run every Cypress spec a shard lists, port the valid ones to Playwright, fix the bugs they found (#4479)",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:44:27.295Z"
     },
     {
       "id": "nce-report",
@@ -761,7 +417,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:27:15.866Z"
+      "checkedAt": "2026-10-09T16:49:53.978Z"
     },
     {
       "id": "order-entry",
@@ -773,26 +429,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:22:45.936Z",
-      "codeChanged": {
-        "count": 66,
-        "since": "2026-06-30",
-        "paths": [
-          "frontend/src/components/order",
-          "frontend/src/components/addOrder",
-          "frontend/src/components/sample"
-        ],
-        "branches": {
-          "develop": 54,
-          "demo-silnas": 12
-        },
-        "latest": {
-          "sha": "ed6e8ee",
-          "date": "2026-10-06",
-          "msg": "fix(label-presets): seed system presets from the real site_information keys and repair upgraded sites (OGC-1219) (#4589)",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:44:30.481Z"
     },
     {
       "id": "order-search",
@@ -804,7 +441,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:25:25.860Z"
+      "checkedAt": "2026-10-09T16:47:14.417Z"
     },
     {
       "id": "organization-management",
@@ -819,19 +456,7 @@
         "/MasterListsPage/organizationManagement :: redirected to /MasterListsPage/locations",
         "/MasterListsPage/organizationEdit?ID=0 :: redirected to /MasterListsPage/locations"
       ],
-      "checkedAt": "2026-10-07T01:24:10.528Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-06-30",
-        "paths": [
-          "frontend/src/components/admin/organizationManagement"
-        ],
-        "branches": {
-          "develop": 0,
-          "demo-silnas": 0
-        },
-        "latest": null
-      }
+      "checkedAt": "2026-10-09T16:45:57.101Z"
     },
     {
       "id": "organizations-management",
@@ -842,24 +467,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:22:48.923Z",
-      "codeChanged": {
-        "count": 47,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/admin"
-        ],
-        "branches": {
-          "develop": 30,
-          "demo-silnas": 17
-        },
-        "latest": {
-          "sha": "1c9ee7f",
-          "date": "2026-10-06",
-          "msg": "fix(label-presets): make preset edits save, keep fields on partial updates, confirm saves (OGC-1227) (#4582)",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:44:33.564Z"
     },
     {
       "id": "panel-editor",
@@ -871,24 +479,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:26:54.600Z",
-      "codeChanged": {
-        "count": 10,
-        "since": "2026-09-15",
-        "paths": [
-          "frontend/src/components/admin/testCatalog"
-        ],
-        "branches": {
-          "develop": 10,
-          "demo-silnas": 0
-        },
-        "latest": {
-          "sha": "5572716",
-          "date": "2026-10-05",
-          "msg": "fix(test-catalog): restore pages without a replacement, add the retired editor's missing fields, route links in-app (#45",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:48:44.755Z"
     },
     {
       "id": "patient-management",
@@ -900,7 +491,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:25:10.677Z"
+      "checkedAt": "2026-10-09T16:46:58.794Z"
     },
     {
       "id": "patient-merge",
@@ -912,7 +503,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:25:34.914Z"
+      "checkedAt": "2026-10-09T16:47:23.630Z"
     },
     {
       "id": "patient-order-enhancements",
@@ -923,24 +514,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:22:54.924Z",
-      "codeChanged": {
-        "count": 19,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/patient"
-        ],
-        "branches": {
-          "develop": 17,
-          "demo-silnas": 2
-        },
-        "latest": {
-          "sha": "420f1a4",
-          "date": "2026-10-03",
-          "msg": "fix(e2e): run every Cypress spec a shard lists, port the valid ones to Playwright, fix the bugs they found (#4479)",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:44:39.718Z"
     },
     {
       "id": "programs-v2",
@@ -952,7 +526,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:27:09.845Z"
+      "checkedAt": "2026-10-09T16:49:38.218Z"
     },
     {
       "id": "provider-management",
@@ -964,19 +538,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:24:13.546Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-06-30",
-        "paths": [
-          "frontend/src/components/admin/providerManagement"
-        ],
-        "branches": {
-          "develop": 0,
-          "demo-silnas": 0
-        },
-        "latest": null
-      }
+      "checkedAt": "2026-10-09T16:46:00.167Z"
     },
     {
       "id": "qa-review-shared",
@@ -990,47 +552,33 @@
         "/order/clinical/qa?labNumber={{ORDER_IN_PROGRESS}} :: Submit"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:25:56.141Z"
+      "checkedAt": "2026-10-09T16:47:45.198Z"
     },
     {
       "id": "qc-control-lot",
       "title": "Receive and activate a control lot",
-      "base": "https://pngtest.openelis-global.org",
+      "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.3.0",
       "capturedVersion": "3.2.2.0",
       "manualDoc": "Confluence 1680048146 (draft under 1189609473)",
-      "status": "drift",
-      "missingAnchors": [
-        "/qa/qc/control-lots :: New Control Lot",
-        "/qa/qc/control-lots :: Lot Number",
-        "/qa/qc/control-lots :: Control Material",
-        "/qa/qc/control-lots :: Control Level",
-        "/qa/qc/control-lots :: Calculation Method",
-        "/qa/qc/control-lots :: Expiration Date"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:31:04.663Z"
+      "checkedAt": "2026-10-09T16:49:41.401Z"
     },
     {
       "id": "qc-overview",
       "title": "Statistical QC — overview and daily review",
-      "base": "https://pngtest.openelis-global.org",
+      "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.3.0",
       "capturedVersion": "3.2.2.0",
       "manualDoc": "Confluence 1680048163 (draft under 1189609473)",
       "status": "drift",
       "missingAnchors": [
-        "/qa/qc/dashboard :: Quality Control Dashboard",
-        "/qa/qc/dashboard :: Instruments In Control",
-        "/qa/qc/dashboard :: Out of Control",
-        "/qa/qc/dashboard :: Overall QC Pass Rate",
-        "/qa/qc/dashboard :: Instruments",
-        "/qa/qc/dashboard :: Bench QC",
-        "/qa/qc/rule-config :: Configured Rule Sets",
-        "/qa/qc/rule-config :: Enabled Rules"
+        "/qa/qc/dashboard :: Overall QC Pass Rate"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:31:10.699Z"
+      "checkedAt": "2026-10-09T16:49:47.677Z"
     },
     {
       "id": "reference-lab-results",
@@ -1042,24 +590,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:25:46.873Z",
-      "codeChanged": {
-        "count": 2,
-        "since": "2026-09-22",
-        "paths": [
-          "frontend/src/components/referenceLabResults"
-        ],
-        "branches": {
-          "develop": 2,
-          "demo-silnas": 0
-        },
-        "latest": {
-          "sha": "5572716",
-          "date": "2026-10-05",
-          "msg": "fix(test-catalog): restore pages without a replacement, add the retired editor's missing fields, route links in-app (#45",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:47:35.820Z"
     },
     {
       "id": "reflex-testing",
@@ -1071,7 +602,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:24:52.601Z"
+      "checkedAt": "2026-10-09T16:46:40.128Z"
     },
     {
       "id": "register-new-patient",
@@ -1085,7 +616,7 @@
         "/PatientManagement :: Gender"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:25:37.908Z"
+      "checkedAt": "2026-10-09T16:47:26.672Z"
     },
     {
       "id": "result-reporting-configuration",
@@ -1097,7 +628,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:25:22.869Z"
+      "checkedAt": "2026-10-09T16:47:11.346Z"
     },
     {
       "id": "result-validation",
@@ -1112,24 +643,7 @@
         "/AccessionValidation :: redirected to /validation",
         "/ResultValidationByTestDate :: redirected to /validation"
       ],
-      "checkedAt": "2026-10-07T01:23:03.943Z",
-      "codeChanged": {
-        "count": 33,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/validation"
-        ],
-        "branches": {
-          "develop": 29,
-          "demo-silnas": 4
-        },
-        "latest": {
-          "sha": "5572716",
-          "date": "2026-10-05",
-          "msg": "fix(test-catalog): restore pages without a replacement, add the retired editor's missing fields, route links in-app (#45",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:44:48.844Z"
     },
     {
       "id": "results-entry",
@@ -1141,7 +655,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:24:58.636Z"
+      "checkedAt": "2026-10-09T16:46:46.289Z"
     },
     {
       "id": "results-entry-legacy",
@@ -1155,7 +669,7 @@
       "routeErrors": [
         "/LogbookResults?type= :: redirected to /Results"
       ],
-      "checkedAt": "2026-10-07T01:25:01.638Z"
+      "checkedAt": "2026-10-09T16:46:49.357Z"
     },
     {
       "id": "running-reports",
@@ -1167,7 +681,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:25:07.677Z"
+      "checkedAt": "2026-10-09T16:46:55.679Z"
     },
     {
       "id": "sample-acceptance-checklist",
@@ -1179,19 +693,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:24:04.512Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-09-22",
-        "paths": [
-          "frontend/src/components/admin/sampleAcceptance"
-        ],
-        "branches": {
-          "develop": 0,
-          "demo-silnas": 0
-        },
-        "latest": null
-      }
+      "checkedAt": "2026-10-09T16:45:50.975Z"
     },
     {
       "id": "sample-shipment-referral",
@@ -1205,24 +707,7 @@
         "/SampleShipment :: redirected to /SampleShipment/boxes",
         "/ReferredOutTests :: redirected to /api/OpenELIS-Global/ReferredOutTests"
       ],
-      "checkedAt": "2026-10-07T01:23:10.287Z",
-      "codeChanged": {
-        "count": 9,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/shipment"
-        ],
-        "branches": {
-          "develop": 7,
-          "demo-silnas": 2
-        },
-        "latest": {
-          "sha": "5572716",
-          "date": "2026-10-05",
-          "msg": "fix(test-catalog): restore pages without a replacement, add the retired editor's missing fields, route links in-app (#45",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:44:55.257Z"
     },
     {
       "id": "sample-storage",
@@ -1234,7 +719,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:25:28.889Z"
+      "checkedAt": "2026-10-09T16:47:17.508Z"
     },
     {
       "id": "sample-storage-management",
@@ -1245,25 +730,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:23:19.285Z",
-      "codeChanged": {
-        "count": 11,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/storage",
-          "frontend/src/components/coldStorage"
-        ],
-        "branches": {
-          "develop": 10,
-          "demo-silnas": 1
-        },
-        "latest": {
-          "sha": "420f1a4",
-          "date": "2026-10-03",
-          "msg": "fix(e2e): run every Cypress spec a shard lists, port the valid ones to Playwright, fix the bugs they found (#4479)",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:45:04.510Z"
     },
     {
       "id": "sample-type-editor",
@@ -1275,19 +742,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:26:48.567Z",
-      "codeChanged": {
-        "count": 0,
-        "since": "2026-09-15",
-        "paths": [
-          "frontend/src/components/admin/sampleType"
-        ],
-        "branches": {
-          "develop": 0,
-          "demo-silnas": 0
-        },
-        "latest": null
-      }
+      "checkedAt": "2026-10-09T16:48:38.619Z"
     },
     {
       "id": "search-index-management",
@@ -1299,7 +754,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:24:25.514Z"
+      "checkedAt": "2026-10-09T16:46:12.676Z"
     },
     {
       "id": "site-information",
@@ -1311,7 +766,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:25:13.680Z"
+      "checkedAt": "2026-10-09T16:47:01.935Z"
     },
     {
       "id": "test-catalog-editor",
@@ -1323,24 +778,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:27:03.829Z",
-      "codeChanged": {
-        "count": 8,
-        "since": "2026-09-21",
-        "paths": [
-          "frontend/src/components/admin/testCatalog"
-        ],
-        "branches": {
-          "develop": 8,
-          "demo-silnas": 0
-        },
-        "latest": {
-          "sha": "5572716",
-          "date": "2026-10-05",
-          "msg": "fix(test-catalog): restore pages without a replacement, add the retired editor's missing fields, route links in-app (#45",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:48:54.184Z"
     },
     {
       "id": "test-catalogue-add-test",
@@ -1352,24 +790,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:26:51.596Z",
-      "codeChanged": {
-        "count": 10,
-        "since": "2026-09-15",
-        "paths": [
-          "frontend/src/components/admin/testCatalog"
-        ],
-        "branches": {
-          "develop": 10,
-          "demo-silnas": 0
-        },
-        "latest": {
-          "sha": "5572716",
-          "date": "2026-10-05",
-          "msg": "fix(test-catalog): restore pages without a replacement, add the retired editor's missing fields, route links in-app (#45",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:48:41.708Z"
     },
     {
       "id": "test-notification-configuration",
@@ -1381,7 +802,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:24:22.540Z"
+      "checkedAt": "2026-10-09T16:46:09.576Z"
     },
     {
       "id": "user-management",
@@ -1393,7 +814,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:24:46.599Z"
+      "checkedAt": "2026-10-09T16:46:33.953Z"
     },
     {
       "id": "validation",
@@ -1407,7 +828,7 @@
       "routeErrors": [
         "/ResultValidation?type=&test= :: redirected to /validation"
       ],
-      "checkedAt": "2026-10-07T01:25:04.652Z"
+      "checkedAt": "2026-10-09T16:46:52.526Z"
     },
     {
       "id": "validation-v4",
@@ -1422,7 +843,7 @@
         "/ResultValidation?type=&test= :: redirected to /validation",
         "/AccessionValidation :: redirected to /validation"
       ],
-      "checkedAt": "2026-10-07T01:26:02.119Z"
+      "checkedAt": "2026-10-09T16:47:51.307Z"
     },
     {
       "id": "vector-surveillance",
@@ -1438,25 +859,7 @@
         "/vector/identification :: Split"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:23:25.302Z",
-      "codeChanged": {
-        "count": 33,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/vector",
-          "frontend/src/components/order"
-        ],
-        "branches": {
-          "develop": 24,
-          "demo-silnas": 9
-        },
-        "latest": {
-          "sha": "d468631",
-          "date": "2026-10-06",
-          "msg": "feat(order): print barcode labels from Prepare Samples (OGC-1422) (#4590)",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:45:10.774Z"
     },
     {
       "id": "vector-surveillance-report",
@@ -1468,24 +871,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-07T01:25:40.907Z",
-      "codeChanged": {
-        "count": 1,
-        "since": "2026-09-22",
-        "paths": [
-          "frontend/src/components/reports/vectorSurveillance"
-        ],
-        "branches": {
-          "develop": 1,
-          "demo-silnas": 0
-        },
-        "latest": {
-          "sha": "420f1a4",
-          "date": "2026-10-03",
-          "msg": "fix(e2e): run every Cypress spec a shard lists, port the valid ones to Playwright, fix the bugs they found (#4479)",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-10-09T16:47:29.711Z"
     }
   ],
   "note": "indonesiademo unreachable (auth setup failed all retries) on 2026-09-23; its sections carried over from previous published report",

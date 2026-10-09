@@ -1905,7 +1905,7 @@
       "confluencePageId": "1669562408",
       "manualDoc": "Confluence 1669562408 (draft under 1189609473)",
       "captures": "cowork session eqa-capture/provider (56 figures)",
-      "base": "https://pngtest.openelis-global.org",
+      "base": "https://testing.openelis-global.org",
       "capturedVersion": "3.2.2.0",
       "capturedDate": "2026-09-24",
       "jiraEpic": "OGC-608",
@@ -1988,7 +1988,7 @@
           ]
         }
       ],
-      "notes": "Verified on pngtest (EQA V2 deployed there; not on testing at capture). Seed data: scheme 8 CPHL National CD4 Count EQA, cycle 1 2026 Round 4 (closed), orgs 28-33. Locale en only: en-US and other locales still carry V1 Program wording. Hard-loaded /qa/eqa deep links intermittently render blank (defect 9), which can false-positive this check.",
+      "notes": "Verified on pngtest (EQA V2 deployed there; not on testing at capture). Seed data: scheme 8 CPHL National CD4 Count EQA, cycle 1 2026 Round 4 (closed), orgs 28-33. Locale en only: en-US and other locales still carry V1 Program wording. Hard-loaded /qa/eqa deep links intermittently render blank (defect 9), which can false-positive this check. Repointed from pngtest to testing 2026-10-09 (Casey: watch testing/develop only); seed IDs in routes may need re-picking on testing.",
       "locale": "en"
     },
     {
@@ -1997,7 +1997,7 @@
       "confluencePageId": "1671987213",
       "manualDoc": "Confluence 1671987213 (draft under 1189609473)",
       "captures": "cowork session eqa-capture/participant (25 figures)",
-      "base": "https://pngtest.openelis-global.org",
+      "base": "https://testing.openelis-global.org",
       "capturedVersion": "3.2.2.0",
       "capturedDate": "2026-09-24",
       "jiraEpic": "OGC-608",
@@ -2060,7 +2060,7 @@
           ]
         }
       ],
-      "notes": "Verified on pngtest. Seed: scheme 9 Asia-Pacific CD4 Proficiency Programme (International PT, external provider), cycle 2 2026 Round 3 (APC-26-3), scored; org 34 APCPP as referring site. Add Order EQA mode route /SamplePatientEntry?isEQA=true&cycleId=2 not registered (needs a Planned cycle to be meaningful).",
+      "notes": "Verified on pngtest. Seed: scheme 9 Asia-Pacific CD4 Proficiency Programme (International PT, external provider), cycle 2 2026 Round 3 (APC-26-3), scored; org 34 APCPP as referring site. Add Order EQA mode route /SamplePatientEntry?isEQA=true&cycleId=2 not registered (needs a Planned cycle to be meaningful). Repointed from pngtest to testing 2026-10-09 (Casey: watch testing/develop only); seed IDs in routes may need re-picking on testing.",
       "locale": "en"
     },
     {
@@ -2097,7 +2097,7 @@
       "confluencePageId": "1680048146",
       "manualDoc": "Confluence 1680048146 (draft under 1189609473)",
       "captures": "docs-media/qc-png-drive (4 figures)",
-      "base": "https://pngtest.openelis-global.org",
+      "base": "https://testing.openelis-global.org",
       "capturedVersion": "3.2.2.0",
       "capturedDate": "2026-09-27",
       "jiraEpic": "OGC-682",
@@ -2116,7 +2116,8 @@
             "Expiration Date"
           ]
         }
-      ]
+      ],
+      "notes": "Repointed from pngtest to testing 2026-10-09 (Casey: watch testing/develop only); seed IDs in routes may need re-picking on testing."
     },
     {
       "id": "qc-overview",
@@ -2124,7 +2125,7 @@
       "confluencePageId": "1680048163",
       "manualDoc": "Confluence 1680048163 (draft under 1189609473)",
       "captures": "docs-media/qc-png-explore + qc-png-drive (4 figures)",
-      "base": "https://pngtest.openelis-global.org",
+      "base": "https://testing.openelis-global.org",
       "capturedVersion": "3.2.2.0",
       "capturedDate": "2026-09-27",
       "jiraEpic": "OGC-682",
@@ -2152,7 +2153,8 @@
             "Enabled Rules"
           ]
         }
-      ]
+      ],
+      "notes": "Repointed from pngtest to testing 2026-10-09 (Casey: watch testing/develop only); seed IDs in routes may need re-picking on testing."
     },
     {
       "id": "nce-report",
