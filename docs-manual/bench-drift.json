@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-10-07T01:31:35Z",
-  "reportAt": "2026-10-07T01:31:10.708Z",
+  "generatedAt": "2026-10-09T16:49:54Z",
+  "reportAt": "2026-10-09T16:49:53.984Z",
   "sections": 69,
   "contracts": 69,
   "ok": 0,
-  "review": 47,
+  "review": 49,
   "errors": 11,
   "stale": [
     "add-patient",
@@ -80,25 +80,15 @@
   "capturedOld": 35,
   "unchecked": [],
   "instances": {
-    "pngtest.openelis-global.org": {
-      "contracts": 4,
-      "checked": 4,
-      "ok": 0,
-      "review": 1,
-      "drift": 3,
-      "error": 0,
-      "version": "3.3.0",
-      "checkedAt": "2026-10-07T01:31:10.699Z"
-    },
     "testing.openelis-global.org": {
-      "contracts": 65,
-      "checked": 65,
+      "contracts": 69,
+      "checked": 69,
       "ok": 0,
-      "review": 46,
-      "drift": 8,
+      "review": 49,
+      "drift": 9,
       "error": 11,
       "version": "3.3.0",
-      "checkedAt": "2026-10-07T01:27:15.866Z"
+      "checkedAt": "2026-10-09T16:49:53.978Z"
     }
   },
   "drift": [
@@ -106,18 +96,9 @@
       "id": "analyzer-mapping-qc",
       "base": "testing.openelis-global.org",
       "missing": [
-        "/qa/qc/dashboard :: Overall QC Pass Rate",
-        "/qa/qc/rule-config :: Configure Westgard rules per analyzer and test combination"
+        "/qa/qc/dashboard :: Overall QC Pass Rate"
       ],
       "page": "1648590851"
-    },
-    {
-      "id": "analyzer-setup",
-      "base": "testing.openelis-global.org",
-      "missing": [
-        "/analyzers/types :: The reusable setups behind your analyzers."
-      ],
-      "page": "1648361491"
     },
     {
       "id": "clinical-collect",
@@ -137,7 +118,7 @@
     },
     {
       "id": "eqa-provider",
-      "base": "pngtest.openelis-global.org",
+      "base": "testing.openelis-global.org",
       "missing": [
         "/qa/eqa/management :: System Settings",
         "/qa/eqa/management :: Scheme Name",
@@ -169,30 +150,10 @@
       "page": null
     },
     {
-      "id": "qc-control-lot",
-      "base": "pngtest.openelis-global.org",
-      "missing": [
-        "/qa/qc/control-lots :: New Control Lot",
-        "/qa/qc/control-lots :: Lot Number",
-        "/qa/qc/control-lots :: Control Material",
-        "/qa/qc/control-lots :: Control Level",
-        "/qa/qc/control-lots :: Calculation Method",
-        "/qa/qc/control-lots :: Expiration Date"
-      ],
-      "page": "1680048146"
-    },
-    {
       "id": "qc-overview",
-      "base": "pngtest.openelis-global.org",
+      "base": "testing.openelis-global.org",
       "missing": [
-        "/qa/qc/dashboard :: Quality Control Dashboard",
-        "/qa/qc/dashboard :: Instruments In Control",
-        "/qa/qc/dashboard :: Out of Control",
-        "/qa/qc/dashboard :: Overall QC Pass Rate",
-        "/qa/qc/dashboard :: Instruments",
-        "/qa/qc/dashboard :: Bench QC",
-        "/qa/qc/rule-config :: Configured Rule Sets",
-        "/qa/qc/rule-config :: Enabled Rules"
+        "/qa/qc/dashboard :: Overall QC Pass Rate"
       ],
       "page": "1680048163"
     },
@@ -313,5 +274,5 @@
       "page": "1661763585"
     }
   ],
-  "summary": "69 of 69 contracts checked: 0 ok, 47 review, 11 drift, 11 route errors."
+  "summary": "69 of 69 contracts checked: 0 ok, 49 review, 9 drift, 11 route errors."
 }
