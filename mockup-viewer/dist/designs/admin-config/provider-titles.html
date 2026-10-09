@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Provider Titles — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', sans-serif; }
+    .preview-banner { background: #0f62fe; color: #fff; padding: 6px 1rem; font-size: 12px; font-family: monospace; }
+    .preview-content { padding: 1rem 2rem 4rem; max-width: 1440px; margin: 0 auto; }
+    .crumbs { font-size: 12px; color: #525252; margin: 1rem 0 0.75rem; }
+    .crumbs a { color: #0f62fe; text-decoration: none; }
+    .page-head { margin-bottom: 1.5rem; }
+    .page-head h1 { font-size: 28px; font-weight: 400; margin: 0 0 0.25rem; }
+    .page-head p { margin: 0; color: #525252; font-size: 14px; max-width: 60ch; }
+    .toolbar { display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 0.75rem; }
+    .toolbar .grow { flex: 1 1 240px; min-width: 200px; }
+    .summary { font-size: 12px; color: #525252; margin: 0 0 0.75rem; }
+    .cds--data-table td { vertical-align: middle; }
+    .num { font-variant-numeric: tabular-nums; }
+    .muted-row td { color: #8d8d8d; }
+    .actions { display: flex; gap: 0.25rem; justify-content: flex-end; }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(22,22,22,0.5); display: flex; align-items: center; justify-content: center; z-index: 50; }
+    .modal { background: #fff; width: min(560px, 92vw); }
+    .modal-head { padding: 1rem; border-bottom: 1px solid #e0e0e0; }
+    .modal-head h2 { margin: 0; font-size: 20px; font-weight: 400; }
+    .modal-body { padding: 1rem; display: grid; gap: 1rem; }
+    .modal-foot { display: flex; justify-content: flex-end; }
+    .modal-foot .cds--btn { min-width: 160px; }
+    .field-row { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; }
+    .empty { text-align: center; padding: 3rem 1rem; }
+    .empty h3 { font-weight: 400; margin: 0 0 0.5rem; }
+    .empty p { color: #525252; max-width: 46ch; margin: 0 auto 1.5rem; font-size: 14px; }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">
+    Visual Preview — Provider Titles &nbsp;|&nbsp; Route: /MasterListsPage/providerTitleMenu &nbsp;|&nbsp; SideNav: Admin &rarr; Organization &rarr; Provider Management &rarr; Provider Titles &nbsp;|&nbsp; Not a live application
+  </div>
+  <div class="preview-content" id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+    const SEED = [
+      { id: 1, title: 'Doctor',                     abbr: 'Dr',   sort: 10, active: true,  inUse: 148 },
+      { id: 2, title: 'Professor',                  abbr: 'Prof', sort: 20, active: true,  inUse: 6   },
+      { id: 3, title: 'Sister',                     abbr: 'Sr',   sort: 30, active: true,  inUse: 74  },
+      { id: 4, title: 'Health Extension Officer',   abbr: 'HEO',  sort: 40, active: true,  inUse: 52  },
+      { id: 5, title: 'Resident Medical Officer',   abbr: 'RMO',  sort: 50, active: true,  inUse: 31  },
+      { id: 6, title: 'Mister',                     abbr: 'Mr',   sort: 60, active: true,  inUse: 23  },
+      { id: 7, title: 'Mistress',                   abbr: 'Mrs',  sort: 70, active: true,  inUse: 19  },
+      { id: 8, title: 'Ms',                         abbr: 'Ms',   sort: 80, active: true,  inUse: 11  },
+      { id: 9, title: 'Medical Officer (legacy)',   abbr: 'MO',   sort: 90, active: false, inUse: 4   },
+    ];
+
+    function Tag({ kind, children }) {
+      return <span className={'cds--tag cds--tag--' + kind}><span className="cds--tag__label">{children}</span></span>;
+    }
+
+    function App() {
+      const [rows, setRows] = useState(SEED);
+      const [status, setStatus] = useState('active');
+      const [query, setQuery] = useState('');
+      const [editing, setEditing] = useState(null);
+      const [confirming, setConfirming] = useState(null);
+      const [toast, setToast] = useState(null);
+
+      const counts = useMemo(() => ({
+        total: rows.length,
+        active: rows.filter(r => r.active).length,
+        inactive: rows.filter(r => !r.active).length,
+      }), [rows]);
+
+      const visible = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        return rows
+          .filter(r => status === 'all' ? true : status === 'active' ? r.active : !r.active)
+          .filter(r => !q || r.title.toLowerCase().includes(q) || r.abbr.toLowerCase().includes(q))
+          .sort((a, b) => a.sort - b.sort);
+      }, [rows, status, query]);
+
+      const flash = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3200); };
+
+      const toggle = (row) => {
+        if (row.active && row.inUse > 0) { setConfirming(row); return; }
+        setRows(rs => rs.map(r => r.id === row.id ? { ...r, active: !r.active } : r));
+        flash(row.active ? row.title + ' deactivated' : row.title + ' activated');
+      };
+
+      const confirmDeactivate = () => {
+        setRows(rs => rs.map(r => r.id === confirming.id ? { ...r, active: false } : r));
+        flash(confirming.title + ' deactivated');
+        setConfirming(null);
+      };
+
+      const save = (draft) => {
+        if (draft.id) {
+          setRows(rs => rs.map(r => r.id === draft.id ? { ...r, ...draft } : r));
+        } else {
+          setRows(rs => [...rs, { ...draft, id: Math.max(...rs.map(r => r.id)) + 1, inUse: 0 }]);
+        }
+        setEditing(null);
+        flash('Title saved');
+      };
+
+      return (
+        <div>
+          <div className="crumbs">
+            <a href="#">Home</a> / <a href="#">Admin</a> / <a href="#">Organization</a> / <a href="#">Provider Management</a> / Provider Titles
+          </div>
+
+          <div className="page-head">
+            <h1>Provider Titles</h1>
+            <p>The ranks and forms of address your clinicians use. These appear in the Title dropdown on a provider record, and the abbreviation is what prints on reports.</p>
+          </div>
+
+          {toast && (
+            <div className="cds--inline-notification cds--inline-notification--success" style={{ maxWidth: 'none', marginBottom: '1rem' }}>
+              <div className="cds--inline-notification__details">
+                <div className="cds--inline-notification__text-wrapper">
+                  <p className="cds--inline-notification__title">{toast}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="cds--tile" style={{ padding: 'var(--cds-spacing-05)' }}>
+            <div className="toolbar">
+              <div className="grow">
+                <div className="cds--text-input-wrapper">
+                  <label className="cds--label" htmlFor="q">Search titles</label>
+                  <div className="cds--text-input__field-wrapper">
+                    <input id="q" className="cds--text-input" placeholder="Title or abbreviation"
+                           value={query} onChange={e => setQuery(e.target.value)} />
+                  </div>
+                </div>
+              </div>
+              <div style={{ minWidth: 200 }}>
+                <div className="cds--select">
+                  <label className="cds--label" htmlFor="status">Status</label>
+                  <div className="cds--select-input__wrapper">
+                    <select id="status" className="cds--select-input" value={status} onChange={e => setStatus(e.target.value)}>
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                      <option value="all">All</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <button className="cds--btn cds--btn--primary" onClick={() => setEditing({ title: '', abbr: '', sort: 100, active: true })}>
+                Add Title
+              </button>
+            </div>
+
+            <p className="summary">
+              {counts.total} titles — {counts.active} active, {counts.inactive} inactive.
+              {' '}Showing {visible.length}.
+            </p>
+
+            {visible.length === 0 ? (
+              <div className="empty">
+                <h3>{rows.length === 0 ? 'No titles configured' : 'Nothing matches this filter'}</h3>
+                <p>
+                  {rows.length === 0
+                    ? 'Titles are the ranks and forms of address on a requisition — Dr, Sr, HEO. Add the ones your clinicians use and they become available on every provider record.'
+                    : 'Try a different search term, or switch the status filter to All.'}
+                </p>
+                {rows.length === 0 && (
+                  <button className="cds--btn cds--btn--primary" onClick={() => setEditing({ title: '', abbr: '', sort: 10, active: true })}>Add Title</button>
+                )}
+              </div>
+            ) : (
+              <div className="cds--data-table-container" style={{ paddingTop: 0 }}>
+                <table className="cds--data-table cds--data-table--sm">
+                  <thead>
+                    <tr>
+                      <th>Title</th>
+                      <th>Abbreviation</th>
+                      <th>Order</th>
+                      <th>Status</th>
+                      <th>In use</th>
+                      <th style={{ textAlign: 'right' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visible.map(r => (
+                      <tr key={r.id} className={r.active ? '' : 'muted-row'}>
+                        <td>{r.title}</td>
+                        <td><strong>{r.abbr}</strong></td>
+                        <td className="num">{r.sort}</td>
+                        <td>{r.active ? <Tag kind="green">Active</Tag> : <Tag kind="gray">Inactive</Tag>}</td>
+                        <td className="num">{r.inUse === 0 ? '—' : r.inUse + ' providers'}</td>
+                        <td>
+                          <div className="actions">
+                            <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => setEditing(r)}>Edit</button>
+                            <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => toggle(r)}>
+                              {r.active ? 'Deactivate' : 'Activate'}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <p style={{ fontSize: 12, color: '#6f6f6f', marginTop: '1rem', maxWidth: '72ch' }}>
+            There is no delete action. A title that is no longer used is deactivated — the providers
+            already carrying it keep it, and it simply stops being offered for new records.
+          </p>
+
+          {editing && <EditModal row={editing} rows={rows} onCancel={() => setEditing(null)} onSave={save} />}
+
+          {confirming && (
+            <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && setConfirming(null)}>
+              <div className="modal">
+                <div className="modal-head"><h2>Deactivate this title?</h2></div>
+                <div className="modal-body">
+                  <p style={{ margin: 0, fontSize: 14 }}>
+                    <strong>{confirming.inUse} providers</strong> currently use “{confirming.title}”.
+                    They keep it; it just will not be offered for new records.
+                  </p>
+                </div>
+                <div className="modal-foot">
+                  <button className="cds--btn cds--btn--secondary" onClick={() => setConfirming(null)}>Cancel</button>
+                  <button className="cds--btn cds--btn--danger" onClick={confirmDeactivate}>Deactivate</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function EditModal({ row, rows, onCancel, onSave }) {
+      const [draft, setDraft] = useState(row);
+      const [error, setError] = useState(null);
+      const set = (k, v) => setDraft(d => ({ ...d, [k]: v }));
+
+      const submit = () => {
+        if (!draft.title.trim() || !draft.abbr.trim()) { setError('Title and abbreviation are both required.'); return; }
+        const clash = rows.find(r => r.id !== draft.id &&
+          (r.title.toLowerCase() === draft.title.trim().toLowerCase() || r.abbr.toLowerCase() === draft.abbr.trim().toLowerCase()));
+        if (clash) { setError('“' + clash.title + '” is already in the list.'); return; }
+        onSave({ ...draft, title: draft.title.trim(), abbr: draft.abbr.trim(), sort: Number(draft.sort) || 0 });
+      };
+
+      return (
+        <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && onCancel()}>
+          <div className="modal">
+            <div className="modal-head"><h2>{draft.id ? 'Edit title' : 'Add a title'}</h2></div>
+            <div className="modal-body">
+              {error && (
+                <div className="cds--inline-notification cds--inline-notification--error" style={{ maxWidth: 'none' }}>
+                  <div className="cds--inline-notification__details">
+                    <div className="cds--inline-notification__text-wrapper">
+                      <p className="cds--inline-notification__title">{error}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {draft.id && draft.inUse > 0 && (
+                <div className="cds--inline-notification cds--inline-notification--info" style={{ maxWidth: 'none' }}>
+                  <div className="cds--inline-notification__details">
+                    <div className="cds--inline-notification__text-wrapper">
+                      <p className="cds--inline-notification__subtitle">
+                        {draft.inUse} providers use this title. Changing it here changes how it displays on all of them.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div className="field-row">
+                <div className="cds--text-input-wrapper">
+                  <label className="cds--label" htmlFor="t">Title</label>
+                  <div className="cds--text-input__field-wrapper">
+                    <input id="t" className="cds--text-input" maxLength={50} value={draft.title}
+                           onChange={e => set('title', e.target.value)} placeholder="Health Extension Officer" />
+                  </div>
+                  <div className="cds--form__helper-text">The full form, as an administrator reads it.</div>
+                </div>
+                <div className="cds--text-input-wrapper">
+                  <label className="cds--label" htmlFor="a">Abbreviation</label>
+                  <div className="cds--text-input__field-wrapper">
+                    <input id="a" className="cds--text-input" maxLength={10} value={draft.abbr}
+                           onChange={e => set('abbr', e.target.value)} placeholder="HEO" />
+                  </div>
+                  <div className="cds--form__helper-text">Prints on reports. Up to 10 characters.</div>
+                </div>
+              </div>
+              <div className="field-row">
+                <div className="cds--text-input-wrapper">
+                  <label className="cds--label" htmlFor="s">Order</label>
+                  <div className="cds--text-input__field-wrapper">
+                    <input id="s" className="cds--text-input" type="number" value={draft.sort}
+                           onChange={e => set('sort', e.target.value)} />
+                  </div>
+                  <div className="cds--form__helper-text">Position in the dropdown. Lower comes first.</div>
+                </div>
+                <div>
+                  <label className="cds--label">Status</label>
+                  <div className="cds--form-item">
+                    <div className="cds--toggle">
+                      <button className="cds--btn cds--btn--tertiary cds--btn--sm" onClick={() => set('active', !draft.active)}>
+                        {draft.active ? 'Active' : 'Inactive'}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="cds--form__helper-text">Only active titles are offered on a provider record.</div>
+                </div>
+              </div>
+            </div>
+            <div className="modal-foot">
+              <button className="cds--btn cds--btn--secondary" onClick={onCancel}>Cancel</button>
+              <button className="cds--btn cds--btn--primary" onClick={submit}>Save</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

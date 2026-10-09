@@ -4,6 +4,8 @@
   <url><loc>https://digi-uw.github.io/openelis-work/catalog.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/catalog.json</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/llms.txt</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/provider-titles.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/provider-titles.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-specimen-mn.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-specimen-mn.jsx</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/test-catalog-specimen-mn-preview.html</loc></url>
@@ -26,6 +28,9 @@
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/methods.jsx</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/organizations-management.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/organizations-management.jsx</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/locations-organizations.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/locations-organizations.jsx</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/locations-organizations.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/order-entry-require-provider.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/order-entry-require-provider.jsx</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/admin-config/order-entry-require-provider.html</loc></url>
@@ -211,6 +216,12 @@
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-narrative.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-16-cluster-detection.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-16-cluster-detection-preview.html</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-v2-amendments.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-v2-amendments.jsx</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-v2-preview.html</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-18-environmental-microbiology.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-18-environmental-microbiology.jsx</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/microbiology/m-18-environmental-microbiology.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/nce/nce-analytics.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/nce/nce-analytics.jsx</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/nce/nce-dashboard-v4.0.md</loc></url>
@@ -276,6 +287,9 @@
   <url><loc>https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-v4.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/results-validation/validation-page-v4.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/results-validation/validation-page-v4.html</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/results-validation/validation-clearance-rule.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/results-validation/validation-clearance-rule.jsx</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/results-validation/validation-clearance-rule.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-multicomponent.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/results-validation/validation-multicomponent.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/results-validation/analyzer-multicomponent-ingestion.md</loc></url>
@@ -373,6 +387,8 @@
   <url><loc>https://digi-uw.github.io/openelis-work/designs/system/help-menu.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/system/help-menu.jsx</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/system/in-app-help-preview.html</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/system/navigation-redesign.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/system/navigation-redesign-preview.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/system/analyzer-import-redesign-v2.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/system/analyzer-import-redesign-v2.jsx</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/system/analyzer-import-redesign-v2-preview.html</loc></url>
@@ -403,7 +419,7 @@
   <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/sampling-uncertainty.jsx</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-three-workflows.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/clinical-order-entry-v2.html</loc></url>
-  <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-three-workflows.md</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/clinical-order-entry-v4.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/clinical-order-entry-v4.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-three-workflows.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/sample-collection/environmental-order-entry-v2.html</loc></url>
@@ -461,6 +477,7 @@
   <url><loc>https://digi-uw.github.io/openelis-work/designs/patient/patient-search.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/patient/patient-search.jsx</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/patient/patient-search.html</loc></url>
+  <url><loc>https://digi-uw.github.io/openelis-work/designs/patient/optional-sex-age.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/portal/facility-results-portal.md</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/portal/facility-results-portal-preview.html</loc></url>
   <url><loc>https://digi-uw.github.io/openelis-work/designs/portal/patient-self-registration.md</loc></url>

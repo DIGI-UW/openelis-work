@@ -1,225 +1,398 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Report Management — OpenELIS Preview</title>
-  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
-  <style>
-    body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',sans-serif; }
-    .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
-    .preview-content { padding:1rem 2rem; max-width:1200px; margin:0 auto; }
-    table.cds--data-table { width:100%; border-collapse:collapse; background:#fff; }
-    .cds--data-table th, .cds--data-table td { text-align:left; padding:10px 14px; border-bottom:1px solid #e0e0e0; font-size:14px; vertical-align:top; }
-    .cds--data-table th { background:#f4f4f4; font-weight:600; }
-    .tag { display:inline-block; padding:1px 10px; border-radius:12px; font-size:12px; line-height:20px; white-space:nowrap; }
-    .tag-blue{background:#d0e2ff;color:#0043ce;} .tag-gray{background:#e0e0e0;color:#393939;}
-    .tag-green{background:#a7f0ba;color:#0e6027;} .tag-purple{background:#e8daff;color:#6929c4;}
-    .tag-teal{background:#9ef0f0;color:#005d5d;} .tag-warmgray{background:#e5e0df;color:#393939;}
-    .mono{font-family:'IBM Plex Mono',monospace;}
-    .muted{color:#6f6f6f;} .sub{font-size:12px;color:#6f6f6f;}
-    .uplabel{font-size:12px;text-transform:uppercase;color:#6f6f6f;letter-spacing:.02em;margin:0 0 4px;}
-    .expand-btn{background:none;border:none;cursor:pointer;font-size:16px;color:#161616;width:28px;}
-    .detail{background:#f4f4f4;padding:20px 24px;}
-    .cols{display:flex;gap:32px;flex-wrap:wrap;} .col{flex:1;min-width:280px;}
-    .btn{border:none;cursor:pointer;font-size:14px;padding:7px 14px;border-radius:0;margin-right:8px;}
-    .btn-tert{background:#fff;color:#0f62fe;border:1px solid #0f62fe;}
-    .btn-ghost{background:none;color:#0f62fe;}
-    .btn-danger{background:#da1e28;color:#fff;} .btn-sec{background:#393939;color:#fff;}
-    select,input[type=text]{font-size:14px;padding:8px;border:none;border-bottom:1px solid #8d8d8d;background:#fff;width:100%;box-sizing:border-box;}
-    .field{margin-bottom:16px;}
-    .radio{display:block;margin:6px 0;font-size:14px;cursor:pointer;}
-    .notif{padding:12px 14px;margin-bottom:14px;border-left:3px solid;font-size:13px;}
-    .notif-warn{background:#fff8e1;border-color:#f1c21b;} .notif-info{background:#edf5ff;border-color:#0043ce;}
-    .notif-success{background:#defbe6;border-color:#24a148;} .notif-error{background:#fff1f1;border-color:#da1e28;}
-    .upload{border:1px dashed #8d8d8d;background:#fff;padding:14px;font-size:13px;}
-    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:10;}
-    .modal{background:#fff;max-width:480px;width:90%;padding:0;}
-    .modal h3{margin:0;padding:20px 20px 8px;font-size:20px;} .modal p{padding:0 20px 24px;font-size:14px;}
-    .modal-actions{display:flex;} .modal-actions .btn{flex:1;margin:0;padding:14px;}
-    h2{margin:0 0 4px;} .intro{color:#6f6f6f;margin:0 0 18px;font-size:14px;}
-    .crumbs{font-size:12px;color:#6f6f6f;margin-bottom:14px;} .crumbs a{color:#0f62fe;text-decoration:none;}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Report Management Preview | OpenELIS Global</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans', sans-serif; }
+  .banner { background:#0f62fe; color:#fff; padding:6px 1rem; font:12px 'IBM Plex Mono', monospace; display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
+  .banner button { font:12px 'IBM Plex Mono', monospace; background:transparent; color:#fff; border:1px solid rgba(255,255,255,.6); padding:2px 8px; cursor:pointer; }
+  .banner button.on { background:#fff; color:#0f62fe; }
+  .topbar { background:#161616; color:#f4f4f4; height:48px; display:flex; align-items:center; padding:0 1rem; font-size:14px; gap:8px; }
+  .topbar b { font-weight:600; }
+  .shell { display:grid; grid-template-columns:256px 1fr; min-height:calc(100vh - 80px); }
+  .sidenav { background:#fff; border-right:1px solid #e0e0e0; padding:1rem 0; font-size:14px; }
+  .fence { margin:0 .75rem .5rem; padding:.5rem; border:1px dashed #8d8d8d; font-size:11px; color:#525252; background:#f4f4f4; }
+  .sidenav .sec { font-size:12px; font-weight:600; letter-spacing:.32px; color:#525252; padding:1rem 1rem .25rem; text-transform:uppercase; }
+  .sidenav .it { padding:.5rem 1rem; color:#525252; }
+  .sidenav .it.sub { padding-left:2rem; }
+  .sidenav .it.grp { color:#161616; font-weight:600; }
+  .sidenav .it.active { background:#e0e0e0; color:#161616; font-weight:600; border-left:3px solid #0f62fe; padding-left:calc(2rem - 3px); }
+  .content { padding:1.5rem 2rem 6rem; max-width:1200px; }
+  h1.pt { font-size:28px; font-weight:400; margin:.75rem 0 .25rem; }
+  .subt { color:#525252; margin:0 0 1.5rem; font-size:14px; }
+  .v2tag { display:inline-block; font:600 10px 'IBM Plex Mono', monospace; background:#8a3ffc; color:#fff; padding:1px 5px; border-radius:2px; margin-left:6px; vertical-align:middle; }
+  .secthead { font-size:16px; font-weight:600; margin:0 0 .75rem; }
+  .row-inline { display:flex; gap:2rem; align-items:center; flex-wrap:wrap; }
+  .help { font-size:12px; color:#525252; margin-top:.25rem; }
+  .exp-tile { background:#fff; border-top:1px solid #e0e0e0; padding:1.25rem 1.5rem 0; }
+  .exp-section { border-bottom:1px solid #e0e0e0; padding:1rem 0 1.25rem; }
+  .exp-section:last-of-type { border-bottom:0; }
+  .imgs { display:grid; grid-template-columns:repeat(3, minmax(200px, 1fr)); gap:1rem; }
+  .imgcard { border:1px solid #e0e0e0; padding:.75rem; }
+  .imgcard .lbl { font-size:12px; color:#525252; margin-bottom:.5rem; }
+  .thumb { width:96px; height:96px; background:#f4f4f4; display:flex; align-items:center; justify-content:center; border:1px dashed #c6c6c6; font-size:12px; color:#6f6f6f; margin-bottom:.5rem; }
+  .thumb.set { background:linear-gradient(135deg,#dfe8f3,#fff); border-style:solid; border-color:#c9d7ea; color:#295785; font-weight:600; }
+  .thumb.sig { width:192px; height:48px; font-family:'Brush Script MT', cursive; font-size:24px; color:#161616; background:#fff; }
+  .thumb.set { background:#fff; border:2px solid #161616; color:#161616; }
+  .fields { display:grid; grid-template-columns:repeat(2, minmax(240px, 1fr)); gap:1rem 1.5rem; max-width:760px; }
+  .ro { font-size:14px; padding:.6rem 0; }
+  .ro a, .lnk { color:#0f62fe; text-decoration:none; font-size:14px; cursor:pointer; }
+  .tgl { display:flex; align-items:center; gap:.75rem; cursor:pointer; user-select:none; font-size:14px; }
+  .tgl .track { width:48px; height:24px; border-radius:12px; background:#8d8d8d; position:relative; transition:background .1s; }
+  .tgl .track::after { content:''; position:absolute; width:18px; height:18px; border-radius:50%; background:#fff; top:3px; left:3px; transition:left .1s; }
+  .tgl.on .track { background:#24a148; } .tgl.on .track::after { left:27px; }
+  .stickybar { background:#fff; border-top:1px solid #e0e0e0; padding:.75rem 0 1rem; display:flex; gap:.5rem; margin-top:.5rem; }
+  .tmpl-opt { border:1px solid #e0e0e0; padding:.75rem 1rem; margin-bottom:.5rem; display:flex; gap:.75rem; align-items:flex-start; background:#fff; }
+  .tmpl-opt.sel { border-color:#0f62fe; background:#edf5ff; }
+  .tmpl-opt.dis { opacity:.7; background:#f4f4f4; }
+  .tmpl-opt input { margin-top:3px; }
+  .tmpl-meta { font-size:12px; color:#525252; }
+  .reason { font-size:12px; color:#da1e28; margin-top:.25rem; font-family:'IBM Plex Mono', monospace; }
+  .modal-back { position:fixed; inset:0; background:rgba(22,22,22,.5); display:flex; align-items:center; justify-content:center; z-index:100; }
+  .modal-box { background:#fff; width:520px; max-width:92vw; }
+  .modal-box .mh { padding:1rem 1rem 0; } .modal-box .mb { padding:.5rem 1rem 2rem; font-size:14px; }
+  .modal-box .mf { display:grid; grid-template-columns:1fr 1fr; }
+  .modal-box .mf button { height:64px; max-width:none; width:100%; }
+  td.expander { width:48px; }
+  .chev { background:none; border:0; cursor:pointer; font-size:14px; width:32px; height:32px; }
+  tr.dim td { color:#6f6f6f; }
+  .hist td, .hist th { font-size:12px; }
+</style>
 </head>
-<body class="cds--white">
-  <div class="preview-banner">⚡ Visual Preview — Report Management &nbsp;|&nbsp; Route: /MasterListsPage/reportManagement &nbsp;|&nbsp; OpenELIS Design Mockup — not a live application</div>
-  <div class="preview-content" id="root"></div>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo } = React;
+const t = (key, fallback) => fallback || key;
 
-  <script type="text/babel">
-    const { useState } = React;
+const REPORTS = [
+  { key:'patientCILNSP_vreduit', name:'Patient Status Report', cat:'clinical', tmpl:'patient_letter / patient_a4', configurable:true, variants:true },
+  { key:'patientCILNSP', name:'Patient Report (full, CI)', cat:'clinical', tmpl:'PatientReportCDI', configurable:false },
+  { key:'patientHaitiClinical', name:'Patient Clinical Report (Haiti)', cat:'clinical', tmpl:'PatientClinicalReport', configurable:false },
+  { key:'pathology', name:'Pathology Report', cat:'clinical', tmpl:'PatientPathologyReport', configurable:false },
+  { key:'cytology', name:'Cytology Report', cat:'clinical', tmpl:'PatientCytologyReport', configurable:false },
+  { key:'immunohistochemistry', name:'Immunohistochemistry Report', cat:'clinical', tmpl:'PatientImmunoChemistryReport', configurable:false },
+  { key:'TBPatientReport', name:'TB Patient Report', cat:'clinical', tmpl:'TBPatientReport', configurable:false },
+  { key:'activityReportByTest', name:'Activity Report by Test', cat:'operational', tmpl:'ActivityReport', configurable:false },
+  { key:'validationBacklog', name:'Validation Backlog', cat:'operational', tmpl:'ValidationBacklog', configurable:false },
+  { key:'rejection', name:'Sample Rejection Report', cat:'quality', tmpl:'RejectionReport', configurable:false },
+  { key:'nonConformityByDate', name:'Non-Conformity by Date', cat:'quality', tmpl:'NonConformityByReceivedDate', configurable:false },
+  { key:'freezerAudit', name:'Freezer Audit Trail', cat:'administrative', tmpl:'FreezerAuditTrailReport', configurable:false },
+];
+const CAT = { clinical:'Clinical', operational:'Operational', quality:'Quality', administrative:'Administrative' };
+const CAT_KIND = { clinical:'blue', operational:'teal', quality:'purple', administrative:'gray' };
 
-    const INITIAL = [
-      { key:'patientResult', name:'Patient Result Report', category:'Clinical', configurable:true,
-        source:'SHIPPED', activeTemplate:'patient_letter.jrxml', activeVersion:'v3.2 (shipped)',
-        variants:[{key:'patient_letter',label:'Letter — accredited layout'},{key:'patient_a4',label:'A4 — accredited layout'}],
-        activeVariant:'patient_letter', settings:{paperSize:'LETTER',accreditationLogoPosition:'BOTTOM'},
-        customTemplate:null, newerDefaultAvailable:false },
-      { key:'nonConformance', name:'Non-Conformance Report', category:'Quality', configurable:true,
-        source:'CUSTOM', activeTemplate:'CPHL_NCE_custom.jrxml', activeVersion:'custom · 2026-05-12',
-        variants:[{key:'nce_standard',label:'Standard NCE layout'}], activeVariant:'nce_standard', settings:{},
-        customTemplate:{filename:'CPHL_NCE_custom.jrxml',uploadedBy:'admin',uploadedAt:'2026-05-12'}, newerDefaultAvailable:true },
-      { key:'workplan', name:'Workplan', category:'Operational', configurable:true,
-        source:'SHIPPED', activeTemplate:'workplan_default.jrxml', activeVersion:'v3.2 (shipped)',
-        variants:[{key:'workplan_default',label:'Default workplan layout'}], activeVariant:'workplan_default',
-        settings:{}, customTemplate:null, newerDefaultAvailable:false },
-      { key:'auditExport', name:'Audit Trail Export', category:'Administrative', configurable:false,
-        source:'SHIPPED', activeTemplate:'audit_export.jrxml', activeVersion:'v3.2 (shipped)',
-        variants:[], activeVariant:null, settings:{}, customTemplate:null, newerDefaultAvailable:false },
-    ];
-    const catKind = c => ({Clinical:'blue',Operational:'teal',Quality:'purple',Administrative:'warmgray'}[c]||'gray');
-    const Tag = ({k,children}) => <span className={'tag tag-'+k}>{children}</span>;
+function Banner({ scope, setScope }) {
+  return (
+    <div className="banner">
+      <span><b>Visual Preview</b> | Report Management v2.1 | Route: /MasterListsPage/reportManagement | Not a live application</span>
+      <span>Scope <button className={scope==='v1'?'on':''} onClick={()=>setScope('v1')}>V1 only</button> <button className={scope==='v2'?'on':''} onClick={()=>setScope('v2')}>V1 + V2</button></span>
+    </div>
+  );
+}
 
-    function App() {
-      const [reports,setReports] = useState(INITIAL);
-      const [open,setOpen] = useState({patientResult:true});   // patient report expanded to show the anchor
-      const [q,setQ] = useState('');
-      const [notice,setNotice] = useState(null);
-      const [revert,setRevert] = useState(null);
-      const upd = (key,patch)=>setReports(rs=>rs.map(r=>r.key===key?{...r,...patch}:r));
-      const filtered = reports.filter(r=>(r.name+r.category).toLowerCase().includes(q.toLowerCase()));
+function SideNav() {
+  return (
+    <nav className="sidenav" aria-label="Admin">
+      <div className="fence">Existing component: Admin SideNav (admin-redesign-frs.md §3.1). Abbreviated drawing; the full sidebar is admin-redesign-frs.md §3.1. Report Management sits at Config › Report Management, replacing Printed Reports.</div>
+      <div className="sec">{t('sidenav.label.admin.bucket.config','Config')}</div>
+      <div className="it">{t('sidenav.label.admin.configuration','Configuration')}</div>
+      <div className="it active">{t('sidenav.label.admin.reportManagement','Report Management')}</div>
+      <div className="it grp">{t('sidenav.label.admin.workflowSettings','Workflow Settings')} (merging)</div>
+      <div className="it">Application Properties</div>
+      <div className="it">Menu Configuration</div>
+      <div className="it">Lab Number Format</div>
+      <div className="it">Label Presets</div>
+      <div className="sec">{t('sidenav.label.admin.bucket.organization','Organization')}</div>
+      <div className="it">Site Information</div>
+      <div className="it">Site Branding</div>
+      <div className="it">Users</div>
+      <div className="sec">Resources</div>
+      <div className="it">Test Catalog</div>
+      <div className="sec">Automation</div>
+      <div className="it">Result Reporting</div>
+      <div className="sec">Compliance</div>
+      <div className="it">Sample Acceptance Checklist</div>
+    </nav>
+  );
+}
 
-      const doRevert = () => {
-        upd(revert.key,{source:'SHIPPED',activeTemplate:(revert.activeVariant||revert.key)+'.jrxml',activeVersion:'v3.2 (shipped)',newerDefaultAvailable:false});
-        setNotice('Report settings saved'); setRevert(null);
-      };
-
-      return (
-        <div>
-          <div className="crumbs"><a href="#">Home</a> / <a href="#">Admin Management</a> / <a href="#">Configuration</a> / Report Management</div>
-          <h2>Report Management</h2>
-          <p className="intro">Choose the template each report uses. Every report ships with a default you can always revert to; upload a custom template to override it.</p>
-          {notice && <div className="notif notif-success">{notice} <a href="#" style={{float:'right'}} onClick={e=>{e.preventDefault();setNotice(null);}}>✕</a></div>}
-
-          <div style={{background:'#fff',padding:'8px 14px',borderBottom:'1px solid #e0e0e0'}}>
-            <input type="text" placeholder="Search reports" value={q} onChange={e=>setQ(e.target.value)} style={{maxWidth:320}} />
-          </div>
-
-          <table className="cds--data-table">
-            <thead><tr>
-              <th style={{width:28}}></th><th>Report</th><th>Category</th><th>Active template</th><th>Source</th><th>Status</th>
-            </tr></thead>
-            <tbody>
-              {filtered.map(r=>(
-                <React.Fragment key={r.key}>
-                  <tr>
-                    <td><button className="expand-btn" onClick={()=>setOpen(o=>({...o,[r.key]:!o[r.key]}))}>{open[r.key]?'▾':'▸'}</button></td>
-                    <td>{r.name}</td>
-                    <td><Tag k={catKind(r.category)}>{r.category}</Tag></td>
-                    <td><span className="mono">{r.activeTemplate}</span><div className="sub">{r.activeVersion}</div></td>
-                    <td><Tag k={r.source==='CUSTOM'?'blue':'gray'}>{r.source==='CUSTOM'?'Custom':'Shipped default'}</Tag></td>
-                    <td>{!r.configurable? <Tag k="gray">Managed in code</Tag> : r.source==='CUSTOM'? <Tag k="blue">Overridden</Tag> : <Tag k="green">Active</Tag>}</td>
-                  </tr>
-                  {open[r.key] && (
-                    <tr><td colSpan="6" style={{padding:0}}>
-                      {r.configurable ? <Detail r={r} upd={upd} setNotice={setNotice} onRevert={()=>setRevert(r)} /> : <ReadOnly r={r} />}
-                    </td></tr>
-                  )}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
-
-          {revert && (
-            <div className="modal-overlay" onClick={()=>setRevert(null)}>
-              <div className="modal" onClick={e=>e.stopPropagation()}>
-                <h3>Revert to shipped default?</h3>
-                <p>Revert <strong>{revert.name}</strong> to the shipped default template? Your custom template is kept and can be re-selected later.</p>
-                <div className="modal-actions">
-                  <button className="btn btn-sec" onClick={()=>setRevert(null)}>Cancel</button>
-                  <button className="btn btn-danger" onClick={doRevert}>Revert</button>
-                </div>
-              </div>
-            </div>
-          )}
+function Notification({ kind, title, sub, onClose }) {
+  return (
+    <div className={`cds--inline-notification cds--inline-notification--${kind} cds--inline-notification--low-contrast`} role="status" style={{maxWidth:'100%', marginTop:'.75rem'}}>
+      <div className="cds--inline-notification__details">
+        <div className="cds--inline-notification__text-wrapper">
+          <div className="cds--inline-notification__title">{title}</div>
+          {sub && <div className="cds--inline-notification__subtitle">&nbsp;{sub}</div>}
         </div>
-      );
-    }
+      </div>
+      {onClose && <button className="cds--inline-notification__close-button" onClick={onClose} aria-label="close" style={{fontSize:16}}>×</button>}
+    </div>
+  );
+}
 
-    function Detail({r,upd,setNotice,onRevert}) {
-      const [err,setErr] = useState(null);
-      const setSource = s => {
-        if (s==='CUSTOM' && !r.customTemplate){ setErr('Upload a custom template first, then select Custom override and Save.'); return; }
-        setErr(null);
-        upd(r.key,{source:s,
-          activeTemplate: s==='CUSTOM'? r.customTemplate.filename : r.activeVariant+'.jrxml',
-          activeVersion: s==='CUSTOM'? 'custom · '+r.customTemplate.uploadedAt : 'v3.2 (shipped)'});
-        setNotice('Report settings saved');
-      };
-      const onUpload = () => { upd(r.key,{customTemplate:{filename:'uploaded_template.jrxml',uploadedBy:'you',uploadedAt:'2026-07-01'}});
-        setNotice('Custom template validated. Select "Custom override" and Save to use it.'); };
-      return (
-        <div className="detail">
-          {r.newerDefaultAvailable && <div className="notif notif-warn">A newer shipped default is available for this report. You are on a custom override.</div>}
-          <div className="cols">
-            <div className="col">
-              <div className="field">
-                <p className="uplabel">Active template</p>
-                <span className="mono">{r.activeTemplate}</span> <span className="muted">· {r.activeVersion}</span>
-              </div>
-              <div className="field">
-                <p className="uplabel">Template source</p>
-                <label className="radio"><input type="radio" name={'src'+r.key} checked={r.source==='SHIPPED'} onChange={()=>setSource('SHIPPED')} /> Shipped default</label>
-                <label className="radio"><input type="radio" name={'src'+r.key} checked={r.source==='CUSTOM'} onChange={()=>setSource('CUSTOM')} /> Custom override</label>
-              </div>
-              {r.variants.length>1 && r.source==='SHIPPED' && (
-                <div className="field">
-                  <p className="uplabel">Layout variant</p>
-                  <select value={r.activeVariant} onChange={e=>upd(r.key,{activeVariant:e.target.value,activeTemplate:e.target.value+'.jrxml'})}>
-                    {r.variants.map(v=><option key={v.key} value={v.key}>{v.label}</option>)}
-                  </select>
-                </div>
-              )}
-            </div>
-            <div className="col">
-              {('paperSize' in r.settings) && (<>
-                <p className="uplabel">Report settings</p>
-                <div className="field">
-                  <label className="sub">Paper size</label>
-                  <select value={r.settings.paperSize} onChange={e=>upd(r.key,{settings:{...r.settings,paperSize:e.target.value}})}>
-                    <option value="LETTER">Letter</option><option value="A4">A4</option>
-                  </select>
-                </div>
-                <div className="field">
-                  <label className="sub">Accreditation logo position</label>
-                  <select value={r.settings.accreditationLogoPosition} onChange={e=>upd(r.key,{settings:{...r.settings,accreditationLogoPosition:e.target.value}})}>
-                    <option value="BOTTOM">Bottom of report (default)</option><option value="TOP">Top of report</option>
-                  </select>
-                </div>
-              </>)}
-              <div className="field">
-                <div className="upload">
-                  <strong>Upload custom template (.jrxml)</strong>
-                  <div className="sub" style={{margin:'4px 0 8px'}}>Must use only the parameters this report provides.</div>
-                  <button className="btn btn-tert" onClick={onUpload}>Add file</button>
-                  {r.customTemplate && <span className="sub" style={{marginLeft:8}}>Current: <span className="mono">{r.customTemplate.filename}</span></span>}
-                </div>
-                {err && <div className="notif notif-error" style={{marginTop:10}}>{err}</div>}
-              </div>
-            </div>
+function Radio({ name, id, checked, onChange, label, disabled }) {
+  return (
+    <div className="cds--radio-button-wrapper">
+      <input className="cds--radio-button" type="radio" name={name} id={id} checked={checked} onChange={onChange} disabled={disabled} />
+      <label className="cds--radio-button__label" htmlFor={id}>
+        <span className="cds--radio-button__appearance"></span>
+        <span className="cds--radio-button__label-text">{label}</span>
+      </label>
+    </div>
+  );
+}
+
+function TextField({ id, label, value, onChange }) {
+  return (
+    <div className="cds--form-item cds--text-input-wrapper">
+      <label htmlFor={id} className="cds--label">{label}</label>
+      <div className="cds--text-input__field-outer-wrapper"><div className="cds--text-input__field-wrapper">
+        <input id={id} className="cds--text-input" value={value} onChange={e=>onChange(e.target.value)} />
+      </div></div>
+    </div>
+  );
+}
+
+function PrintDefaults() {
+  const [paper, setPaper] = useState('A4');
+  const [saved, setSaved] = useState('A4');
+  const [note, setNote] = useState(false);
+  return (
+    <div className="cds--tile" style={{marginBottom:'1.5rem'}}>
+      <h2 className="secthead">{t('admin.reports.defaults.title','Print defaults')}</h2>
+      <fieldset className="cds--fieldset" style={{margin:0}}>
+        <legend className="cds--label">{t('admin.reports.defaults.paperSize','Paper size')}</legend>
+        <div className="cds--radio-button-group" style={{gap:'1.5rem'}}>
+          <Radio name="paper" id="p-letter" checked={paper==='LETTER'} onChange={()=>setPaper('LETTER')} label={t('admin.reports.defaults.paperSize.letter','US Letter (8.5 × 11 in)')} />
+          <Radio name="paper" id="p-a4" checked={paper==='A4'} onChange={()=>setPaper('A4')} label={t('admin.reports.defaults.paperSize.a4','A4 (210 × 297 mm)')} />
+        </div>
+      </fieldset>
+      <div className="help">{t('admin.reports.defaults.paperSize.help','Applies to every report that has a Letter and an A4 layout.')}</div>
+      <div style={{marginTop:'1rem'}}>
+        <button className="cds--btn cds--btn--primary cds--btn--sm" disabled={paper===saved} onClick={()=>{setSaved(paper); setNote(true);}}>{t('common.save','Save')}</button>
+      </div>
+      {note && <Notification kind="success" title={t('admin.reports.defaults.saved','Print defaults saved. New reports use them from now on.')} onClose={()=>setNote(false)} />}
+    </div>
+  );
+}
+
+function ImageCard({ label, help, initial, sig }) {
+  const [set, setSet] = useState(initial);
+  const [err, setErr] = useState(false);
+  return (
+    <div className="imgcard">
+      <div className="lbl">{label}</div>
+      <div className={`thumb ${set ? 'set' : ''} ${set && sig ? 'sig' : ''}`}>{set ? set : t('admin.reports.branding.none','No image')}</div>
+      <div style={{display:'flex', gap:'.5rem', flexWrap:'wrap'}}>
+        <label className="cds--btn cds--btn--tertiary cds--btn--sm" style={{cursor:'pointer'}}>{t('admin.reports.branding.replace','Replace')}<input type="file" accept="image/png,image/jpeg" style={{display:'none'}} onChange={()=>{ setSet(initial || 'New image'); setErr(false); }} /></label>
+        <button className="cds--btn cds--btn--ghost cds--btn--sm" disabled={!set} onClick={()=>setSet(null)}>{t('admin.reports.branding.remove','Remove')}</button>
+        <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setErr(true)} title="Simulates choosing a PDF">Simulate invalid file</button>
+      </div>
+      <div className="help">{help}</div>
+      {err && <div className="cds--file__selected-file cds--file__selected-file--invalid" style={{marginTop:'.5rem', maxWidth:'100%'}}><div className="cds--form-requirement" style={{display:'block'}}><div className="cds--form-requirement__title">{t('admin.reports.branding.invalidImage','Choose a PNG or JPEG file up to 2 MB.')}</div></div></div>}
+    </div>
+  );
+}
+
+function PatientReportPanel({ scope }) {
+  const initial = { title:'Dr.', given:'Mary', surname:'Kila', info:'Port Moresby General Hospital campus, Boroko, NCD · +675 324 8200' };
+  const [f, setF] = useState(initial);
+  const [savedF, setSavedF] = useState(initial);
+  const [note, setNote] = useState(false);
+  const [active, setActive] = useState('shipped');
+  const [sel, setSel] = useState('shipped');
+  const [previewed, setPreviewed] = useState({ shipped:true });
+  const [previewMsg, setPreviewMsg] = useState(null);
+  const [modal, setModal] = useState(false);
+  const [history, setHistory] = useState([
+    { d:'2026-08-02 09:14', u:'admin.kaupa', from:'cphl_patient_2025.jrxml', to:'Shipped default' },
+    { d:'2026-03-11 15:40', u:'admin.kaupa', from:'Shipped default', to:'cphl_patient_2025.jrxml' },
+  ]);
+  const dirty = JSON.stringify(f) !== JSON.stringify(savedF) || sel !== active;
+  const canSaveTemplate = sel === active || previewed[sel];
+  const name = (k) => k === 'shipped' ? 'Shipped default' : k;
+  const save = () => {
+    setSavedF(f);
+    if (sel !== active) { setHistory([{ d:'2026-09-26 10:20', u:'admin.kaupa', from:name(active), to:name(sel) }, ...history]); setActive(sel); }
+    setNote(true);
+  };
+  return (
+    <div className="exp-tile">
+      <div className="exp-section">
+        <h3 className="secthead">{t('admin.reports.branding.title','Header and branding')}</h3>
+        <div className="imgs">
+          <ImageCard label={t('admin.reports.branding.leftLogo','Left header logo')} help={t('admin.reports.branding.logoHelp','Square works best, at least 300 × 300 px. Other shapes are scaled to fit the square.')} initial="CPHL" />
+          <ImageCard label={t('admin.reports.branding.rightLogo','Right header logo')} help={t('admin.reports.branding.logoHelp','Square works best, at least 300 × 300 px. Other shapes are scaled to fit the square.')} initial="★ NDoH" />
+          <ImageCard label={t('admin.reports.branding.signature','Lab director signature')} help={t('admin.reports.branding.signatureHelp','At least 800 × 200 px on a white background.')} initial="M. Kila" sig />
+        </div>
+      </div>
+
+      <div className="exp-section">
+        <h3 className="secthead">{t('admin.reports.lines.title','Header lines')}</h3>
+        <div className="fields">
+          <div>
+            <div className="cds--label">{t('admin.reports.lines.siteName','Lab name')}</div>
+            <div className="ro">Central Public Health Laboratory &nbsp;<a className="lnk">{t('admin.reports.lines.siteNameLink','Edit in Configuration')}</a></div>
           </div>
-          <div style={{marginTop:14}}>
-            <button className="btn btn-tert">Preview with sample data</button>
-            <button className="btn btn-ghost" onClick={onRevert}>↺ Revert to shipped default</button>
+          <div></div>
+          <TextField id="dt" label={t('admin.reports.lines.directorTitle','Lab director title')} value={f.title} onChange={v=>setF({...f, title:v})} />
+          <TextField id="dg" label={t('admin.reports.lines.directorGiven','Lab director given name')} value={f.given} onChange={v=>setF({...f, given:v})} />
+          <TextField id="ds" label={t('admin.reports.lines.directorSurname','Lab director surname')} value={f.surname} onChange={v=>setF({...f, surname:v})} />
+          <div className="ro" style={{color:'#525252', fontSize:12}}>Prints as: Lab director: {f.title} {f.given} {f.surname}</div>
+          <div style={{gridColumn:'1 / span 2'}}>
+            <TextField id="ai" label={t('admin.reports.lines.additionalInfo','Additional site information line')} value={f.info} onChange={v=>setF({...f, info:v})} />
+          </div>
+          <div className="help" style={{gridColumn:'1 / span 2'}}>{t('admin.reports.lines.pageNumbersNote','Pages are always numbered "Page x of y".')}</div>
+        </div>
+      </div>
+
+      <div className="exp-section">
+        <h3 className="secthead">{t('admin.reports.accreditation.title','Accreditation')}</h3>
+        <div style={{fontSize:14}}>{t('admin.reports.accreditation.summary','Active accrediting bodies: ISO 15189 (PNGAS), SANAS.')} &nbsp;<a className="lnk">{t('admin.reports.accreditation.link','Manage accreditation')}</a></div>
+        <div className="help">{t('admin.reports.accreditation.help','Marks print in the report header, up to three. Results outside the accredited scope are marked with †.')}</div>
+      </div>
+
+      <div className="exp-section">
+        <h3 className="secthead">{t('admin.reports.signatures.title','Signatures')}</h3>
+        <div style={{fontSize:14, color:'#525252'}}>{t('admin.reports.signatures.placeholder','Electronic signature settings will appear here.')}</div>
+        
+      </div>
+
+      {scope === 'v2' && (
+        <div className="exp-section">
+          <h3 className="secthead">{t('admin.reports.template.title','Template')}<span className="v2tag">V2</span></h3>
+          {active !== 'shipped' && <div><Notification kind="info" title={t('admin.reports.template.newerDefault','A newer shipped template is available. This report uses a custom template.')} /><button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={()=>setPreviewMsg(t('admin.reports.template.previewDone','Preview opened in a new tab.'))}>{t('admin.reports.template.previewShipped','Preview shipped template')}</button></div>}
+          <div style={{marginTop:'1rem', maxWidth:760}}>
+            {[
+              { k:'shipped', title:'Shipped default: patient_letter / patient_a4', meta:'Follows the paper size in Print defaults. Updated with each release.' },
+              { k:'cphl_patient_2026.jrxml', title:'cphl_patient_2026.jrxml', meta:'Configuration folder, modified 2026-09-20 16:02 · Letter and A4 pair (cphl_patient_2026_letter / _a4)' },
+              { k:'cphl_patient_2025.jrxml', title:'cphl_patient_2025.jrxml', meta:'Configuration folder, modified 2025-11-03 10:11' },
+              { k:'bad', title:'draft_accred_footer.jrxml', meta:'Configuration folder, modified 2026-09-25 08:47', bad:'Unknown parameter: accreditationFooterTitle; Unknown field: specimenQualityCode' },
+            ].map(o => (
+              <label key={o.k} className={`tmpl-opt ${sel===o.k?'sel':''} ${o.bad?'dis':''}`}>
+                <input type="radio" name="tmpl" disabled={!!o.bad} checked={sel===o.k} onChange={()=>{setSel(o.k); setPreviewMsg(null);}} />
+                <div>
+                  <div style={{fontSize:14, fontWeight:600}}>{o.title} {active===o.k && <span className="cds--tag cds--tag--green cds--tag--sm">{t('admin.reports.status.active','Active')}</span>} {o.bad && <span className="cds--tag cds--tag--red cds--tag--sm">{t('admin.reports.template.notUsable','Not usable')}</span>}</div>
+                  <div className="tmpl-meta">{o.meta}</div>
+                  {o.bad && <div className="reason">{o.bad}</div>}
+                </div>
+              </label>
+            ))}
+            <div className="help">{t('admin.reports.template.help','Custom templates are placed in the server\'s configuration folder by the server operator. This page does not accept template uploads.')}</div>
+            <div style={{display:'flex', gap:'.5rem', marginTop:'1rem', flexWrap:'wrap'}}>
+              <button className="cds--btn cds--btn--tertiary cds--btn--sm" onClick={()=>{ setPreviewed({...previewed, [sel]:true}); setPreviewMsg(t('admin.reports.template.previewDone','Preview opened in a new tab.')); }}>{t('admin.reports.template.preview','Preview with sample data')}</button>
+              <button className="cds--btn cds--btn--danger--tertiary cds--btn--sm" disabled={active==='shipped'} onClick={()=>setModal(true)}>{t('admin.reports.template.revert','Revert to shipped default')}</button>
+            </div>
+            {previewMsg && <Notification kind="success" title={previewMsg} onClose={()=>setPreviewMsg(null)} />}
+            {!canSaveTemplate && <div className="help" style={{color:'#8a3800'}}>{t('admin.reports.template.previewFirst','Preview this template before activating it.')}</div>}
+            <div className="cds--label" style={{marginTop:'1.25rem'}}>{t('admin.reports.template.history','Recent template changes')}</div>
+            <div className="cds--data-table-container"><table className="cds--data-table cds--data-table--sm hist">
+              <thead><tr><th><div className="cds--table-header-label">{t('admin.reports.template.history.col.date','Date')}</div></th><th><div className="cds--table-header-label">{t('admin.reports.template.history.col.user','User')}</div></th><th><div className="cds--table-header-label">{t('admin.reports.template.history.col.from','From')}</div></th><th><div className="cds--table-header-label">{t('admin.reports.template.history.col.to','To')}</div></th></tr></thead>
+              <tbody>{history.map((h,i)=>(<tr key={i}><td>{h.d}</td><td>{h.u}</td><td>{h.from}</td><td>{h.to}</td></tr>))}</tbody>
+            </table></div>
           </div>
         </div>
-      );
-    }
+      )}
 
-    function ReadOnly({r}) {
-      return (
-        <div className="detail">
-          <div className="notif notif-info">
-            <strong>Managed in code — not yet configurable.</strong><br/>
-            {r.name} renders from <span className="mono">{r.activeTemplate}</span> ({r.activeVersion}). Template selection for this report is resolved in code until the engine supports registry resolution for it.
+      {note && <Notification kind="success" title={t('admin.reports.saved','Report settings saved.')} onClose={()=>setNote(false)} />}
+      <div className="stickybar">
+        <button className="cds--btn cds--btn--primary cds--btn--sm" disabled={!dirty || !canSaveTemplate} onClick={save}>{t('common.save','Save')}</button>
+        <button className="cds--btn cds--btn--secondary cds--btn--sm" disabled={!dirty} onClick={()=>{setF(savedF); setSel(active);}}>{t('common.cancel','Cancel')}</button>
+      </div>
+
+      {modal && (
+        <div className="modal-back" role="dialog" aria-modal="true">
+          <div className="modal-box">
+            <div className="mh"><h3 style={{fontSize:20, fontWeight:400}}>{t('admin.reports.template.revert.modal.title','Revert to shipped default?')}</h3></div>
+            <div className="mb">{t('admin.reports.template.revert.modal.body','Revert Patient Status Report to the shipped template? The custom template stays in the configuration folder and can be selected again.')}</div>
+            <div className="mf">
+              <button className="cds--btn cds--btn--secondary" onClick={()=>setModal(false)}>{t('common.cancel','Cancel')}</button>
+              <button className="cds--btn cds--btn--danger" onClick={()=>{ setHistory([{ d:'2026-09-26 10:21', u:'admin.kaupa', from:name(active), to:'Shipped default' }, ...history]); setActive('shipped'); setSel('shipped'); setModal(false); setNote(true); }}>{t('admin.reports.template.revert.modal.confirm','Revert')}</button>
+            </div>
           </div>
         </div>
-      );
-    }
+      )}
+    </div>
+  );
+}
 
-    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-  </script>
+function App() {
+  const [scope, setScope] = useState('v2');
+  const [q, setQ] = useState('');
+  const [showAll, setShowAll] = useState(false);
+  const [open, setOpen] = useState('patientCILNSP_vreduit');
+  const rows = useMemo(() => REPORTS.filter(r => (showAll || r.configurable) && (r.name + ' ' + CAT[r.cat]).toLowerCase().includes(q.toLowerCase())), [q, showAll]);
+  return (
+    <div>
+      <Banner scope={scope} setScope={setScope} />
+      <div className="topbar"><b>OpenELIS Global</b><span style={{color:'#8d8d8d'}}>| Central Public Health Laboratory</span></div>
+      <div className="shell">
+        <SideNav />
+        <main className="content">
+          {/* Route: /MasterListsPage/reportManagement */}
+          {/* SideNav: Admin › Config › Report Management (admin-redesign-frs.md §13) */}
+          <nav className="cds--breadcrumb" aria-label="breadcrumb">
+            <div className="cds--breadcrumb-item"><a className="cds--link" href="#">{t('home.label','Home')}</a></div>
+            <div className="cds--breadcrumb-item"><a className="cds--link" href="#">{t('breadcrums.admin.managment','Admin Management')}</a></div>
+            <div className="cds--breadcrumb-item cds--breadcrumb-item--current"><span>{t('admin.reports.title','Report Management')}</span></div>
+          </nav>
+          <h1 className="pt">{t('admin.reports.title','Report Management')}</h1>
+          <p className="subt">{t('admin.reports.subtitle','Choose how OpenELIS prints reports for this lab.')}</p>
+
+          <PrintDefaults />
+
+          <div className="cds--data-table-container">
+            <section className="cds--table-toolbar">
+              <div className="cds--toolbar-content" style={{display:'flex', alignItems:'center', gap:'1rem', width:'100%'}}>
+                <div className="cds--search cds--search--sm" style={{flex:1}}>
+                  <input className="cds--search-input" placeholder={t('admin.reports.list.search','Search reports')} value={q} onChange={e=>setQ(e.target.value)} style={{paddingLeft:'1rem'}} />
+                </div>
+                <div className={`tgl ${showAll ? 'on' : ''}`} style={{paddingRight:'1rem'}} onClick={()=>setShowAll(!showAll)} role="switch" aria-checked={showAll}>
+                  <span className="track"></span>{t('admin.reports.list.showNotConfigurable','Show not configurable')}
+                </div>
+              </div>
+            </section>
+            <table className="cds--data-table cds--data-table--md">
+              <thead><tr>
+                <th></th>
+                <th><div className="cds--table-header-label">{t('admin.reports.list.col.report','Report')}</div></th>
+                <th><div className="cds--table-header-label">{t('admin.reports.list.col.category','Category')}</div></th>
+                <th><div className="cds--table-header-label">{t('admin.reports.list.col.template','Template')}</div></th>
+              </tr></thead>
+              <tbody>
+                {rows.map(r => (
+                  <React.Fragment key={r.key}>
+                    <tr className={r.configurable ? '' : 'dim'}>
+                      <td className="expander">{r.configurable && <button className="chev" aria-expanded={open===r.key} onClick={()=>setOpen(open===r.key ? null : r.key)}>{open===r.key ? '▾' : '▸'}</button>}</td>
+                      <td><b style={{fontWeight: r.configurable ? 600 : 400}}>{r.name}</b></td>
+                      <td><span className="cds--tag cds--tag--gray cds--tag--sm">{CAT[r.cat]}</span></td>
+                      <td>{r.configurable ? <span>{r.tmpl} <span className="cds--tag cds--tag--gray cds--tag--sm">{t('admin.reports.source.shipped','Shipped default')}</span></span> : <span style={{fontSize:13}}>{r.tmpl} · {t('admin.reports.source.managedInCode','Managed in code')} · {t('admin.reports.letterOnly','Letter only')}</span>}</td>
+                    </tr>
+                    {open===r.key && r.configurable && (
+                      <tr><td colSpan={4} style={{padding:0}}><PatientReportPanel scope={scope} /></td></tr>
+                    )}
+                  </React.Fragment>
+                ))}
+                {rows.length === 0 && <tr><td colSpan={4} style={{padding:'1.5rem', color:'#525252'}}>{t('admin.reports.list.empty','No reports match your search.')}</td></tr>}
+              </tbody>
+            </table>
+          </div>
+          {!showAll && <div className="help" style={{marginTop:'.5rem'}}>{t('admin.reports.list.hiddenCount', `${REPORTS.filter(r=>!r.configurable).length} reports are managed in code and hidden.`)}{scope==='v2' ? ' In V2 they become configurable one by one as the report engine picks their template from this page.' : ''}</div>}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
 </body>
 </html>

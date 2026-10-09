@@ -1,7 +1,7 @@
 {
-  "generated": "2026-09-10T16:48:30.719Z",
+  "generated": "2026-10-09T17:04:16.199Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
-  "totalDesigns": 232,
+  "totalDesigns": 239,
   "categories": [
     "admin-config",
     "analyzer-integration",
@@ -22,6 +22,37 @@
     "vector-surveillance"
   ],
   "designs": [
+    {
+      "name": "Provider Titles",
+      "slug": "provider-titles",
+      "category": "admin-config",
+      "description": "A Title (honorific/cadre) field on the Provider record, separate from first and last name, plus a small admin page under Provider Management for maintaining the list — title, abbreviation, sort order, active/inactive, and how many providers use each. Titles are configured per deployment (PNG needs HEO and RMO; other countries differ), seeded with the common honorifics. Provider search never matches on title; a shared display helper renders the abbreviation ahead of first and last name everywhere. Deactivate, never delete. From the CPHL PNG duplicate-provider cleanup.",
+      "type": "html",
+      "added": "2026-09-17",
+      "status": "draft",
+      "tags": [
+        "provider",
+        "title",
+        "honorific",
+        "dictionary",
+        "admin",
+        "configuration",
+        "PNG",
+        "CPHL"
+      ],
+      "jira": [
+        "OGC-1223"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/admin-config/provider-titles.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/provider-titles",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/provider-titles",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/provider-titles",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/provider-titles.md",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/provider-titles.html"
+      }
+    },
     {
       "name": "Test Catalog — Specimen Many-to-Many [Completed]",
       "slug": "test-catalog-specimen-many-to-many-completed",
@@ -150,7 +181,7 @@
       "name": "Report Management",
       "slug": "report-management",
       "category": "admin-config",
-      "description": "Admin registry to choose, version, and override the report templates OpenELIS uses to render reports — see the active template per report, whether it is the shipped default or a custom override, pick a bundled variant, upload a custom template, preview, and revert to the shipped default (OGC-1111, Epic).",
+      "description": "Report Management admin page, now Part B of the consolidated Patient Report & Report Management FRS v2.4.3 (page spec moving to the Admin Redesign FRS section 13): choose, version and override the report templates OpenELIS uses, see the active template per report, shipped default or custom override, pick a bundled variant, upload, preview and revert, with V1 and V2 split (OGC-1111, Epic).",
       "type": "jsx",
       "added": "2026-07-01",
       "status": "draft",
@@ -259,7 +290,7 @@
       "name": "Organizations Management",
       "slug": "organizations-management",
       "category": "admin-config",
-      "description": "Organizations and referring facilities management",
+      "description": "Superseded by Locations & Organizations (2026-09-28), which drops the separate Region/District/Facility/Ward tables this spec assumed. Organizations and referring facilities management",
       "type": "jsx",
       "added": "2026-03-03",
       "status": "draft",
@@ -278,6 +309,38 @@
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/organizations-management",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/organizations-management.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/organizations-management.jsx"
+      }
+    },
+    {
+      "name": "Locations & Organizations",
+      "slug": "locations-organizations",
+      "category": "admin-config",
+      "description": "Locations & Organizations FRS v0.3: one admin menu for the places a lab works with (facilities and their wards and departments, sampling sites, geographic areas) with codes, search, filters, a GUI CSV import that matches the startup loader, and deactivation instead of delete. Supersedes Organizations Management. Companion slicing guide (10 PR-sized slices).",
+      "type": "jsx",
+      "added": "2026-09-28",
+      "status": "draft",
+      "tags": [
+        "locations",
+        "organizations",
+        "facilities",
+        "wards",
+        "sampling-sites",
+        "geography",
+        "csv-import",
+        "admin"
+      ],
+      "jira": [
+        "OGC-1363"
+      ],
+      "githubIssue": 344,
+      "specPath": "designs/admin-config/locations-organizations.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/admin-config/locations-organizations",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/admin-config/locations-organizations",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/admin-config/locations-organizations",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/locations-organizations.md",
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/locations-organizations.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/admin-config/locations-organizations.html"
       }
     },
     {
@@ -790,7 +853,7 @@
       "name": "Test Catalog — Microbiology Workflow Attribute",
       "slug": "test-catalog-microbiology-workflow-attribute",
       "category": "admin-config",
-      "description": "Test Catalog Basic Info: a nullable culture_workflow_type enum (None / Bacteriology / Mycobacteriology\\u2013TB; Mycology reserved), orthogonal to Domain and the AMR flag; drives micro case routing (M-03/M-04). Foldable into Test Catalog v2.5 \\u00a72.1 Basic Info.",
+      "description": "Narrowed by Microbiology v2 (2026-10-01): the attribute stays, renamed Culture type and set only on generic culture tests (A-01, D-125); one Microbiology case dropdown in the test catalog (None, Bacteriology, Mycobacteriology, Mycology). Test Catalog Basic Info: a nullable culture_workflow_type enum orthogonal to Domain and the AMR flag; drives micro case routing (M-03/M-04). Foldable into Test Catalog v2.5 \\u00a72.1 Basic Info.",
       "type": "html",
       "added": "2026-06-08",
       "status": "draft",
@@ -2348,7 +2411,7 @@
       "name": "M-00 Microbiology Module Parent",
       "slug": "m-00-microbiology-module-parent",
       "category": "microbiology",
-      "description": "Spine spec for the M-* bundle: glossary, RBAC matrix, data model overview, phase plan, out-of-scope, v1.1 → v2 diff map. v2.1: NO_GROWTH_FINAL → NO_GROWTH_READY (releases to FINAL_REPORTED, not terminal).",
+      "description": "Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Spine spec for the M-* bundle: glossary, RBAC matrix, data model overview, phase plan, out-of-scope, v1.1 → v2 diff map. v2.1: NO_GROWTH_FINAL → NO_GROWTH_READY (releases to FINAL_REPORTED, not terminal).",
       "type": "spec-only",
       "added": "2026-05-15",
       "status": "draft",
@@ -2399,7 +2462,7 @@
       "name": "M-01 AMR Reference Data (Organism Master)",
       "slug": "m-01-amr-reference-data-organism-master",
       "category": "microbiology",
-      "description": "Organism / Antibiotic / AST Panel / Culture Protocol masters with WHONET codes and groupings. Mockup shows Organism Master admin list.",
+      "description": "Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Organism / Antibiotic / AST Panel / Culture Protocol masters with WHONET codes and groupings. Mockup shows Organism Master admin list.",
       "type": "html",
       "added": "2026-05-15",
       "status": "draft",
@@ -2427,7 +2490,7 @@
       "name": "M-02 Breakpoint Catalog",
       "slug": "m-02-breakpoint-catalog",
       "category": "microbiology",
-      "description": "Versioned CLSI + EUCAST breakpoint tables; AST Runs snapshot the breakpoint version at result time so publisher updates do not retroactively change interpretations.",
+      "description": "Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Versioned CLSI + EUCAST breakpoint tables; AST Runs snapshot the breakpoint version at result time so publisher updates do not retroactively change interpretations.",
       "type": "html",
       "added": "2026-05-15",
       "status": "draft",
@@ -2456,7 +2519,7 @@
       "name": "M-03 Order Entry Micro Hook",
       "slug": "m-03-order-entry-micro-hook",
       "category": "microbiology",
-      "description": "Order Entry Step 1 amendment: when Program = MICROBIOLOGY, five editable micro fields appear inline (Patient Origin, Date of Admission, Number of Sets, Clinical History, Antibiotic Exposure) alongside a read-only derived Culture Protocol. Date of Admission supplies the missing input for the WHO GLASS hospital- vs community-origin classification. v2.2 makes Culture Protocol derived (override moves to the bench, M-04) and removes Critical Value Notify as a duplicate of the Test Catalog notify flag / Alerts section and TestNotificationConfig.",
+      "description": "Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Order Entry Step 1 amendment: when Program = MICROBIOLOGY, five editable micro fields appear inline (Patient Origin, Date of Admission, Number of Sets, Clinical History, Antibiotic Exposure) alongside a read-only derived Culture Protocol. Date of Admission supplies the missing input for the WHO GLASS hospital- vs community-origin classification. v2.2 makes Culture Protocol derived (override moves to the bench, M-04) and removes Critical Value Notify as a duplicate of the Test Catalog notify flag / Alerts section and TestNotificationConfig.",
       "type": "html",
       "added": "2026-05-15",
       "status": "draft",
@@ -2570,7 +2633,7 @@
       "name": "M-04 Isolate Modal",
       "slug": "m-04-isolate-modal",
       "category": "microbiology",
-      "description": "Add / Edit Isolate modal — Gram stain, colony morphology, final ID, significance. Second example shows reidentification mode with versioning.",
+      "description": "Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Add / Edit Isolate modal — Gram stain, colony morphology, final ID, significance. Second example shows reidentification mode with versioning.",
       "type": "html",
       "added": "2026-05-15",
       "status": "draft",
@@ -2598,7 +2661,7 @@
       "name": "M-06 Expert Rules Engine",
       "slug": "m-06-expert-rules-engine",
       "category": "microbiology",
-      "description": "Configurable rules engine: MRSA inference, D-test required, ESBL screen/confirm, cascade reporting, intrinsic resistance verification. Phase 1B.",
+      "description": "Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Configurable rules engine: MRSA inference, D-test required, ESBL screen/confirm, cascade reporting, intrinsic resistance verification. Phase 1B.",
       "type": "spec-only",
       "added": "2026-05-15",
       "status": "draft",
@@ -2623,7 +2686,7 @@
       "name": "M-07 Pending Cultures Worklist",
       "slug": "m-07-pending-cultures-worklist",
       "category": "microbiology",
-      "description": "Primary morning-rounds tech surface — Cases by stage with red-highlighted positives and green-highlighted ready-to-finalize.",
+      "description": "Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Primary morning-rounds tech surface — Cases by stage with red-highlighted positives and green-highlighted ready-to-finalize.",
       "type": "html",
       "added": "2026-05-15",
       "status": "draft",
@@ -2649,7 +2712,7 @@
       "name": "M-04 Case Workbench \\u2014 Interactive Prototype",
       "slug": "m-04-case-workbench-u2014-interactive-prototype",
       "category": "microbiology",
-      "description": "Clickable end-to-end case workup \\u2014 start inoculation, add/identify isolates, set up + receive AST, log critical, release reports; stage, sidebar and next-step guidance update live; opens on the current step. v2.1: release gate keys on a recorded outcome (isolate workup complete / no growth / all-contaminant / TB CONTAMINATED|NTM_IDENTIFIED), NO_GROWTH_FINAL to NO_GROWTH_READY.",
+      "description": "Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Clickable end-to-end case workup \\u2014 start inoculation, add/identify isolates, set up + receive AST, log critical, release reports; stage, sidebar and next-step guidance update live; opens on the current step. v2.1: release gate keys on a recorded outcome (isolate workup complete / no growth / all-contaminant / TB CONTAMINATED|NTM_IDENTIFIED), NO_GROWTH_FINAL to NO_GROWTH_READY.",
       "type": "html",
       "added": "2026-06-05",
       "status": "draft",
@@ -2677,7 +2740,7 @@
       "name": "M-07 Worklist \\u2014 Interactive Prototype",
       "slug": "m-07-worklist-u2014-interactive-prototype",
       "category": "microbiology",
-      "description": "Single shared Worklist (no per-case ownership) with a culture / AST grain toggle, needs-action cards, urgency sort, and folded-in resistance strip + recent activity; rows open the case. Analyzer results arrive automatically (no manual import).",
+      "description": "Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Single shared Worklist (no per-case ownership) with a culture / AST grain toggle, needs-action cards, urgency sort, and folded-in resistance strip + recent activity; rows open the case. Analyzer results arrive automatically (no manual import).",
       "type": "html",
       "added": "2026-06-05",
       "status": "draft",
@@ -2729,7 +2792,7 @@
       "name": "M-05 AST Entry \\u2014 Interactive Prototype",
       "slug": "m-05-ast-entry-u2014-interactive-prototype",
       "category": "microbiology",
-      "description": "Inline AST entry (no modals) \\u2014 type MIC to auto-interpret; switch breakpoint standard to re-compute (EUCAST vs CLSI); inline override with revert + reading history; no-breakpoint guidance; QC-fail recovery. Analyzer results auto-ingest, no manual import.",
+      "description": "Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Inline AST entry (no modals) \\u2014 type MIC to auto-interpret; switch breakpoint standard to re-compute (EUCAST vs CLSI); inline override with revert + reading history; no-breakpoint guidance; QC-fail recovery. Analyzer results auto-ingest, no manual import.",
       "type": "html",
       "added": "2026-06-05",
       "status": "draft",
@@ -2757,7 +2820,7 @@
       "name": "M-08 Macro Library",
       "slug": "m-08-macro-library",
       "category": "microbiology",
-      "description": "Cross-cutting typing shortcuts: type .gpc, get \"Gram positive cocci in clusters\". 85 default macros across 8 categories. First Phase 1A+ feature.",
+      "description": "Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Cross-cutting typing shortcuts: type .gpc, get \"Gram positive cocci in clusters\". 85 default macros across 8 categories. First Phase 1A+ feature.",
       "type": "html",
       "added": "2026-05-15",
       "status": "draft",
@@ -2810,8 +2873,8 @@
       }
     },
     {
-      "name": "M-10 Hub Subscription",
-      "slug": "m-10-hub-subscription",
+      "name": "M-10 Hub Subscription [Superseded]",
+      "slug": "m-10-hub-subscription-superseded",
       "category": "microbiology",
       "description": "Unified admin for breakpoint + WHONET code + organism/antibiotic master updates from a central repository. OE pulls; never pushes. Phase 1B.",
       "type": "html",
@@ -2831,9 +2894,9 @@
       "githubIssue": null,
       "specPath": "designs/microbiology/m-10-hub-subscription.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-10-hub-subscription",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-10-hub-subscription",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-10-hub-subscription",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-10-hub-subscription-superseded",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-10-hub-subscription-superseded",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-10-hub-subscription-superseded",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-10-hub-subscription.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-10-hub-subscription-prototype.html"
       }
@@ -2842,7 +2905,7 @@
       "name": "M-12 Test to Reagent Linkage",
       "slug": "m-12-test-to-reagent-linkage",
       "category": "microbiology",
-      "description": "General OE foundation: declare which reagent lots are required for a given test (ISO 15189 §7.3). Micro is the forcing function. Parallel pre-track to MVP-1A.",
+      "description": "Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. General OE foundation: declare which reagent lots are required for a given test (ISO 15189 §7.3). Micro is the forcing function. Parallel pre-track to MVP-1A.",
       "type": "html",
       "added": "2026-05-15",
       "status": "draft",
@@ -2901,7 +2964,7 @@
       "name": "M-14 TB Case — Interactive Prototype",
       "slug": "m-14-tb-case-interactive-prototype",
       "category": "microbiology",
-      "description": "The M-04 Case Workbench shell as a TB profile: smear, MGIT/LJ culture, species ID, critical-concentration DST, molecular flags, staged interim reports. v1.1 aligns the TB bench with the no-growth amendment (NO_GROWTH_READY + release; CONTAMINATED is not a result).",
+      "description": "Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. The M-04 Case Workbench shell as a TB profile: smear, MGIT/LJ culture, species ID, critical-concentration DST, molecular flags, staged interim reports. v1.1 aligns the TB bench with the no-growth amendment (NO_GROWTH_READY + release; CONTAMINATED is not a result).",
       "type": "html",
       "added": "2026-06-08",
       "status": "draft",
@@ -2956,8 +3019,8 @@
       }
     },
     {
-      "name": "M-04 Change Workflow / Unassigned",
-      "slug": "m-04-change-workflow-unassigned",
+      "name": "M-04 Change Workflow / Unassigned [Completed]",
+      "slug": "m-04-change-workflow-unassigned-completed",
       "category": "microbiology",
       "description": "M-04 §4.9 runtime escape hatch: re-classify an UNASSIGNED or mis-routed Case to the correct workflow_type (BACTERIOLOGY / MYCOBACTERIOLOGY_TB). 3 demo scenarios: unassigned, mis-routed-with-results, released-blocked.",
       "type": "html",
@@ -2977,9 +3040,9 @@
       "githubIssue": null,
       "specPath": "designs/microbiology/m-04-case-workbench-core.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-04-change-workflow-unassigned",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-04-change-workflow-unassigned",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-04-change-workflow-unassigned",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-04-change-workflow-unassigned-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-04-change-workflow-unassigned-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-04-change-workflow-unassigned-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-case-workbench-core.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-04-change-workflow-prototype.html"
       }
@@ -2988,7 +3051,7 @@
       "name": "M-04 Linked Cases — Shared Specimen",
       "slug": "m-04-linked-cases-shared-specimen",
       "category": "microbiology",
-      "description": "Demonstrates Case keyed to sample_item_id × workflow_type: bacterial + TB on one sputum = two sibling Cases sharing one SampleItem. Worklist grouped siblings → bacterial case ↔ TB case sibling chip → order-entry 2-case preview.",
+      "description": "Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Demonstrates Case keyed to sample_item_id × workflow_type: bacterial + TB on one sputum = two sibling Cases sharing one SampleItem. Worklist grouped siblings → bacterial case ↔ TB case sibling chip → order-entry 2-case preview.",
       "type": "html",
       "added": "2026-06-08",
       "status": "draft",
@@ -3077,7 +3140,7 @@
       "name": "M-11 Critical Notification — Inline",
       "slug": "m-11-critical-notification-inline",
       "category": "microbiology",
-      "description": "Inline Log/Acknowledge/Close flow over the existing OpenELIS notifications entity. Open → Acknowledged → Closed. Reuses alerts dashboard as criticals filter; no new Alerts Dashboard build.",
+      "description": "Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Inline Log/Acknowledge/Close flow over the existing OpenELIS notifications entity. Open → Acknowledged → Closed. Reuses alerts dashboard as criticals filter; no new Alerts Dashboard build.",
       "type": "html",
       "added": "2026-06-08",
       "status": "draft",
@@ -3134,7 +3197,7 @@
       "name": "M-14 Mycobacteriology / TB",
       "slug": "m-14-mycobacteriology-tb",
       "category": "microbiology",
-      "description": "M-04 Case Workbench extended for TB: workflow_type = MYCOBACTERIOLOGY_TB, smear microscopy, MGIT/LJ culture, species ID, WHO critical-concentration DST, molecular resistance flags (GeneXpert, Hain LPA), staged interim reports, WHONET-TB export.",
+      "description": "Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. M-04 Case Workbench extended for TB: workflow_type = MYCOBACTERIOLOGY_TB, smear microscopy, MGIT/LJ culture, species ID, WHO critical-concentration DST, molecular resistance flags (GeneXpert, Hain LPA), staged interim reports, WHONET-TB export.",
       "type": "spec-only",
       "added": "2026-06-08",
       "status": "draft",
@@ -3242,6 +3305,73 @@
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-16-cluster-detection-outbreak-signals",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-16-cluster-detection.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-16-cluster-detection-preview.html"
+      }
+    },
+    {
+      "name": "Microbiology v2 Amendments",
+      "slug": "microbiology-v2-amendments",
+      "category": "microbiology",
+      "description": "Microbiology (AMR) v2 amendments (v2.0 draft 10.4), a delta over M-00 to M-18 reconciled with the CPHL Port Moresby microbiology and mycobacteriology workflow breakdown. Every micro test opens a case, including Xpert or smear alone; blood culture sets as one sample per bottle. Case view with Initial testing, Culture (plating templates, tracked or not tracked media, lot on the row), Growth work-up with reportable tests on a positive culture, AST/DST, Additional testing, plate, isolate and AST labels, patient history; Bench batches proposed. Every reversal of V1 is boxed as \"Contradicts V1\". Draft 10.4 preview plus a developer JSX mockup (@carbon/react) with shipped panels fenced (D-063). Narrows the Test Catalog microbiology workflow attribute (OGC-925) to Culture type on generic culture tests.",
+      "type": "jsx",
+      "added": "2026-09-28",
+      "status": "draft",
+      "tags": [
+        "microbiology",
+        "amr",
+        "v2",
+        "amendments",
+        "cphl",
+        "png",
+        "case-view",
+        "worklist",
+        "order-entry",
+        "plating-templates",
+        "inventory",
+        "labels"
+      ],
+      "jira": [
+        "OGC-1383",
+        "OGC-782"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/microbiology/amr-micro-v2-amendments.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/microbiology-v2-amendments",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/microbiology-v2-amendments",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/microbiology-v2-amendments",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-v2-amendments.md",
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-v2-amendments.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-v2-preview.html"
+      }
+    },
+    {
+      "name": "M-18 Environmental Microbiology",
+      "slug": "m-18-environmental-microbiology",
+      "category": "microbiology",
+      "description": "M-18 Environmental Microbiology FRS v0.9, follows Microbiology v2 draft 9: any environmental micro test opens a Case; no Microbiology section on environmental order entry, the culture test is ordered like any test; purpose defaults to Routine monitoring on the Case; media are tracked or not tracked Microbiology medium items (search first, Add new) with plating templates. Built on what develop stores today, investigation link moved to M-16, environmental report layout via Report Management. Touches Results Entry v4, Validation v4 and Environmental Order Entry v4. Preview with the samples table and After save review, JSX mockup, /analyze report and slicing guide.",
+      "type": "jsx",
+      "added": "2026-09-28",
+      "status": "draft",
+      "tags": [
+        "microbiology",
+        "environmental",
+        "m-18",
+        "sampling-sites",
+        "replicates",
+        "v2-aligned"
+      ],
+      "jira": [
+        "OGC-1382"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/microbiology/m-18-environmental-microbiology.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/microbiology/m-18-environmental-microbiology",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/microbiology/m-18-environmental-microbiology",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/microbiology/m-18-environmental-microbiology",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-18-environmental-microbiology.md",
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-18-environmental-microbiology.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/microbiology/m-18-environmental-microbiology.html"
       }
     },
     {
@@ -3754,8 +3884,8 @@
       }
     },
     {
-      "name": "Environmental QC Rules",
-      "slug": "environmental-qc-rules",
+      "name": "Environmental QC Rules [Completed]",
+      "slug": "environmental-qc-rules-completed",
       "category": "quality",
       "description": "Environmental QC Rules (S-08) — field blank, trip blank, duplicate sample (RPD), spike recovery. Per-standard QC protocol configuration, QC sample creation at order entry, inline QC results tab, and QC warning with acknowledgment modal on validation.",
       "type": "jsx",
@@ -3778,9 +3908,9 @@
       "githubIssue": 79,
       "specPath": "designs/quality/environmental-qc-rules.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/quality/environmental-qc-rules",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/quality/environmental-qc-rules",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/quality/environmental-qc-rules",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/quality/environmental-qc-rules-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/quality/environmental-qc-rules-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/quality/environmental-qc-rules-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/quality/environmental-qc-rules.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/quality/environmental-qc-rules.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/quality/environmental-qc-rules.html"
@@ -3992,8 +4122,8 @@
       }
     },
     {
-      "name": "Vector Specimen Types & Taxonomy",
-      "slug": "vector-specimen-types-taxonomy",
+      "name": "Vector Specimen Types & Taxonomy [Completed]",
+      "slug": "vector-specimen-types-taxonomy-completed",
       "category": "vector-surveillance",
       "description": "Vector reference data (V-01) — species taxonomy (genus + species + subspecies), trap types, and vector sample types with pooling strategy. Establishes the foundation for vector surveillance by extending SampleType.sampleDomain with VECTOR, adding VectorSpecimenProfile for pooling configuration, and seeding ~40 species and 15 trap types used in Indonesia.",
       "type": "jsx",
@@ -4017,17 +4147,17 @@
       "githubIssue": 80,
       "specPath": "designs/vector-surveillance/vector-reference-data.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/vector-specimen-types-taxonomy",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/vector-specimen-types-taxonomy",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/vector-specimen-types-taxonomy",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/vector-specimen-types-taxonomy-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/vector-specimen-types-taxonomy-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/vector-specimen-types-taxonomy-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/vector-surveillance/vector-reference-data.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/vector-surveillance/vector-reference-data.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/vector-surveillance/vector-reference-data.html"
       }
     },
     {
-      "name": "Vector Collection Workflow",
-      "slug": "vector-collection-workflow",
+      "name": "Vector Collection Workflow [Completed]",
+      "slug": "vector-collection-workflow-completed",
       "category": "vector-surveillance",
       "description": "V-02 Vector Collection Workflow — extends the 4-step Sample Collection Redesign with a Vector domain toggle (Clinical | Environmental / Other | Vector). Adds CollectionLot entity with trap type, GPS coordinates (pre-filled from sampling site), pool flag, organism count, weather conditions, receipt confirmation, and S-09 eligibility gate integration at Step 4.",
       "type": "jsx",
@@ -4051,17 +4181,17 @@
       "githubIssue": null,
       "specPath": "designs/vector-surveillance/vector-collection-workflow.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/vector-collection-workflow",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/vector-collection-workflow",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/vector-collection-workflow",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/vector-collection-workflow-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/vector-collection-workflow-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/vector-collection-workflow-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/vector-surveillance/vector-collection-workflow.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/vector-surveillance/vector-collection-workflow.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/vector-surveillance/vector-collection-workflow.html"
       }
     },
     {
-      "name": "Vector Testing & Identification",
-      "slug": "vector-testing-identification",
+      "name": "Vector Testing & Identification [Completed]",
+      "slug": "vector-testing-identification-completed",
       "category": "vector-surveillance",
       "description": "V-03 Vector Testing & Identification (v1.11) — species identification workbench with inline per-specimen form, bulk-apply for homogeneous lots, physiological state capture (UNFED/BLOOD_FED/HALF_GRAVID/GRAVID per Detinova classification), molecular detail (target gene, assay, GenBank accession), pool deconvolution (positive pool → LABNO.X-Y aliquots → re-test). Blood-meal analysis, Plasmodium drug-resistance genotyping, and vector insecticide-resistance now in V-03 scope via reflex rules. Auto-suggests Blood-Meal Panel when physiologicalState = BLOOD_FED. Seed Panels: Dengue, Malaria, Chikungunya, Blood-Meal ID, Plasmodium Drug Resistance, Vector Insecticide Resistance. Reflex rules VR-01–VR-06.",
       "type": "jsx",
@@ -4090,17 +4220,17 @@
       "githubIssue": null,
       "specPath": "designs/vector-surveillance/vector-testing-identification.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/vector-testing-identification",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/vector-testing-identification",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/vector-testing-identification",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/vector-testing-identification-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/vector-testing-identification-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/vector-testing-identification-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/vector-surveillance/vector-testing-identification.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/vector-surveillance/vector-testing-identification.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/vector-surveillance/vector-testing-identification.html"
       }
     },
     {
-      "name": "Vector Surveillance Reporting",
-      "slug": "vector-surveillance-reporting",
+      "name": "Vector Surveillance Reporting [Completed]",
+      "slug": "vector-surveillance-reporting-completed",
       "category": "vector-surveillance",
       "description": "V-04 Vector Surveillance Reporting — Apache Superset dashboard embedded via guest token JWT into the Reports → Vector Surveillance page, backed by an OHS SQL-on-FHIR ETL pipeline that flattens HAPI FHIR resources into Postgres analytics views feeding 4–7 charts (trap catch trend, species distribution, MIR heatmap, pathogen positivity). NEW in v1.5 — Manual Entry Helper tab at /reports/vector-surveillance/manual-entry that accelerates manual submission to the Kemenkes Subdit Vektor SILANTOR portal: large-font numeric Tiles per metric with Copy IconButton, Aedes/Anopheles sub-tabs, Sporozoite-rate auto-gating below 95% positive resolution, and a Mark-Week-Submitted modal that writes an audit row. Admin field-map page at /admin/vector/manual-entry-fields lets deployments re-order and relabel metrics without code changes; metric list, cadence, and portal field tags are marked @TBD-Ida pending APHL Indonesia confirmation.",
       "type": "jsx",
@@ -4130,9 +4260,9 @@
       "githubIssue": null,
       "specPath": "designs/vector-surveillance/vector-surveillance-reporting.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/vector-surveillance-reporting",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/vector-surveillance-reporting",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/vector-surveillance-reporting",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/vector-surveillance-reporting-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/vector-surveillance-reporting-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/vector-surveillance-reporting-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/vector-surveillance/vector-surveillance-reporting.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/vector-surveillance/vector-surveillance-reporting.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/vector-surveillance/vector-surveillance-reporting.html"
@@ -4199,6 +4329,39 @@
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/results-validation/validation-page-v4-superseded",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/validation-page-v4.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/validation-page-v4.html"
+      }
+    },
+    {
+      "name": "Validation Clearance Rule & Empty-State Explanation",
+      "slug": "validation-clearance-rule-empty-state-explanation",
+      "category": "results-validation",
+      "description": "Fixes the permanently-empty Clear lane on the Validation screen. Defines the clearance predicate (a row is Clear when it carries no risk signal it actually has — a missing QC input reads as absence, not risk) and replaces the greyed-out \"Release all clear (0)\" button with a plain-language explanation of why a lane is empty. One predicate, two consumers: the server-side rule and its display mirror. Supersedes validation-page-v4 FR-B1. Epic OGC-817, slice OGC-1029.",
+      "type": "jsx",
+      "added": "2026-09-20",
+      "status": "draft",
+      "tags": [
+        "validation",
+        "results",
+        "review",
+        "clearance",
+        "empty-state",
+        "qc",
+        "bulk-release",
+        "predicate"
+      ],
+      "jira": [
+        "OGC-817",
+        "OGC-1029"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/results-validation/validation-clearance-rule.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/results-validation/validation-clearance-rule-empty-state-explanation",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/results-validation/validation-clearance-rule-empty-state-explanation",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/results-validation/validation-clearance-rule-empty-state-explanation",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/validation-clearance-rule.md",
+        "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/validation-clearance-rule.jsx",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/validation-clearance-rule.html"
       }
     },
     {
@@ -4587,8 +4750,8 @@
       }
     },
     {
-      "name": "Multi-Component Result Entry v1",
-      "slug": "multi-component-result-entry-v1",
+      "name": "Multi-Component Result Entry v1 [Superseded]",
+      "slug": "multi-component-result-entry-v1-superseded",
       "category": "results-validation",
       "description": "V1 additive multi-value capture on the existing Results Entry & Validation page (SearchResultForm.jsx). A test that defines more than one result_component renders one result-entry field PER component, each produced by the same result-cell renderer the primary result uses today (chosen by the component result_type). Single-component tests are unchanged. First use case: molecular target gene + Ct (Xpert MTB/RIF, SARS-CoV-2). Consumes the OGC-949 M1 test_result_component model; replaces the PR #3831 scalar-column approach (no new analysis/test columns, no data migration). Self-contained module intended for a future fold-in to the OGC-811/817 inline results redesign.",
       "type": "jsx",
@@ -4610,9 +4773,9 @@
       "githubIssue": null,
       "specPath": "designs/results-validation/results-entry-multicomponent-v1.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/results-validation/multi-component-result-entry-v1",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/results-validation/multi-component-result-entry-v1",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/results-validation/multi-component-result-entry-v1",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/results-validation/multi-component-result-entry-v1-superseded",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/results-validation/multi-component-result-entry-v1-superseded",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/results-validation/multi-component-result-entry-v1-superseded",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-multicomponent-v1.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-multicomponent-v1.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/results-entry-multicomponent-v1-preview.html"
@@ -4622,7 +4785,7 @@
       "name": "Runs — QC, Reagent Lot & Result Review",
       "slug": "runs-qc-reagent-lot-result-review",
       "category": "results-validation",
-      "description": "The run as the shared unit of QC, reagent-lot provenance and result review across all three ways results enter OpenELIS: analyzer messages, workplan batches, and single manual entries. Every result belongs to a run; controls, the reagent lot and a per-test QC verdict live on the run. Converges the Analyzer Results Import review onto the Results worklist as a run-filtered view (/Results?run=<id>) with a run header, defines run-aware worklist row states (waiting/held), and a per-test QC gate (a failed potassium control holds only that test’s rows). States the consumption contracts for QC persistence (OGC-1147), Batch Workplan (OGC-427), the QC dashboard, and Validation. FRS v0.2, approved for handoff; supersedes-in-part Analyzer Import v2 (OGC-288), Batch Workplan reagent QC (OGC-427), and Manual/RDT QC persistence (OGC-1147) FR-C1.",
+      "description": "The run as the shared unit of QC, reagent-lot provenance and result review across all three ways results enter OpenELIS: analyzer messages, workplan batches, and single manual entries. Every result belongs to a run; controls, the reagent lot and a per-test QC verdict live on the run. Converges the Analyzer Results Import review onto the Results worklist as a run-filtered view (/Results?run=<id>) with a run header, defines run-aware worklist row states (waiting/held), and a per-test QC gate (a failed potassium control holds only that test’s rows). States the consumption contracts for QC persistence (OGC-1147), Batch Workplan (OGC-427), the QC dashboard, and Validation. FRS v0.4 (2026-09-22), approved for handoff — simplifies the review surface on Casey’s direction: a single paginated run table driven by the worklist’s existing filter chips (FR-E1a/E1b), each row expanding into the Results Entry panel with the analyzer value prefilled and editable (FR-E10), the Accept contract corrected against D-057, and the Validation contract routed to the clearance rule’s row QC slot (FR-G3). Supersedes-in-part Analyzer Import v2 (OGC-288), Batch Workplan reagent QC (OGC-427), and Manual/RDT QC persistence (OGC-1147) FR-C1.",
       "type": "jsx",
       "added": "2026-09-09",
       "status": "draft",
@@ -4716,8 +4879,8 @@
       }
     },
     {
-      "name": "Compliance Evaluation Engine",
-      "slug": "compliance-evaluation-engine",
+      "name": "Compliance Evaluation Engine [Completed]",
+      "slug": "compliance-evaluation-engine-completed",
       "category": "vector-surveillance",
       "description": "S-05 v2.0 — Regulation-scoped reference ranges: numeric threshold evaluation per compliance standard × result component. 2026-04-28 amendment: evaluates per regulation (from M:N order_compliance_standard join) and per component (for multi-component tests). Existing fallback chain preserved. Splits descriptive/categorical vocabulary to S-05a.",
       "type": "jsx",
@@ -4738,9 +4901,9 @@
       "githubIssue": 76,
       "specPath": "designs/results-validation/compliance-evaluation-engine.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/compliance-evaluation-engine",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/compliance-evaluation-engine",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/compliance-evaluation-engine",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/compliance-evaluation-engine-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/compliance-evaluation-engine-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/compliance-evaluation-engine-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/compliance-evaluation-engine.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/compliance-evaluation-engine.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/compliance-evaluation-engine.html"
@@ -4768,8 +4931,8 @@
       }
     },
     {
-      "name": "Reusable Categorical Vocabulary",
-      "slug": "reusable-categorical-vocabulary",
+      "name": "Reusable Categorical Vocabulary [Completed]",
+      "slug": "reusable-categorical-vocabulary-completed",
       "category": "vector-surveillance",
       "description": "S-05a — Reusable categorical result vocabulary, split from S-05 v1.0. Admin surface for defining reusable descriptive tag sets (e.g. specimen quality flags, vector physiological state, clinical morphology) that can be attached to any test result type. Domain-neutral; extends beyond env/compliance use cases.",
       "type": "spec-only",
@@ -4790,15 +4953,15 @@
       "githubIssue": null,
       "specPath": "designs/results-validation/reusable-categorical-vocabulary.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/reusable-categorical-vocabulary",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/reusable-categorical-vocabulary",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/reusable-categorical-vocabulary",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/reusable-categorical-vocabulary-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/reusable-categorical-vocabulary-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/reusable-categorical-vocabulary-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/results-validation/reusable-categorical-vocabulary.md"
       }
     },
     {
-      "name": "Environmental LHU",
-      "slug": "environmental-lhu",
+      "name": "Environmental LHU [Completed]",
+      "slug": "environmental-lhu-completed",
       "category": "vector-surveillance",
       "description": "Environmental Laporan Hasil Uji v2.0 — printable test result report for environmental samples (air, water, soil, sediment, food). v2.0 adds ISO/IEC 17025:2017 §7.8 report-face blocks (results-apply-only disclaimer, decision rule, end-of-report marker, reproduction restriction), conditional measurement uncertainty (U) column, subcontract disclosure, sampling responsibility, method validation status annotations, and amendment workflow. Inherits S-06 letterhead, e-signature, and print config. Multi-matrix result table with compliance icons, KAN accreditation handling, and Baku Mutu regulatory reference. Real data from PT. Unggulrejo Wasono & RS Permata Depok.",
       "type": "jsx",
@@ -4819,17 +4982,17 @@
       "githubIssue": null,
       "specPath": "designs/vector-surveillance/environmental-lhu.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/environmental-lhu",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/environmental-lhu",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/environmental-lhu",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/environmental-lhu-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/environmental-lhu-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/environmental-lhu-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/vector-surveillance/environmental-lhu.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/vector-surveillance/environmental-lhu.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/vector-surveillance/environmental-lhu-annotated.html"
       }
     },
     {
-      "name": "Vector LHU",
-      "slug": "vector-lhu",
+      "name": "Vector LHU [Completed]",
+      "slug": "vector-lhu-completed",
       "category": "vector-surveillance",
       "description": "Vector Laporan Hasil Uji v2.0 — printable surveillance report for BBLKM/Labkesmas. Four result-table modes: Species ID (PCR + arbovirus serotype/genotype), Surveillance Indices (MIR + MLE with 95% CIs per WHO 2021), Larval Population (HI/CI/BI + ABJ vs Kemenkes 95% target), and NEW Mode D Pupae Per Person Index (PPI) per WHO 2003 / Focks et al. 2000. Adds ISO 17025 §7.8 report-face blocks. Trap type, lure, deployment period, hierarchical geographic resolution (province → kelurahan → RT/RW). Deployment-configurable risk thresholds (PAHO 2017 + Permenkes 50/2017). Real data from BBLKM Jakarta Aedes aegypti.",
       "type": "jsx",
@@ -4852,17 +5015,17 @@
       "githubIssue": null,
       "specPath": "designs/vector-surveillance/vector-lhu.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/vector-lhu",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/vector-lhu",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/vector-lhu",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/vector-lhu-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/vector-lhu-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/vector-lhu-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/vector-surveillance/vector-lhu.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/vector-surveillance/vector-lhu.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/vector-surveillance/vector-lhu-annotated.html"
       }
     },
     {
-      "name": "Collection Lot — Trap Details",
-      "slug": "collection-lot-trap-details",
+      "name": "Collection Lot — Trap Details [Completed]",
+      "slug": "collection-lot-trap-details-completed",
       "category": "vector-surveillance",
       "description": "V-02 Vector Collection Workflow form enhancement (OGC-777, V-05a STRETCH) — adds a \"Trap Configuration\" section to the existing CollectionLot edit form with four new optional fields: lure, deployment_start, deployment_end, storage_temperature_c. WHO entomological surveillance reproducibility requirements. Backward-compatible: existing CollectionLots remain valid with NULL values. LHU Mode A footnote auto-degrades when fields are null. STRETCH: partner labs do not yet capture this granularity.",
       "type": "jsx",
@@ -4873,19 +5036,19 @@
       "githubIssue": null,
       "specPath": "designs/vector-surveillance/collection-lot-trap-details.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/collection-lot-trap-details",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/collection-lot-trap-details",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/collection-lot-trap-details",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/collection-lot-trap-details-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/collection-lot-trap-details-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/collection-lot-trap-details-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/vector-surveillance/collection-lot-trap-details.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/vector-surveillance/collection-lot-trap-details.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/vector-surveillance/collection-lot-trap-details.html"
       }
     },
     {
-      "name": "Laporan Hasil — Compliance Report",
-      "slug": "laporan-hasil-compliance-report",
+      "name": "Laporan Hasil — Compliance Report [Completed]",
+      "slug": "laporan-hasil-compliance-report-completed",
       "category": "vector-surveillance",
-      "description": "Laporan Hasil (S-06) — formal Sertifikat Hasil Uji (Test Results Certificate) PDF generation for validated environmental orders. Dual e-signature, batch ZIP download, shared Report Print Configuration admin page. Amended 2026-06-15 with §7a Domain Variants cross-reference to S06c (Environmental LHU) + S06d (Vector LHU) siblings.",
+      "description": "Laporan Hasil (S-06) — formal Sertifikat Hasil Uji (Test Results Certificate) PDF generation for validated environmental orders. Dual e-signature, batch ZIP download, shared Report Print Configuration admin page. Amended 2026-06-15 with §7a Domain Variants cross-reference to S06c (Environmental LHU) + S06d (Vector LHU) siblings. List page (§5.2) and batch (§5.5) superseded by Report Print Queue r4.",
       "type": "jsx",
       "added": "2026-04-05",
       "status": "draft",
@@ -4905,17 +5068,17 @@
       "githubIssue": 77,
       "specPath": "designs/reports/S06-laporan-hasil-compliance-report-frs-v1.0.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/laporan-hasil-compliance-report",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/laporan-hasil-compliance-report",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/laporan-hasil-compliance-report",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/laporan-hasil-compliance-report-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/laporan-hasil-compliance-report-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/laporan-hasil-compliance-report-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/reports/S06-laporan-hasil-compliance-report-frs-v1.0.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/reports/S06-laporan-hasil-compliance-report-frs-v1.0.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/reports/S06-laporan-hasil-compliance-report-preview.html"
       }
     },
     {
-      "name": "S06c — Environmental LHU",
-      "slug": "s06c-environmental-lhu",
+      "name": "S06c — Environmental LHU [Completed]",
+      "slug": "s06c-environmental-lhu-completed",
       "category": "reports",
       "description": "S-06c — Environmental Laporan Hasil Uji (LHU) sibling spec to S06. Result table columns No. | Parameter | Hasil Uji | Baku Mutu | Satuan | Ket. (Metode dropped, in compact footnote). Water, food, ambient air, surface swabs, and physical conditions matrices. KAN per-parameter asterisk; multi-matrix bundling. Ships canonical Indonesian preview + bilingual annotated sibling.",
       "type": "jsx",
@@ -4939,17 +5102,17 @@
       "githubIssue": null,
       "specPath": "designs/reports/S06c-environmental-lhu-frs-v1.0.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/reports/s06c-environmental-lhu",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/reports/s06c-environmental-lhu",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/reports/s06c-environmental-lhu",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/reports/s06c-environmental-lhu-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/reports/s06c-environmental-lhu-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/reports/s06c-environmental-lhu-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/reports/S06c-environmental-lhu-frs-v1.0.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/reports/S06c-environmental-lhu-frs-v1.0.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/reports/S06c-environmental-lhu-preview.html"
       }
     },
     {
-      "name": "S06d — Vector LHU",
-      "slug": "s06d-vector-lhu",
+      "name": "S06d — Vector LHU [Completed]",
+      "slug": "s06d-vector-lhu-completed",
       "category": "reports",
       "description": "S-06d — Vector surveillance Laporan Hasil Uji (LHU) sibling spec to S06. Three flexible result-table modes: A (Species ID via PCR), B (Surveillance Indices — MIR, infection rate, density), C (Larval Population Indices — House/Container/Breteau Index, Angka Bebas Jentik). Multi-LHU number bundling. Ships canonical Indonesian preview + bilingual annotated sibling.",
       "type": "jsx",
@@ -4976,17 +5139,17 @@
       "githubIssue": null,
       "specPath": "designs/reports/S06d-vector-lhu-frs-v1.0.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/reports/s06d-vector-lhu",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/reports/s06d-vector-lhu",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/reports/s06d-vector-lhu",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/reports/s06d-vector-lhu-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/reports/s06d-vector-lhu-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/reports/s06d-vector-lhu-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/reports/S06d-vector-lhu-frs-v1.0.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/reports/S06d-vector-lhu-frs-v1.0.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/reports/S06d-vector-lhu-preview.html"
       }
     },
     {
-      "name": "LH Delivery — Sent Messages Tab",
-      "slug": "lh-delivery-sent-messages-tab",
+      "name": "LH Delivery — Sent Messages Tab [Completed]",
+      "slug": "lh-delivery-sent-messages-tab-completed",
       "category": "vector-surveillance",
       "description": "S-06b Addendum — LH Delivery Notification: Sent Messages global main-menu tab. Per-channel delivery status (Email ✓/✗, WhatsApp ✓/✗) for Laporan Hasil, clinical, and future notifications. Extends OGC-437 (TextIt SMS) + OGC-439 (Email/SMTP) triggers with LH_COMPLETED event. Resend flow, delivery log modal, and secure customer download page with 30-day token.",
       "type": "jsx",
@@ -5012,9 +5175,9 @@
       "githubIssue": 83,
       "specPath": "designs/reports/lh-delivery-sent-messages.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/lh-delivery-sent-messages-tab",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/lh-delivery-sent-messages-tab",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/lh-delivery-sent-messages-tab",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/lh-delivery-sent-messages-tab-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/lh-delivery-sent-messages-tab-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/lh-delivery-sent-messages-tab-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/reports/lh-delivery-sent-messages.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/reports/lh-delivery-sent-messages.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/reports/lh-delivery-sent-messages-preview.html"
@@ -5024,7 +5187,7 @@
       "name": "Report Print Queue",
       "slug": "report-print-queue",
       "category": "reports",
-      "description": "Report-type-agnostic print queue (v1.3): auto-surfaces validated-but-unprinted reports; completeness indicators, print recording via existing report tracking. r3 filter bar redesign — Facility / Ward / Requestor are FilterableMultiSelect with server-side typeahead, Lab No is a first-class toolbar lookup, Search by Patient opens inline, and targeted searches are exclusive (suspend browse filters).",
+      "description": "Report-type-agnostic print queue (r4, FRS v2.2): rebuilt on the shipped Compliance Report page (/LaporanHasil merges into /ReportPrintQueue). Patient reports, environmental and vector certificates in one list; report state Partial / Final / Amended with a separate Print status filter; every released version archived with SHA-256 and returned on reprint; inline reissue-with-correction; Custom Data Export jobs appear as a row type. Supersedes r3 (v1.3).",
       "type": "jsx",
       "added": "2026-06-10",
       "status": "draft",
@@ -5051,7 +5214,7 @@
       "name": "Patient Report Redesign",
       "slug": "patient-report-redesign",
       "category": "reports",
-      "description": "Full redesign of the patient result report — Carbon-aligned layout, accreditation logo, digital signature block, reference range display, result interpretation flagging. Ships two JRXML templates: patient_letter.jrxml (US Letter) and patient_a4.jrxml (A4), selected via Admin → General Configuration → Printed Reports Configuration. Companion patient_letter.jrxml implementation file co-located in designs/reports/. Covers the admin config surface, rendered output spec, and Jasper coordinate-level implementation notes.",
+      "description": "Patient Report & Report Management FRS v2.4.3: the printed patient report (Part A); Report Management (Part B) moved to the Admin Redesign FRS section 13. Labels come from the UI translation catalogue so every lab gets its own language and wording; completed date and time per test; accreditation, signatures and reference ranges; microbiology rows (notes under the culture row, tests on a positive culture, refer to previous susceptibility). OGC-932 is the V1 PNG / CPHL deliverable (breakdown slices 1 to 4b). Supersedes rounds 1 to 5 and the accredited tests notes handoff.",
       "type": "html",
       "added": "2026-04-24",
       "status": "draft",
@@ -5066,7 +5229,10 @@
         "letter",
         "jrxml"
       ],
-      "jira": [],
+      "jira": [
+        "OGC-1111",
+        "OGC-932"
+      ],
       "githubIssue": 102,
       "specPath": "designs/reports/patient-report-redesign.md",
       "urls": {
@@ -5081,7 +5247,7 @@
       "name": "Positivity Rate Report",
       "slug": "positivity-rate-report",
       "category": "reports",
-      "description": "Positivity rate report and dashboard widget — per-test result-code-based positivity definitions, date-range filtering, DataTable with CSV export, and reusable tile for the home dashboard",
+      "description": "Positivity rate report and dashboard widget (Carbon, inline-only positivity definition) — per-test result-code-based positivity definitions for coded tests, all-non-normal-only for numeric tests, date-range filtering, DataTable with CSV export, and a tile hosted on the Lab Management Dashboard (v1.2). Swapped in 2026-09-10 from the earlier admin-CRUD mockup, archived under designs/_archive/2026-09-10/.",
       "type": "jsx",
       "added": "2026-03-19",
       "status": "draft",
@@ -5104,8 +5270,8 @@
       }
     },
     {
-      "name": "Environmental Dashboard & Trend Analysis",
-      "slug": "environmental-dashboard-trend-analysis",
+      "name": "Environmental Dashboard & Trend Analysis [Completed]",
+      "slug": "environmental-dashboard-trend-analysis-completed",
       "category": "vector-surveillance",
       "description": "Environmental Dashboard (S-07) — site-level compliance rate trends, per-parameter drill-down, exceedance summary table, site comparison bar chart, CSV export. Monthly aggregation with 12-month default view.",
       "type": "jsx",
@@ -5126,17 +5292,17 @@
       "githubIssue": 78,
       "specPath": "designs/reports/environmental-dashboard.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/environmental-dashboard-trend-analysis",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/environmental-dashboard-trend-analysis",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/environmental-dashboard-trend-analysis",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/environmental-dashboard-trend-analysis-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/environmental-dashboard-trend-analysis-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/environmental-dashboard-trend-analysis-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/reports/environmental-dashboard.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/reports/environmental-dashboard.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/reports/environmental-dashboard.html"
       }
     },
     {
-      "name": "ENV Dashboard — Chart & PDF Export",
-      "slug": "env-dashboard-chart-pdf-export",
+      "name": "ENV Dashboard — Chart & PDF Export [Completed]",
+      "slug": "env-dashboard-chart-pdf-export-completed",
       "category": "vector-surveillance",
       "description": "S-07b Addendum — Chart PNG & Dashboard PDF Export. Per-chart hover download button (client-side SVG→PNG, 1200×800px @144dpi). Full-dashboard PDF export: config modal, server-side generation, cover page, one chart per page, exceedance table, footer. ROLE_ENV_EXPORT permission gates both actions. Annotated mockup shows new S-07b additions in context of the existing S-07 dashboard (gold dashed border = new, dimmed = existing).",
       "type": "jsx",
@@ -5160,9 +5326,9 @@
       "githubIssue": 84,
       "specPath": "designs/reports/environmental-dashboard-chart-export.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/env-dashboard-chart-pdf-export",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/env-dashboard-chart-pdf-export",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/env-dashboard-chart-pdf-export",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/env-dashboard-chart-pdf-export-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/env-dashboard-chart-pdf-export-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/env-dashboard-chart-pdf-export-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/reports/environmental-dashboard-chart-export.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/reports/environmental-dashboard-chart-export.jsx"
       }
@@ -5197,7 +5363,7 @@
       "name": "Custom Data Export",
       "slug": "custom-data-export",
       "category": "reports",
-      "description": "3-step CSV report builder wizard with grain-family variable selection, filters, and sync/async routing — plus async My Report Queue and Saved Export Configurations. v1.1 (2026-07-15): grain families with color coding + legend, QC domain removed, single PII tag, overwrite-confirm for saved configs.",
+      "description": "OpenELIS CSV reporting design with new-export and saved-report entry paths, a searchable catalog with expandable category groups beside ordered CSV columns, progressive filters, review changes, queue recovery and a fictional virology CSV. v1.5 interaction candidate for review; independent of Catalyst and AI. My Report Queue (FR-6) now renders inside Report Print Queue r4 as the Data export type.",
       "type": "jsx",
       "added": "2026-03-25",
       "status": "draft",
@@ -5360,7 +5526,7 @@
       "name": "Inventory Item-Type Management",
       "slug": "inventory-item-type-management",
       "category": "inventory",
-      "description": "Move the hard-coded \"Type of Item\" list into the Data Dictionary: managed item-type admin with add/edit/deactivate, replacing hardcoded values.",
+      "description": "Amended by Microbiology v2 (D-147: Microbiology medium item type, FR-05.1d). Move the hard-coded \"Type of Item\" list into the Data Dictionary: managed item-type admin with add/edit/deactivate, replacing hardcoded values.",
       "type": "jsx",
       "added": "2026-06-12",
       "status": "draft",
@@ -5461,6 +5627,37 @@
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/system/help-menu.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/system/help-menu.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/system/in-app-help-preview.html"
+      }
+    },
+    {
+      "name": "Navigation Redesign",
+      "slug": "navigation-redesign",
+      "category": "system",
+      "description": "Information-architecture redesign of the main side menu and the Admin sidebar (FRS v0.1, approved 2026-09-24). The main menu reads in the order of a lab\\",
+      "type": "html",
+      "added": "2026-09-26",
+      "status": "draft",
+      "tags": [
+        "navigation",
+        "menu",
+        "side-nav",
+        "admin",
+        "information-architecture",
+        "menu-configuration",
+        "redesign",
+        "system"
+      ],
+      "jira": [
+        "OGC-1241"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/system/navigation-redesign.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/system/navigation-redesign",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/system/navigation-redesign",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/system/navigation-redesign",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/system/navigation-redesign.md",
+        "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/system/navigation-redesign-preview.html"
       }
     },
     {
@@ -5795,8 +5992,8 @@
       }
     },
     {
-      "name": "Environmental Order Entry",
-      "slug": "environmental-order-entry",
+      "name": "Environmental Order Entry [Completed]",
+      "slug": "environmental-order-entry-completed",
       "category": "vector-surveillance",
       "description": "S-03 v2.0 — 3-step wizard (Branch & Setup / Label & Store / QA-QC + Intake) at Reception for domain-assigned labs. Regulation-driven vs ad-hoc branch selector, sample manifest quantity table + CSV upload, per-sample NCE, QC quick-add. 2026-04-28 amendment: multi-regulation M:N — Compliance Standard is now a MultiSelect; suggested tests union across selected standards; order_compliance_standard join table replaces single complianceStandardId column.",
       "type": "jsx",
@@ -5816,17 +6013,17 @@
       "githubIssue": 74,
       "specPath": "designs/sample-collection/environmental-order-entry.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/environmental-order-entry",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/environmental-order-entry",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/environmental-order-entry",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/environmental-order-entry-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/environmental-order-entry-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/environmental-order-entry-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/environmental-order-entry.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/environmental-order-entry.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/environmental-order-entry.html"
       }
     },
     {
-      "name": "ENV Order — Sampling Uncertainty Field",
-      "slug": "env-order-sampling-uncertainty-field",
+      "name": "ENV Order — Sampling Uncertainty Field [Completed]",
+      "slug": "env-order-sampling-uncertainty-field-completed",
       "category": "vector-surveillance",
       "description": "S-03b Addendum — Sampling Uncertainty field added to the Collection Conditions section (S-03 §5.3). ISO 17025 §7.6 field/sampling uncertainty: NumberInput value + unit type Select (%, mg/L, μg/L, CFU/100mL, Other). Mandatory by default, configurable optional per program. Carries forward to Step 2 via ENV-3-002. QA completeness check extended. Laporan Hasil reporting payload extended.",
       "type": "jsx",
@@ -5850,16 +6047,16 @@
       "githubIssue": 85,
       "specPath": "designs/sample-collection/sampling-uncertainty.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/env-order-sampling-uncertainty-field",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/env-order-sampling-uncertainty-field",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/env-order-sampling-uncertainty-field",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/env-order-sampling-uncertainty-field-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/env-order-sampling-uncertainty-field-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/env-order-sampling-uncertainty-field-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/sampling-uncertainty.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/sampling-uncertainty.jsx"
       }
     },
     {
-      "name": "Clinical Order Entry (v2)",
-      "slug": "clinical-order-entry-v2",
+      "name": "Clinical Order Entry (v2) [Superseded]",
+      "slug": "clinical-order-entry-v2-superseded",
       "category": "vector-surveillance",
       "description": "v2 clinical order-entry wizard (Enter Order \\u2192 Collect \\u2192 Label & Store \\u2192 QA Review) realigned to the three-workflow spec. Adds the self-describing \"Assign to\" sample\\u2194test menu at Collect, Ward/Unit/Department facility sub-unit, requester with Phone/Fax/Email + admin-gated add-new + edit-lock on found records, test search by name or code, blank-by-default quantity, de-gated print/storage, and the Sample Acceptance Checklist (S-09 / OGC-580) on QA Review.",
       "type": "html",
@@ -5881,9 +6078,9 @@
       "githubIssue": null,
       "specPath": "designs/sample-collection/order-entry-three-workflows.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/clinical-order-entry-v2",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/clinical-order-entry-v2",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/clinical-order-entry-v2",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/clinical-order-entry-v2-superseded",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/clinical-order-entry-v2-superseded",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/clinical-order-entry-v2-superseded",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-three-workflows.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/clinical-order-entry-v2.html"
       }
@@ -5892,7 +6089,7 @@
       "name": "Clinical Order Entry (v4)",
       "slug": "clinical-order-entry-v4",
       "category": "vector-surveillance",
-      "description": "Clinical Enter Order stage under Order Entry FRS v4. Explicit save model (Save & Next / Save & Exit / Discard, no autosave), lab number reserved on form load, restored Ward / Unit / Department typeahead disabled until a facility is chosen, restored Order Date plus the new Order Time alongside Required By with distinguishing helper text, and the corrected saved-state indicator which reads \\u201cNo changes yet\\u201d on an untouched form rather than \\u201cSaved\\u201d. Interactive: edit a field to move the state chip, clear the facility to disable the ward field, press Discard for the confirmation naming the spent lab number.",
+      "description": "Clinical Order Entry v4 (FRS v0.20: order-entry clean-up, possible matches before create, Handling group, fewer low-value fields; FR-B12a follows Microbiology v2 draft 10, D-178): Add Order reworked into two steps, Enter Order (in paper-form order: order, patient, requester, request details, tests) and Prepare Samples, plus an optional Sample check. Every save is one all-or-nothing transaction. Container Types and Body Sites join the test catalog so each test declares its expected tubes, and swabs carry a coded site. Shared ordered-tests table, samples table and order summary strip show which tube each test is on. Search-first patient, facility and provider creation; lab time zone for collection and receipt times; working label buttons. Two-phase plan (MVP on current screens, Phase 2 new model). Supersedes the 2026-09-10 Enter Order preview (archived) and OGC-1066. Companion slicing guide, acceptance test scripts, research brief and environmental/vector alignment note.",
       "type": "html",
       "added": "2026-09-10",
       "status": "draft",
@@ -5902,27 +6099,31 @@
         "sample-collection",
         "save-model",
         "lab-number",
-        "requester",
-        "ward",
-        "order-date"
+        "containers",
+        "body-sites",
+        "test-catalog",
+        "labels",
+        "search-first",
+        "time-zone"
       ],
       "jira": [
+        "OGC-1266",
         "OGC-1146",
         "OGC-1066"
       ],
       "githubIssue": 311,
-      "specPath": "designs/sample-collection/order-entry-three-workflows.md",
+      "specPath": "designs/sample-collection/clinical-order-entry-v4.md",
       "urls": {
         "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/clinical-order-entry-v4",
         "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/clinical-order-entry-v4",
         "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/clinical-order-entry-v4",
-        "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-three-workflows.md",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/clinical-order-entry-v4.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/clinical-order-entry-v4.html"
       }
     },
     {
-      "name": "Environmental Order Entry (v2)",
-      "slug": "environmental-order-entry-v2",
+      "name": "Environmental Order Entry (v2) [Completed]",
+      "slug": "environmental-order-entry-v2-completed",
       "category": "vector-surveillance",
       "description": "v2 environmental order-entry. Requester = Requesting Organization + Requestor contact, both searched & stored like the clinical provider, with full Phone/Fax/Email, admin-gated add-new, and edit-lock on records pulled from search. Collection method optional; CSV bulk intake retained (Env/Vector only).",
       "type": "html",
@@ -5943,16 +6144,16 @@
       "githubIssue": null,
       "specPath": "designs/sample-collection/order-entry-three-workflows.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/environmental-order-entry-v2",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/environmental-order-entry-v2",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/environmental-order-entry-v2",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/environmental-order-entry-v2-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/environmental-order-entry-v2-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/environmental-order-entry-v2-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-three-workflows.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/environmental-order-entry-v2.html"
       }
     },
     {
-      "name": "Vector Collection Workflow (v2)",
-      "slug": "vector-collection-workflow-v2",
+      "name": "Vector Collection Workflow (v2) [Completed]",
+      "slug": "vector-collection-workflow-v2-completed",
       "category": "vector-surveillance",
       "description": "v2 vector collection workflow. Requester relabeled to the shared Requesting Organization + Requestor element (identical to Environmental), with full Phone/Fax/Email, admin-gated add-new, and edit-lock on found records.",
       "type": "html",
@@ -5971,9 +6172,9 @@
       "githubIssue": null,
       "specPath": "designs/sample-collection/order-entry-three-workflows.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/vector-collection-workflow-v2",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/vector-collection-workflow-v2",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/vector-collection-workflow-v2",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/vector-collection-workflow-v2-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/vector-collection-workflow-v2-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/vector-collection-workflow-v2-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/sample-collection/order-entry-three-workflows.md",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/vector-surveillance/vector-collection-workflow-v2.html"
       }
@@ -6005,8 +6206,8 @@
       }
     },
     {
-      "name": "Referral-Out Notification",
-      "slug": "referral-out-notification",
+      "name": "Referral-Out Notification [Completed]",
+      "slug": "referral-out-notification-completed",
       "category": "vector-surveillance",
       "description": "X-01 Addendum — Configurable REFERRAL_OUT notification trigger added to existing Refer Out module. Extends OGC-437/OGC-439 dispatch pipeline with one new event type, Combined Triggers Page row (default OFF), Combined Templates Page editor with merge fields, and Sent Messages tab \"Referral Out\" type. Three scenes: triggers config, template editor with live preview, sent messages table.",
       "type": "jsx",
@@ -6029,16 +6230,16 @@
       "githubIssue": 86,
       "specPath": "designs/notifications/referral-out-notification.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/referral-out-notification",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/referral-out-notification",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/referral-out-notification",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/referral-out-notification-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/referral-out-notification-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/referral-out-notification-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/notifications/referral-out-notification.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/notifications/referral-out-notification.jsx"
       }
     },
     {
-      "name": "Subcontract Management",
-      "slug": "subcontract-management",
+      "name": "Subcontract Management [Completed]",
+      "slug": "subcontract-management-completed",
       "category": "vector-surveillance",
       "description": "S-03c Addendum to S-03 + V-02 — Structured subcontract tracking for ENV/Vector Refer Out referrals. Subcontract Metadata panel (handoff datetime, expected return, agreement ref, chain-of-custody contact). Five-state status workflow (DISPATCHED → RECEIVED → RESULTS_RETURNED → CLOSED). Subcontract Register page with overdue highlighting, status filters, and Advance Status modal. Audit log per transition. ISO 17025 §6.6 / §7.7 compliance. Superseded by S-14 Inter-Lab Transfer (generic to all order types).",
       "type": "jsx",
@@ -6064,9 +6265,9 @@
       "githubIssue": 87,
       "specPath": "designs/notifications/subcontract-management.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/subcontract-management",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/subcontract-management",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/subcontract-management",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/subcontract-management-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/subcontract-management-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/subcontract-management-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/notifications/subcontract-management.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/notifications/subcontract-management.jsx"
       }
@@ -6564,8 +6765,8 @@
       }
     },
     {
-      "name": "Environmental & Vector Testing Roadmap",
-      "slug": "environmental-vector-testing-roadmap",
+      "name": "Environmental & Vector Testing Roadmap [Completed]",
+      "slug": "environmental-vector-testing-roadmap-completed",
       "category": "vector-surveillance",
       "description": "Architecture roadmap for the Environmental & Vector Testing Module (OGC-527 epic). Covers 3-layer build order: S-01–S-02 foundational infrastructure, S-03–S-04 integration, S-05–S-08 analytics/reporting, V-01–V-04 vector surveillance. Dependency graph, recommended implementation phases, and current spec completion status.",
       "type": "spec-only",
@@ -6585,9 +6786,9 @@
       "githubIssue": 81,
       "specPath": "designs/other/environmental-vector-roadmap.md",
       "urls": {
-        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/environmental-vector-testing-roadmap",
-        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/environmental-vector-testing-roadmap",
-        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/environmental-vector-testing-roadmap",
+        "gallery": "https://digi-uw.github.io/openelis-work/#/vector-surveillance/environmental-vector-testing-roadmap-completed",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/vector-surveillance/environmental-vector-testing-roadmap-completed",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/environmental-vector-testing-roadmap-completed",
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/other/environmental-vector-roadmap.md"
       }
     },
@@ -6650,6 +6851,35 @@
         "specRaw": "https://digi-uw.github.io/openelis-work/designs/patient/patient-search.md",
         "jsxRaw": "https://digi-uw.github.io/openelis-work/designs/patient/patient-search.jsx",
         "htmlRaw": "https://digi-uw.github.io/openelis-work/designs/patient/patient-search.html"
+      }
+    },
+    {
+      "name": "Optional Patient Sex and Age at Order Entry",
+      "slug": "optional-patient-sex-and-age-at-order-entry",
+      "category": "patient",
+      "description": "FRS v0.2: lets a lab make patient sex and age optional at order entry (Order Entry Configuration toggles), renames the \"Gender\" label to \"Sex\", and defines how reference ranges behave when sex or age is missing; results whose normals are age-banded or sex-differentiated land in Needs review with a Range not applied chip (FR-16a). Spec only; no mockup.",
+      "type": "spec-only",
+      "added": "2026-09-28",
+      "status": "draft",
+      "tags": [
+        "patient",
+        "order-entry",
+        "sex",
+        "age",
+        "reference-ranges",
+        "validation",
+        "configuration"
+      ],
+      "jira": [
+        "OGC-1362"
+      ],
+      "githubIssue": null,
+      "specPath": "designs/patient/optional-sex-age.md",
+      "urls": {
+        "gallery": "https://digi-uw.github.io/openelis-work/#/patient/optional-patient-sex-and-age-at-order-entry",
+        "preview": "https://digi-uw.github.io/openelis-work/#/preview/patient/optional-patient-sex-and-age-at-order-entry",
+        "spec": "https://digi-uw.github.io/openelis-work/#/spec/patient/optional-patient-sex-and-age-at-order-entry",
+        "specRaw": "https://digi-uw.github.io/openelis-work/designs/patient/optional-sex-age.md"
       }
     },
     {

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Report Management — OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',sans-serif; }
+    .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
+    .preview-content { padding:1rem 2rem; max-width:1200px; margin:0 auto; }
+    table.cds--data-table { width:100%; border-collapse:collapse; background:#fff; }
+    .cds--data-table th, .cds--data-table td { text-align:left; padding:10px 14px; border-bottom:1px solid #e0e0e0; font-size:14px; vertical-align:top; }
+    .cds--data-table th { background:#f4f4f4; font-weight:600; }
+    .tag { display:inline-block; padding:1px 10px; border-radius:12px; font-size:12px; line-height:20px; white-space:nowrap; }
+    .tag-blue{background:#d0e2ff;color:#0043ce;} .tag-gray{background:#e0e0e0;color:#393939;}
+    .tag-green{background:#a7f0ba;color:#0e6027;} .tag-purple{background:#e8daff;color:#6929c4;}
+    .tag-teal{background:#9ef0f0;color:#005d5d;} .tag-warmgray{background:#e5e0df;color:#393939;}
+    .mono{font-family:'IBM Plex Mono',monospace;}
+    .muted{color:#6f6f6f;} .sub{font-size:12px;color:#6f6f6f;}
+    .uplabel{font-size:12px;text-transform:uppercase;color:#6f6f6f;letter-spacing:.02em;margin:0 0 4px;}
+    .expand-btn{background:none;border:none;cursor:pointer;font-size:16px;color:#161616;width:28px;}
+    .detail{background:#f4f4f4;padding:20px 24px;}
+    .cols{display:flex;gap:32px;flex-wrap:wrap;} .col{flex:1;min-width:280px;}
+    .btn{border:none;cursor:pointer;font-size:14px;padding:7px 14px;border-radius:0;margin-right:8px;}
+    .btn-tert{background:#fff;color:#0f62fe;border:1px solid #0f62fe;}
+    .btn-ghost{background:none;color:#0f62fe;}
+    .btn-danger{background:#da1e28;color:#fff;} .btn-sec{background:#393939;color:#fff;}
+    select,input[type=text]{font-size:14px;padding:8px;border:none;border-bottom:1px solid #8d8d8d;background:#fff;width:100%;box-sizing:border-box;}
+    .field{margin-bottom:16px;}
+    .radio{display:block;margin:6px 0;font-size:14px;cursor:pointer;}
+    .notif{padding:12px 14px;margin-bottom:14px;border-left:3px solid;font-size:13px;}
+    .notif-warn{background:#fff8e1;border-color:#f1c21b;} .notif-info{background:#edf5ff;border-color:#0043ce;}
+    .notif-success{background:#defbe6;border-color:#24a148;} .notif-error{background:#fff1f1;border-color:#da1e28;}
+    .upload{border:1px dashed #8d8d8d;background:#fff;padding:14px;font-size:13px;}
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:10;}
+    .modal{background:#fff;max-width:480px;width:90%;padding:0;}
+    .modal h3{margin:0;padding:20px 20px 8px;font-size:20px;} .modal p{padding:0 20px 24px;font-size:14px;}
+    .modal-actions{display:flex;} .modal-actions .btn{flex:1;margin:0;padding:14px;}
+    h2{margin:0 0 4px;} .intro{color:#6f6f6f;margin:0 0 18px;font-size:14px;}
+    .crumbs{font-size:12px;color:#6f6f6f;margin-bottom:14px;} .crumbs a{color:#0f62fe;text-decoration:none;}
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">⚡ Visual Preview — Report Management &nbsp;|&nbsp; Route: /MasterListsPage/reportManagement &nbsp;|&nbsp; OpenELIS Design Mockup — not a live application</div>
+  <div class="preview-content" id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    const INITIAL = [
+      { key:'patientResult', name:'Patient Result Report', category:'Clinical', configurable:true,
+        source:'SHIPPED', activeTemplate:'patient_letter.jrxml', activeVersion:'v3.2 (shipped)',
+        variants:[{key:'patient_letter',label:'Letter — accredited layout'},{key:'patient_a4',label:'A4 — accredited layout'}],
+        activeVariant:'patient_letter', settings:{paperSize:'LETTER',accreditationLogoPosition:'BOTTOM'},
+        customTemplate:null, newerDefaultAvailable:false },
+      { key:'nonConformance', name:'Non-Conformance Report', category:'Quality', configurable:true,
+        source:'CUSTOM', activeTemplate:'CPHL_NCE_custom.jrxml', activeVersion:'custom · 2026-05-12',
+        variants:[{key:'nce_standard',label:'Standard NCE layout'}], activeVariant:'nce_standard', settings:{},
+        customTemplate:{filename:'CPHL_NCE_custom.jrxml',uploadedBy:'admin',uploadedAt:'2026-05-12'}, newerDefaultAvailable:true },
+      { key:'workplan', name:'Workplan', category:'Operational', configurable:true,
+        source:'SHIPPED', activeTemplate:'workplan_default.jrxml', activeVersion:'v3.2 (shipped)',
+        variants:[{key:'workplan_default',label:'Default workplan layout'}], activeVariant:'workplan_default',
+        settings:{}, customTemplate:null, newerDefaultAvailable:false },
+      { key:'auditExport', name:'Audit Trail Export', category:'Administrative', configurable:false,
+        source:'SHIPPED', activeTemplate:'audit_export.jrxml', activeVersion:'v3.2 (shipped)',
+        variants:[], activeVariant:null, settings:{}, customTemplate:null, newerDefaultAvailable:false },
+    ];
+    const catKind = c => ({Clinical:'blue',Operational:'teal',Quality:'purple',Administrative:'warmgray'}[c]||'gray');
+    const Tag = ({k,children}) => <span className={'tag tag-'+k}>{children}</span>;
+
+    function App() {
+      const [reports,setReports] = useState(INITIAL);
+      const [open,setOpen] = useState({patientResult:true});   // patient report expanded to show the anchor
+      const [q,setQ] = useState('');
+      const [notice,setNotice] = useState(null);
+      const [revert,setRevert] = useState(null);
+      const upd = (key,patch)=>setReports(rs=>rs.map(r=>r.key===key?{...r,...patch}:r));
+      const filtered = reports.filter(r=>(r.name+r.category).toLowerCase().includes(q.toLowerCase()));
+
+      const doRevert = () => {
+        upd(revert.key,{source:'SHIPPED',activeTemplate:(revert.activeVariant||revert.key)+'.jrxml',activeVersion:'v3.2 (shipped)',newerDefaultAvailable:false});
+        setNotice('Report settings saved'); setRevert(null);
+      };
+
+      return (
+        <div>
+          <div className="crumbs"><a href="#">Home</a> / <a href="#">Admin Management</a> / <a href="#">Configuration</a> / Report Management</div>
+          <h2>Report Management</h2>
+          <p className="intro">Choose the template each report uses. Every report ships with a default you can always revert to; upload a custom template to override it.</p>
+          {notice && <div className="notif notif-success">{notice} <a href="#" style={{float:'right'}} onClick={e=>{e.preventDefault();setNotice(null);}}>✕</a></div>}
+
+          <div style={{background:'#fff',padding:'8px 14px',borderBottom:'1px solid #e0e0e0'}}>
+            <input type="text" placeholder="Search reports" value={q} onChange={e=>setQ(e.target.value)} style={{maxWidth:320}} />
+          </div>
+
+          <table className="cds--data-table">
+            <thead><tr>
+              <th style={{width:28}}></th><th>Report</th><th>Category</th><th>Active template</th><th>Source</th><th>Status</th>
+            </tr></thead>
+            <tbody>
+              {filtered.map(r=>(
+                <React.Fragment key={r.key}>
+                  <tr>
+                    <td><button className="expand-btn" onClick={()=>setOpen(o=>({...o,[r.key]:!o[r.key]}))}>{open[r.key]?'▾':'▸'}</button></td>
+                    <td>{r.name}</td>
+                    <td><Tag k={catKind(r.category)}>{r.category}</Tag></td>
+                    <td><span className="mono">{r.activeTemplate}</span><div className="sub">{r.activeVersion}</div></td>
+                    <td><Tag k={r.source==='CUSTOM'?'blue':'gray'}>{r.source==='CUSTOM'?'Custom':'Shipped default'}</Tag></td>
+                    <td>{!r.configurable? <Tag k="gray">Managed in code</Tag> : r.source==='CUSTOM'? <Tag k="blue">Overridden</Tag> : <Tag k="green">Active</Tag>}</td>
+                  </tr>
+                  {open[r.key] && (
+                    <tr><td colSpan="6" style={{padding:0}}>
+                      {r.configurable ? <Detail r={r} upd={upd} setNotice={setNotice} onRevert={()=>setRevert(r)} /> : <ReadOnly r={r} />}
+                    </td></tr>
+                  )}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+
+          {revert && (
+            <div className="modal-overlay" onClick={()=>setRevert(null)}>
+              <div className="modal" onClick={e=>e.stopPropagation()}>
+                <h3>Revert to shipped default?</h3>
+                <p>Revert <strong>{revert.name}</strong> to the shipped default template? Your custom template is kept and can be re-selected later.</p>
+                <div className="modal-actions">
+                  <button className="btn btn-sec" onClick={()=>setRevert(null)}>Cancel</button>
+                  <button className="btn btn-danger" onClick={doRevert}>Revert</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function Detail({r,upd,setNotice,onRevert}) {
+      const [err,setErr] = useState(null);
+      const setSource = s => {
+        if (s==='CUSTOM' && !r.customTemplate){ setErr('Upload a custom template first, then select Custom override and Save.'); return; }
+        setErr(null);
+        upd(r.key,{source:s,
+          activeTemplate: s==='CUSTOM'? r.customTemplate.filename : r.activeVariant+'.jrxml',
+          activeVersion: s==='CUSTOM'? 'custom · '+r.customTemplate.uploadedAt : 'v3.2 (shipped)'});
+        setNotice('Report settings saved');
+      };
+      const onUpload = () => { upd(r.key,{customTemplate:{filename:'uploaded_template.jrxml',uploadedBy:'you',uploadedAt:'2026-07-01'}});
+        setNotice('Custom template validated. Select "Custom override" and Save to use it.'); };
+      return (
+        <div className="detail">
+          {r.newerDefaultAvailable && <div className="notif notif-warn">A newer shipped default is available for this report. You are on a custom override.</div>}
+          <div className="cols">
+            <div className="col">
+              <div className="field">
+                <p className="uplabel">Active template</p>
+                <span className="mono">{r.activeTemplate}</span> <span className="muted">· {r.activeVersion}</span>
+              </div>
+              <div className="field">
+                <p className="uplabel">Template source</p>
+                <label className="radio"><input type="radio" name={'src'+r.key} checked={r.source==='SHIPPED'} onChange={()=>setSource('SHIPPED')} /> Shipped default</label>
+                <label className="radio"><input type="radio" name={'src'+r.key} checked={r.source==='CUSTOM'} onChange={()=>setSource('CUSTOM')} /> Custom override</label>
+              </div>
+              {r.variants.length>1 && r.source==='SHIPPED' && (
+                <div className="field">
+                  <p className="uplabel">Layout variant</p>
+                  <select value={r.activeVariant} onChange={e=>upd(r.key,{activeVariant:e.target.value,activeTemplate:e.target.value+'.jrxml'})}>
+                    {r.variants.map(v=><option key={v.key} value={v.key}>{v.label}</option>)}
+                  </select>
+                </div>
+              )}
+            </div>
+            <div className="col">
+              {('paperSize' in r.settings) && (<>
+                <p className="uplabel">Report settings</p>
+                <div className="field">
+                  <label className="sub">Paper size</label>
+                  <select value={r.settings.paperSize} onChange={e=>upd(r.key,{settings:{...r.settings,paperSize:e.target.value}})}>
+                    <option value="LETTER">Letter</option><option value="A4">A4</option>
+                  </select>
+                </div>
+                <div className="field">
+                  <label className="sub">Accreditation logo position</label>
+                  <select value={r.settings.accreditationLogoPosition} onChange={e=>upd(r.key,{settings:{...r.settings,accreditationLogoPosition:e.target.value}})}>
+                    <option value="BOTTOM">Bottom of report (default)</option><option value="TOP">Top of report</option>
+                  </select>
+                </div>
+              </>)}
+              <div className="field">
+                <div className="upload">
+                  <strong>Upload custom template (.jrxml)</strong>
+                  <div className="sub" style={{margin:'4px 0 8px'}}>Must use only the parameters this report provides.</div>
+                  <button className="btn btn-tert" onClick={onUpload}>Add file</button>
+                  {r.customTemplate && <span className="sub" style={{marginLeft:8}}>Current: <span className="mono">{r.customTemplate.filename}</span></span>}
+                </div>
+                {err && <div className="notif notif-error" style={{marginTop:10}}>{err}</div>}
+              </div>
+            </div>
+          </div>
+          <div style={{marginTop:14}}>
+            <button className="btn btn-tert">Preview with sample data</button>
+            <button className="btn btn-ghost" onClick={onRevert}>↺ Revert to shipped default</button>
+          </div>
+        </div>
+      );
+    }
+
+    function ReadOnly({r}) {
+      return (
+        <div className="detail">
+          <div className="notif notif-info">
+            <strong>Managed in code — not yet configurable.</strong><br/>
+            {r.name} renders from <span className="mono">{r.activeTemplate}</span> ({r.activeVersion}). Template selection for this report is resolved in code until the engine supports registry resolution for it.
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
