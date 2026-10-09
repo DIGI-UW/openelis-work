@@ -6,7 +6,7 @@
 //   Enter Order (Clinical Order Entry v4)        Samples and tests: no Microbiology section, no Program coupling (FR-B12a v0.13, D-146)
 // SideNav: Microbiology -> Worklist -> (row); Orders & Patients -> Add Order
 // Breadcrumbs: Home / Microbiology / Worklist / Case {labNumber}; Home / Microbiology / Worklist
-// FRS: amr-micro-v2-amendments.md draft 10.4; patient-report-and-report-management-frs.md v2.4.3 §7.4 (FR-A42a groups)
+// FRS: amr-micro-v2-amendments.md draft 10.6; patient-report-and-report-management-frs.md v2.4.3 §7.4 (FR-A42a groups)
 // Decisions: D-113 to D-119, D-121, D-124 to D-138, D-146, D-147 and D-162 to D-210 (D-131 retired; D-175 superseded by D-177; culture type removed by D-178; D-148 replaced by D-164; D-167 amended by D-172; D-171 superseded)
 // Regions marked <ExistingFence> are shipped UI (M-04 Case view on develop): reuse, do not
 // re-implement. They are drawn abbreviated; only the listed v2 additions are new (D-063, A-16).
@@ -92,7 +92,9 @@ const CULTURE_ROWS = [
 const INCOMING = [
   { id: 'n1', test: 'Species ID (MALDI-TOF Biotyper)', value: 'Mycobacterium tuberculosis complex', source: 'MALDI-TOF Biotyper (MB-01)', received: '28 Sep 10:40' },
   { id: 'n2', test: 'Xpert MTB/XDR', value: 'INH resistance detected; FQ not detected', source: 'GeneXpert GX-02', received: '28 Sep 11:05' },
-  { id: 'n3', test: 'Moxifloxacin (MGIT, 0.25 µg/mL)', value: 'S', source: 'Referral return: QMRL Brisbane', received: '29 Sep 08:05' },
+  { id: 'n3', test: 'Identification (QMRL Brisbane)', value: 'Mycobacterium tuberculosis complex', source: 'Referral return: QMRL Brisbane', received: '29 Sep 08:05',
+    // FR-09.6, D-213: results from one message linked to one organism stay together
+    linked: [['Moxifloxacin (MGIT, 0.25 µg/mL)', 'S'], ['Bedaquiline (MGIT, 1 µg/mL)', 'S'], ['Linezolid (MGIT, 1 µg/mL)', 'S']] },
 ];
 
 const DST_READINGS = [
@@ -762,22 +764,38 @@ function IncomingResults({ items, isolates, onPlace }) {
       <SimpleTable
         headers={[{ key: 'test', header: t('microbiology.case.incoming.col.test', 'Test') }, { key: 'value', header: t('microbiology.case.incoming.col.value', 'Value') }, { key: 'source', header: t('microbiology.case.incoming.col.source', 'Source') }, { key: 'received', header: t('microbiology.case.incoming.col.received', 'Received') }, { key: 'place', header: t('microbiology.case.incoming.col.placeIn', 'Place in') }]}
         rows={items.map((i) => ({ ...i, place: '' }))}
-        render={(c, row) => (c.info.header === 'place'
-          ? <Stack orientation="horizontal" gap={2}>{places.map((pl) => <Button key={pl} size="sm" kind="tertiary" onClick={() => onPlace(row.id, pl)}>{pl}</Button>)}</Stack>
-          : c.value)}
+        render={(c, row) => {
+          const item = items.find((i) => i.id === row.id) || {};
+          const plus = (pl) => (item.linked && (pl.includes('ISO-') || pl.startsWith(t('microbiology.case.incoming.createIsolate', 'Create isolate and place'))) ? ` + ${item.linked.length} linked` : '');
+          if (c.info.header === 'place') return <Stack orientation="horizontal" gap={2}>{places.map((pl) => <Button key={pl} size="sm" kind="tertiary" onClick={() => onPlace(row.id, pl, item)}>{pl}{plus(pl)}</Button>)}</Stack>;
+          if (c.info.header === 'value' && item.linked) return <>{c.value}<div><small>{t('microbiology.case.incoming.linkedResults', '{count} linked results from the same message').replace('{count}', item.linked.length)}: {item.linked.map((l) => `${l[0]} ${l[1]}`).join('; ')}</small></div></>;
+          return c.value;
+        }}
       />
+      <p><small>{t('microbiology.case.incoming.placementHelp', 'A placed or moved result shows Placed by or Moved from, and the validator confirms the placement (FR-09.7).')}</small></p>
     </Section>
   );
 }
 
 /* ---------- Case information (A-03): the Program's questionnaire decides the extra questions (FR-03.6, FR-03.7) ---------- */
 function CaseInformation() {
-  const { ex, program, setProgram } = useEx();
+  const { ex, program, setProgram, origin, setOrigin, admission, setAdmission, admMissing } = useEx();
+  const [rcvAt, setRcvAt] = useState(ex.received ? ex.received.atSender : '');
   const [purpose, setPurpose] = useState('CLINICAL_DIAGNOSTIC');
   const track = PROGRAM_TRACKS[program];
   return (
     <Section n="1" title={t('microbiology.case.section.caseInfo', 'Case information')} isNew>
       <Grid condensed>
+        {ex.received && <>
+          {/* FR-02.13a: a received isolate shows where it came from and both received dates */}
+          <Column lg={4}><TextInput id="rcv-lab" labelText={t('microbiology.case.sendingLaboratory', 'Sending laboratory')} value={ex.received.lab} readOnly helperText={t('microbiology.case.sendingLaboratory.help', 'From Tested elsewhere at order entry')} /></Column>
+          <Column lg={4}><TextInput id="rcv-id" labelText={t('microbiology.case.reportedIdentification', 'Reported identification')} value={ex.received.reportedId} readOnly /></Column>
+          <Column lg={4}><Select id="rcv-orig" labelText={`${t('microbiology.case.originalSpecimenType', 'Original specimen type')} ◆`} defaultValue={ex.received.original} helperText={t('microbiology.case.requiredBeforeFinal', 'Needed before final report')}>
+            {['Urine', 'Blood', 'Wound swab', 'Sputum', 'Cerebrospinal fluid'].map((o) => <SelectItem key={o} value={o} text={o} />)}</Select></Column>
+          <Column lg={4}><TextInput id="rcv-col" labelText={t('microbiology.case.collected', 'Collected')} value={ex.received.collected} readOnly helperText={t('microbiology.case.collected.original', 'The original specimen')} /></Column>
+          <Column lg={4}><TextInput id="rcv-at" labelText={t('microbiology.case.receivedAt', 'Received at {laboratory}').replace('{laboratory}', ex.received.lab)} value={rcvAt} onChange={(e) => setRcvAt(e.target.value)} placeholder="DD/MM/YYYY" helperText={t('microbiology.case.receivedAt.sender.help', 'When the sending laboratory received the specimen (optional)')} /></Column>
+          <Column lg={4}><TextInput id="rcv-here" labelText={t('microbiology.case.receivedAt', 'Received at {laboratory}').replace('{laboratory}', 'CPHL')} value={ex.received.here} readOnly helperText={t('microbiology.case.receivedAt.here.help', "The Isolate sample's received date")} /></Column>
+        </>}
         <Column lg={4}>
           <Select id="program" labelText={`${t('microbiology.case.program', 'Program')} ◆`} value={program} onChange={(e) => setProgram(e.target.value)}
             helperText={t('microbiology.case.program.help', 'Its questionnaire shows below; its track decides the exports')}>
@@ -792,15 +810,17 @@ function CaseInformation() {
           </Select>
         </Column>
         <Column lg={4}>
-          <Select id="origin" labelText={`${t('microbiology.orderDetail.patientOrigin', 'Patient origin')} ◆`} defaultValue={ex.info.origin} helperText={t('microbiology.case.requiredBeforeFinal', 'Needed before final report')}>
+          <Select id="origin" labelText={`${t('microbiology.orderDetail.patientOrigin', 'Patient origin')} ◆`} value={origin} onChange={(e) => setOrigin(e.target.value)} helperText={t('microbiology.case.requiredBeforeFinal', 'Needed before final report')}>
             {['Outpatient', 'Inpatient', 'ICU', 'Emergency'].map((o) => <SelectItem key={o} value={o} text={o} />)}
           </Select>
         </Column>
-        <Column lg={4}>{ex.info.admission
-          ? <TextInput id="adm" labelText={`${t('microbiology.orderDetail.admissionDate', 'Date of admission')} ◆`} defaultValue={ex.info.admission} />
+        <Column lg={4}>{origin !== 'Outpatient'
+          ? <TextInput id="adm" labelText={t('microbiology.orderDetail.admissionDate', 'Date of admission')} value={admission} onChange={(e) => setAdmission(e.target.value)} placeholder="DD/MM/YYYY"
+              helperText={t('microbiology.case.neededForSurveillance', 'Needed for surveillance')} warn={admMissing}
+              warnText={t('microbiology.case.neededForSurveillance.missing', 'Needed for surveillance; missing. Never blocks release.')} />
           : <TextInput id="adm" labelText={t('microbiology.orderDetail.admissionDate', 'Date of admission')} disabled placeholder={t('microbiology.orderDetail.admissionDateOutpatient', 'Outpatients are not admitted')} />}</Column>
         {ex.info.ward && <Column lg={4}><TextInput id="ward" labelText={t('microbiology.case.ward', 'Ward')} defaultValue={ex.info.ward} /></Column>}
-        {track === 'Bacterial' && <Column lg={4}><TextInput id="io" labelText={t('microbiology.case.infectionOrigin', 'Infection origin (derived)')} value={ex.info.admission ? 'Hospital origin' : 'Community origin'} readOnly helperText="More than 2 days after admission is hospital origin (GLASS)" /></Column>}
+        {track === 'Bacterial' && <Column lg={4}><TextInput id="io" labelText={t('microbiology.case.infectionOrigin', 'Infection origin (derived)')} value={origin === 'Outpatient' ? 'Community origin' : admission ? 'Hospital origin' : t('microbiology.case.infectionOrigin.unknown', 'Unknown (no admission date)')} readOnly helperText="More than 2 days after admission is hospital origin (GLASS)" /></Column>}
         <Column lg={8}><TextInput id="dx" labelText={t('microbiology.case.diagnosis', 'Clinical diagnosis / reason for test')} defaultValue={ex.info.diagnosis} /></Column>
         <Column lg={16}><ProgramQuestionnaire key={program} program={program} /></Column>
         <Column lg={4}><TextInput id="sets" labelText={t('microbiology.orderDetail.numberOfSets', 'Number of sets')} value={ex.info.sets} readOnly helperText="Counted from the samples" /></Column>
@@ -846,7 +866,7 @@ function CaseTestTable({ rows }) {
             <React.Fragment key={r.id}>
               <TableRow>
                 <TableCell>{r.test}<NoteCountTag id={r.id} />{r.on && <div><small>{t('label.on', 'On')} {r.on}</small></div>}
-                  <div>{r.external && <Tag type="gray" size="sm">{t('microbiology.case.external', 'External result')}</Tag>}{labOnly[r.id] && <Tag type="purple" size="sm">{t('microbiology.case.inLabOnly', 'In lab only')}</Tag>}</div></TableCell>
+                  <div>{r.external && <Tag type="gray" size="sm">{t('microbiology.case.external', 'External result')}</Tag>}{labOnly[r.id] && <Tag type="purple" size="sm">{t('microbiology.case.inLabOnly', 'In lab only')}</Tag>}{r.addedBy && <Tag type="cool-gray" size="sm">{t('microbiology.case.addedBy', 'Added by {user}').replace('{user}', r.addedBy)}</Tag>}{r.placedBy && <Tag type="blue" size="sm">{r.placedBy}</Tag>}</div></TableCell>
                 <TableCell style={{ whiteSpace: 'normal', overflowWrap: 'anywhere' }}>{r.display || <em>{t('microbiology.case.result.notEntered', 'Not entered')}</em>}</TableCell>
                 <TableCell>{r.flag ? <Tag type="red" size="sm">{r.flag}</Tag> : <small>{t('label.none', 'none')}</small>}</TableCell>
                 <TableCell>{r.by || t('label.na', 'n/a')}</TableCell>
@@ -912,14 +932,14 @@ function TestChooser({ id, ch, onAdd, onCancel }) {
 }
 
 function InitialTesting() {
-  const { ex } = useEx();
+  const { ex, log } = useEx();
   const [rows, setRows] = useState(ex.initial);
   const [adding, setAdding] = useState(false);
   return (
     <Section n="2" title={t('microbiology.case.section.initialTesting', 'Initial testing')} isNew>
       {rows.length ? <CaseTestTable rows={rows} /> : <p><small>{ex.noInitial}</small></p>}
       {adding
-        ? <TestChooser id="ch-init" ch={ex.choosers.initial} onCancel={() => setAdding(false)} onAdd={(p) => { setRows([...rows, ...p.map((x, k) => ({ id: `add${rows.length + k}`, test: x, type: 'graded', graded: [{ what: 'Pus cells', grade: 'Few' }], display: '', flag: '', by: '', state: 'Not started' }))]); setAdding(false); }} />
+        ? <TestChooser id="ch-init" ch={ex.choosers.initial} onCancel={() => setAdding(false)} onAdd={(p) => { setRows([...rows, ...p.map((x, k) => ({ id: `add${rows.length + k}`, test: x, type: 'graded', graded: [{ what: 'Pus cells', grade: 'Few' }], display: '', flag: '', by: '', state: 'Not started', addedBy: ex.tech }))]); p.forEach((x) => log(`Added ${x} to Initial testing, on the specimen`)); setAdding(false); }} />
         : <Button kind="tertiary" size="sm" renderIcon={Add} onClick={() => setAdding(true)}>{t('microbiology.case.addTestOrPanel', 'Add test or panel')}</Button>}
     </Section>
   );
@@ -1171,7 +1191,8 @@ function Culture() {
           </Stack>
         </Tile>
       )}
-      <Tile style={{ marginTop: 'var(--cds-spacing-05)' }}>
+      {ex.received && <InlineNotification kind="info" lowContrast hideCloseButton title={t('microbiology.case.receivedIsolateOutcome', 'Growth (received isolate)')} subtitle={t('microbiology.case.receivedIsolate.help', 'No primary specimen is inoculated. A purity or identification subculture is added from ISO-1 as on any isolate (FR-02.13).')} />}
+      {!ex.received && <Tile style={{ marginTop: 'var(--cds-spacing-05)' }}>
         <h6>{t('microbiology.case.inoc.start', 'Start inoculation')}</h6>
         <TemplateProposal template={ex.template} />
         <p><small>{t('microbiology.case.inoc.oneRow', 'Or add one row (pre-filled from the previous row):')}</small></p>
@@ -1199,7 +1220,7 @@ function Culture() {
             </ExistingFence>
           </Column>
         </Grid>
-      </Tile>
+      </Tile>}
     </Section>
   );
 }
@@ -1220,7 +1241,9 @@ function Isolates() {
           rows={isolates.map((i) => ({ ...i, act: '' }))}
           render={(c, row) => {
             if (c.info.header === 'sig') return <Tag type={c.value === 'Clinically significant' ? 'green' : 'gray'} size="sm">{c.value}</Tag>;
-            if (c.info.header === 'org') return c.value || <Button kind="ghost" size="sm">{t('microbiology.case.isolate.identify', 'Identify')}</Button>;
+            if (c.info.header === 'org') return c.value
+              ? (() => { const iso = isolates.find((i) => i.id === row.id) || {}; return <>{c.value}{iso.received && <div><Tag type="purple" size="sm">{t('microbiology.case.receivedFrom', 'Received from {0}').replace('{0}', iso.received)}</Tag></div>}{iso.reportedId && <div><small>{t('microbiology.case.reportedIdentification', 'Reported identification')}: {iso.reportedId}{iso.reportedId === c.value ? ' (agrees)' : ''}</small></div>}</>; })()
+              : <Button kind="ghost" size="sm">{t('microbiology.case.isolate.identify', 'Identify')}</Button>;
             if (c.info.header === 'act') return (
               <Stack orientation="horizontal" gap={1}>
                 <Button kind="ghost" size="sm" onClick={() => setNotesOpen(notesOpen === row.id ? null : row.id)}>{noteCountLabel(notes, row.id)}</Button>
@@ -1267,7 +1290,9 @@ function Isolates() {
 
 /* ---------- AST / DST (existing, plus panels per isolate and the standard chooser) ---------- */
 function AstDst() {
-  const { ex, isolates, validated, setValidated } = useEx();
+  const { ex, isolates, validated, setValidated, log, ackSender, setAckSender } = useEx();
+  // FR-02.13b, FR-02.13c: the sender's AST sits beside the local run; differences are acknowledged before validation
+  const senderDiffs = ex.ast.sender ? ex.ast.readings.filter((a) => a.sender && a.sender !== a.interp).map((a) => a.drug) : [];
   const [bp, setBp] = useState(ex.ast.bp);
   const [panels, setPanels] = useState(ex.astPanels);
   const [adding, setAdding] = useState(false);
@@ -1295,14 +1320,32 @@ function AstDst() {
         </Grid>
         <p><small>{ex.ast.runNote}</small></p>
         <SimpleTable
-          headers={[{ key: 'drug', header: ex.ast.agentLabel }, { key: 'raw', header: t('label.raw', 'Raw') }, { key: 'source', header: t('label.source', 'Source') }, { key: 'matchedBy', header: t('microbiology.ast.matchedBy', 'Matched by') }, { key: 'interp', header: t('label.interpretation', 'Interpretation') }, { key: 'note', header: t('label.note', 'Note') }]}
+          headers={[{ key: 'drug', header: ex.ast.agentLabel }, { key: 'raw', header: t('label.raw', 'Raw') }, { key: 'source', header: t('label.source', 'Source') }, { key: 'matchedBy', header: t('microbiology.ast.matchedBy', 'Matched by') }, { key: 'interp', header: t('label.interpretation', 'Interpretation') }, ...(ex.ast.sender ? [{ key: 'sender', header: t('microbiology.case.ast.senderColumn', 'Sender ({laboratory})').replace('{laboratory}', ex.ast.sender) }] : []), { key: 'note', header: t('label.note', 'Note') }]}
           rows={ex.ast.readings}
-          render={(c) => (c.info.header === 'interp' ? <Tag type={interpTag(c.value)} size="sm">{c.value}</Tag> : c.value)}
+          render={(c, row) => {
+            const r = ex.ast.readings.find((x) => x.id === row.id) || {};
+            if (c.info.header === 'interp') return <>{<Tag type={interpTag(c.value)} size="sm">{c.value}</Tag>}{r.sender && r.sender !== c.value && <Tag type="magenta" size="sm">{t('microbiology.case.ast.differsFromSender', 'Differs from sender')}</Tag>}</>;
+            if (c.info.header === 'sender') return c.value ? <Tag type="gray" size="sm">{c.value}</Tag> : <small>{t('microbiology.case.ast.notTested', 'not tested')}</small>;
+            return c.value;
+          }}
         />
+        {senderDiffs.length > 0 && !validated && (
+          <InlineNotification kind="warning" lowContrast hideCloseButton
+            title={t('microbiology.case.ast.senderDiffers', "Susceptibility differs from the sender's: {agents}").replace('{agents}', senderDiffs.join(', '))}
+            subtitle={ackSender ? `Acknowledged by ${ex.tech}` : t('microbiology.case.ast.senderDiffers.help', 'Acknowledge before validating the run (FR-02.13c).')} />
+        )}
+        {senderDiffs.length > 0 && !ackSender && !validated && (
+          <Stack orientation="horizontal" gap={3}>
+            <TextInput id="ack-note" labelText={t('label.noteOptional', 'Note (optional)')} size="sm" />
+            <Button size="sm" kind="tertiary" onClick={() => { setAckSender(true); log(`Acknowledged: susceptibility differs from the sender's (${senderDiffs.join(', ')})`); }}>{t('label.acknowledge', 'Acknowledge')}</Button>
+          </Stack>
+        )}
         <Stack orientation="horizontal" gap={3}>
           <Button size="sm" kind="secondary">{t('microbiology.ast.recordReading', 'Record reading')}</Button>
           {ex.ast.blocked
             ? <Button size="sm" disabled>{ex.ast.blocked}</Button>
+            : senderDiffs.length > 0 && !ackSender && !validated
+            ? <Button size="sm" disabled>{t('microbiology.case.ast.validateRun', 'Validate run: Accept results')}</Button>
             : <Button size="sm" kind={validated ? 'secondary' : 'primary'} onClick={() => setValidated(!validated)}>{validated ? t('microbiology.case.ast.undoValidate', 'Undo validation') : t('microbiology.case.ast.validateRun', 'Validate run: Accept results')}</Button>}
           <Button size="sm" kind="ghost">{t('microbiology.ast.newAttempt', 'New attempt')}</Button>
         </Stack>
@@ -1312,7 +1355,7 @@ function AstDst() {
         {ex.ast.classLabel} ({t('microbiology.case.derived', 'derived from organism and results')}): {ex.ast.classTags.map((c) => <Tag key={c} type="red">{c}</Tag>)} <small>{ex.ast.classNote}</small>
       </div>
       {adding
-        ? <TestChooser id="ch-ast" ch={ex.choosers.ast} onCancel={() => setAdding(false)} onAdd={(p, on) => { setPanels([...panels, ...p.map((x, k) => ({ id: `pa${panels.length + k}`, panel: x, on: on.split(' ')[0], added: t('microbiology.case.ast.addedChooser', 'Added with the chooser'), method: `${ex.ast.method} · ${bp}`, val: 'Not started' }))]); setAdding(false); }} />
+        ? <TestChooser id="ch-ast" ch={ex.choosers.ast} onCancel={() => setAdding(false)} onAdd={(p, on) => { setPanels([...panels, ...p.map((x, k) => ({ id: `pa${panels.length + k}`, panel: x, on: on.split(' ')[0], added: t('microbiology.case.addedBy', 'Added by {user}').replace('{user}', ex.tech), method: `${ex.ast.method} · ${bp}`, val: 'Not started' }))]); p.forEach((x) => log(`Added ${x} to AST / DST, on ${on.split(' ')[0]}`)); setAdding(false); }} />
         : <Button kind="tertiary" size="sm" renderIcon={Add} onClick={() => setAdding(true)}>{t('microbiology.case.addTestOrPanel', 'Add test or panel')}</Button>}
     </Section>
   );
@@ -1320,14 +1363,14 @@ function AstDst() {
 
 /* ---------- Additional testing (A-15): same table, editor and chooser as Initial testing ---------- */
 function AdditionalTesting() {
-  const { ex } = useEx();
+  const { ex, log } = useEx();
   const [rows, setRows] = useState(ex.additional);
   const [adding, setAdding] = useState(false);
   return (
     <Section n="7" title={t('microbiology.case.section.additionalTesting', 'Additional testing')} isNew>
       {rows.length ? <CaseTestTable rows={rows} /> : <p><small>{t('microbiology.case.additional.none', 'No additional tests.')}</small></p>}
       {adding
-        ? <TestChooser id="ch-add" ch={ex.choosers.additional} onCancel={() => setAdding(false)} onAdd={(p, on) => { setRows([...rows, ...p.map((x, k) => ({ id: `addl${rows.length + k}`, test: x, on, type: 'coded', opts: ['Detected', 'Not detected'], display: '', flag: '', by: '', state: 'Not started' }))]); setAdding(false); }} />
+        ? <TestChooser id="ch-add" ch={ex.choosers.additional} onCancel={() => setAdding(false)} onAdd={(p, on) => { setRows([...rows, ...p.map((x, k) => ({ id: `addl${rows.length + k}`, test: x, on, type: 'coded', opts: ['Detected', 'Not detected'], display: '', flag: '', by: '', state: 'Not started', addedBy: ex.tech }))]); p.forEach((x) => log(`Added ${x} to Additional testing, on ${on}`)); setAdding(false); }} />
         : <Button kind="tertiary" size="sm" renderIcon={Add} onClick={() => setAdding(true)}>{t('microbiology.case.addTestOrPanel', 'Add test or panel')}</Button>}
     </Section>
   );
@@ -1391,7 +1434,7 @@ function ReportPrint({ items }) {
 }
 
 function Report() {
-  const { ex, children, labOnly, validated, program } = useEx();
+  const { ex, children, labOnly, validated, program, admMissing } = useEx();
   const [sel, setSel] = useState(Object.fromEntries(ex.report.items.map((i) => [i.k, i.on])));
   // tests on a culture that are not In lab only are culture results (FR-11.2), printed once validated
   const gramItems = children.filter((m) => m.kind === 'test' && !m.inLabOnly && m.display).map((m) => ({ k: m.id, group: 'culture', order: 11, sec: `Culture · ${m.id}`, label: `${m.test} on ${m.from}: ${m.display}`, d: m.state === 'Validated' ? 'On' : 'On, prints once validated', on: true, print: m.state === 'Validated' ? [{ t: `${m.test} (${m.from})`, r: m.display, ind: 1 }] : [] }));
@@ -1431,6 +1474,7 @@ function Report() {
         </Column>
         <Column lg={8}>
           <InlineNotification kind="warning" lowContrast hideCloseButton title={t('microbiology.case.report.finalChecklist', 'Final report checklist')} subtitle={checklist.join(' · ')} />
+          {admMissing && <InlineNotification kind="info" lowContrast hideCloseButton title={t('microbiology.case.report.surveillanceNote', 'Does not block release')} subtitle={t('microbiology.case.report.admissionMissing', 'Admission date missing: exports with infection origin Unknown')} />}
           <SimpleTable
             headers={[{ key: 'type', header: t('microbiology.case.report.release', 'Release') }, { key: 'when', header: t('label.releasedBy', 'Released') }]}
             rows={ex.report.releases}
@@ -1448,7 +1492,7 @@ function Report() {
 }
 
 function AmendmentAndTimeline() {
-  const { ex } = useEx();
+  const { timeline } = useEx();
   return (
     <>
       <Section n="11" title={t('microbiology.case.section.amendment', 'Amendment')}>
@@ -1457,8 +1501,8 @@ function AmendmentAndTimeline() {
         </ExistingFence>
       </Section>
       <Section n="12" title={t('microbiology.case.section.timeline', 'Timeline')}>
-        <ExistingFence owner="M-04 CaseTimelinePanel (built)" additions="new event types (lab unit change, readings, placements, moves, In lab only, extensions, Positive at edits, rule-added Gram stains)">
-          <SimpleTable headers={[{ key: 'when', header: t('label.when', 'When') }, { key: 'what', header: t('label.event', 'Event') }]} rows={ex.timeline} />
+        <ExistingFence owner="M-04 CaseTimelinePanel (built)" additions="new event types (lab unit change, readings, placements, moves, In lab only, extensions, Positive at edits, rule-added Gram stains, tests added by hand)">
+          <SimpleTable headers={[{ key: 'when', header: t('label.when', 'When') }, { key: 'what', header: t('label.event', 'Event') }]} rows={timeline} />
         </ExistingFence>
       </Section>
     </>
@@ -1479,7 +1523,15 @@ export function MicrobiologyCaseView({ example = TB_EX }) {
   const [media, setMedia] = useState(MEDIA_SEED);
   const [notes, setNotes] = useState(ex.notes);
   const addNote = (id, n) => setNotes((prev) => ({ ...prev, [id]: [...(prev[id] || []), n] }));
-  const ctx = { ex, labUnit, setLabUnit, program, setProgram, cultures, setCultures, children, setChildren, isolates, setIsolates, labOnly, setLabOnly, validated, setValidated };
+  // FR-03.5, D-211: admission date is Needed for surveillance for anyone not an outpatient; it never blocks
+  const [origin, setOrigin] = useState(ex.info.origin);
+  const [admission, setAdmission] = useState(ex.info.admission);
+  const admMissing = origin !== 'Outpatient' && !admission;
+  // FR-07.2c, FR-09.7: added tests and placements go to the Timeline
+  const [timeline, setTimeline] = useState(ex.timeline);
+  const [ackSender, setAckSender] = useState(false); // FR-02.13c, D-219
+  const log = (what) => setTimeline((x) => [{ id: `l${x.length}`, when: SERVER_NOW, what: `${what} · ${ex.tech}` }, ...x]);
+  const ctx = { ex, labUnit, setLabUnit, program, setProgram, cultures, setCultures, children, setChildren, isolates, setIsolates, labOnly, setLabOnly, validated, setValidated, origin, setOrigin, admission, setAdmission, admMissing, timeline, log, ackSender, setAckSender };
   return (
     <CaseExample.Provider value={ctx}>
     <NotesContext.Provider value={{ notes, addNote }}>
@@ -1493,7 +1545,7 @@ export function MicrobiologyCaseView({ example = TB_EX }) {
       </Breadcrumb>
       <CaseHeader />
       <Accordion>
-        <IncomingResults items={incoming} isolates={isolates.map((i) => i.id)} onPlace={(id) => setIncoming(incoming.filter((i) => i.id !== id))} />
+        <IncomingResults items={incoming} isolates={isolates.map((i) => i.id)} onPlace={(id, pl, item) => { log(`Placed ${item.test} from Incoming results in ${pl}${item.linked && pl.includes('ISO-') ? ` with ${item.linked.length} linked results from the same message` : ''}`); setIncoming(incoming.filter((i) => i.id !== id)); }} />
         <CaseInformation />
         <InitialTesting />
         <ReferralPoint />
@@ -2116,7 +2168,7 @@ export function OrderSamplesAndTests() {
     { id: '-5', type: 'Blood, anaerobic bottle', site: 'Venous blood, right arm', time: '28 Sep 07:31', tests: ['Blood culture'] },
     { id: '-6', type: 'Serum', site: '', time: '28 Sep 07:25', tests: ['RPR'] },
     { id: '-7', type: 'Wound swab', site: 'Wound, lower leg', time: '28 Sep 07:40', tests: ['Microbiology case'] },
-    { id: '-8', type: 'Isolate', site: '', time: '27 Sep 15:00', tests: ['Bacterial culture', 'VITEK 2 AST-N405'], elsewhere: { test: 'Bacterial culture', lab: 'Port Moresby General Hospital Laboratory', value: 'Escherichia coli' } },
+    { id: '-8', type: 'Isolate', site: '', time: '27 Sep 15:00', tests: ['Bacterial culture', 'VITEK 2 AST-N405'], elsewhere: { test: 'Bacterial culture', lab: 'Port Moresby General Hospital Laboratory', value: 'Escherichia coli', receivedAt: '26 Sep' } },
   ]);
   const [split, setSplit] = useState(false);
   const [sets, setSets] = useState({ '-2': '1', '-3': '1', '-4': '2', '-5': '2' }); // D-192: reception gives each bottle its set
@@ -2182,7 +2234,7 @@ export function OrderSamplesAndTests() {
                     <Select id={`set${sm.id}`} labelText="" hideLabel aria-label={`Set for ${sm.id}`} size="sm" value={sets[sm.id]} onChange={(e) => setSets({ ...sets, [sm.id]: e.target.value })}>{['1', '2', '3'].map((n) => <SelectItem key={n} value={n} text={t('order.sample.set.option', 'Set {0}').replace('{0}', n)} />)}</Select>
                   ) : <small>{t('label.notApplicable', 'n/a')}</small>}</TableCell>
                   <TableCell>
-                    {sm.elsewhere && <div><Tag type="purple" size="sm">{t('order.tests.col.testedElsewhere', 'Tested elsewhere')}</Tag> <small>{sm.elsewhere.test}: {sm.elsewhere.lab} (Organizations list), reported {sm.elsewhere.value}</small></div>}
+                    {sm.elsewhere && <div><Tag type="purple" size="sm">{t('order.tests.col.testedElsewhere', 'Tested elsewhere')}</Tag> <small>{sm.elsewhere.test}: {sm.elsewhere.lab} (Organizations list), reported {sm.elsewhere.value}{sm.elsewhere.receivedAt && `, ${t('microbiology.case.receivedAt', 'Received at {laboratory}').replace('{laboratory}', 'that laboratory')} ${sm.elsewhere.receivedAt}`}</small></div>}
                     {sm.tests.map((x) => <Tag key={x} type={GENERIC.includes(x) ? 'teal' : 'gray'} size="sm">{x}</Tag>)}
                     {si === 0 && (
                       <div style={{ maxWidth: '22rem', marginTop: 'var(--cds-spacing-03)' }}>
@@ -2219,6 +2271,46 @@ export function OrderSamplesAndTests() {
   );
 }
 
+/* ---------- Example data: a received isolate from a sentinel site (FR-02.13 to FR-02.13c, D-218, D-219) ---------- */
+const RI_LAB = 'Mount Hagen Provincial Hospital Laboratory';
+const RI_ISO = `Isolate 1: Escherichia coli (received from ${RI_LAB})`;
+// [agent, MIC here, interpretation here, sender's interpretation ('' = not tested by the sender)]
+const RI_AGENTS = [['Ampicillin', '≥32', 'R', 'R'], ['Amoxicillin-clavulanate', '8/4', 'S', 'S'], ['Ceftriaxone', '≥64', 'R', 'S'], ['Ceftazidime', '16', 'R', ''],
+  ['Meropenem', '≤0.25', 'S', ''], ['Gentamicin', '≤1', 'S', 'S'], ['Ciprofloxacin', '≥4', 'R', 'S'], ['Trimethoprim-sulfamethoxazole', '≥320', 'R', 'R']];
+const RI_EX = {
+  ...BC_EX,
+  lab: 'CPHL26-005102', labShort: '005102', tech: 'P. Hiri', patient: 'Joseph Kuri, M, 47 y · from the sentinel site line list', sampleSummary: 'CPHL26-005102-1 · Isolate (original specimen: Urine)', sampleType: 'Isolate', site: 'n/a (isolate)',
+  labUnit: 'Microbiology', program: 'AMR surveillance', stage: [['blue', 'AST in progress']], related: '', priority: 'Routine',
+  why: `One Isolate sample entered from the ${RI_LAB} line list, with Bacterial culture ticked Tested elsewhere and its reported organism (FR-02.13, FR-02.13a). ISO-1 is Received from that laboratory and the culture side is Growth (received isolate). The sender's AST is a Tested elsewhere panel on ISO-1 (FR-02.13b); differences are acknowledged at validation (FR-02.13c).`,
+  history: [], notes: {}, incoming: [],
+  received: { lab: RI_LAB, reportedId: 'Escherichia coli', original: 'Urine', collected: '29 Sep 2026', atSender: '30/09/2026', here: '03 Oct 2026 09:20' },
+  info: { origin: 'Outpatient', admission: '', ward: '', diagnosis: 'From the line list: urinary tract infection (sentinel surveillance)', sets: '1', history: '', priorAb: [] },
+  samples: [{ id: 's1', no: 'CPHL26-005102-1', type: 'Isolate · agar slope', set: '', site: 'n/a (isolate)', at: '29 Sep (original specimen)', by: 'Line list' }],
+  initial: [], noInitial: 'No direct tests on a received isolate.', additional: [], labOnly: {}, referrals: [],
+  cultureNote: 'A received isolate arrives grown, so there is no inoculation of a primary specimen.', cultures: [], children: [],
+  isolates: [{ id: 'ISO-1', iso: 'ISO-1', from: 'Received isolate', gram: 'Gram-negative bacilli · lactose fermenter (purity check)', org: 'Escherichia coli', idm: 'MALDI-TOF Biotyper (MB-01) · score 2.24', sig: 'Clinically significant', received: RI_LAB, reportedId: 'Escherichia coli' }],
+  isoNote: null,
+  astPanels: [{ id: 'p0', panel: 'Disk diffusion panel (as reported)', on: 'ISO-1', added: t('microbiology.case.testedElsewhere', 'Tested elsewhere'), method: `Disk diffusion · external, ${RI_LAB}`, val: 'External' },
+    { id: 'p1', panel: 'VITEK 2 AST-N405 (Enterobacterales)', on: 'ISO-1', added: 'Organism default', method: 'VITEK 2 MIC · CLSI M100 36th ed. (2026)', val: 'Awaiting validation' }],
+  ast: { ...BC_EX.ast, sender: RI_LAB,
+    runNote: `Run 1 (Original), results in from VITEK 2 Compact VK-01, 06 Oct 03:10. QC passed. The Sender column shows the ${RI_LAB} panel, recorded as Tested elsewhere: kept as reported, never recalculated, never counted in surveillance (FR-02.13b).`,
+    readings: RI_AGENTS.map((a, k) => ({ id: `ri${k}`, drug: a[0], raw: `${a[1]} µg/mL`, source: 'Analyzer', matchedBy: 'CLSI M100 36th ed. (2026)', interp: a[2], sender: a[3], note: '' })),
+    classTags: ['ESBL'], classNote: 'third-generation cephalosporins and ciprofloxacin resistant here, both reported susceptible by the sender.' },
+  critical: [],
+  report: {
+    items: [
+      { k: 'iso', group: 'culture', order: 30, sec: 'Isolates', label: RI_ISO, d: 'On', on: true, print: [{ t: `Isolate received from ${RI_LAB} †`, r: 'Escherichia coli', rb: false }] },
+      { k: 'snd', group: 'ast', order: 39, sec: 'AST · Tested elsewhere', label: `Sender AST, ${RI_LAB} (external)`, d: 'Off (Tested elsewhere)', on: false, print: [{ t: `Sender AST (${RI_LAB}) †`, r: 'Ceftriaxone S, Ciprofloxacin S, Gentamicin S', rb: false, ind: 1 }] },
+      ...RI_AGENTS.map((a, k) => ({ k: `ri${k}`, group: 'ast', iso: 'ISO-1', isoLabel: RI_ISO, order: 40 + k, sec: 'AST, run 1', label: `${a[0]} ${a[2]}`, d: 'Always', on: true, print: [{ t: a[0], r: `${a[2]} · ${a[1]} µg/mL · CLSI M100 36th ed.`, ind: 1, bar: a[2] === 'R' }] }))],
+    checklist: ['Culture outcome: Growth (received isolate)', 'ast', 'program'],
+    releases: [], callback: '' },
+  timeline: [
+    { id: 'e1', when: '06 Oct 03:10', what: 'AST run 1 results in, VITEK 2 VK-01 · 8 antibiotics' },
+    { id: 'e2', when: '04 Oct 10:05', what: 'ISO-1 identified, E. coli (MALDI-TOF), agrees with the reported identification · P. Hiri' },
+    { id: 'e3', when: '03 Oct 10:30', what: `Sender AST recorded as Tested elsewhere on ISO-1 (${RI_LAB}, from the line list) · R. Opa` },
+    { id: 'e4', when: '03 Oct 09:20', what: `Case opened from order CPHL26-005102: Isolate, Bacterial culture Tested elsewhere (${RI_LAB}, reported Escherichia coli), received at that laboratory 30 Sep · R. Opa` }],
+};
+
 export default function MicrobiologyV2Mockup() {
   const [view, setView] = useState(0);
   return (
@@ -2226,6 +2318,7 @@ export default function MicrobiologyV2Mockup() {
       <ContentSwitcher selectedIndex={view} onChange={({ index }) => setView(index)} size="sm">
         <Switch name="case" text={t('microbiology.mockup.caseView', 'Case view (TB example)')} />
         <Switch name="bc" text={t('microbiology.mockup.caseViewBc', 'Case view (blood culture, AMR example)')} />
+        <Switch name="ri" text={t('microbiology.mockup.caseViewRi', 'Case view (received isolate, sentinel site)')} />
         <Switch name="wl" text={t('microbiology.mockup.worklist', 'Worklist: Needs attention, bench work')} />
         <Switch name="oe" text={t('microbiology.mockup.orderEntry', 'Enter Order: samples and tests')} />
         <Switch name="adm" text={t('microbiology.mockup.adminMedia', 'Test catalog, media links, settings')} />
@@ -2233,10 +2326,11 @@ export default function MicrobiologyV2Mockup() {
       </ContentSwitcher>
       {view === 0 && <MicrobiologyCaseView key="tb" example={TB_EX} />}
       {view === 1 && <MicrobiologyCaseView key="bc" example={BC_EX} />}
-      {view === 2 && <MicrobiologyWorklist />}
-      {view === 3 && <OrderSamplesAndTests />}
-      {view === 4 && <MediaLinksAdmin />}
-      {view === 5 && <WorkplanMicroBench />}
+      {view === 2 && <MicrobiologyCaseView key="ri" example={RI_EX} />}
+      {view === 3 && <MicrobiologyWorklist />}
+      {view === 4 && <OrderSamplesAndTests />}
+      {view === 5 && <MediaLinksAdmin />}
+      {view === 6 && <WorkplanMicroBench />}
     </Stack>
   );
 }
