@@ -1,6 +1,6 @@
 # QuantStudio 5 / 7 Flex — Field Mapping & Integration Spec
-**Version:** 1.3.1  
-**Date:** 2026-03-06  
+**Version:** 1.3.2  
+**Date:** 2026-10-10  
 **Confidence:** 🟢 VALIDATED — validated against 3 real XLS exports from Madagascar  
 **Jira:** [OGC-348](https://uwdigi.atlassian.net/browse/OGC-348)  
 **Pattern:** C — Flat File Export/Import  
@@ -19,7 +19,7 @@
 | **Assay in use (Madagascar)** | HIV-1 Viral Load (VIH-1, French locale) |
 | **Chemistry** | TaqMan (FAM reporter for VIH-1 target; CY5 for Internal Control) |
 | **Export software** | QuantStudio Design & Analysis (QS D&A) Software |
-| **Export format** | XLS (BIFF8 / Legacy Excel) — **NOT CSV** |
+| **Export format** | XLS (BIFF8 / Legacy Excel) at the Madagascar sites; XLSX is also accepted — **NOT CSV** |
 | **Integration type** | Manual file upload via OGC-324 Analyzer File Upload Screen |
 
 ---
@@ -59,12 +59,14 @@ The QuantStudio instruments do not support direct LIS connection (ASTM or HL7). 
 | **File encoding** | UTF-8 compatible via xlrd |
 | **Typical filename pattern** | `CVVIH__<date>QS7.xls`, `QS5_CVVIH_<date>.xls` |
 
+QS D&A can also export analyzed data as `.txt` or `.xlsx` (*QuantStudio Design and Analysis desktop Software User Guide*, MAN0010408 Rev B.0, p. 37, "Export configurations"). The Madagascar sites export `.xls`, which is what this spec describes. An `.xlsx` export is accepted too, provided it has the `Results` sheet described here; no real `.xlsx` export has been checked yet. A `.txt` export is not accepted.
+
 ### 3.1 File Identification
 
-A file is identified as a QuantStudio XLS export when ALL of the following are true:
+A file is identified as a QuantStudio Excel export when ALL of the following are true:
 
-1. Extension is `.xls` (not `.xlsx`)
-2. File magic bytes: `D0 CF 11 E0 A1 B1 1A E1` (CDFV2 header)
+1. Extension is `.xls` or `.xlsx`
+2. File magic bytes match the extension: `D0 CF 11 E0 A1 B1 1A E1` (CDFV2 header) for `.xls`, `50 4B 03 04` (ZIP) for `.xlsx`
 3. Sheet named `"Results"` exists
 4. Metadata row 0 contains key `"Block Type"`
 
@@ -213,6 +215,8 @@ The `Task` column is the authoritative classifier for all rows:
 | `STANDARD` | Standard curve calibrator | Route to standard curve QC; do not import as patient result |
 | `NTC` | No-Template Control | Route to QC; do not import as patient result |
 | `UNKNOWN` | Patient sample **or** Positive Control | Apply secondary filter (see §7.2) |
+
+These are the only tasks QS D&A offers for a standard-curve run: Unknown (the default), Negative Control / No template control, and Standard. The source is MAN0010408 Rev B.0, p. 14, "Assign a task to wells". Positive-control tasks exist only for genotyping and presence/absence runs, which is why a run's positive control is an `UNKNOWN` well recognized by its name (§7.2). Exports write task values in uppercase.
 
 ### 7.2 Positive Control (PC) Identification
 
@@ -369,20 +373,29 @@ Inherits from: `AnalyzerImplementation` (OGC-324 base class)
 
 ```python
 def can_handle(file_path):
-    # Check BIFF8 magic bytes
+    # .xls is BIFF8 (CDFV2), .xlsx is a ZIP package
     with open(file_path, 'rb') as f:
         magic = f.read(8)
-    if magic != b'\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1':
+    if magic == b'\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1':
+        reader = 'xls'
+    elif magic[:4] == b'PK\x03\x04':
+        reader = 'xlsx'
+    else:
         return False
     
     # Check for "Results" sheet and QuantStudio metadata
     try:
-        wb = xlrd.open_workbook(file_path)
-        if 'Results' not in wb.sheet_names():
-            return False
-        sheet = wb.sheet_by_name('Results')
+        if reader == 'xls':
+            wb = xlrd.open_workbook(file_path)
+            if 'Results' not in wb.sheet_names():
+                return False
+            first_cell = str(wb.sheet_by_name('Results').cell_value(0, 0)).strip()
+        else:
+            wb = openpyxl.load_workbook(file_path, read_only=True)
+            if 'Results' not in wb.sheetnames:
+                return False
+            first_cell = str(wb['Results'].cell(1, 1).value).strip()
         # Check first cell of row 0 for known QS metadata keys
-        first_cell = str(sheet.cell_value(0, 0)).strip()
         return first_cell in ('Block Type', 'Experiment Name', 'Date Created')
     except:
         return False
@@ -410,7 +423,7 @@ def can_handle(file_path):
 
 | Condition | Parser Response |
 |---|---|
-| File is `.xlsx` (not `.xls`) | Reject with message: "QuantStudio exports must be in legacy XLS format (.xls). Please re-export from QS D&A." |
+| File is neither `.xls` nor `.xlsx` (for example a `.txt` export) | Reject with message: "QuantStudio exports must be Excel files (.xls or .xlsx). Please re-export from QS D&A." |
 | No sheet named `"Results"` | Reject with message: "No Results sheet found. Please confirm this is a QuantStudio export." |
 | `Experiment Run End Time = "Not Started"` | Reject with message: "Pre-run file detected — export after run completes." |
 | `Omit = 1` for a row | Skip row silently; log to parsing report |
@@ -470,3 +483,4 @@ def can_handle(file_path):
 | 1.2 | 2026-02 | Validated against QS7 Jun 2024 (78 patients) and QS5 Dec 2024 (80 patients) |
 | 1.3 | 2026-03 | Third variant: 26 col / 16 metadata rows / LL prefix / "Not Started" pre-run |
 | 1.3.1 | 2026-03-06 | QC rules: PC via Task=UNKNOWN + Sample Name="PC"; NTC via Task=NTC (not Sample Name) |
+| 1.3.2 | 2026-10-10 | §3 and §7.1 cite Thermo's user guide for the export formats and for the task list (no positive-control task in standard-curve runs). §3.1, §11.3 and §13 accept `.xlsx` as well as `.xls` |

@@ -1,7 +1,7 @@
 # Westgard Rules Implementation - Requirements & Approach
 ## OpenELIS Global Lab Management System
 
-**Document Version:** 1.0  
+**Document Version:** 1.0.2 (2026-10-10: §7.1 states which analyzer result is the QC value, how a control is matched to its lot, and what happens when none matches; FR7.7 states how release blocking is delivered)  
 **Date:** November 13, 2025  
 **Author:** Casey Iiams-Hauser
 
@@ -99,6 +99,7 @@
 - **FR7.5**: System shall add external note to flagged QC results with corrective action summary
 - **FR7.6**: System shall automatically resolve violations when corrective action is completed
 - **FR7.7**: System shall prevent result release for associated patient samples until violation resolved
+  - Delivered by the `qcFailBlocksValidation` setting, on by default; a site may turn it off. Once built, the Runs FRS (`designs/results-validation/runs.md` FR-C4) narrows the hold to the run and test.
 
 ### FR8: Dashboard & Visualization
 
@@ -842,14 +843,22 @@ User Alert Preferences:
    - Instrument ID (from ASTM sender)
    - Test code (map to internal test ID)
    - QC result value
-   - Control lot/level identifier
+   - Control lot/level identifier, when the message carries one
 3. `QCResultService.recordQCResult()` creates result
 4. Automatic rule evaluation triggered
+
+None of the baseline instruments sends a control lot or level. The lab gives each control lot the specimen ID it uses for that control on the instrument, and the control is matched to its lot by that ID, and by level when a recognition rule sets one. A control is never assigned to a lot it does not match, even when only one lot is active.
+
+**QC value.** Only the instrument's main result for the test becomes a QC value. Analyte and complementary results (per-probe calls, Ct, EndPt, Delta Ct, internal quantitation standards) are not QC values (Cepheid 301-2002 Rev E, §6.3.4.1, result levels). For a quantitative assay that sends a LOG main result, such as a GeneXpert viral load, the LOG value is the QC value, and the lot's target and SD are entered in log10 units, the scale viral-load controls are charted on.
+
+- **GeneXpert (ASTM):** marks a QC specimen only by action code `Q` in O record field 12. The Specimen Descriptor (field 16) is always `ORH`, and reagent lots are not uploaded (Cepheid LIS Interface Protocol Specification 301-2002 Rev E, §6.3.4.1).
+- **QuantStudio and FluoroCycler XT (files):** identify a control by its task or its sample name.
 
 **Error Handling**:
 - Unknown instrument: Log error, queue for manual review
 - Unknown test: Attempt fuzzy match, fallback to manual
-- Unknown control lot: Check if new lot needs setup
+- No matching control lot: hold the control row in analyzer review with a "no matching control lot" issue until the lot is set up and the row reprocessed. The control is never counted as processed without being recorded or held.
+- Message already received: a duplicate the importer skips is not processed for QC again.
 - Invalid result value: Reject ASTM message, notify tech
 
 #### 7.2 Testing Strategy
