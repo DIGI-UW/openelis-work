@@ -642,7 +642,7 @@
       ],
       "capturedDate": "2026-06-30",
       "confluencePageId": "1437892659",
-      "notes": "testing renders en_GB strings on 3.2.3.0 (Organisation, Analyser); anchors kept spelling-neutral (28 Sept 2026)"
+      "notes": "testing renders en_GB strings on 3.2.3.0 (Organisation, Analyser); anchors kept spelling-neutral (28 Sept 2026) | 9 Oct 2026: testing is on 3.3.0-SNAPSHOT; /MasterListsPage/organizationManagement now redirects to /MasterListsPage/locations (OGC-1363). This contract documents the 3.2.x screen; superseded on testing by organization-management-330."
     },
     {
       "id": "provider-management",
@@ -1296,25 +1296,33 @@
     },
     {
       "id": "clinical-collect",
-      "title": "Collect samples for a clinical order",
-      "manualDoc": "Confluence 1655930882 (draft)",
-      "captureSpec": "tests/docs/clinical-pipeline.docs.spec.ts",
+      "title": "Prepare samples for a clinical order",
+      "manualDoc": "Confluence 1655930882 (v4 rewrite, draft for review)",
+      "captureSpec": "tests/docs/order-entry-v4.docs.spec.ts",
       "base": "https://testing.openelis-global.org",
       "routes": [
         {
           "path": "/order/clinical/collect?labNumber={{ORDER_IN_PROGRESS}}",
           "anchors": [
-            "Collect",
+            "Prepare Samples",
             "Requested Tests",
+            "Add Tests or Panels",
             "Informed Consent",
-            "Samples",
-            "Save & Next"
+            "Received at Lab",
+            "Labels",
+            "Location",
+            "Refer Out / Subcontract",
+            "Save and next"
           ]
         }
       ],
-      "capturedVersion": "3.2.2.0",
-      "capturedDate": "2026-09-16",
-      "note": "2026-09-22: was reporting green without proof - a cold visit to this wizard-gated route lands on /order/clinical/enter, where only 'Collect' and 'Save & Next' match. Now deep-linked by in-progress lab number; all five anchors verified live on the real Collect screen."
+      "capturedVersion": "3.3.0",
+      "capturedDate": "2026-10-09",
+      "note": "2026-10-09: Collect became Prepare Samples in Order Entry v4 (labels and storage folded in). Anchors verified live on testing 3.3.0-SNAPSHOT.",
+      "confluencePageId": "1655930882",
+      "jiraEpic": "OGC-1266",
+      "featureDoc": "OGC-1413",
+      "frs": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/clinical-order-entry-v4"
     },
     {
       "id": "label-store-shared",
@@ -1336,7 +1344,7 @@
       ],
       "capturedVersion": "3.2.2.0",
       "capturedDate": "2026-09-16",
-      "note": "2026-09-22: the 19 Sep 'drift' was not drift - all five anchors are present on the real Label & Store screen (verified live). /order/clinical/label is wizard-gated: OrderContext redirects a cold visit to /order/clinical/enter, where 'Label & Store', 'Print Labels' and 'Save & Next' false-pass from the stepper and the other two correctly fail. Route now deep-links by in-progress lab number, the way the product's own storage-assign-order-label.spec.ts does, and the checker refuses to score anchors after a redirect."
+      "note": "2026-09-22: the 19 Sep 'drift' was not drift - all five anchors are present on the real Label & Store screen (verified live). /order/clinical/label is wizard-gated: OrderContext redirects a cold visit to /order/clinical/enter, where 'Label & Store', 'Print Labels' and 'Save & Next' false-pass from the stepper and the other two correctly fail. Route now deep-links by in-progress lab number, the way the product's own storage-assign-order-label.spec.ts does, and the checker refuses to score anchors after a redirect. 2026-10-09: Order Entry v4 changed the clinical lane: Label & Store folded into Prepare Samples and QA Review became Sample check, so this contract's clinical route will drift. The page documents the shared stage for environmental and vector orders; re-point the route to the environmental lane once that lane is verified."
     },
     {
       "id": "qa-review-shared",
@@ -1358,38 +1366,34 @@
       ],
       "capturedVersion": "3.2.2.0",
       "capturedDate": "2026-09-16",
-      "note": "2026-09-22: was reporting green without proof - a cold visit to this wizard-gated route lands on /order/clinical/enter, where only 'QA Review' matches. Now deep-linked by in-progress lab number; all five anchors verified live on the real QA Review screen."
+      "note": "2026-09-22: was reporting green without proof - a cold visit to this wizard-gated route lands on /order/clinical/enter, where only 'QA Review' matches. Now deep-linked by in-progress lab number; all five anchors verified live on the real QA Review screen. 2026-10-09: Order Entry v4 changed the clinical lane: Label & Store folded into Prepare Samples and QA Review became Sample check, so this contract's clinical route will drift. The page documents the shared stage for environmental and vector orders; re-point the route to the environmental lane once that lane is verified."
     },
     {
       "id": "validation-v4",
       "title": "Triage and release results",
-      "manualDoc": "Confluence 1661763585 (review area, redesigned Validation page; Step 8 verified on testing 3.2.3.0)",
-      "captureSpec": "tests/docs/validation-v4.docs.spec.ts; tests/docs/valid5-*.docs.spec.ts (Step 8, 3.2.3.0)",
+      "manualDoc": "Confluence 1661763585, promoted 2026-10-09 to End User Manual folder Results, validation and reports (1679589479); labels doc-verified, verified-v3-3-0",
+      "captureSpec": "tests/docs/valid6-seed, valid6-results, valid6-p1, valid6-p2 (.docs.spec.ts); helpers valid6-common.ts, sig.ts; walkthrough valid6-walk.docs.spec.ts (docs-media/validation-v6/triage-and-release-results-walkthrough.mp4)",
       "jiraEpic": "OGC-817",
       "featureDoc": "OGC-1229",
       "frs": "validation-page-v4-frs.md",
       "base": "https://testing.openelis-global.org",
       "routes": [
         {
-          "path": "/ResultValidation?type=&test=",
+          "path": "/validation",
           "anchors": [
             "Validation",
             "Search",
-            "Select Test Unit"
-          ]
-        },
-        {
-          "path": "/AccessionValidation",
-          "anchors": [
-            "Validation",
-            "Search",
-            "Enter Accession Number"
+            "Lab Unit",
+            "From",
+            "To",
+            "Search by patient",
+            "Load results"
           ]
         }
       ],
-      "capturedVersion": "3.2.3.0",
-      "capturedDate": "2026-09-28",
-      "notes": "Queue header controls (Release all clear, filter chips, lane tags, Review) render only after a search returns rows awaiting validation, so they are not usable as on-load anchors. By Order uses the same queue plus an Include auto-validated toggle.",
+      "capturedVersion": "3.3.0",
+      "capturedDate": "2026-10-09",
+      "notes": "3.3.0 merged Routine / By Order / By Range / By Date into one search bar (Search, Lab Unit, From, To, Search by patient, Load results). Queue header controls (Release all clear, filter chips, lane tags, Review) render only after Load results returns rows, and Include auto-validated only for a lab-number search, so none are on-load anchors. Electronic signatures are on at testing.",
       "confluencePageId": "1661763585"
     },
     {
@@ -1594,27 +1598,35 @@
       "id": "clinical-order-enter",
       "title": "Enter a clinical order",
       "confluencePageId": "1648787462",
-      "manualDoc": "Confluence 1648787462 (draft under 1189609473)",
-      "captureSpec": "pending",
+      "manualDoc": "Confluence 1648787462 (v4 rewrite, draft for review)",
+      "captureSpec": "tests/docs/order-entry-v4.docs.spec.ts",
       "base": "https://testing.openelis-global.org",
-      "capturedVersion": "3.2.2.0",
-      "capturedDate": "2026-09-15",
+      "capturedVersion": "3.3.0",
+      "capturedDate": "2026-10-09",
       "routes": [
         {
           "path": "/order/clinical/enter",
           "anchors": [
             "Enter Order",
-            "Collect",
-            "Label & Store",
-            "QA Review",
+            "Prepare Samples",
+            "Sample check",
             "Lab Number",
             "Generate Lab Number",
-            "Unique identifier for this order",
-            "Print Labels",
             "Sample Handling",
-            "External quality assessment (EQA) sample",
-            "This order has no patient",
-            "Patient"
+            "Search for Patient",
+            "New Patient",
+            "Site Search",
+            "Provider Search",
+            "Save and next"
+          ]
+        },
+        {
+          "path": "/order/clinical",
+          "anchors": [
+            "Order Dashboard",
+            "New Order",
+            "Cancel order",
+            "Continue"
           ]
         }
       ],
@@ -1622,8 +1634,11 @@
         "frontend/src/components/order",
         "frontend/src/components/addOrder"
       ],
-      "captures": "docs-manual/captures/sept15/1648787462",
-      "notes": "Anchors read off figure 02 and verified on testing.openelis-global.org 3.2.2.0 on 2026-09-22. The search field's 'Scan barcode or enter lab number' text is a placeholder attribute, not page text, so it is not anchored. This is the first stage of the clinical pipeline that clinical-collect, label-store-shared and qa-review-shared continue; it is a different screen from the legacy /SamplePatientEntry wizard covered by the order-entry section."
+      "captures": "docs-media/order-entry-v4/enter",
+      "notes": "2026-10-09: rewritten for Order Entry v4 (three steps). Anchors verified live on testing 3.3.0-SNAPSHOT by tests/docs/order-entry-v4-anchors.docs.spec.ts.",
+      "jiraEpic": "OGC-1266",
+      "featureDoc": "OGC-1413",
+      "frs": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/clinical-order-entry-v4"
     },
     {
       "id": "sample-type-editor",
@@ -2190,6 +2205,70 @@
       ],
       "capturedVersion": "3.2.3.0",
       "capturedDate": "2026-09-28"
+    },
+    {
+      "id": "clinical-sample-check",
+      "title": "Complete the sample check for a clinical order",
+      "confluencePageId": "1702821939",
+      "manualDoc": "Confluence 1702821939 (draft under 1189609473)",
+      "captureSpec": "tests/docs/order-entry-v4.docs.spec.ts",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.3.0",
+      "capturedDate": "2026-10-09",
+      "routes": [
+        {
+          "path": "/order/clinical/qa?labNumber={{ORDER_IN_PROGRESS}}",
+          "anchors": [
+            "Sample check",
+            "Intake Acceptance",
+            "Patient Information",
+            "Sample Summary",
+            "Release for testing"
+          ]
+        }
+      ],
+      "note": "2026-10-09: new for Order Entry v4; replaces QA Review for clinical orders. Anchors verified live on testing 3.3.0-SNAPSHOT.",
+      "jiraEpic": "OGC-1266",
+      "featureDoc": "OGC-1413",
+      "frs": "https://digi-uw.github.io/openelis-work/#/spec/vector-surveillance/clinical-order-entry-v4"
+    },
+    {
+      "id": "organization-management-330",
+      "title": "Organizations (Locations & Organizations, 3.3.0)",
+      "manualDoc": "Confluence 1702756385 (draft)",
+      "captureSpec": "tests/docs/org-final.docs.spec.ts",
+      "jiraEpic": "OGC-1363",
+      "featureDoc": "OGC-1414",
+      "frs": "",
+      "base": "https://testing.openelis-global.org",
+      "capturedVersion": "3.3.0-SNAPSHOT",
+      "capturedDate": "2026-10-09",
+      "routes": [
+        {
+          "path": "/MasterListsPage/locations",
+          "anchors": [
+            "Organization or sampling site: which do I need?",
+            "Import",
+            "Export",
+            "Wards / Depts",
+            "In use",
+            "Referral labs overdue for review or with expired accreditation only"
+          ]
+        },
+        {
+          "path": "/MasterListsPage/locations?add=1",
+          "anchors": [
+            "Add identifier",
+            "Short name",
+            "GPS latitude",
+            "Contact name",
+            "Website"
+          ]
+        }
+      ],
+      "uiPaths": [],
+      "confluencePageId": "1702756385",
+      "notes": "Replaces the 3.2.x Organization Management contract when 3.3.0 ships; merge into 1437892659 on promotion."
     }
   ]
 }

@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-10-09T16:49:54Z",
-  "reportAt": "2026-10-09T16:49:53.984Z",
-  "sections": 69,
-  "contracts": 69,
-  "ok": 0,
-  "review": 49,
+  "generatedAt": "2026-10-10T08:39:45Z",
+  "reportAt": "2026-10-10T08:39:03.093Z",
+  "sections": 71,
+  "contracts": 71,
+  "ok": 3,
+  "review": 50,
   "errors": 11,
   "stale": [
     "add-patient",
@@ -21,8 +21,6 @@
     "calculated-value-tests",
     "calendar-management",
     "catalog-import-csv",
-    "clinical-collect",
-    "clinical-order-enter",
     "dictionary-menu",
     "electronic-lab-notebook",
     "electronic-signatures",
@@ -43,6 +41,7 @@
     "order-entry",
     "order-search",
     "organization-management",
+    "organization-management-330",
     "organizations-management",
     "panel-editor",
     "patient-management",
@@ -73,22 +72,21 @@
     "test-notification-configuration",
     "user-management",
     "validation",
-    "validation-v4",
     "vector-surveillance",
     "vector-surveillance-report"
   ],
-  "capturedOld": 35,
+  "capturedOld": 39,
   "unchecked": [],
   "instances": {
     "testing.openelis-global.org": {
-      "contracts": 69,
-      "checked": 69,
-      "ok": 0,
-      "review": 49,
-      "drift": 9,
+      "contracts": 71,
+      "checked": 71,
+      "ok": 3,
+      "review": 50,
+      "drift": 7,
       "error": 11,
       "version": "3.3.0",
-      "checkedAt": "2026-10-09T16:49:53.978Z"
+      "checkedAt": "2026-10-10T08:39:03.086Z"
     }
   },
   "drift": [
@@ -99,22 +97,6 @@
         "/qa/qc/dashboard :: Overall QC Pass Rate"
       ],
       "page": "1648590851"
-    },
-    {
-      "id": "clinical-collect",
-      "base": "testing.openelis-global.org",
-      "missing": [
-        "/order/clinical/collect?labNumber={{ORDER_IN_PROGRESS}} :: Save & Next"
-      ],
-      "page": null
-    },
-    {
-      "id": "clinical-order-enter",
-      "base": "testing.openelis-global.org",
-      "missing": [
-        "/order/clinical/enter :: Print Labels"
-      ],
-      "page": "1648787462"
     },
     {
       "id": "eqa-provider",
@@ -195,6 +177,14 @@
       "page": "1420460034"
     },
     {
+      "id": "clinical-order-enter",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/order/clinical :: redirected to /order/clinical/collect"
+      ],
+      "page": "1648787462"
+    },
+    {
       "id": "electronic-signatures",
       "base": "testing.openelis-global.org",
       "routes": [
@@ -263,16 +253,7 @@
         "/ResultValidation?type=&test= :: redirected to /validation"
       ],
       "page": null
-    },
-    {
-      "id": "validation-v4",
-      "base": "testing.openelis-global.org",
-      "routes": [
-        "/ResultValidation?type=&test= :: redirected to /validation",
-        "/AccessionValidation :: redirected to /validation"
-      ],
-      "page": "1661763585"
     }
   ],
-  "summary": "69 of 69 contracts checked: 0 ok, 49 review, 9 drift, 11 route errors."
+  "summary": "71 of 71 contracts checked: 3 ok, 50 review, 7 drift, 11 route errors."
 }

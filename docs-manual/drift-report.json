@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-09T16:49:53.984Z",
+  "generatedAt": "2026-10-10T08:39:03.093Z",
   "sections": [
     {
       "id": "add-patient",
@@ -11,22 +11,57 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:43:50.691Z"
+      "checkedAt": "2026-10-10T08:32:47.879Z",
+      "codeChanged": {
+        "count": 21,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/patient"
+        ],
+        "branches": {
+          "develop": 19,
+          "demo-silnas": 2
+        },
+        "latest": {
+          "sha": "9c35a38",
+          "date": "2026-10-09",
+          "msg": "fix(order): order entry v4 follow-ups from acceptance (OGC-1443) (#4664)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "admin-compliance-standards",
-      "title": "Admin — Compliance Standards & Holding-Time",
+      "title": "Admin \u2014 Compliance Standards & Holding-Time",
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.3.0",
       "capturedVersion": "3.2.1.10",
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:45:44.855Z"
+      "checkedAt": "2026-10-10T08:34:41.235Z",
+      "codeChanged": {
+        "count": 6,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/admin/testManagement",
+          "frontend/src/components/admin/compliance"
+        ],
+        "branches": {
+          "develop": 5,
+          "demo-silnas": 1
+        },
+        "latest": {
+          "sha": "5572716",
+          "date": "2026-10-05",
+          "msg": "fix(test-catalog): restore pages without a replacement, add the retired editor's missing fields, route links in-app (#45",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "admin-sample-type-management",
-      "title": "Admin — Sample Type Management",
+      "title": "Admin \u2014 Sample Type Management",
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.3.0",
       "capturedVersion": "3.2.2.0",
@@ -35,11 +70,23 @@
       "routeErrors": [
         "/MasterListsPage/SampleTypeManagement :: redirected to /MasterListsPage/SampleTypeEditor"
       ],
-      "checkedAt": "2026-10-09T16:45:47.922Z"
+      "checkedAt": "2026-10-10T08:34:44.266Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-09-22",
+        "paths": [
+          "frontend/src/components/admin/sampleType"
+        ],
+        "branches": {
+          "develop": 0,
+          "demo-silnas": 0
+        },
+        "latest": null
+      }
     },
     {
       "id": "admin-vector-reference-data",
-      "title": "Admin — Vector Surveillance Reference Data",
+      "title": "Admin \u2014 Vector Surveillance Reference Data",
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.3.0",
       "capturedVersion": "3.2.1.10",
@@ -48,7 +95,25 @@
       "routeErrors": [
         "/MasterListsPage/vectorSurveillanceSetup/sampling-sites :: redirected to /MasterListsPage/locations/sites"
       ],
-      "checkedAt": "2026-10-09T16:45:29.276Z"
+      "checkedAt": "2026-10-10T08:34:25.748Z",
+      "codeChanged": {
+        "count": 3,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/admin/vectorSurveillance",
+          "frontend/src/components/admin/sampleType"
+        ],
+        "branches": {
+          "develop": 2,
+          "demo-silnas": 1
+        },
+        "latest": {
+          "sha": "9332478",
+          "date": "2026-10-09",
+          "msg": "fix(a11y): required fields are announced; a missing required patient field is named before save (OGC-1240) (#4665)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "aliquot",
@@ -60,7 +125,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:47:20.554Z"
+      "checkedAt": "2026-10-10T08:36:16.040Z"
     },
     {
       "id": "analyzer-file-import",
@@ -72,7 +137,25 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:43:53.745Z"
+      "checkedAt": "2026-10-10T08:32:50.939Z",
+      "codeChanged": {
+        "count": 20,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/analyzers",
+          "frontend/src/components/genericSample"
+        ],
+        "branches": {
+          "develop": 19,
+          "demo-silnas": 1
+        },
+        "latest": {
+          "sha": "9332478",
+          "date": "2026-10-09",
+          "msg": "fix(a11y): required fields are announced; a missing required patient field is named before save (OGC-1240) (#4665)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "analyzer-framework",
@@ -83,7 +166,24 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:43:56.832Z"
+      "checkedAt": "2026-10-10T08:32:53.966Z",
+      "codeChanged": {
+        "count": 17,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/analyzers"
+        ],
+        "branches": {
+          "develop": 16,
+          "demo-silnas": 1
+        },
+        "latest": {
+          "sha": "3711c6f",
+          "date": "2026-10-03",
+          "msg": "fix(analyzers): export pre-Bridge analyzer settings and remove their storage (#4511)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "analyzer-mapping-qc",
@@ -97,7 +197,25 @@
         "/qa/qc/dashboard :: Overall QC Pass Rate"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:48:11.072Z"
+      "checkedAt": "2026-10-10T08:37:07.782Z",
+      "codeChanged": {
+        "count": 11,
+        "since": "2026-09-15",
+        "paths": [
+          "frontend/src/components/qc",
+          "frontend/src/components/analyzers"
+        ],
+        "branches": {
+          "develop": 11,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "3711c6f",
+          "date": "2026-10-03",
+          "msg": "fix(analyzers): export pre-Bridge analyzer settings and remove their storage (#4511)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "analyzer-setup",
@@ -109,7 +227,24 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:48:01.729Z"
+      "checkedAt": "2026-10-10T08:36:58.541Z",
+      "codeChanged": {
+        "count": 7,
+        "since": "2026-09-15",
+        "paths": [
+          "frontend/src/components/analyzers"
+        ],
+        "branches": {
+          "develop": 7,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "3711c6f",
+          "date": "2026-10-03",
+          "msg": "fix(analyzers): export pre-Bridge analyzer settings and remove their storage (#4511)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "application-properties",
@@ -121,7 +256,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:46:06.389Z"
+      "checkedAt": "2026-10-10T08:35:02.554Z"
     },
     {
       "id": "barcode-labels",
@@ -132,7 +267,25 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:43:59.872Z"
+      "checkedAt": "2026-10-10T08:32:57.012Z",
+      "codeChanged": {
+        "count": 6,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/printBarcode",
+          "frontend/src/components/barcodeWorkflow"
+        ],
+        "branches": {
+          "develop": 6,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "9c35a38",
+          "date": "2026-10-09",
+          "msg": "fix(order): order entry v4 follow-ups from acceptance (OGC-1443) (#4664)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "calculated-value-tests",
@@ -144,7 +297,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:46:43.187Z"
+      "checkedAt": "2026-10-10T08:35:38.915Z"
     },
     {
       "id": "calendar-management",
@@ -156,7 +309,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:47:08.297Z"
+      "checkedAt": "2026-10-10T08:36:03.743Z"
     },
     {
       "id": "catalog-import-csv",
@@ -168,35 +321,75 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:48:50.988Z"
+      "checkedAt": "2026-10-10T08:37:52.591Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-09-22",
+        "paths": [
+          "frontend/src/components/admin/catalogImport"
+        ],
+        "branches": {
+          "develop": 0,
+          "demo-silnas": 0
+        },
+        "latest": null
+      }
     },
     {
       "id": "clinical-collect",
-      "title": "Collect samples for a clinical order",
+      "title": "Prepare samples for a clinical order",
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.3.0",
-      "capturedVersion": "3.2.2.0",
-      "manualDoc": "Confluence 1655930882 (draft)",
-      "status": "drift",
-      "missingAnchors": [
-        "/order/clinical/collect?labNumber={{ORDER_IN_PROGRESS}} :: Save & Next"
-      ],
+      "capturedVersion": "3.3.0",
+      "manualDoc": "Confluence 1655930882 (v4 rewrite, draft for review)",
+      "status": "ok",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:47:39.006Z"
+      "checkedAt": "2026-10-10T08:36:39.008Z"
     },
     {
       "id": "clinical-order-enter",
       "title": "Enter a clinical order",
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.3.0",
-      "capturedVersion": "3.2.2.0",
-      "manualDoc": "Confluence 1648787462 (draft under 1189609473)",
-      "status": "drift",
-      "missingAnchors": [
-        "/order/clinical/enter :: Print Labels"
+      "capturedVersion": "3.3.0",
+      "manualDoc": "Confluence 1648787462 (v4 rewrite, draft for review)",
+      "status": "error",
+      "missingAnchors": [],
+      "routeErrors": [
+        "/order/clinical :: redirected to /order/clinical/collect"
       ],
+      "checkedAt": "2026-10-10T08:37:37.306Z",
+      "codeChanged": {
+        "count": 7,
+        "since": "2026-10-09",
+        "paths": [
+          "frontend/src/components/order",
+          "frontend/src/components/addOrder"
+        ],
+        "branches": {
+          "develop": 7,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "bb35fc0",
+          "date": "2026-10-09",
+          "msg": "Microbiology V2 baseline: final-state spec and V1 front retirement (OGC-1383) (#4646)",
+          "branch": "develop"
+        }
+      }
+    },
+    {
+      "id": "clinical-sample-check",
+      "title": "Complete the sample check for a clinical order",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.3.0",
+      "capturedVersion": "3.3.0",
+      "manualDoc": "Confluence 1702821939 (draft under 1189609473)",
+      "status": "ok",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:48:35.548Z"
+      "checkedAt": "2026-10-10T08:38:56.909Z"
     },
     {
       "id": "dictionary-menu",
@@ -208,7 +401,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:46:37.040Z"
+      "checkedAt": "2026-10-10T08:35:32.830Z"
     },
     {
       "id": "electronic-lab-notebook",
@@ -219,7 +412,24 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:44:02.899Z"
+      "checkedAt": "2026-10-10T08:33:00.079Z",
+      "codeChanged": {
+        "count": 10,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/notebook"
+        ],
+        "branches": {
+          "develop": 10,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "9332478",
+          "date": "2026-10-09",
+          "msg": "fix(a11y): required fields are announced; a missing required patient field is named before save (OGC-1240) (#4665)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "electronic-signatures",
@@ -233,7 +443,25 @@
         "/ResultValidation?type=&test= :: redirected to /validation",
         "/AccessionValidation :: redirected to /validation"
       ],
-      "checkedAt": "2026-10-09T16:44:09.035Z"
+      "checkedAt": "2026-10-10T08:33:06.194Z",
+      "codeChanged": {
+        "count": 37,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/esignature",
+          "frontend/src/components/validation"
+        ],
+        "branches": {
+          "develop": 33,
+          "demo-silnas": 4
+        },
+        "latest": {
+          "sha": "5572716",
+          "date": "2026-10-05",
+          "msg": "fix(test-catalog): restore pages without a replacement, add the retired editor's missing fields, route links in-app (#45",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "environmental-order-results",
@@ -245,7 +473,26 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:44:18.207Z"
+      "checkedAt": "2026-10-10T08:33:15.324Z",
+      "codeChanged": {
+        "count": 43,
+        "since": "2026-09-22",
+        "paths": [
+          "frontend/src/components/order",
+          "frontend/src/components/addOrder",
+          "frontend/src/components/compliance"
+        ],
+        "branches": {
+          "develop": 43,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "bb35fc0",
+          "date": "2026-10-09",
+          "msg": "Microbiology V2 baseline: final-state spec and V1 front retirement (OGC-1383) (#4646)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "environmental-surveillance",
@@ -259,7 +506,26 @@
         "/LogbookResults?type= :: redirected to /Results",
         "/ResultValidation?type=&test= :: redirected to /validation"
       ],
-      "checkedAt": "2026-10-09T16:45:20.189Z"
+      "checkedAt": "2026-10-10T08:34:16.636Z",
+      "codeChanged": {
+        "count": 109,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/order",
+          "frontend/src/components/resultPage",
+          "frontend/src/components/validation"
+        ],
+        "branches": {
+          "develop": 89,
+          "demo-silnas": 20
+        },
+        "latest": {
+          "sha": "9141d9c",
+          "date": "2026-10-09",
+          "msg": "fix(app-shell): keep trying an unreachable server instead of a dead-end System Error (OGC-1442)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "eqa-participant",
@@ -271,7 +537,24 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:49:35.061Z"
+      "checkedAt": "2026-10-10T08:38:35.393Z",
+      "codeChanged": {
+        "count": 18,
+        "since": "2026-09-24",
+        "paths": [
+          "frontend/src/components/eqa"
+        ],
+        "branches": {
+          "develop": 18,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "d6b5905",
+          "date": "2026-10-05",
+          "msg": "fix(eqa): offer only the scheme's tests in the cycle and blinding wizards (OGC-1251) (#4491)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "eqa-provider",
@@ -294,7 +577,24 @@
         "/qa/eqa/in-house :: Unblind date (submission deadline)"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:49:19.374Z"
+      "checkedAt": "2026-10-10T08:38:20.128Z",
+      "codeChanged": {
+        "count": 18,
+        "since": "2026-09-24",
+        "paths": [
+          "frontend/src/components/eqa"
+        ],
+        "branches": {
+          "develop": 18,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "d6b5905",
+          "date": "2026-10-05",
+          "msg": "fix(eqa): offer only the scheme's tests in the cycle and blinding wizards (OGC-1251) (#4491)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "general-configurations",
@@ -308,7 +608,24 @@
         "/MasterListsPage/ResultConfigurationMenu :: resultsEntryUnifiedRoute"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:48:32.406Z"
+      "checkedAt": "2026-10-10T08:37:29.142Z",
+      "codeChanged": {
+        "count": 30,
+        "since": "2026-09-15",
+        "paths": [
+          "frontend/src/components/admin"
+        ],
+        "branches": {
+          "develop": 30,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "bb35fc0",
+          "date": "2026-10-09",
+          "msg": "Microbiology V2 baseline: final-state spec and V1 front retirement (OGC-1383) (#4646)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "lab-number-management",
@@ -320,7 +637,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:46:03.296Z"
+      "checkedAt": "2026-10-10T08:34:59.496Z"
     },
     {
       "id": "lab-unit-add",
@@ -332,7 +649,24 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:48:47.881Z"
+      "checkedAt": "2026-10-10T08:37:49.540Z",
+      "codeChanged": {
+        "count": 2,
+        "since": "2026-09-15",
+        "paths": [
+          "frontend/src/components/admin/labUnitManagement"
+        ],
+        "branches": {
+          "develop": 2,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "ee31183",
+          "date": "2026-09-28",
+          "msg": "OGC-189: Implement Lab unit enable/disable (#4234)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "lab-units-editor",
@@ -344,7 +678,24 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:48:57.345Z"
+      "checkedAt": "2026-10-10T08:37:58.752Z",
+      "codeChanged": {
+        "count": 2,
+        "since": "2026-09-21",
+        "paths": [
+          "frontend/src/components/admin/labUnitManagement"
+        ],
+        "branches": {
+          "develop": 2,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "ee31183",
+          "date": "2026-09-28",
+          "msg": "OGC-189: Implement Lab unit enable/disable (#4234)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "label-store-shared",
@@ -358,7 +709,7 @@
       "routeErrors": [
         "/order/clinical/label?labNumber={{ORDER_IN_PROGRESS}} :: redirected to /order/clinical/collect"
       ],
-      "checkedAt": "2026-10-09T16:47:42.089Z"
+      "checkedAt": "2026-10-10T08:36:42.071Z"
     },
     {
       "id": "laporan-hasil-report",
@@ -370,7 +721,24 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:47:32.762Z"
+      "checkedAt": "2026-10-10T08:36:32.601Z",
+      "codeChanged": {
+        "count": 2,
+        "since": "2026-09-22",
+        "paths": [
+          "frontend/src/components/reports/compliance"
+        ],
+        "branches": {
+          "develop": 2,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "420f1a4",
+          "date": "2026-10-03",
+          "msg": "fix(e2e): run every Cypress spec a shard lists, port the valid ones to Playwright, fix the bugs they found (#4479)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "logging-configuration",
@@ -382,7 +750,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:46:30.863Z"
+      "checkedAt": "2026-10-10T08:35:26.686Z"
     },
     {
       "id": "menu-configuration",
@@ -394,7 +762,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:47:05.221Z"
+      "checkedAt": "2026-10-10T08:36:00.570Z"
     },
     {
       "id": "nce-capa",
@@ -405,7 +773,24 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:44:27.295Z"
+      "checkedAt": "2026-10-10T08:33:24.482Z",
+      "codeChanged": {
+        "count": 9,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/nonconform"
+        ],
+        "branches": {
+          "develop": 8,
+          "demo-silnas": 1
+        },
+        "latest": {
+          "sha": "9332478",
+          "date": "2026-10-09",
+          "msg": "fix(a11y): required fields are announced; a missing required patient field is named before save (OGC-1240) (#4665)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "nce-report",
@@ -417,7 +802,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:49:53.978Z"
+      "checkedAt": "2026-10-10T08:38:53.832Z"
     },
     {
       "id": "order-entry",
@@ -429,7 +814,26 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:44:30.481Z"
+      "checkedAt": "2026-10-10T08:33:27.554Z",
+      "codeChanged": {
+        "count": 74,
+        "since": "2026-06-30",
+        "paths": [
+          "frontend/src/components/order",
+          "frontend/src/components/addOrder",
+          "frontend/src/components/sample"
+        ],
+        "branches": {
+          "develop": 62,
+          "demo-silnas": 12
+        },
+        "latest": {
+          "sha": "bb35fc0",
+          "date": "2026-10-09",
+          "msg": "Microbiology V2 baseline: final-state spec and V1 front retirement (OGC-1383) (#4646)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "order-search",
@@ -441,7 +845,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:47:14.417Z"
+      "checkedAt": "2026-10-10T08:36:09.905Z"
     },
     {
       "id": "organization-management",
@@ -456,7 +860,31 @@
         "/MasterListsPage/organizationManagement :: redirected to /MasterListsPage/locations",
         "/MasterListsPage/organizationEdit?ID=0 :: redirected to /MasterListsPage/locations"
       ],
-      "checkedAt": "2026-10-09T16:45:57.101Z"
+      "checkedAt": "2026-10-10T08:34:53.374Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-06-30",
+        "paths": [
+          "frontend/src/components/admin/organizationManagement"
+        ],
+        "branches": {
+          "develop": 0,
+          "demo-silnas": 0
+        },
+        "latest": null
+      }
+    },
+    {
+      "id": "organization-management-330",
+      "title": "Organizations (Locations & Organizations, 3.3.0)",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.3.0",
+      "capturedVersion": "3.3.0-SNAPSHOT",
+      "manualDoc": "Confluence 1702756385 (draft)",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-10-10T08:39:03.086Z"
     },
     {
       "id": "organizations-management",
@@ -467,7 +895,24 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:44:33.564Z"
+      "checkedAt": "2026-10-10T08:33:30.557Z",
+      "codeChanged": {
+        "count": 47,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/admin"
+        ],
+        "branches": {
+          "develop": 30,
+          "demo-silnas": 17
+        },
+        "latest": {
+          "sha": "bb35fc0",
+          "date": "2026-10-09",
+          "msg": "Microbiology V2 baseline: final-state spec and V1 front retirement (OGC-1383) (#4646)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "panel-editor",
@@ -479,7 +924,24 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:48:44.755Z"
+      "checkedAt": "2026-10-10T08:37:46.502Z",
+      "codeChanged": {
+        "count": 12,
+        "since": "2026-09-15",
+        "paths": [
+          "frontend/src/components/admin/testCatalog"
+        ],
+        "branches": {
+          "develop": 12,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "bb35fc0",
+          "date": "2026-10-09",
+          "msg": "Microbiology V2 baseline: final-state spec and V1 front retirement (OGC-1383) (#4646)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "patient-management",
@@ -491,7 +953,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:46:58.794Z"
+      "checkedAt": "2026-10-10T08:35:54.133Z"
     },
     {
       "id": "patient-merge",
@@ -503,7 +965,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:47:23.630Z"
+      "checkedAt": "2026-10-10T08:36:20.341Z"
     },
     {
       "id": "patient-order-enhancements",
@@ -514,11 +976,28 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:44:39.718Z"
+      "checkedAt": "2026-10-10T08:33:36.628Z",
+      "codeChanged": {
+        "count": 21,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/patient"
+        ],
+        "branches": {
+          "develop": 19,
+          "demo-silnas": 2
+        },
+        "latest": {
+          "sha": "9c35a38",
+          "date": "2026-10-09",
+          "msg": "fix(order): order entry v4 follow-ups from acceptance (OGC-1443) (#4664)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "programs-v2",
-      "title": "Admin — Define programs and their questionnaires",
+      "title": "Admin \u2014 Define programs and their questionnaires",
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.3.0",
       "capturedVersion": "3.2.3.0",
@@ -526,7 +1005,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:49:38.218Z"
+      "checkedAt": "2026-10-10T08:38:38.429Z"
     },
     {
       "id": "provider-management",
@@ -538,7 +1017,19 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:46:00.167Z"
+      "checkedAt": "2026-10-10T08:34:56.475Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-06-30",
+        "paths": [
+          "frontend/src/components/admin/providerManagement"
+        ],
+        "branches": {
+          "develop": 0,
+          "demo-silnas": 0
+        },
+        "latest": null
+      }
     },
     {
       "id": "qa-review-shared",
@@ -552,7 +1043,7 @@
         "/order/clinical/qa?labNumber={{ORDER_IN_PROGRESS}} :: Submit"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:47:45.198Z"
+      "checkedAt": "2026-10-10T08:36:45.134Z"
     },
     {
       "id": "qc-control-lot",
@@ -564,11 +1055,11 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:49:41.401Z"
+      "checkedAt": "2026-10-10T08:38:41.471Z"
     },
     {
       "id": "qc-overview",
-      "title": "Statistical QC — overview and daily review",
+      "title": "Statistical QC \u2014 overview and daily review",
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.3.0",
       "capturedVersion": "3.2.2.0",
@@ -578,7 +1069,7 @@
         "/qa/qc/dashboard :: Overall QC Pass Rate"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:49:47.677Z"
+      "checkedAt": "2026-10-10T08:38:47.731Z"
     },
     {
       "id": "reference-lab-results",
@@ -590,7 +1081,24 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:47:35.820Z"
+      "checkedAt": "2026-10-10T08:36:35.727Z",
+      "codeChanged": {
+        "count": 2,
+        "since": "2026-09-22",
+        "paths": [
+          "frontend/src/components/referenceLabResults"
+        ],
+        "branches": {
+          "develop": 2,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "5572716",
+          "date": "2026-10-05",
+          "msg": "fix(test-catalog): restore pages without a replacement, add the retired editor's missing fields, route links in-app (#45",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "reflex-testing",
@@ -602,7 +1110,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:46:40.128Z"
+      "checkedAt": "2026-10-10T08:35:35.858Z"
     },
     {
       "id": "register-new-patient",
@@ -616,7 +1124,7 @@
         "/PatientManagement :: Gender"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:47:26.672Z"
+      "checkedAt": "2026-10-10T08:36:24.637Z"
     },
     {
       "id": "result-reporting-configuration",
@@ -628,7 +1136,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:47:11.346Z"
+      "checkedAt": "2026-10-10T08:36:06.833Z"
     },
     {
       "id": "result-validation",
@@ -643,7 +1151,24 @@
         "/AccessionValidation :: redirected to /validation",
         "/ResultValidationByTestDate :: redirected to /validation"
       ],
-      "checkedAt": "2026-10-09T16:44:48.844Z"
+      "checkedAt": "2026-10-10T08:33:45.730Z",
+      "codeChanged": {
+        "count": 33,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/validation"
+        ],
+        "branches": {
+          "develop": 29,
+          "demo-silnas": 4
+        },
+        "latest": {
+          "sha": "5572716",
+          "date": "2026-10-05",
+          "msg": "fix(test-catalog): restore pages without a replacement, add the retired editor's missing fields, route links in-app (#45",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "results-entry",
@@ -655,7 +1180,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:46:46.289Z"
+      "checkedAt": "2026-10-10T08:35:41.961Z"
     },
     {
       "id": "results-entry-legacy",
@@ -669,7 +1194,7 @@
       "routeErrors": [
         "/LogbookResults?type= :: redirected to /Results"
       ],
-      "checkedAt": "2026-10-09T16:46:49.357Z"
+      "checkedAt": "2026-10-10T08:35:44.963Z"
     },
     {
       "id": "running-reports",
@@ -681,7 +1206,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:46:55.679Z"
+      "checkedAt": "2026-10-10T08:35:51.040Z"
     },
     {
       "id": "sample-acceptance-checklist",
@@ -693,7 +1218,19 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:45:50.975Z"
+      "checkedAt": "2026-10-10T08:34:47.326Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-09-22",
+        "paths": [
+          "frontend/src/components/admin/sampleAcceptance"
+        ],
+        "branches": {
+          "develop": 0,
+          "demo-silnas": 0
+        },
+        "latest": null
+      }
     },
     {
       "id": "sample-shipment-referral",
@@ -707,7 +1244,24 @@
         "/SampleShipment :: redirected to /SampleShipment/boxes",
         "/ReferredOutTests :: redirected to /api/OpenELIS-Global/ReferredOutTests"
       ],
-      "checkedAt": "2026-10-09T16:44:55.257Z"
+      "checkedAt": "2026-10-10T08:33:52.072Z",
+      "codeChanged": {
+        "count": 9,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/shipment"
+        ],
+        "branches": {
+          "develop": 7,
+          "demo-silnas": 2
+        },
+        "latest": {
+          "sha": "5572716",
+          "date": "2026-10-05",
+          "msg": "fix(test-catalog): restore pages without a replacement, add the retired editor's missing fields, route links in-app (#45",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "sample-storage",
@@ -719,7 +1273,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:47:17.508Z"
+      "checkedAt": "2026-10-10T08:36:13.019Z"
     },
     {
       "id": "sample-storage-management",
@@ -730,7 +1284,25 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:45:04.510Z"
+      "checkedAt": "2026-10-10T08:34:01.251Z",
+      "codeChanged": {
+        "count": 12,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/storage",
+          "frontend/src/components/coldStorage"
+        ],
+        "branches": {
+          "develop": 11,
+          "demo-silnas": 1
+        },
+        "latest": {
+          "sha": "9332478",
+          "date": "2026-10-09",
+          "msg": "fix(a11y): required fields are announced; a missing required patient field is named before save (OGC-1240) (#4665)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "sample-type-editor",
@@ -742,7 +1314,19 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:48:38.619Z"
+      "checkedAt": "2026-10-10T08:37:40.410Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-09-15",
+        "paths": [
+          "frontend/src/components/admin/sampleType"
+        ],
+        "branches": {
+          "develop": 0,
+          "demo-silnas": 0
+        },
+        "latest": null
+      }
     },
     {
       "id": "search-index-management",
@@ -754,7 +1338,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:46:12.676Z"
+      "checkedAt": "2026-10-10T08:35:08.636Z"
     },
     {
       "id": "site-information",
@@ -766,7 +1350,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:47:01.935Z"
+      "checkedAt": "2026-10-10T08:35:57.370Z"
     },
     {
       "id": "test-catalog-editor",
@@ -778,7 +1362,24 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:48:54.184Z"
+      "checkedAt": "2026-10-10T08:37:55.676Z",
+      "codeChanged": {
+        "count": 10,
+        "since": "2026-09-21",
+        "paths": [
+          "frontend/src/components/admin/testCatalog"
+        ],
+        "branches": {
+          "develop": 10,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "bb35fc0",
+          "date": "2026-10-09",
+          "msg": "Microbiology V2 baseline: final-state spec and V1 front retirement (OGC-1383) (#4646)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "test-catalogue-add-test",
@@ -790,7 +1391,24 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:48:41.708Z"
+      "checkedAt": "2026-10-10T08:37:43.471Z",
+      "codeChanged": {
+        "count": 12,
+        "since": "2026-09-15",
+        "paths": [
+          "frontend/src/components/admin/testCatalog"
+        ],
+        "branches": {
+          "develop": 12,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "bb35fc0",
+          "date": "2026-10-09",
+          "msg": "Microbiology V2 baseline: final-state spec and V1 front retirement (OGC-1383) (#4646)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "test-notification-configuration",
@@ -802,7 +1420,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:46:09.576Z"
+      "checkedAt": "2026-10-10T08:35:05.616Z"
     },
     {
       "id": "user-management",
@@ -814,7 +1432,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:46:33.953Z"
+      "checkedAt": "2026-10-10T08:35:29.783Z"
     },
     {
       "id": "validation",
@@ -828,22 +1446,19 @@
       "routeErrors": [
         "/ResultValidation?type=&test= :: redirected to /validation"
       ],
-      "checkedAt": "2026-10-09T16:46:52.526Z"
+      "checkedAt": "2026-10-10T08:35:47.999Z"
     },
     {
       "id": "validation-v4",
       "title": "Triage and release results",
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.3.0",
-      "capturedVersion": "3.2.3.0",
-      "manualDoc": "Confluence 1661763585 (review area, redesigned Validation page; Step 8 verified on testing 3.2.3.0)",
-      "status": "error",
+      "capturedVersion": "3.3.0",
+      "manualDoc": "Confluence 1661763585, promoted 2026-10-09 to End User Manual folder Results, validation and reports (1679589479); labels doc-verified, verified-v3-3-0",
+      "status": "ok",
       "missingAnchors": [],
-      "routeErrors": [
-        "/ResultValidation?type=&test= :: redirected to /validation",
-        "/AccessionValidation :: redirected to /validation"
-      ],
-      "checkedAt": "2026-10-09T16:47:51.307Z"
+      "routeErrors": [],
+      "checkedAt": "2026-10-10T08:36:48.207Z"
     },
     {
       "id": "vector-surveillance",
@@ -859,7 +1474,25 @@
         "/vector/identification :: Split"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:45:10.774Z"
+      "checkedAt": "2026-10-10T08:34:07.363Z",
+      "codeChanged": {
+        "count": 39,
+        "since": "2026-06-24",
+        "paths": [
+          "frontend/src/components/vector",
+          "frontend/src/components/order"
+        ],
+        "branches": {
+          "develop": 30,
+          "demo-silnas": 9
+        },
+        "latest": {
+          "sha": "9141d9c",
+          "date": "2026-10-09",
+          "msg": "fix(app-shell): keep trying an unreachable server instead of a dead-end System Error (OGC-1442)",
+          "branch": "develop"
+        }
+      }
     },
     {
       "id": "vector-surveillance-report",
@@ -871,7 +1504,24 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-09T16:47:29.711Z"
+      "checkedAt": "2026-10-10T08:36:29.545Z",
+      "codeChanged": {
+        "count": 1,
+        "since": "2026-09-22",
+        "paths": [
+          "frontend/src/components/reports/vectorSurveillance"
+        ],
+        "branches": {
+          "develop": 1,
+          "demo-silnas": 0
+        },
+        "latest": {
+          "sha": "420f1a4",
+          "date": "2026-10-03",
+          "msg": "fix(e2e): run every Cypress spec a shard lists, port the valid ones to Playwright, fix the bugs they found (#4479)",
+          "branch": "develop"
+        }
+      }
     }
   ],
   "note": "indonesiademo unreachable (auth setup failed all retries) on 2026-09-23; its sections carried over from previous published report",
