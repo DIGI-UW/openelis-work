@@ -59,11 +59,11 @@ The QuantStudio instruments do not support direct LIS connection (ASTM or HL7). 
 | **File encoding** | UTF-8 compatible via xlrd |
 | **Typical filename pattern** | `CVVIH__<date>QS7.xls`, `QS5_CVVIH_<date>.xls` |
 
-QS D&A can also export analyzed data as `.txt` or `.xlsx` (*QuantStudio Design and Analysis desktop Software User Guide*, MAN0010408 Rev B.0, p. 37, "Export configurations"). The Madagascar sites export `.xls`, which is what this spec describes. An `.xlsx` export has the same sheets and columns and is accepted too. A `.txt` export is not.
+QS D&A can also export analyzed data as `.txt` or `.xlsx` (*QuantStudio Design and Analysis desktop Software User Guide*, MAN0010408 Rev B.0, p. 37, "Export configurations"). The Madagascar sites export `.xls`, which is what this spec describes. An `.xlsx` export is accepted too, provided it has the `Results` sheet described here; no real `.xlsx` export has been checked yet. A `.txt` export is not accepted.
 
 ### 3.1 File Identification
 
-A file is identified as a QuantStudio XLS export when ALL of the following are true:
+A file is identified as a QuantStudio Excel export when ALL of the following are true:
 
 1. Extension is `.xls` or `.xlsx`
 2. File magic bytes match the extension: `D0 CF 11 E0 A1 B1 1A E1` (CDFV2 header) for `.xls`, `50 4B 03 04` (ZIP) for `.xlsx`
