@@ -1,7 +1,7 @@
 # Westgard Rules Implementation - Requirements & Approach
 ## OpenELIS Global Lab Management System
 
-**Document Version:** 1.0  
+**Document Version:** 1.0.1 (2026-10-10: §7.1 notes that the baseline instruments send no control lot or level)  
 **Date:** November 13, 2025  
 **Author:** Casey Iiams-Hauser
 
@@ -842,9 +842,14 @@ User Alert Preferences:
    - Instrument ID (from ASTM sender)
    - Test code (map to internal test ID)
    - QC result value
-   - Control lot/level identifier
+   - Control lot/level identifier, when the message carries one
 3. `QCResultService.recordQCResult()` creates result
 4. Automatic rule evaluation triggered
+
+None of the baseline instruments sends a control lot or level, so the lot is matched from the control's specimen ID or from the lots configured for that test and instrument.
+
+- **GeneXpert (ASTM):** marks a QC specimen only by action code `Q` in O record field 12. The Specimen Descriptor (field 16) is always `ORH`, and reagent lots are not uploaded (Cepheid LIS Interface Protocol Specification 301-2002 Rev E, §6.3.4.1).
+- **QuantStudio and FluoroCycler XT (files):** identify a control by its task or its sample name.
 
 **Error Handling**:
 - Unknown instrument: Log error, queue for manual review

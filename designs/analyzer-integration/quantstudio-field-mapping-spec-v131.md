@@ -1,6 +1,6 @@
 # QuantStudio 5 / 7 Flex — Field Mapping & Integration Spec
-**Version:** 1.3.1  
-**Date:** 2026-03-06  
+**Version:** 1.3.2  
+**Date:** 2026-10-10  
 **Confidence:** 🟢 VALIDATED — validated against 3 real XLS exports from Madagascar  
 **Jira:** [OGC-348](https://uwdigi.atlassian.net/browse/OGC-348)  
 **Pattern:** C — Flat File Export/Import  
@@ -58,6 +58,8 @@ The QuantStudio instruments do not support direct LIS connection (ASTM or HL7). 
 | **Other sheets present** | `Sample Setup`, `Amplification Data` (ignore these) |
 | **File encoding** | UTF-8 compatible via xlrd |
 | **Typical filename pattern** | `CVVIH__<date>QS7.xls`, `QS5_CVVIH_<date>.xls` |
+
+QS D&A can also export analyzed data as `.txt` or `.xlsx` (*QuantStudio Design and Analysis desktop Software User Guide*, MAN0010408 Rev B.0, p. 37, "Export configurations"). The Madagascar sites export `.xls`, which is what this spec describes.
 
 ### 3.1 File Identification
 
@@ -213,6 +215,8 @@ The `Task` column is the authoritative classifier for all rows:
 | `STANDARD` | Standard curve calibrator | Route to standard curve QC; do not import as patient result |
 | `NTC` | No-Template Control | Route to QC; do not import as patient result |
 | `UNKNOWN` | Patient sample **or** Positive Control | Apply secondary filter (see §7.2) |
+
+These are the only tasks QS D&A offers for a standard-curve run: Unknown (the default), Negative Control / No template control, and Standard. The source is MAN0010408 Rev B.0, p. 14, "Assign a task to wells". Positive-control tasks exist only for genotyping and presence/absence runs, which is why a run's positive control is an `UNKNOWN` well recognized by its name (§7.2). Exports write task values in uppercase.
 
 ### 7.2 Positive Control (PC) Identification
 
@@ -470,3 +474,4 @@ def can_handle(file_path):
 | 1.2 | 2026-02 | Validated against QS7 Jun 2024 (78 patients) and QS5 Dec 2024 (80 patients) |
 | 1.3 | 2026-03 | Third variant: 26 col / 16 metadata rows / LL prefix / "Not Started" pre-run |
 | 1.3.1 | 2026-03-06 | QC rules: PC via Task=UNKNOWN + Sample Name="PC"; NTC via Task=NTC (not Sample Name) |
+| 1.3.2 | 2026-10-10 | §3 and §7.1 cite Thermo's user guide for the export formats and for the task list (no positive-control task in standard-curve runs) |
