@@ -19,3 +19,5 @@ Their control names (`QC-HIV-HIGH`, `QC-HIV-LOW`, `QC-HIV-NEG`, `QC-RESP-POS`, `
 `FC-XT_Template.xlsx` is not an instrument export. It is the workbook the FluoroCycler XT spec designs for the lab to fill in by hand, because FluoroSoftware XT-IVD has no export (`designs/analyzer-integration/fluorocycler-xt-integration-spec-v1.0.md` §1.3; `fluorocycler-xt-companion-setup-guide-v1.0.md` §3).
 
 In this workbook a control is marked by its SampleID prefix: `QC-`, `CTRL-`, `NC-` or `PC-` (spec §6).
+
+The Madagascar site's FluoroCycler file does not use this workbook. Its columns are `Row`, `Col`, `Sample ID`, `Type`, `Calc. Conc.` and `Result`, with `Type` = `Unknown` on patient rows (DIGI-UW/analyzer-mock-server commit `835261c`, which copied that shape into the mock fixture). The Bridge profile and the mock follow the site file. Neither shape has been checked on a run that includes controls.
