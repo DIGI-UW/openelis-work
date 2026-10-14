@@ -1,7 +1,7 @@
 # Westgard Rules Implementation - Requirements & Approach
 ## OpenELIS Global Lab Management System
 
-**Document Version:** 1.0.2 (2026-10-10: §7.1 states which analyzer result is the QC value, how a control is matched to its lot, and what happens when none matches; FR7.7 states how release blocking is delivered)  
+**Document Version:** 1.0.2 (2026-10-10: §7.1 states which analyzer result is the QC value, how a control is matched to its lot, and what happens when none matches; FR7.7 states that release blocking is the lab's setting)  
 **Date:** November 13, 2025  
 **Author:** Casey Iiams-Hauser
 
@@ -99,7 +99,7 @@
 - **FR7.5**: System shall add external note to flagged QC results with corrective action summary
 - **FR7.6**: System shall automatically resolve violations when corrective action is completed
 - **FR7.7**: System shall prevent result release for associated patient samples until violation resolved
-  - Delivered by the `qcFailBlocksValidation` setting, on by default; a site may turn it off. Once built, the Runs FRS (`designs/results-validation/runs.md` FR-C4) narrows the hold to the run and test.
+  - Whether an open QC failure blocks release is the lab's choice, through the `qcFailBlocksValidation` site setting, which is off by default. Without it, the affected results show the QC hold in Validation and the lab decides. Once built, the Runs FRS (`designs/results-validation/runs.md` FR-C4, FR-C5) holds the run's rows per test and gives the operator Retest, Reject or Accept despite QC failure.
 
 ### FR8: Dashboard & Visualization
 
