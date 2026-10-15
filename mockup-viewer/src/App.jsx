@@ -2476,7 +2476,7 @@ export const MOCKUP_REGISTRY = [
     name: 'In-App Help System',
     category: 'system',
     component: React.lazy(() => import('@designs/system/help-menu.jsx')),
-    description: 'In-app help viewer for OpenELIS Global (OGC-737). The Help menu opens the user and administrator guides in their own browser tab with a side-nav table of contents, full-text search, deep links and deployment branding, in English and French. Content is authored in Confluence and bundled with each release by a build-time pipeline, so help works offline. FRS v1.2 (re-based on the Sept 2026 manual reorg; manual refresh at release cut) with requirements checklist and dev bundle. Mockup and HTML preview updated to v1.2: user and administrator guides, English and French with the English-only fallback, WIP notice, latest-online link, branding, 480 px layout.',
+    description: 'In-app help viewer for OpenELIS Global (OGC-737). The Help menu opens the user and administrator guides in their own browser tab with a side-nav table of contents, full-text search, deep links and deployment branding, in English and French. Content is authored in Confluence and bundled with each release by a build-time pipeline, so help works offline. FRS v1.3 (re-based on the Sept 2026 manual reorg; manual refresh at release cut; analyze pass applied) with requirements checklist and dev bundle. Mockup and HTML preview updated to v1.3: user and administrator guides, English and French with the English-only fallback, WIP notice, latest-online link, error states, branding, 480 px layout.',
     specPath: 'designs/system/help-menu.md',
     htmlUrl: 'designs/system/in-app-help-preview.html',
     added: '2026-05-12',
