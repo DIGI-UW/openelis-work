@@ -1,35 +1,64 @@
 # FRS: OpenELIS Global In-App Help System
 
-**Version:** 1.0
-**Date:** 2026-05-12
+**Version:** 1.1
+**Date:** 2026-10-15
 **Author:** Casey Iiams-Hauser
-**Status:** Draft for review
-**Target release:** OpenELIS Global v3.3 (first release with in-app help)
+**Status:** Revised for implementation; section 13 (refresh triggers and workflow) is PROPOSED and must be reviewed before build starts
+**Jira:** [OGC-737](https://uwdigi.atlassian.net/browse/OGC-737)
+**Target release:** OpenELIS Global 3.3.0 (first release with in-app help)
+
+---
+
+## What changed in v1.1
+
+v1.0 (2026-05-12) was written against the legacy "PART 1-16" User Manual. Between May and October the Confluence documentation was restructured and translated, and the frontend moved on. v1.1 re-bases the spec on what exists today.
+
+| Area | v1.0 | v1.1 |
+|---|---|---|
+| Corpus | User Manual subtree under folder `261455874` ("PART N" pages), Admin Manual out of scope | The topic-folder manual created in the Sept 2026 reorg, **user and administrator folders both in scope** (FR-P-03) |
+| Locales | English only at launch; one Confluence space per locale matched via `helpkey:` labels | **English and French at launch.** French is a parallel folder tree in the same space; pages are matched to their English source page id (FR-P-15) |
+| Legacy pages | Not addressed | "(before X.Y.Z)" copies and the LEGACY Versions folders are **excluded** from a release build; "(legacy screen)" pages stay (FR-P-16) |
+| Images | External (Google-hosted) URLs only | Confluence **attachments** (`media type: "file"`) downloaded through the authenticated API; external URLs still supported (FR-P-08) |
+| ADF coverage | No `panel` handler | `panel`, `expand`, `inlineCard`, `status` and the rest of the live corpus survey (FR-P-05) |
+| Authoring artifacts | Not addressed | Provenance sections stripped; "Work in progress" panels replaced by a standard viewer notice (FR-P-17) |
+| Viewer shell | Mounted inside `App.jsx` `<Switch>` but required to have no OpenELIS chrome (impossible as written) | `Layout` gets a standalone mode for `/help` routes (FR-I-06) |
+| Opening the tab | `"noopener=no,noreferrer"` (contradictory: `noreferrer` nulls `window.opener`) | `window.open("/help", "_blank")` with no feature string (FR-I-02) |
+| Branding | `accentColor` and an unnamed "site name" property | Reuse `loadAndApplyBranding()`; site name is `BANNER_TEXT` (FR-V-01c) |
+| Asset paths | Relative `assets/<hash>` (breaks under `/help/<slug>`) | Absolute `/help-content/assets/<hash>.<ext>`, shared across locales (FR-P-08) |
+| Size | ≤25 MB target, current PNG set is 36 MB | Pipeline resizes and converts to WebP; budget enforced in CI (NFR-04) |
+| Dependencies | "Zero deps" pipeline that also builds a FlexSearch index | Named dependencies (section 8.1) |
+| i18n API | `t(key, fallback)` | `react-intl` `intl.formatMessage({ id })`, keys in `en.json` and `fr.json` |
+| a11y test | Manual Axe DevTools scan | Existing Playwright + `@axe-core/playwright` setup |
+| Refresh | Maintainer runs a script locally | GitHub Actions workflow with defined triggers (section 13, PROPOSED) |
+
+The dev bundle (`in-app-help-dev-bundle.zip`) is still useful for the converter's core node handling, but its 16 ADF fixtures and 402 Google-hosted PNGs describe the **old** manual. Re-pull fixtures from the new folders before building against them (AC-2).
 
 ---
 
 ## 1. Overview
 
-OpenELIS Global currently surfaces user-facing help by opening an external URL — typically a hosted PDF of the user manual — in a new browser tab. This breaks the user's context, depends on external network availability, and provides no in-app navigation, search, or deep linking. Lab staff in low-connectivity environments often cannot reach the PDF at all.
+OpenELIS Global surfaces user-facing help by opening an external URL in a new browser tab. That depends on internet access, gives no in-app navigation, search or deep linking, and cannot follow the user's language.
 
-This feature replaces the external link with a rich, in-app help viewer. Help content is authored in Confluence (unchanged authoring workflow), exported by a build-time pipeline into static assets shipped with the OpenELIS distribution, and rendered inside the React frontend through a Carbon-based viewer with a left side nav, full-text search, and deep-linkable URLs.
+This feature replaces the external link with an in-app help viewer. Help content stays authored in Confluence (authoring workflow unchanged). A build-time pipeline exports it into static assets that ship with each OpenELIS release, and a Carbon-based viewer renders it in its own browser tab with a side-nav table of contents, full-text search and deep-linkable URLs, in English and French.
 
-The system has two cooperating components:
+Two cooperating components:
 
-- **Help Refresh Pipeline** — a Node.js script run on a maintainer's machine before a release cut. It fetches pages from the OpenELIS Confluence space via the REST API, converts ADF JSON to sanitized HTML chunks, downloads referenced images locally with content-hashed filenames, builds a TOC manifest and a client-side search index, and writes the output into `frontend/public/help-content/<locale>/`. The output is committed to the repo and ships with the release.
-- **Help Viewer** — a React component (`HelpViewer.jsx`) mounted at `/help/:slug?`. Loads the manifest at mount, renders the active page's pre-built HTML through DOMPurify, and provides side-nav navigation, search, and deep-link routing.
+- **Help Refresh Pipeline**: a Node.js script, run by a GitHub Actions workflow (section 13) or locally. It walks the configured Confluence folders through the REST v2 API, converts ADF JSON to sanitized HTML chunks, downloads and optimizes images, resolves cross-page links, builds a TOC manifest and a search index per locale, and writes the output to `frontend/public/help-content/`. Output is committed and ships with the release.
+- **Help Viewer**: a React component (`HelpViewer.jsx`) at `/help/:slug?`, opened in a new tab. It renders the active page's pre-built HTML through DOMPurify and provides side-nav navigation, search, deep links and locale fallback.
 
-All architectural decisions for this feature were settled prior to writing this FRS and are non-negotiable without revisiting with the product lead: Confluence is the source of truth, the pipeline is build-time only (no runtime calls), content is version-pinned to each release, and English is the only locale at launch with the data model designed for additional locales later.
+Settled decisions (revisit only with the product lead): Confluence is the source of truth; the pipeline is build-time only, with no runtime calls to Atlassian; content is version-pinned to each release.
 
 ---
 
 ## 2. User Stories
 
-1. **As a lab technician**, I want the user manual to open in a separate browser tab/window so that I can keep my OpenELIS workflow visible alongside the help page and reference both at the same time.
-2. **As a lab manager working in a low-connectivity facility**, I want help content to be available even when the internet is down, so that staff can rely on it during normal operations.
-3. **As a lab technician**, I want to search across all help topics by keyword, so that I can find the right page without browsing the full table of contents.
-4. **As a support engineer**, I want to send a colleague a direct URL to a specific section of a help page, so that they can land on the right answer without a long set of click instructions.
-5. **As a documentation maintainer**, I want to keep authoring help in Confluence and trigger a refresh that produces a committable bundle of static assets, so that I can keep the existing workflow and ship updated content with each release.
+1. **As a lab technician**, I want the help to open in a separate browser tab so that I can keep my OpenELIS workflow visible alongside it.
+2. **As a lab manager in a facility with unreliable internet**, I want help available offline, so staff can rely on it during normal operations.
+3. **As a lab technician**, I want to search all help topics by keyword, so I can find the right page without browsing the whole table of contents.
+4. **As a support engineer**, I want to send a colleague a direct link to a section of a help page.
+5. **As a French-speaking lab technician**, I want the help in French when my OpenELIS session is in French, and to be told clearly when a page is only available in English.
+6. **As a lab administrator**, I want the administrator guide in the same help viewer, so I don't need a second source for configuration tasks.
+7. **As a documentation maintainer**, I want to keep authoring in Confluence and have each release's help refreshed through a reviewable pull request.
 
 ---
 
@@ -39,82 +68,108 @@ All architectural decisions for this feature were settled prior to writing this 
 
 | ID | Requirement |
 |---|---|
-| FR-P-01 | The pipeline MUST accept either a saved ADF JSON file (`--in <file>`) or a live Confluence page id + cloud id (`--page <id> --cloud <cloudId>`). |
-| FR-P-02 | In live mode the pipeline MUST authenticate using environment variables `CONFLUENCE_HOST`, `CONFLUENCE_EMAIL`, `CONFLUENCE_TOKEN`, and call `GET /wiki/api/v2/pages/<id>?body-format=atlas_doc_format`. |
-| FR-P-03 | The pipeline MUST walk every page in the configured root tree, preserving parent/child hierarchy in the manifest. The v1 root is the **User Manual subtree** under Confluence folder `261455874` — NOT the Admin Manual subtree, and NOT the broader OpenELIS Global space (which contains FRS docs, dev docs, draft pages, etc.). The User Manual subtree root page id MUST be set in a config file (e.g. `frontend/scripts/help-refresh.config.json`) so the dev can update it without code changes. Because two sibling series both use "PART N" titles, hierarchy MUST be derived from page parent ids, not from titles. |
-| FR-P-04 | For each page the pipeline MUST emit a sanitized HTML chunk to `<out>/<locale>/pages/<slug>.html`. The slug MUST be derived deterministically from the page title; collisions MUST be resolved by appending a numeric suffix. |
-| FR-P-05 | The pipeline MUST handle all ADF block types present in the corpus survey: `doc`, `paragraph`, `heading` (levels 1–6), `bulletList`, `orderedList` (preserving the `start` attribute), `listItem`, `blockquote`, `codeBlock`, `taskList`, `taskItem`, `rule`, `table` / `tableRow` / `tableHeader` / `tableCell`, `mediaSingle` / `media` / `caption`, and the `extension` macro (drop `toc`, emit a visible placeholder for any other macro key). |
-| FR-P-06 | The pipeline MUST handle all marks present in the corpus survey: `strong`, `em`, `code`, `link`, `underline`, and the Confluence-specific `border` mark on media (mapped to a CSS class). |
-| FR-P-07 | The pipeline MUST detect blockquotes that begin with `Note:`, `Warning:`, `Caution:`, `Verify:`, `Tip:`, `Info:`, or any of the matching emoji prefixes (`⚠️`, `💡`, `ℹ️`) and emit them as Carbon-style callout asides (`oe-help-callout--note`, `oe-help-callout--warning`, `oe-help-callout--info`). Other blockquotes MUST render as plain styled quotes. |
-| FR-P-08 | The pipeline MUST download every external image referenced from the ADF tree, store it under `<out>/<locale>/assets/<sha256-prefix>.<ext>` (content-hashed for dedupe and idempotency), and rewrite the `<img src>` to the local path. |
-| FR-P-09 | Failed image downloads MUST NOT abort the build. The pipeline MUST emit the image element with `data-download-failed="true"` and class `oe-help-img--unresolved`, fall back to the original remote URL as the `src`, and record the failure count in the manifest as `imagesFailed`. |
-| FR-P-10 | The pipeline MUST run in two passes for cross-page link resolution: pass 1 fetches and slugs every page; pass 2 renders HTML using the resulting `pageId → slug` map. Internal Confluence URLs (`/wiki/spaces/.../pages/<id>/...`) MUST be rewritten to `/help/<slug>`. Unresolvable internal links MUST be rendered with a `data-broken-link="true"` attribute and a visible `[broken link]` suffix. |
-| FR-P-11 | The pipeline MUST emit a `manifest.json` per locale containing: `locale`, `generatedAt` ISO timestamp, `sourceConfluenceSpaceId`, and `pages` (an ordered tree where each node has `slug`, `title`, `pageId`, `parentSlug`, `headings` (each with `level`, `text`, `slug`), `children`, `images`, `imagesFailed`). |
-| FR-P-12 | The pipeline MUST build a FlexSearch document index at `<out>/<locale>/search-index.json`, weighting fields as: title (highest), headings (medium), body text (low). Stop-word lists for English are mandatory at launch; per-locale stop-word lists MUST be configurable. |
-| FR-P-13 | The pipeline MUST be idempotent: running it twice in succession with no Confluence changes MUST produce byte-identical output. |
-| FR-P-14 | The pipeline MUST log a summary at the end of each run: total pages, total images downloaded, total image failures, total broken internal links, total unknown macros, and the manifest path. |
+| FR-P-01 | The pipeline MUST accept either saved ADF JSON fixtures (`--fixtures <dir>`, for offline development and tests) or live Confluence (`--live`). |
+| FR-P-02 | In live mode the pipeline MUST authenticate with environment variables `CONFLUENCE_HOST`, `CONFLUENCE_EMAIL`, `CONFLUENCE_TOKEN`, and read pages with `GET /wiki/api/v2/pages/<id>?body-format=atlas_doc_format` plus the folder and children endpoints needed to walk the tree. |
+| FR-P-03 | **Corpus.** The pipeline MUST walk the root folders listed per locale in `frontend/scripts/help-refresh.config.json` (see 4.5), preserving the Confluence parent/child hierarchy (folders and pages) in the manifest. Hierarchy and ordering MUST come from Confluence parent ids and child position, never from titles. The v1 English corpus is the topic-folder manual created in the Sept 2026 reorg, **both** the user-facing folders (Getting around OpenELIS; Orders and samples; Results, validation and reports; Pathology, immunohistochemistry and cytology; Environmental surveillance; Vector surveillance; Laboratory notebooks; Non-conforming events; Quality assurance) and the administrator folders (Getting started with administration; Users, organizations and providers; Test catalog; Site and system settings; Programs, rules and notifications; Result reporting and analyzers; Environmental and vector reference data). The top level of the TOC MUST show two sections, "User guide" and "Administrator guide". |
+| FR-P-04 | Each page MUST be emitted to `<out>/<locale>/pages/<slug>.html`. The slug MUST be derived deterministically from the **English** page title (lower-case, ASCII-folded, emoji and punctuation removed); collisions resolved by a numeric suffix in Confluence tree order. A translated page MUST use the slug of its English source page (FR-P-15), so `/help/<slug>` names the same topic in every locale. |
+| FR-P-05 | **ADF coverage.** The pipeline MUST handle every ADF node and mark type present in the live corpus. Before implementation, run a corpus survey (count of node types, marks and extension keys across all pages in scope) and commit it as `frontend/scripts/help-corpus-survey.json`. At minimum: `doc`, `paragraph`, `heading` (1-6), `text`, `hardBreak`, `rule`, `bulletList`, `orderedList` (preserving `order`/`start`), `listItem`, `blockquote`, `codeBlock`, `taskList`, `taskItem`, `table` / `tableRow` / `tableHeader` / `tableCell` (honouring `colspan` / `rowspan`), `mediaSingle` / `media` / `caption`, **`panel`** (mapped by `panelType`: info, note, warning, error, success → `oe-help-callout--<type>`), `expand` / `nestedExpand` (→ `<details><summary>`), `inlineCard` / `blockCard` (→ link, resolved as in FR-P-10), `status` (→ `oe-help-status` span), `emoji` (→ its text fallback), `mention` and `date` (→ plain text), `layoutSection` / `layoutColumn` (flattened in order), and `extension` (drop `toc`; visible placeholder for any other macro key). |
+| FR-P-06 | Marks: `strong`, `em`, `code`, `link`, `underline`, `strike`, `subsup`, `textColor` (dropped), and the Confluence `border` mark on media (→ CSS class). |
+| FR-P-07 | Blockquotes starting with `Note:`, `Warning:`, `Caution:`, `Verify:`, `Tip:`, `Info:` (and their French equivalents `Remarque :`, `Attention :`, `Avertissement :`, `Vérifier :`, `Astuce :`) or the emoji prefixes `⚠️`, `💡`, `ℹ️` MUST be emitted as callouts, as in v1.0. Panels (FR-P-05) are the preferred authoring form going forward. |
+| FR-P-08 | **Images.** The pipeline MUST download every image the corpus references: (a) `media` with `type: "file"`: resolve the media `id` against the page's attachments (`GET /wiki/api/v2/pages/<id>/attachments`, match on `fileId`) and download with the same credentials; (b) `media` with `type: "external"`: plain HTTPS GET. Each image MUST be resized to a maximum width of 1600 px, converted to WebP (PNG kept only where WebP is larger), and stored once at `<out>/assets/<sha256-prefix>.<ext>`, shared across locales so identical screenshots dedupe. The `<img src>` MUST be the absolute path `/help-content/assets/<hash>.<ext>`. The media `alt` attribute MUST become the `<img alt>`; when absent, use the caption text. |
+| FR-P-09 | Failed downloads MUST NOT abort the build. The element is emitted with `data-download-failed="true"` and class `oe-help-img--unresolved`, and counted in the manifest's `imagesFailed`. No remote `src` is emitted for an attachment (it would require Confluence auth); a visible placeholder is shown instead. |
+| FR-P-10 | **Links**, two passes. Pass 1 walks and slugs every page in all locales; pass 2 renders. Any link whose URL contains `/pages/<numericId>` (any space key or case, e.g. `/wiki/spaces/oeg/pages/272760837`) or a tiny link that resolves to a page id MUST be rewritten: to `/help/<slug>` when the target is in the bundled corpus; otherwise to the canonical Confluence URL with class `oe-help-link--online` and `target="_blank"` (the viewer marks these as needing internet). Links that cannot be resolved at all get `data-broken-link="true"` and a visible `[broken link]` suffix. |
+| FR-P-11 | One `manifest.json` per locale with: `locale`, `releaseVersion`, `generatedFrom` (ISO timestamp of the newest page version included, not wall-clock time, so output stays byte-identical), `sourceSpaceId`, and `pages` (ordered tree; each node: `slug`, `title`, `pageId`, `sourcePageId` (English id; equals `pageId` for English), `sourceVersion` (French only: the English version the translation was made from), `kind` (`folder` or `page`), `parentSlug`, `headings` (`level`, `text`, `slug`), `labels`, `wip` (boolean), `children`, `images`, `imagesFailed`). |
+| FR-P-12 | One FlexSearch document index per locale at `<out>/<locale>/search-index.json`. Field weights: title 4, headings 2, body 1. English and French stop-word lists are mandatory at launch; other locales configurable. |
+| FR-P-13 | Idempotent: two runs with no Confluence change MUST produce byte-identical output (stable key order, stable sort, no wall-clock timestamps, deterministic image encoding). |
+| FR-P-14 | End-of-run summary, written to stdout and to `<out>/refresh-report.json` (not shipped to the browser): pages per locale, images downloaded, images failed, broken links, links to online-only pages, unknown node types and macros, pages excluded by FR-P-16 and why, French pages whose `sourceVersion` is behind the English version, total output size. |
+| FR-P-15 | **Translations.** The French corpus is the parallel folder tree in the same space ("Guide de l'utilisateur" `1704591386`, "Guide de l'administrateur" `1702396037`). Each French page MUST be matched to its English source page id using the translation tool's metadata (Lango content property, if exposed by the API); if unavailable, from the English page linked in the page's translation banner ("Cette page est une traduction de la page anglaise ..."). Unmatched French pages are reported in FR-P-14 and excluded. The translation banner itself MUST be removed from the rendered body; its information is carried by `sourceVersion` (FR-V-12). |
+| FR-P-16 | **Release pinning and legacy exclusion.** The config sets `releaseVersion` (e.g. `3.3.0`). The pipeline MUST exclude: the LEGACY Versions folders (English `1657864193`, French "Versions précédentes" `1679458382`) and everything under them; any page whose title ends in `(before <X.Y.Z>)` where `<X.Y.Z>` ≤ `releaseVersion` (and its French equivalent `(avant <X.Y.Z>)`); and the non-manual folders (Archived `1343979525`, Documentation Translations `1640824834`, Translation Sync Reports `1641644033`, and the authoring/review area). Pages titled `... (legacy screen)` MUST be **kept**: they describe screens still reachable in the release through configuration. Links to excluded pages resolve to the online Confluence URL per FR-P-10. |
+| FR-P-17 | **Authoring-only content.** The pipeline MUST (a) remove the `Provenance` H2 section (heading through the next H2 or end of page) and its French equivalent `Provenance`; (b) replace a warning panel whose first strong text is `Work in progress.` / `Travail en cours.` with a marker the viewer renders as the standard notice `help.viewer.wip.notice`, and set `wip: true` in the manifest; (c) keep the `<Type> · <Audience>` label line, rendered as `oe-help-label`. Label-based gating (e.g. `doc-blocked`) is decided in section 13. |
+| FR-P-18 | The pipeline MUST refuse to write output that exceeds the size budget (NFR-04) unless run with `--allow-oversize`, and MUST exit non-zero on fatal errors so CI fails visibly. |
 
 ### 3.2 Viewer (runtime)
 
 | ID | Requirement |
 |---|---|
-| FR-V-01 | The viewer MUST be a React component (`HelpViewer.jsx`) mounted at the route `/help/:slug?` inside the existing `<Switch>` in `App.jsx`, using `react-router-dom` v5 idioms (`Route` with `component` and `useParams()` / `useHistory()`). The route is intended to be opened in a separate browser tab/window from the main OpenELIS session (see FR-I-02), allowing the user to view help and OpenELIS side-by-side. |
-| FR-V-01a | When the `/help` route is rendered, the page MUST use a minimal standalone header — the OpenELIS brand mark + the title "Help" + the search input — and MUST NOT render the full OpenELIS UIShell side menu, dashboard tiles, or module navigation. Help tabs are dedicated to help content; they do not double as full OpenELIS sessions. |
-| FR-V-01b | If `window.opener` is present and from the same origin, the standalone header MUST include a "Return to OpenELIS" link that calls `window.close()`. If no opener is present (e.g., the URL was opened from a bookmark or copy-paste), the link MUST instead point to `/home` (which opens a fresh OpenELIS session in the same tab). |
-| FR-V-01c | The standalone header MUST consume the existing OpenELIS Site Branding REST endpoint (`GET /rest/site-branding/`) at mount and apply the deployment's branding: render the `headerLogoUrl` as the brand mark (falling back to `/images/openelis_logo.png` when null), set the Carbon CSS custom properties `--cds-interactive-01` to `primaryColor`, `--cds-interactive-02` to `secondaryColor`, `--cds-support-01` to `accentColor` (each falling back to OpenELIS defaults `#1d4ed8 / #64748b / #0891b2`), and set the document `<link rel="icon">` to `faviconUrl` when present. The viewer MUST also apply the site name from the existing configuration-properties endpoint used by the main OpenELIS header — the help tab brand text MUST read "[Site name] Help" (e.g., "Madagascar OpenELIS Help"), not the literal "OpenELIS Help". |
-| FR-V-01d | If the Site Branding endpoint is unavailable or returns a non-2xx response, the header MUST render with the default brand (logo, colors, name) without blocking the rest of the viewer. Branding is enhancement, not a load-bearing dependency. |
-| FR-V-02 | On mount the viewer MUST `fetch('/help-content/<active-locale>/manifest.json')`. If the active locale's manifest does not exist, the viewer MUST fall back to English (`/help-content/en/manifest.json`) and display a Carbon `Tag` reading "Available in English only" next to the page title. |
-| FR-V-03 | The viewer MUST render a left side navigation using Carbon `UIShell SideNav` containing the full TOC tree from the manifest. Parent entries MUST be collapsible. The currently active page entry MUST be visually highlighted. |
-| FR-V-04 | Selecting a TOC entry MUST update the route to `/help/<slug>`. Navigating to `/help/<slug>` directly (e.g. from a bookmark) MUST load the corresponding page and highlight the entry in the side nav. |
-| FR-V-05 | Page content MUST be loaded by fetching `/help-content/<locale>/pages/<slug>.html` and rendering it through `DOMPurify` before assigning to `dangerouslySetInnerHTML`. |
-| FR-V-06 | The viewer MUST support URL hashes (`/help/<slug>#<heading-id>`) for deep linking to subsections. On load, the viewer MUST scroll the heading into view smoothly. |
-| FR-V-07 | A Carbon `Search` input MUST sit above the side nav and search the locale's `search-index.json` (lazy-loaded on first use). Matching pages MUST appear as a filtered subset of the side nav, with matched terms highlighted in result snippets. |
-| FR-V-08 | When the user clicks an internal cross-page link inside rendered content (a link whose href starts with `/help/`), the viewer MUST handle it via `history.push` rather than a full page reload. |
-| FR-V-09 | The viewer MUST render a Carbon `Breadcrumb` at the top of the content pane showing the path from the root through the current page's ancestors. |
-| FR-V-10 | Loading states (initial manifest fetch, page fetch, search index lazy-load) MUST use Carbon `SkeletonText` / `Loading`. |
-| FR-V-11 | The viewer MUST handle three error states with Carbon `InlineNotification`: (a) manifest fetch failure, (b) page fetch failure (with a "Back to home" action), (c) unknown slug (with a "Back to home" action). |
+| FR-V-01 | `HelpViewer.jsx` is mounted at `/help/:slug?` as a `SecureRoute` in `App.jsx`, using `react-router-dom` v5 idioms (`useParams()`, `useHistory()`). It is intended to be opened in its own tab (FR-I-02). |
+| FR-V-01a | On `/help` routes the page MUST NOT render the OpenELIS Header, side nav, dashboard or Footer (see FR-I-06). The viewer renders its own Carbon `Header` (48 px): brand mark, brand text, `Search`, locale indicator, "Return to OpenELIS", and below 1024 px a hamburger toggle for the TOC. |
+| FR-V-01b | "Return to OpenELIS": if `window.opener` exists and is same-origin (checked in a `try`/`catch` reading `window.opener.location.origin`), call `window.opener.focus()` then `window.close()`. Otherwise navigate to `/`. |
+| FR-V-01c | **Branding.** At mount the viewer MUST call the existing `loadAndApplyBranding()` from `components/utils/BrandingUtils.ts` (sets `--site-branding-header`, `--cds-interactive-01`, `--cds-interactive-02` and the favicon, exactly as the main app does), and use `headerLogoUrl` (prefixed with `config.serverBaseUrl`) as the brand mark, falling back to the same default logo the main Header uses. The header background uses `--site-branding-header`. Brand text is `help.viewer.brand` with `{siteName}` = `configurationProperties.BANNER_TEXT` from `ConfigurationContext` (e.g. "Madagascar OpenELIS Help"); if `BANNER_TEXT` is empty, use `help.viewer.title`. No colors are hard-coded. |
+| FR-V-01d | If branding or configuration properties fail to load, the viewer renders with defaults and does not block. |
+| FR-V-02 | **Locale.** The active locale is the one the app's `IntlProvider` is using. On mount and on locale change the viewer fetches `/help-content/<locale>/manifest.json`; if absent, it loads `/help-content/en/manifest.json`. For any page missing in the active locale, it loads the English page and shows a Carbon `Tag` `help.viewer.fallback.tag` next to the title. |
+| FR-V-03 | Left navigation uses Carbon UIShell `SideNav` with the manifest tree: two top sections ("User guide", "Administrator guide"), folders as collapsible `SideNavMenu`, pages as `SideNavMenuItem`. The active page is highlighted and its ancestors expanded. |
+| FR-V-04 | Selecting an entry sets the route to `/help/<slug>`; a direct visit to `/help/<slug>` loads that page and highlights it. `/help` with no slug shows a landing page listing the two guides and their folders. |
+| FR-V-05 | Page HTML is fetched from `/help-content/<locale>/pages/<slug>.html` and passed through DOMPurify (config in FR-S-02) before `dangerouslySetInnerHTML`. Manifest and page fetches send `Cache-Control: no-cache`. |
+| FR-V-06 | `/help/<slug>#<heading-id>` scrolls the heading into view after render. |
+| FR-V-07 | Carbon `Search` in the header queries the locale's `search-index.json`, lazy-loaded on first focus. Results replace the TOC as a filtered list with highlighted snippets; Escape or clearing restores the TOC. Shortcut `/` focuses search. |
+| FR-V-08 | Clicks on `/help/` links inside content use `history.push`. Links with `oe-help-link--online` open in a new tab and carry a visually hidden suffix `help.viewer.link.online` ("opens online documentation"). |
+| FR-V-09 | Carbon `Breadcrumb` above the content: guide → folder(s) → page. |
+| FR-V-10 | Loading states use Carbon `SkeletonText` / `InlineLoading`. |
+| FR-V-11 | Error states use Carbon `InlineNotification`: manifest failure; page failure (retry + back to help home); unknown slug (not found + back to help home). |
+| FR-V-12 | **Translation freshness.** When a French page's `sourceVersion` is lower than the English page's current version in the same build, show a Carbon `Tag` `help.viewer.translation.outdated` with a link to the English version of the page (same slug, `?lang=en`). |
+| FR-V-13 | Pages with `wip: true` show an `InlineNotification kind="info"` (`help.viewer.wip.notice`) above the body. |
 
 ### 3.3 Integration
 
 | ID | Requirement |
 |---|---|
-| FR-I-01 | The viewer MUST be mounted as a `SecureRoute` at `/help/:slug?` exact match, alongside other top-level routes in `App.jsx`. |
-| FR-I-02 | `HelpMenu.jsx` MUST be modified: the `case "manual"` branch of the `openHelp` handler MUST call `window.open("/help", "_blank", "noopener=no,noreferrer")` and then `handlePanelToggle("")`. (Note: `noopener=no` is deliberate — we want `window.opener` available so the help tab can offer a "Return to OpenELIS" link via `window.close()`. Origin is same, so the security risk is acceptable.) |
-| FR-I-03 | The `"Video Tutorials"` and `"Release Notes"` buttons in `HelpMenu.jsx` MUST remain unchanged in v1 (they continue to open external URLs from the existing backend properties). |
-| FR-I-04 | A deployment-level override MUST exist via the new boolean property `org.openelisglobal.help.manual.useInApp`. The default for v1 is `true` (in-app viewer is on for all deployments out of the box). When set to `false` AND `org.openelisglobal.help.manual.url` is non-empty, `HelpMenu.jsx` MUST fall back to the legacy `window.open(url, "_blank")` behavior. This gives cautious deployments a kill-switch without complicating the default user experience. |
-| FR-I-05 | The bundled help content directory MUST live at `frontend/public/help-content/<locale>/` so it is served unchanged by Vite (dev) and nginx (prod) as `/help-content/...`. |
+| FR-I-01 | `/help/:slug?` is a `SecureRoute` alongside the other top-level routes in `App.jsx`. |
+| FR-I-02 | `HelpMenu.jsx` `openHelp(type)`: for `type === "manual"` and in-app mode (FR-I-04), call `window.open("/help", "_blank")` with **no feature string** (so `window.opener` is kept for FR-V-01b; same-origin, so this is safe), then `handlePanelToggle("")`. This path MUST NOT depend on `org.openelisglobal.help.manual.url` being set; the current early return on an empty URL applies only to legacy mode. |
+| FR-I-03 | The other two Help menu entries keep their current behavior. (Their labels currently map `tutorials` → `banner.menu.help.about` and `release-notes` → `banner.menu.help.contact`; confirm this is intended while in the file, but changing it is out of scope.) |
+| FR-I-04 | New property `org.openelisglobal.help.manual.useInApp`, default `true`, added to `volume/properties/common.properties`. It is already exposed by `GET /rest/properties` (which returns every `org.openelisglobal.*` key), so no backend code is needed. Missing or any value other than `false` means in-app. When `false` and the URL property is non-empty, `HelpMenu` uses the legacy `window.open(url, "_blank")`. Update the default `org.openelisglobal.help.manual.url` to the documentation space home, since folder `261455874` no longer holds the manual. |
+| FR-I-05 | Bundled content lives at `frontend/public/help-content/` (`assets/` shared, `<locale>/` per locale) and is served by Vite (dev) and the frontend nginx (prod) as `/help-content/...`. |
+| FR-I-06 | **Standalone shell.** `Layout.jsx` currently renders `Header` and `Footer` around every route. Add a standalone check (`pathname === "/help" \|\| pathname.startsWith("/help/")`, alongside the existing `isFocusedAuthRoute`). When true, `Layout` keeps its context providers (`ConfigurationContext`, `TranslationOverrideProvider`, `NotificationContext`) and renders `children` without `Header`, `Footer` or the `Content` wrapper. No other route changes behavior. |
 
 ---
 
 ## 4. Data Model
 
-### 4.1 `manifest.json`
+### 4.1 Output layout
+
+```
+frontend/public/help-content/
+  assets/<hash>.webp            # shared by all locales
+  en/manifest.json
+  en/search-index.json
+  en/pages/<slug>.html
+  fr/manifest.json
+  fr/search-index.json
+  fr/pages/<slug>.html
+frontend/scripts/help-refresh.mjs
+frontend/scripts/help-refresh.config.json
+frontend/scripts/help-corpus-survey.json
+```
+
+### 4.2 `manifest.json` (abridged)
 
 ```json
 {
-  "locale": "en",
-  "generatedAt": "2026-05-12T20:00:00Z",
-  "sourceConfluenceSpaceId": "52559895",
-  "rootSlugs": ["user-manual", "admin-manual"],
+  "locale": "fr",
+  "releaseVersion": "3.3.0",
+  "generatedFrom": "2026-10-13T19:20:00Z",
+  "sourceSpaceId": "52559895",
   "pages": [
     {
-      "slug": "user-manual",
-      "title": "User Manual",
-      "pageId": "261455874-um",
+      "slug": "user-guide",
+      "title": "Guide de l'utilisateur",
+      "kind": "folder",
+      "pageId": "1704591386",
+      "sourcePageId": "<english user guide folder id>",
       "parentSlug": null,
-      "headings": [],
       "children": [
         {
-          "slug": "part-1-navigating",
-          "title": "PART 1: NAVIGATING OpenELIS GLOBAL",
-          "pageId": "260931593",
-          "parentSlug": "user-manual",
-          "headings": [
-            { "level": 1, "text": "Introduction", "slug": "introduction" },
-            { "level": 2, "text": "How to login to OpenELIS", "slug": "how-to-login-to-openelis" }
-          ],
+          "slug": "print-a-work-plan",
+          "title": "Imprimer un plan de travail",
+          "kind": "page",
+          "pageId": "<french page id>",
+          "sourcePageId": "272760837",
+          "sourceVersion": 3,
+          "parentSlug": "laboratory-notebooks",
+          "labels": [],
+          "wip": true,
+          "headings": [{ "level": 2, "text": "En bref", "slug": "en-bref" }],
           "children": [],
-          "images": 8,
+          "images": 4,
           "imagesFailed": 0
         }
       ]
@@ -123,31 +178,53 @@ All architectural decisions for this feature were settled prior to writing this 
 }
 ```
 
-### 4.2 Per-page HTML chunk
+### 4.3 Page chunk
 
-A self-contained HTML fragment (no `<html>` or `<body>` wrapper). Image sources point to relative `assets/<hash>.<ext>` paths. Internal cross-page links use `/help/<slug>` URLs. Headings carry stable `id` attributes for deep linking. Sanitized through `DOMPurify` before rendering.
-
-### 4.3 `search-index.json`
-
-FlexSearch-compatible serialized document index. Documents are keyed by `<slug>` and include `title`, `headings` (concatenated), and `body` (extracted text content, stop-words removed). Field weights: title 4, headings 2, body 1.
+A self-contained HTML fragment. Image sources are absolute `/help-content/assets/...`. Internal links are `/help/<slug>`. Headings carry stable `id`s derived from their text (collision suffixes as for slugs).
 
 ### 4.4 CSS class contract (pipeline → viewer)
 
-The pipeline emits these stable class names; the viewer's stylesheet must style them:
-
 | Class | Purpose |
 |---|---|
-| `oe-help-figure` | Wraps every image + caption |
-| `oe-help-figure--wide` / `--center` / `--left` / `--right` | Layout variants |
-| `oe-help-img` | The image itself |
-| `oe-help-img--bordered` | Has the Confluence border mark |
-| `oe-help-img--unresolved` | Download failed; remote src used as fallback |
-| `oe-help-table-wrap` | Horizontal-scroll wrapper for tables |
-| `oe-help-table` | Semantic table |
-| `oe-help-callout` | Base callout class |
-| `oe-help-callout--note` / `--info` / `--warning` | Severity variants |
-| `oe-help-tasklist` | Render `taskList` as a styled checklist |
-| `oe-help-unsupported` | Visible red placeholder for unknown Confluence macros |
+| `oe-help-figure`, `--wide` / `--center` / `--left` / `--right` | Image + caption wrapper and layout |
+| `oe-help-img`, `oe-help-img--bordered`, `oe-help-img--unresolved` | Image, border mark, failed download |
+| `oe-help-table-wrap`, `oe-help-table` | Scrollable table wrapper and table (styled like Carbon DataTable) |
+| `oe-help-callout`, `--note` / `--info` / `--warning` / `--error` / `--success` | Callouts from panels and promoted blockquotes (styled like Carbon InlineNotification) |
+| `oe-help-label` | The `<Type> · <Audience>` line |
+| `oe-help-status` | ADF `status` lozenge (styled like Carbon Tag) |
+| `oe-help-expand` | `<details>` from `expand` |
+| `oe-help-wip` | Marker replaced by the viewer's WIP notice |
+| `oe-help-link--online` | Link to Confluence content not in the bundle |
+| `oe-help-tasklist` | Task list |
+| `oe-help-unsupported` | Visible placeholder for unknown macros |
+
+### 4.5 `help-refresh.config.json`
+
+```json
+{
+  "releaseVersion": "3.3.0",
+  "spaceKey": "OG",
+  "locales": {
+    "en": {
+      "sections": [
+        { "slug": "user-guide", "rootFolderId": "<English user guide folder>" },
+        { "slug": "administrator-guide", "rootFolderId": "<English administrator guide folder>" }
+      ]
+    },
+    "fr": {
+      "sections": [
+        { "slug": "user-guide", "rootFolderId": "1704591386" },
+        { "slug": "administrator-guide", "rootFolderId": "1702396037" }
+      ]
+    }
+  },
+  "excludeFolderIds": ["1657864193", "1679458382", "1343979525", "1640824834", "1641644033"],
+  "maxImageWidth": 1600,
+  "sizeBudgetMB": 25
+}
+```
+
+The English guide folder ids are the parents of the topic folders listed in FR-P-03 (for example "Getting around OpenELIS" `1680015437`, "Orders and samples" `1679458388`, "Test catalog" `1679786110`). Confirm them in Confluence when writing the config; if the topic folders have no common parent, list each topic folder under its section instead.
 
 ---
 
@@ -155,70 +232,70 @@ The pipeline emits these stable class names; the viewer's stylesheet must style 
 
 ### 5.1 Layout
 
-The viewer opens in a separate browser tab and uses its own minimal header — it does NOT inherit the main OpenELIS UIShell. The user is expected to size and position the help tab themselves (split-screen alongside OpenELIS, separate monitor, or full-screen depending on preference).
+The viewer opens in its own tab and has its own header (FR-V-01a). The user sizes the tab themselves (split screen, second monitor or full screen).
 
-Layout inside the help tab:
+- **Header (48 px, sticky, `--site-branding-header` background):** brand mark and brand text on the left, `Search` in the centre, "Return to OpenELIS" on the right. Below 1024 px a hamburger opens the TOC as an overlay.
+- **Left rail (280 px):** `SideNav` with "User guide" and "Administrator guide".
+- **Main pane (max-width 920 px):** breadcrumb, title with any Tags (English only, translation outdated), WIP notice when applicable, page body.
 
-- **Standalone header (48px, sticky, dark Carbon theme):** OpenELIS brand mark on the left, "Help" page title beside it, Carbon `Search` input in the center (always visible, not collapsed inside the side nav), "Return to OpenELIS" link on the right.
-- **Left rail (280px fixed):** Carbon UIShell SideNav. Hierarchical TOC. Active page highlighted with Carbon's standard active-item style.
-- **Main pane (flex, max-width 920px, padded):** Carbon `Breadcrumb` (path-from-root). Below: rendered page HTML. Locale-fallback Tag rendered to the right of the page title when applicable.
-
-The layout MUST remain usable down to a viewport width of 480px — at narrower widths the side rail collapses behind a hamburger toggle so a help tab docked as a narrow vertical strip beside OpenELIS still works.
+Must remain usable at 480 px and 360 px wide (AC-13).
 
 ### 5.2 Navigation flows
 
-- **Open from header help icon:** User clicks the `?` icon in the OpenELIS header → HeaderPanel opens → user clicks "User Manual" → panel closes, a new browser tab opens at `/help`, the help viewer loads with the root user-manual page selected. The original OpenELIS tab is unchanged.
-- **Click a TOC entry:** Route inside the help tab changes to `/help/<slug>`; main pane scrolls to top; side nav highlights the new entry. (Normal SPA navigation within the help tab.)
-- **Click an internal cross-page link in content:** Same as TOC click; uses `history.push` within the help tab.
-- **Bookmark/share:** Copy URL from the help tab's address bar; pasting it elsewhere opens that page directly (in whatever tab/window the user puts it).
-- **Search:** User types ≥2 characters in Search; results appear as a filtered TOC subset within ~150ms (debounced). Selecting a result navigates to that page.
-- **Return to OpenELIS:** User clicks "Return to OpenELIS" in the help tab's standalone header. If `window.opener` is set, the help tab calls `window.close()` and focus returns to the OpenELIS tab. Otherwise (e.g., the help URL was opened from a bookmark), the link points to `/home` so the user lands in a fresh OpenELIS session.
+- **Open:** Help icon → "User Manual" → a new tab opens at `/help`; the OpenELIS tab is unchanged.
+- **TOC, cross-page link, bookmark, search:** as v1.0 (SPA navigation inside the help tab; URLs shareable).
+- **Link to online-only content:** opens Confluence in a new tab; needs internet.
+- **Return to OpenELIS:** focuses the opener and closes the help tab, or navigates to `/` when there is no opener.
 
 ### 5.3 Empty / loading / error states
 
 | State | Treatment |
 |---|---|
-| Initial manifest load (~300ms expected) | Side nav shows three `SkeletonText` rows; main pane shows three skeleton paragraphs |
-| Page chunk loading | Main pane shows skeleton; side nav stays interactive |
-| Search index lazy-loading on first keystroke | Search shows inline `Loading` indicator until ready (~150ms) |
-| Manifest fetch fails | Full-screen Carbon `InlineNotification kind="error"`: "Help content could not be loaded. Please contact your administrator." |
-| Page fetch fails for a known slug | InlineNotification with "Try again" button + "Back to home" link |
-| Unknown slug (`/help/does-not-exist`) | InlineNotification with "Page not found" and link back to root |
-| Search returns no results | Side nav shows "No results for '<query>'" inline text |
+| Manifest loading | Three `SkeletonText` rows in the rail; skeleton paragraphs in the main pane |
+| Page loading | Main-pane skeleton; rail stays interactive |
+| Search index loading | `InlineLoading` in the search area |
+| Manifest fails | `InlineNotification kind="error"`: `help.viewer.error.manifest` |
+| Page fails | `InlineNotification` with "Try again" and "Back to help home" |
+| Unknown slug | `InlineNotification` "Page not found" with link to help home |
+| No search results | `help.viewer.search.no-results` |
 
-### 5.4 Keyboard accessibility
+### 5.4 Keyboard and screen readers
 
-- Search input focusable with `/` shortcut (matches Carbon convention).
-- TOC entries are reachable via Tab; Enter activates.
-- Side nav supports arrow-key navigation within the TOC tree (Carbon SideNav default).
-- All callouts have `role="note"` for screen readers.
+`/` focuses search; every TOC entry reachable by Tab, Enter activates; Carbon `SideNav` arrow-key behavior; callouts use `role="note"`; the hamburger has an `aria-label` and `aria-expanded`.
 
 ---
 
 ## 6. Localization
 
-All UI strings produced by the viewer MUST use `t(key, fallback)`. Keys follow the `[category].[feature].[identifier]` convention.
+All viewer strings use `react-intl` (`intl.formatMessage({ id })` / `<FormattedMessage>`), matching the rest of the frontend. Keys MUST be added to `frontend/src/languages/en.json` **and** `fr.json`; other locales fall back through the existing mechanism.
 
-| Key | English fallback |
-|---|---|
-| `help.viewer.title` | Help |
-| `help.viewer.return-to-app` | Return to OpenELIS |
-| `help.viewer.search.placeholder` | Search help… |
-| `help.viewer.search.no-results` | No results for "{query}" |
-| `help.viewer.search.loading` | Loading search… |
-| `help.viewer.breadcrumb.home` | Help |
-| `help.viewer.fallback.tag` | Available in English only |
-| `help.viewer.error.manifest` | Help content could not be loaded. Please contact your administrator. |
-| `help.viewer.error.page.title` | Page could not be loaded |
-| `help.viewer.error.page.retry` | Try again |
-| `help.viewer.error.page.home` | Back to home |
-| `help.viewer.error.not-found.title` | Page not found |
-| `help.viewer.error.not-found.body` | The help page you requested does not exist. |
-| `help.viewer.loading.page` | Loading… |
+| Key | English | French |
+|---|---|---|
+| `help.viewer.title` | Help | Aide |
+| `help.viewer.brand` | {siteName} Help | Aide {siteName} |
+| `help.viewer.return-to-app` | Return to OpenELIS | Retour à OpenELIS |
+| `help.viewer.search.placeholder` | Search help… | Rechercher dans l'aide… |
+| `help.viewer.search.no-results` | No results for "{query}" | Aucun résultat pour « {query} » |
+| `help.viewer.search.loading` | Loading search… | Chargement de la recherche… |
+| `help.viewer.breadcrumb.home` | Help | Aide |
+| `help.viewer.section.user` | User guide | Guide de l'utilisateur |
+| `help.viewer.section.admin` | Administrator guide | Guide de l'administrateur |
+| `help.viewer.menu.toggle` | Show or hide contents | Afficher ou masquer le sommaire |
+| `help.viewer.fallback.tag` | Available in English only | Disponible en anglais uniquement |
+| `help.viewer.translation.outdated` | The English page has been updated since this translation | La page anglaise a été mise à jour depuis cette traduction |
+| `help.viewer.wip.notice` | This page is still being reviewed, so some details may change. | Cette page est en cours de relecture ; certains détails peuvent changer. |
+| `help.viewer.link.online` | (opens online documentation) | (ouvre la documentation en ligne) |
+| `help.viewer.error.manifest` | Help content could not be loaded. Please contact your administrator. | Le contenu de l'aide n'a pas pu être chargé. Contactez votre administrateur. |
+| `help.viewer.error.page.title` | Page could not be loaded | La page n'a pas pu être chargée |
+| `help.viewer.error.page.retry` | Try again | Réessayer |
+| `help.viewer.error.page.home` | Back to help home | Retour à l'accueil de l'aide |
+| `help.viewer.error.not-found.title` | Page not found | Page introuvable |
+| `help.viewer.error.not-found.body` | The help page you requested does not exist. | La page d'aide demandée n'existe pas. |
+| `help.viewer.loading.page` | Loading… | Chargement… |
 
-Existing keys consumed unchanged: `banner.menu.help.usermanual`, `banner.menu.help.about`, `banner.menu.help.contact` (already present in all 26 locale JSONs under `frontend/src/languages/`).
+French strings are drafts; check them against the "French translation glossary and tracking (fr-v1)" page before merge. Existing keys `banner.menu.help.usermanual`, `banner.menu.help.about`, `banner.menu.help.contact` are unchanged.
 
-Content strings inside the rendered HTML chunks are NOT translated by the viewer — they are pre-translated at pipeline time when separate Confluence spaces per locale are provided. The fallback strategy is: if `/help-content/<locale>/manifest.json` is missing, load `/help-content/en/manifest.json` and badge each page header with `help.viewer.fallback.tag`.
+Content inside page chunks is not translated by the viewer; it comes translated from Confluence.
 
 ---
 
@@ -226,10 +303,10 @@ Content strings inside the rendered HTML chunks are NOT translated by the viewer
 
 | ID | Requirement |
 |---|---|
-| FR-S-01 | The `/help` route MUST be a `SecureRoute` — authenticated users only. No new permission key is introduced; any logged-in user may read help. |
-| FR-S-02 | Help content MUST be sanitized through `DOMPurify` before being assigned to `dangerouslySetInnerHTML`. The DOMPurify config MUST be configured as an explicit allowlist with the following parameters:<br/><br/>**Allowed tags:** `h1`, `h2`, `h3`, `h4`, `h5`, `h6`, `p`, `ul`, `ol`, `li`, `table`, `thead`, `tbody`, `tr`, `th`, `td`, `figure`, `figcaption`, `img`, `blockquote`, `aside`, `code`, `pre`, `hr`, `br`, `strong`, `em`, `u`, `a`, `div`, `span`.<br/><br/>**Allowed attributes:** `class`, `id`, `href`, `src`, `alt`, `width`, `height`, `role`, `scope`, `start` (for `<ol>`), `data-broken-link`, `data-download-failed`.<br/><br/>**Class allowlist (enforced as a post-sanitize pass):** every emitted class MUST start with `oe-help-` (Section 4.4). Other class values MUST be stripped.<br/><br/>**href restrictions:** internal links MUST match `^/help/` exactly; external links MUST use `http://` or `https://` schemes and MUST be rewritten to add `rel="noopener noreferrer"` and `target="_blank"`. `javascript:`, `data:`, `vbscript:`, and `file:` schemes MUST be rejected.<br/><br/>**Forbidden everywhere:** `<script>`, `<style>`, `<iframe>`, `<object>`, `<embed>`, `<link>`, `<meta>`, inline event handlers (`on*` attributes), `style` attributes. |
-| FR-S-03 | The pipeline MUST refuse any image URL that uses a non-`https` scheme, and MUST refuse remote SVG content (SVG can contain scripts). Failed SVGs MUST be reported as `imagesFailed` and rendered as a placeholder. |
-| FR-S-04 | The pipeline's Confluence API token MUST be read from env vars only. It MUST NOT be committed to the repo or to manifest output. The build script MUST exit with a clear error message if any of the three required env vars is missing in live mode. |
+| FR-S-01 | `/help` is a `SecureRoute`; any logged-in user may read help; no new permission. The static files under `/help-content/` are served without authentication by the frontend nginx; this is acceptable because the same content is public on Confluence. |
+| FR-S-02 | DOMPurify allowlist. **Tags:** `h1`-`h6`, `p`, `ul`, `ol`, `li`, `table`, `thead`, `tbody`, `tr`, `th`, `td`, `figure`, `figcaption`, `img`, `blockquote`, `aside`, `details`, `summary`, `code`, `pre`, `hr`, `br`, `strong`, `em`, `u`, `s`, `sub`, `sup`, `a`, `div`, `span`. **Attributes:** `class`, `id`, `href`, `src`, `alt`, `width`, `height`, `role`, `scope`, `start`, `colspan`, `rowspan`, `target`, `rel`, `data-broken-link`, `data-download-failed`. **Classes:** post-sanitize pass strips any class not starting with `oe-help-`. **href:** internal links must match `^/help/`; external links must be `https://` (or `http://`) and get `rel="noopener noreferrer"` and `target="_blank"`; `javascript:`, `data:`, `vbscript:`, `file:` rejected. **src:** must match `^/help-content/assets/`. **Forbidden:** `script`, `style`, `iframe`, `object`, `embed`, `link`, `meta`, `form`, `input`, `on*` attributes, `style` attributes. |
+| FR-S-03 | The pipeline refuses non-HTTPS image URLs and SVG images (SVG can carry script); refused images count as `imagesFailed`. |
+| FR-S-04 | The Confluence token is read from environment variables only (GitHub Actions secrets in CI), never written to output, logs or `refresh-report.json`. Live mode exits with a clear message if a variable is missing. Use a dedicated read-only service account, not a personal token. |
 
 ---
 
@@ -237,12 +314,22 @@ Content strings inside the rendered HTML chunks are NOT translated by the viewer
 
 | ID | Requirement |
 |---|---|
-| NFR-01 | The viewer MUST be usable offline once OpenELIS is loaded. No runtime calls to Atlassian, Google CDN, or any external service. |
-| NFR-02 | Initial paint of the help viewer (manifest loaded + first page rendered) MUST complete in ≤500ms on a 4G connection from a cold cache. |
-| NFR-03 | Search query response time, measured end-to-end from keystroke to results visible in the side nav (debounce + index query + render), MUST be ≤150ms at the 95th percentile for a corpus of up to 200 pages with up to 50,000 indexed words. The 50ms debounce window is included in this budget. |
-| NFR-04 | The bundled `help-content` directory SHOULD be ≤25 MB for the v1 corpus (~30 pages). If image-heavy growth exceeds this, Git LFS adoption MUST be considered. |
-| NFR-05 | The pipeline MUST complete a full refresh of the v1 corpus (~30 pages, ~150 images) in ≤90 seconds on a typical developer laptop with a reasonable internet connection. |
-| NFR-06 | All viewer output MUST meet WCAG 2.1 AA: semantic landmarks (`<nav>`, `<main>`, `<aside>` for callouts), color-contrast on text and Carbon Tag variants, focus indicators, keyboard reachability of every interactive element. |
+| NFR-01 | Offline: no runtime calls to Atlassian, Google or any external host, except when the user follows an `oe-help-link--online` link. |
+| NFR-02 | Initial paint (manifest + first page) ≤500 ms on 4G, cold cache. |
+| NFR-03 | Search ≤150 ms p95 from keystroke to results (debounce included), corpus up to 300 pages / 80,000 words per locale. |
+| NFR-04 | Total `help-content/` size ≤25 MB for both locales together, after WebP conversion and cross-locale dedupe. CI fails above budget (FR-P-18). If the corpus outgrows it, revisit (Git LFS or a separate content artifact) before raising the budget. |
+| NFR-05 | Full live refresh of both locales ≤5 minutes in CI. |
+| NFR-06 | WCAG 2.1 AA: landmarks (`header`, `nav`, `main`), contrast with deployment branding applied, visible focus, keyboard reachability, image alt text from the source. |
+
+### 8.1 Dependencies
+
+| Package | Where | Why |
+|---|---|---|
+| `dompurify` | `dependencies` | FR-V-05, FR-S-02 |
+| `flexsearch` | `dependencies` | Runtime search and build-time index (same version, so the serialized index matches) |
+| `sharp` | `devDependencies` | Image resize and WebP conversion (FR-P-08) |
+
+No other new dependencies without review. The pipeline otherwise uses Node built-ins (`fetch`, `crypto`, `fs`).
 
 ---
 
@@ -250,83 +337,132 @@ Content strings inside the rendered HTML chunks are NOT translated by the viewer
 
 | Case | Behavior |
 |---|---|
-| Confluence page deleted between two pipeline runs | The page is omitted from the new manifest. Any internal links pointing to the deleted `pageId` are rewritten with `data-broken-link="true"`. Build logs the broken link count. |
-| Confluence macro the pipeline does not recognize | Visible red placeholder in the rendered HTML: `[Unsupported Confluence macro: <macro-key>]`. Build logs the unknown macro count. The dev decides whether to add a handler or ask the author to use a known pattern. |
-| Image download fails (HTTP error, timeout, DNS) | Image element retained with `oe-help-img--unresolved` class and `data-download-failed="true"`. `src` falls back to the original remote URL. Manifest records `imagesFailed`. Build logs each failure with reason. |
-| Two pages have the same title slug | Pipeline appends `-2`, `-3`, etc. to the colliding slugs and logs the collision. |
-| User navigates to `/help/<slug>` where `<slug>` doesn't exist | Page not found state (Section 5.3). |
-| Locale switch mid-session | Viewer re-fetches `/help-content/<new-locale>/manifest.json` and falls back to English if missing. |
-| Help content updated between two browser sessions | No special handling — content is shipped with the OpenELIS distribution and rotated only on release. Cache is HTTP-cache-busted naturally because the asset URLs are stable (content is replaced in-place; viewer should send `Cache-Control: no-cache` on manifest.json fetches to avoid stale TOC after an in-place update). |
-| Confluence ADF schema adds new node types in the future | Pipeline emits HTML comments (`<!-- unhandled ADF node: X -->`) and logs the unhandled type. Build does not fail. Dev adds a handler in the next release. |
+| Page deleted between runs | Omitted; links to it become online links if the page still exists elsewhere, otherwise broken links; counted in the report |
+| Page moved between folders | Slug unchanged (title-based); TOC position follows the new parent |
+| Page renamed | New slug; previous slug kept as an alias in the manifest (`aliases`) for one release so old bookmarks still resolve |
+| French page without an English match | Excluded; reported |
+| English page without a French translation | French viewer shows the English page with the fallback Tag |
+| Translation older than English | Shown with the outdated Tag (FR-V-12) |
+| Unknown macro or node type | Visible placeholder; reported; build continues |
+| Attachment download fails | Placeholder (FR-P-09); reported |
+| Output over budget | Build fails (FR-P-18) |
+| Two pages with the same title | Numeric suffix in tree order; reported |
+| User switches language mid-session | Viewer reloads the manifest for the new locale and stays on the same slug |
+| Same help URL opened with no opener | "Return to OpenELIS" goes to `/` |
 
 ---
 
 ## 10. Acceptance Criteria
 
-Each criterion is testable and traces to a functional requirement.
-
-1. **Pipeline against a saved sample produces deterministic output.** Running `node help-refresh.mjs --in sample-part-1.json --out build --slug part-1-navigating` twice MUST produce byte-identical `pages/part-1-navigating.html`, `manifest.json`, and `assets/` content. (FR-P-13)
-2. **Pipeline against live Confluence converts the full user-manual tree.** A live refresh starting from folder `261455874` MUST produce ≥16 pages, ≥1 root parent in the manifest, no fatal errors, and a non-zero `images` count. (FR-P-02, FR-P-03)
-3. **Internal links resolve.** After a full corpus refresh, no rendered HTML chunk MUST contain a `/wiki/spaces/...` URL. Every internal link MUST either be `/help/<slug>` or marked `data-broken-link="true"`. (FR-P-10)
-4. **Images bundled locally.** After a full corpus refresh, no rendered `<img>` element MUST have an external `https://` `src` UNLESS it carries `data-download-failed="true"`. (FR-P-08, FR-P-09)
-5. **Viewer mounts at `/help`.** Navigating to `/help` in a logged-in OpenELIS session MUST render the standalone help viewer (its own minimal header, side nav populated from manifest) and MUST NOT render the OpenELIS UIShell side menu or dashboard tiles. (FR-V-01, FR-V-01a, FR-V-02, FR-V-03)
-5a. **Help tab respects deployment branding.** When `/rest/site-branding/` returns a custom logo, primary color, and site name (e.g., a Madagascar deployment with `primaryColor=#0f5e3b` and `headerLogoUrl=/rest/site-branding/logo/header`), the help tab's standalone header MUST render that same logo, apply that color to Carbon CSS variables visible in the help tab (active TOC entry, breadcrumb link, search focus ring), and read "[Site name] Help" in the brand area. Default branding MUST be shown when the endpoint is unavailable. (FR-V-01c, FR-V-01d)
-6. **Deep linking works.** Navigating to `/help/part-1-navigating#how-to-login-to-openelis` MUST render that page and scroll the heading into view. Copying the URL and pasting in a new tab MUST reproduce the same view. (FR-V-04, FR-V-06)
-7. **Search returns results.** Typing "login" in the search input MUST surface at least one result within 150ms (after the index has loaded). Clicking the result MUST navigate to the matching page. (FR-V-07)
-8. **HelpMenu integration opens new tab.** Clicking the header `?` icon → "User Manual" MUST open `/help` in a new browser tab via `window.open`. The OpenELIS tab the user clicked from MUST remain unchanged on its current screen. (FR-I-02)
-8a. **Return to OpenELIS works.** Clicking the "Return to OpenELIS" link in the help tab's header MUST close the help tab and return focus to the original OpenELIS tab (when opened from the menu). When the help URL was opened directly from a bookmark (no `window.opener`), the link MUST navigate to `/home` instead. (FR-V-01b)
-9. **Legacy fallback honored.** With `org.openelisglobal.help.manual.useInApp=false` and the legacy URL property set, the "User Manual" button MUST resume `window.open` behavior. (FR-I-04)
-10. **Offline behavior.** With Confluence Cloud blocked at the network level, opening the viewer MUST work normally — no network calls to Atlassian; only requests to same-origin `/help-content/...` paths. (NFR-01)
-11. **a11y baseline.** Axe DevTools scan of `/help/part-1-navigating` MUST report zero critical or serious violations. (NFR-06)
-12. **Locale fallback badge.** With `frontend/public/help-content/fr/` deleted and the active locale set to French, the viewer MUST load English content and render the `help.viewer.fallback.tag` Tag next to each page title. (FR-V-02)
-13. **Narrow viewport (docked help tab).** At a 480px-wide viewport, the side rail MUST collapse behind a hamburger toggle in the standalone header, the main content MUST remain readable without horizontal scrolling, and the search input MUST remain reachable. Tested at 480px and 360px. (§5.1)
-
----
-
-## 11. Out of Scope (deferred to later phases)
-
-- **Contextual "help for this screen" launcher** — adding a `helpKey` prop to every OpenELIS page so the in-context help icon deep-links to the right help page. Designed but not implemented in v1.
-- **Print-friendly view** of a single help page.
-- **User feedback widget** ("Was this page helpful?") on each page.
-- **Reading analytics** — usage tracking for which pages get viewed.
-- **In-app editing or annotation.** Authors continue to edit in Confluence.
-- **Cross-page full-text reading** — there is no "expand the whole manual into one page" view. Search serves that need.
-- **Locales beyond English at launch.** The data model supports them; the second locale build-out (likely French) is a separate piece of work.
-- **Plugin / instance-specific help.** Multi-tenant help-content overlays are not in scope.
+1. **Deterministic output.** Two consecutive runs against the committed fixtures (`--fixtures`) produce byte-identical output. (FR-P-13)
+2. **Live corpus.** A live run with the committed config produces both guides in `en` and `fr`, a corpus survey with no unhandled node types, zero fatal errors, and fewer than 1% failed images. The dev-bundle fixtures are replaced by fixtures pulled from the new folders. (FR-P-02, FR-P-03, FR-P-05, FR-P-15)
+3. **Legacy excluded.** No page titled `(before 3.3.0)` or `(avant 3.3.0)` and nothing under the LEGACY Versions folders is in a 3.3.0 build; "Results Entry (legacy screen)" is present. (FR-P-16)
+4. **Links resolve.** No chunk contains a `/wiki/` URL except in `oe-help-link--online` links; every internal link is `/help/<slug>`, online, or `data-broken-link`. (FR-P-10)
+5. **Images local.** Every `<img src>` starts with `/help-content/assets/`. Images render on a deep link such as `/help/print-a-work-plan`. (FR-P-08)
+6. **Authoring content stripped.** No chunk contains a Provenance section or the text "add a comment to this page"; WIP pages show `help.viewer.wip.notice`. (FR-P-17, FR-V-13)
+7. **Standalone viewer.** `/help` renders the help header and TOC and does not render the OpenELIS Header, side nav or Footer; every other route is unchanged. (FR-V-01a, FR-I-06)
+8. **Branding.** With custom branding (header color, primary color, header logo) and `BANNER_TEXT` "Madagascar OpenELIS", the help header shows that logo and color and reads "Madagascar OpenELIS Help"; with the branding endpoint failing, defaults render. (FR-V-01c, FR-V-01d)
+9. **Deep link.** `/help/<slug>#<heading-id>` renders and scrolls to the heading, also when pasted into a new tab. (FR-V-04, FR-V-06)
+10. **Search.** "work plan" (en) and "plan de travail" (fr) each return the work plan page within 150 ms after the index loads. (FR-V-07, NFR-03)
+11. **Open from the menu.** Help → "User Manual" opens `/help` in a new tab; the original tab is unchanged; "Return to OpenELIS" focuses it and closes the help tab. Opened from a bookmark, it navigates to `/`. (FR-I-02, FR-V-01b)
+12. **Kill switch.** With `useInApp=false` and a manual URL set, "User Manual" opens the URL as before. With the property absent, in-app mode is used. (FR-I-04)
+13. **French.** With the session in French, help opens in French; a page with no translation shows English with the fallback Tag; a stale translation shows the outdated Tag. (FR-V-02, FR-V-12)
+14. **Offline.** With external network blocked, the viewer works; the only requests are same-origin `/help-content/...` and the existing OpenELIS REST calls. (NFR-01)
+15. **Accessibility.** A Playwright test using `@axe-core/playwright` on `/help`, a long page and a search result reports zero critical or serious violations, in both locales. (NFR-06)
+16. **Narrow viewport.** At 480 px and 360 px the TOC collapses behind the hamburger, content has no horizontal scroll (tables scroll inside their wrapper), and search is reachable. (§5.1)
+17. **Size budget.** `help-content/` ≤25 MB; CI fails above it. (NFR-04, FR-P-18)
 
 ---
 
-## 12. Decisions log & remaining questions
+## 11. Out of Scope (v1)
+
+- **Context-aware "help for this screen" launcher.** Designed for later via a `helpKey` prop; the `helpKey` contract should not preclude also surfacing the SOP assigned to the current test (see SOP management below).
+- **SOP management.** Lab SOPs are site-specific controlled documents stored in OpenELIS, not release-pinned product documentation, so they are not bundled, indexed or rendered by this viewer. A "Lab SOPs" entry in the Help menu belongs to the SOP management feature.
+- Print view, feedback widget, reading analytics, in-app editing, single-page "whole manual" view.
+- Locales beyond English and French (the model supports them; add when a translated tree exists).
+- Deployment-specific help overlays.
+- Developer and implementer documentation (the "For Implementers" / "For SysAdmins-Operators" trees).
+
+---
+
+## 12. Decisions log
 
 ### Decided
 
-1. **Repository location** — Confirmed: pipeline at `frontend/scripts/help-refresh.mjs`, generated output at `frontend/public/help-content/<locale>/`, viewer component at `frontend/src/components/help/HelpViewer.jsx`. The implementing developer may adjust if the OpenELIS team has a stronger preference.
-2. **Corpus root scope** — Decided: **User Manual subtree only** for v1. The Admin Manual subtree (which lives under the same Confluence folder `261455874` but is a sibling tree) is explicitly out of scope. FRS docs, developer docs, and DRAFT pages in the broader space are also excluded. Adding the Admin Manual is a candidate for a follow-on release once v1 is stable.
-3. **Rollout strategy** — Decided: **phased via property kill-switch, default on**. v1 ships with `org.openelisglobal.help.manual.useInApp=true` so all deployments get the in-app viewer out of the box. Deployments that prefer to stay on the external PDF can flip the property to `false`. Avoids a hard cut while keeping the default user experience modern.
+1. **Repository location**: pipeline `frontend/scripts/help-refresh.mjs`, output `frontend/public/help-content/`, viewer `frontend/src/components/help/HelpViewer.jsx`. The developer may adjust.
+2. **Corpus (revised 2026-10-15)**: the topic-folder manual, user **and** administrator guides. Supersedes v1.0's "User Manual subtree only".
+3. **Rollout**: property kill switch, default `useInApp=true`.
+4. **French at launch (2026-10-15)**: ship `en` and `fr`; match by English source page id rather than `helpkey:` labels (none exist; the translation tool already records the source page and version).
+5. **Legacy pages (2026-10-15)**: excluded from a release build; sites on older releases keep the help bundled with their release. "(legacy screen)" pages stay.
+6. **Authoring follow-up from v1.0 (closed)**: new pages use Confluence's native attachments and panels, which is what v1.0 asked authors to do.
 
-### Still open
+### Open (resolve in the section 13 review)
 
-4. **Authoring conventions.** Doc authors should commit to consistent prefixes for blockquote callouts (`Note:`, `Warning:`, `Verify:`, `Tip:`) and to attaching new screenshots through Confluence's native uploader (not pasting from Google Docs). Worth documenting in the authoring guide as a follow-up — owner: documentation team.
-
-### Jira
-
-No existing OpenELIS "Help Menu" epic exists. When ready to implement, a new story (and possibly a small parent epic) will be created in project **OGC** (OpenELIS Global Community). Suggested attributes:
-
-- **Title:** "In-app Help Viewer — User Manual"
-- **Issue type:** Story (or break into Epic + 3 child stories: Pipeline, Viewer, Integration)
-- **Labels:** `help-menu`, `documentation`, `ui`, `global`, `frontend`
-- **Closest existing umbrella:** OGC-305 ("OpenELIS UI and Navigation Improvements") — viable parent if a dedicated Help epic isn't created
-- **Acceptance criteria:** copy section 10 of this FRS verbatim
+7. Refresh triggers, branch targets and ownership.
+8. Which review states gate inclusion (`doc-blocked`, WIP).
+9. Whether the HTML preview and JSX mockup are updated to show French, the two guides and the WIP notice before build, or after.
 
 ---
 
-## Appendix A — Glossary
+## 13. Refresh triggers and workflow (PROPOSED, for review)
+
+This replaces v1.0's "maintainer runs a script on their laptop". Everything here is a proposal to review with the docs owner and release manager before implementation.
+
+### 13.1 Workflow
+
+A GitHub Actions workflow in `DIGI-UW/OpenELIS-Global-2`, `.github/workflows/help-refresh.yml`:
+
+1. Check out the target branch; install frontend dependencies.
+2. Run `node frontend/scripts/help-refresh.mjs --live` with `CONFLUENCE_HOST`, `CONFLUENCE_EMAIL`, `CONFLUENCE_TOKEN` from repository secrets (read-only service account).
+3. If the output is byte-identical to the branch, stop (no PR).
+4. Otherwise open or update a single PR `chore(help): refresh help content for <releaseVersion>` from branch `help-refresh/<target>`, with `refresh-report.json` summarized in the PR body: pages per locale, added/removed/renamed pages, failed images, broken links, online-only links, outdated translations, size.
+5. PR checks: the existing frontend CI, plus a help job that fails on size over budget, unhandled node types, or broken links above an agreed threshold.
+
+### 13.2 Proposed triggers
+
+| Trigger | When | Target branch | Purpose |
+|---|---|---|---|
+| Manual (`workflow_dispatch`) | Any time, inputs: target branch, release version | Chosen branch | Docs owner refreshes after a batch of edits |
+| Release cut | A `release/*` branch is created | That release branch | The help that ships is refreshed from current Confluence; merging the PR is a release checklist item |
+| Scheduled (optional) | Weekly | `develop` | Keeps drift small so release-time PRs are reviewable; no PR when nothing changed |
+
+### 13.3 Proposed ownership
+
+- **Content owner (docs team):** reviews the refresh PR for content (missing pages, outdated translations, WIP pages).
+- **Developer reviewer:** reviews structure and CI results.
+- **Release manager:** confirms the refresh PR is merged before tagging.
+
+### 13.4 Questions for the review
+
+1. Are all three triggers wanted, and is a weekly cadence right for `develop`?
+2. Should a release refresh run once at branch creation, or also on each release candidate?
+3. Inclusion gates: include WIP pages with the notice (proposed: yes)? Exclude `doc-blocked` pages (proposed: yes)? Require `doc-verified` (proposed: no, too few pages are verified today)?
+4. Broken-link threshold that fails CI (proposed: 0 for links inside the corpus, warn-only for online links).
+5. Who owns the Confluence service account and its token rotation?
+6. Do hotfix releases (`3.3.x`) refresh help, or keep the help from the `.0` release?
+
+---
+
+## 14. Implementation slices
+
+So the work can ship incrementally (or be split into child stories of an epic):
+
+1. **Pipeline + CI workflow**: corpus walk, attachments, ADF handlers, translations matching, exclusions, stripping, images, links, manifest, index, report, size budget, fixtures, `help-refresh.yml` (after the section 13 review). AC-1 to AC-6, AC-17.
+2. **Viewer**: `Layout` standalone mode, `HelpViewer.jsx`, branding, TOC, page render, deep links, search, locale fallback and Tags, error states, narrow viewport, i18n keys. AC-7 to AC-10, AC-13 to AC-16.
+3. **Integration**: `HelpMenu.jsx` change, `useInApp` property, default URL update, Playwright tests for the open/return flow. AC-11, AC-12.
+
+---
+
+## Appendix A: Glossary
 
 | Term | Definition |
 |---|---|
-| **ADF** | Atlassian Document Format. The JSON representation Confluence Cloud uses for page bodies, returned by the REST v2 API with `body-format=atlas_doc_format`. |
-| **Corpus** | The set of Confluence pages that the pipeline converts. For v1 this is the OpenELIS Global space's User Guide folder. |
-| **Manifest** | The TOC + metadata JSON file emitted per locale by the pipeline. |
-| **Slug** | A URL-safe identifier derived from a page title. Used as the routing parameter and the HTML filename. |
-| **HelpKey** | A stable identifier (e.g. `orders.add-order`) applied as a Confluence label, used to match the same page across translated spaces. (Future, not in v1.) |
-| **Locale fallback** | Behavior where if the active OpenELIS locale has no manifest, the viewer renders English content with a "Available in English only" badge. |
+| **ADF** | Atlassian Document Format, the JSON body format returned by the Confluence REST v2 API with `body-format=atlas_doc_format`. |
+| **Corpus** | The Confluence folders and pages converted for a release (FR-P-03, FR-P-16). |
+| **Guide** | One of the two top-level TOC sections: User guide, Administrator guide. |
+| **Legacy copy** | A page titled `(before X.Y.Z)` kept in Confluence for sites on older releases; excluded from newer builds. |
+| **Legacy screen page** | A page describing a screen still reachable through configuration, titled `(legacy screen)`; included. |
+| **Manifest** | Per-locale TOC and metadata JSON. |
+| **Slug** | URL-safe identifier from the English title; shared by all locales. |
+| **Source page** | The English page a translation was made from. |
+| **HelpKey** | Future identifier tying an OpenELIS screen to help content (not in v1). |
