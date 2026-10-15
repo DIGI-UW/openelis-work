@@ -248,7 +248,7 @@ The viewer opens in its own tab and has its own header (FR-V-01a). The user size
 - **Left rail (280 px):** `SideNav` with "User guide" and "Administrator guide".
 - **Main pane (max-width 920 px):** breadcrumb, title with the English-only Tag when applicable, "View the latest version online" link, WIP notice when applicable, page body.
 
-Must remain usable at 480 px and 360 px wide (AC-13).
+Must remain usable at 480 px and 360 px wide (AC-16).
 
 ### 5.2 Navigation flows
 
