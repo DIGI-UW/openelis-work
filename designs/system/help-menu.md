@@ -1,13 +1,22 @@
 # FRS: OpenELIS Global In-App Help System
 
-**Version:** 1.1
+**Version:** 1.2
 **Date:** 2026-10-15
 **Author:** Casey Iiams-Hauser
-**Status:** Revised for implementation; section 13 (refresh triggers and workflow) is PROPOSED and must be reviewed before build starts
+**Status:** Ready for implementation
 **Jira:** [OGC-737](https://uwdigi.atlassian.net/browse/OGC-737)
 **Target release:** OpenELIS Global 3.3.0 (first release with in-app help)
 
 ---
+
+## What changed in v1.2
+
+v1.2 (2026-10-15, same day) simplifies v1.1 after review:
+
+- **Refresh is manual, at release cut** (section 13). The proposed GitHub Actions workflow, its three triggers, CI gates and shared service account are dropped for v1. One command, run by the release manager, output reviewed as a normal pull request.
+- **"View the latest version online"** link on every page, to its Confluence page (FR-V-12). This covers changes made between releases without any runtime dependency.
+- **Authoring conventions** proposed to the docs team (section 13.3): version-applicability labels and `helpkey` labels. The pipeline honours version labels when present (FR-P-16).
+- **Deferred:** the outdated-translation Tag and old-slug aliases (section 11).
 
 ## What changed in v1.1
 
@@ -25,11 +34,11 @@ v1.0 (2026-05-12) was written against the legacy "PART 1-16" User Manual. Betwee
 | Opening the tab | `"noopener=no,noreferrer"` (contradictory: `noreferrer` nulls `window.opener`) | `window.open("/help", "_blank")` with no feature string (FR-I-02) |
 | Branding | `accentColor` and an unnamed "site name" property | Reuse `loadAndApplyBranding()`; site name is `BANNER_TEXT` (FR-V-01c) |
 | Asset paths | Relative `assets/<hash>` (breaks under `/help/<slug>`) | Absolute `/help-content/assets/<hash>.<ext>`, shared across locales (FR-P-08) |
-| Size | ≤25 MB target, current PNG set is 36 MB | Pipeline resizes and converts to WebP; budget enforced in CI (NFR-04) |
+| Size | ≤25 MB target, current PNG set is 36 MB | Pipeline resizes and converts to WebP; budget enforced by the refresh script (NFR-04) |
 | Dependencies | "Zero deps" pipeline that also builds a FlexSearch index | Named dependencies (section 8.1) |
 | i18n API | `t(key, fallback)` | `react-intl` `intl.formatMessage({ id })`, keys in `en.json` and `fr.json` |
 | a11y test | Manual Axe DevTools scan | Existing Playwright + `@axe-core/playwright` setup |
-| Refresh | Maintainer runs a script locally | GitHub Actions workflow with defined triggers (section 13, PROPOSED) |
+| Refresh | Maintainer runs a script locally | Manual at release cut with a checklist item and a reviewable PR (section 13; see v1.2) |
 
 The dev bundle (`in-app-help-dev-bundle.zip`) is still useful for the converter's core node handling, but its 16 ADF fixtures and 402 Google-hosted PNGs describe the **old** manual. Re-pull fixtures from the new folders before building against them (AC-2).
 
@@ -43,7 +52,7 @@ This feature replaces the external link with an in-app help viewer. Help content
 
 Two cooperating components:
 
-- **Help Refresh Pipeline**: a Node.js script, run by a GitHub Actions workflow (section 13) or locally. It walks the configured Confluence folders through the REST v2 API, converts ADF JSON to sanitized HTML chunks, downloads and optimizes images, resolves cross-page links, builds a TOC manifest and a search index per locale, and writes the output to `frontend/public/help-content/`. Output is committed and ships with the release.
+- **Help Refresh Pipeline**: a Node.js script, run by hand at release cut (section 13). It walks the configured Confluence folders through the REST v2 API, converts ADF JSON to sanitized HTML chunks, downloads and optimizes images, resolves cross-page links, builds a TOC manifest and a search index per locale, and writes the output to `frontend/public/help-content/`. Output is committed and ships with the release.
 - **Help Viewer**: a React component (`HelpViewer.jsx`) at `/help/:slug?`, opened in a new tab. It renders the active page's pre-built HTML through DOMPurify and provides side-nav navigation, search, deep links and locale fallback.
 
 Settled decisions (revisit only with the product lead): Confluence is the source of truth; the pipeline is build-time only, with no runtime calls to Atlassian; content is version-pinned to each release.
@@ -59,6 +68,7 @@ Settled decisions (revisit only with the product lead): Confluence is the source
 5. **As a French-speaking lab technician**, I want the help in French when my OpenELIS session is in French, and to be told clearly when a page is only available in English.
 6. **As a lab administrator**, I want the administrator guide in the same help viewer, so I don't need a second source for configuration tasks.
 7. **As a documentation maintainer**, I want to keep authoring in Confluence and have each release's help refreshed through a reviewable pull request.
+8. **As a lab technician**, I want to reach the newest online version of a page when I have internet, in case it changed after my release.
 
 ---
 
@@ -78,14 +88,14 @@ Settled decisions (revisit only with the product lead): Confluence is the source
 | FR-P-08 | **Images.** The pipeline MUST download every image the corpus references: (a) `media` with `type: "file"`: resolve the media `id` against the page's attachments (`GET /wiki/api/v2/pages/<id>/attachments`, match on `fileId`) and download with the same credentials; (b) `media` with `type: "external"`: plain HTTPS GET. Each image MUST be resized to a maximum width of 1600 px, converted to WebP (PNG kept only where WebP is larger), and stored once at `<out>/assets/<sha256-prefix>.<ext>`, shared across locales so identical screenshots dedupe. The `<img src>` MUST be the absolute path `/help-content/assets/<hash>.<ext>`. The media `alt` attribute MUST become the `<img alt>`; when absent, use the caption text. |
 | FR-P-09 | Failed downloads MUST NOT abort the build. The element is emitted with `data-download-failed="true"` and class `oe-help-img--unresolved`, and counted in the manifest's `imagesFailed`. No remote `src` is emitted for an attachment (it would require Confluence auth); a visible placeholder is shown instead. |
 | FR-P-10 | **Links**, two passes. Pass 1 walks and slugs every page in all locales; pass 2 renders. Any link whose URL contains `/pages/<numericId>` (any space key or case, e.g. `/wiki/spaces/oeg/pages/272760837`) or a tiny link that resolves to a page id MUST be rewritten: to `/help/<slug>` when the target is in the bundled corpus; otherwise to the canonical Confluence URL with class `oe-help-link--online` and `target="_blank"` (the viewer marks these as needing internet). Links that cannot be resolved at all get `data-broken-link="true"` and a visible `[broken link]` suffix. |
-| FR-P-11 | One `manifest.json` per locale with: `locale`, `releaseVersion`, `generatedFrom` (ISO timestamp of the newest page version included, not wall-clock time, so output stays byte-identical), `sourceSpaceId`, and `pages` (ordered tree; each node: `slug`, `title`, `pageId`, `sourcePageId` (English id; equals `pageId` for English), `sourceVersion` (French only: the English version the translation was made from), `kind` (`folder` or `page`), `parentSlug`, `headings` (`level`, `text`, `slug`), `labels`, `wip` (boolean), `children`, `images`, `imagesFailed`). |
+| FR-P-11 | One `manifest.json` per locale with: `locale`, `releaseVersion`, `generatedFrom` (ISO timestamp of the newest page version included, not wall-clock time, so output stays byte-identical), `sourceSpaceId`, and `pages` (ordered tree; each node: `slug`, `title`, `pageId`, `sourcePageId` (English id; equals `pageId` for English), `sourceUrl` (canonical Confluence URL of this page, by page id), `sourceVersion` (French only: the English version the translation was made from; recorded for a future outdated-translation Tag), `kind` (`folder` or `page`), `parentSlug`, `headings` (`level`, `text`, `slug`), `labels`, `wip` (boolean), `children`, `images`, `imagesFailed`). |
 | FR-P-12 | One FlexSearch document index per locale at `<out>/<locale>/search-index.json`. Field weights: title 4, headings 2, body 1. English and French stop-word lists are mandatory at launch; other locales configurable. |
 | FR-P-13 | Idempotent: two runs with no Confluence change MUST produce byte-identical output (stable key order, stable sort, no wall-clock timestamps, deterministic image encoding). |
-| FR-P-14 | End-of-run summary, written to stdout and to `<out>/refresh-report.json` (not shipped to the browser): pages per locale, images downloaded, images failed, broken links, links to online-only pages, unknown node types and macros, pages excluded by FR-P-16 and why, French pages whose `sourceVersion` is behind the English version, total output size. |
-| FR-P-15 | **Translations.** The French corpus is the parallel folder tree in the same space ("Guide de l'utilisateur" `1704591386`, "Guide de l'administrateur" `1702396037`). Each French page MUST be matched to its English source page id using the translation tool's metadata (Lango content property, if exposed by the API); if unavailable, from the English page linked in the page's translation banner ("Cette page est une traduction de la page anglaise ..."). Unmatched French pages are reported in FR-P-14 and excluded. The translation banner itself MUST be removed from the rendered body; its information is carried by `sourceVersion` (FR-V-12). |
-| FR-P-16 | **Release pinning and legacy exclusion.** The config sets `releaseVersion` (e.g. `3.3.0`). The pipeline MUST exclude: the LEGACY Versions folders (English `1657864193`, French "Versions précédentes" `1679458382`) and everything under them; any page whose title ends in `(before <X.Y.Z>)` where `<X.Y.Z>` ≤ `releaseVersion` (and its French equivalent `(avant <X.Y.Z>)`); and the non-manual folders (Archived `1343979525`, Documentation Translations `1640824834`, Translation Sync Reports `1641644033`, and the authoring/review area). Pages titled `... (legacy screen)` MUST be **kept**: they describe screens still reachable in the release through configuration. Links to excluded pages resolve to the online Confluence URL per FR-P-10. |
-| FR-P-17 | **Authoring-only content.** The pipeline MUST (a) remove the `Provenance` H2 section (heading through the next H2 or end of page) and its French equivalent `Provenance`; (b) replace a warning panel whose first strong text is `Work in progress.` / `Travail en cours.` with a marker the viewer renders as the standard notice `help.viewer.wip.notice`, and set `wip: true` in the manifest; (c) keep the `<Type> · <Audience>` label line, rendered as `oe-help-label`. Label-based gating (e.g. `doc-blocked`) is decided in section 13. |
-| FR-P-18 | The pipeline MUST refuse to write output that exceeds the size budget (NFR-04) unless run with `--allow-oversize`, and MUST exit non-zero on fatal errors so CI fails visibly. |
+| FR-P-14 | End-of-run summary, written to stdout and to `<out>/refresh-report.json` (not shipped to the browser): pages per locale, images downloaded, images failed, broken links, links to online-only pages, unknown node types and macros, pages excluded by FR-P-16 and why, French pages whose `sourceVersion` is behind the English version (report only), total output size. |
+| FR-P-15 | **Translations.** The French corpus is the parallel folder tree in the same space ("Guide de l'utilisateur" `1704591386`, "Guide de l'administrateur" `1702396037`). Each French page MUST be matched to its English source page id using the translation tool's metadata (Lango content property, if exposed by the API); if unavailable, from the English page linked in the page's translation banner ("Cette page est une traduction de la page anglaise ..."). Unmatched French pages are reported in FR-P-14 and excluded. The translation banner itself MUST be removed from the rendered body; its information is kept in `sourceVersion`. |
+| FR-P-16 | **Release pinning and legacy exclusion.** The config sets `releaseVersion` (e.g. `3.3.0`). The pipeline MUST exclude: the LEGACY Versions folders (English `1657864193`, French "Versions précédentes" `1679458382`) and everything under them; any page whose title ends in `(before <X.Y.Z>)` where `<X.Y.Z>` ≤ `releaseVersion` (and its French equivalent `(avant <X.Y.Z>)`); and the non-manual folders (Archived `1343979525`, Documentation Translations `1640824834`, Translation Sync Reports `1641644033`, and the authoring/review area). **Version labels take precedence:** if a page carries one or more `applies-vX-Y` labels (section 13.3), it is included only when `releaseVersion` matches one of them; the title rule applies only to pages without such labels. Pages titled `... (legacy screen)` MUST be **kept**: they describe screens still reachable in the release through configuration. Links to excluded pages resolve to the online Confluence URL per FR-P-10. |
+| FR-P-17 | **Authoring-only content.** The pipeline MUST (a) remove the `Provenance` H2 section (heading through the next H2 or end of page) and its French equivalent `Provenance`; (b) replace a warning panel whose first strong text is `Work in progress.` / `Travail en cours.` with a marker the viewer renders as the standard notice `help.viewer.wip.notice`, and set `wip: true` in the manifest; (c) keep the `<Type> · <Audience>` label line, rendered as `oe-help-label`. (d) exclude pages labelled `doc-blocked`; pages in review (WIP) are included with the notice. Both rules are config switches. |
+| FR-P-18 | The pipeline MUST refuse to write output that exceeds the size budget (NFR-04) unless run with `--allow-oversize`, and MUST exit non-zero on fatal errors. |
 
 ### 3.2 Viewer (runtime)
 
@@ -106,7 +116,7 @@ Settled decisions (revisit only with the product lead): Confluence is the source
 | FR-V-09 | Carbon `Breadcrumb` above the content: guide → folder(s) → page. |
 | FR-V-10 | Loading states use Carbon `SkeletonText` / `InlineLoading`. |
 | FR-V-11 | Error states use Carbon `InlineNotification`: manifest failure; page failure (retry + back to help home); unknown slug (not found + back to help home). |
-| FR-V-12 | **Translation freshness.** When a French page's `sourceVersion` is lower than the English page's current version in the same build, show a Carbon `Tag` `help.viewer.translation.outdated` with a link to the English version of the page (same slug, `?lang=en`). |
+| FR-V-12 | **Latest version online.** Every page shows a link `help.viewer.link.latest` under the title, to the page's `sourceUrl` (Confluence), opening in a new tab with the `help.viewer.link.online` hint. The bundled page remains the default; the link is for readers who have internet and want changes made after their release. |
 | FR-V-13 | Pages with `wip: true` show an `InlineNotification kind="info"` (`help.viewer.wip.notice`) above the body. |
 
 ### 3.3 Integration
@@ -236,7 +246,7 @@ The viewer opens in its own tab and has its own header (FR-V-01a). The user size
 
 - **Header (48 px, sticky, `--site-branding-header` background):** brand mark and brand text on the left, `Search` in the centre, "Return to OpenELIS" on the right. Below 1024 px a hamburger opens the TOC as an overlay.
 - **Left rail (280 px):** `SideNav` with "User guide" and "Administrator guide".
-- **Main pane (max-width 920 px):** breadcrumb, title with any Tags (English only, translation outdated), WIP notice when applicable, page body.
+- **Main pane (max-width 920 px):** breadcrumb, title with the English-only Tag when applicable, "View the latest version online" link, WIP notice when applicable, page body.
 
 Must remain usable at 480 px and 360 px wide (AC-13).
 
@@ -244,7 +254,7 @@ Must remain usable at 480 px and 360 px wide (AC-13).
 
 - **Open:** Help icon → "User Manual" → a new tab opens at `/help`; the OpenELIS tab is unchanged.
 - **TOC, cross-page link, bookmark, search:** as v1.0 (SPA navigation inside the help tab; URLs shareable).
-- **Link to online-only content:** opens Confluence in a new tab; needs internet.
+- **Link to online-only content, or "View the latest version online":** opens Confluence in a new tab; needs internet.
 - **Return to OpenELIS:** focuses the opener and closes the help tab, or navigates to `/` when there is no opener.
 
 ### 5.3 Empty / loading / error states
@@ -282,7 +292,7 @@ All viewer strings use `react-intl` (`intl.formatMessage({ id })` / `<FormattedM
 | `help.viewer.section.admin` | Administrator guide | Guide de l'administrateur |
 | `help.viewer.menu.toggle` | Show or hide contents | Afficher ou masquer le sommaire |
 | `help.viewer.fallback.tag` | Available in English only | Disponible en anglais uniquement |
-| `help.viewer.translation.outdated` | The English page has been updated since this translation | La page anglaise a été mise à jour depuis cette traduction |
+| `help.viewer.link.latest` | View the latest version online | Voir la dernière version en ligne |
 | `help.viewer.wip.notice` | This page is still being reviewed, so some details may change. | Cette page est en cours de relecture ; certains détails peuvent changer. |
 | `help.viewer.link.online` | (opens online documentation) | (ouvre la documentation en ligne) |
 | `help.viewer.error.manifest` | Help content could not be loaded. Please contact your administrator. | Le contenu de l'aide n'a pas pu être chargé. Contactez votre administrateur. |
@@ -306,7 +316,7 @@ Content inside page chunks is not translated by the viewer; it comes translated 
 | FR-S-01 | `/help` is a `SecureRoute`; any logged-in user may read help; no new permission. The static files under `/help-content/` are served without authentication by the frontend nginx; this is acceptable because the same content is public on Confluence. |
 | FR-S-02 | DOMPurify allowlist. **Tags:** `h1`-`h6`, `p`, `ul`, `ol`, `li`, `table`, `thead`, `tbody`, `tr`, `th`, `td`, `figure`, `figcaption`, `img`, `blockquote`, `aside`, `details`, `summary`, `code`, `pre`, `hr`, `br`, `strong`, `em`, `u`, `s`, `sub`, `sup`, `a`, `div`, `span`. **Attributes:** `class`, `id`, `href`, `src`, `alt`, `width`, `height`, `role`, `scope`, `start`, `colspan`, `rowspan`, `target`, `rel`, `data-broken-link`, `data-download-failed`. **Classes:** post-sanitize pass strips any class not starting with `oe-help-`. **href:** internal links must match `^/help/`; external links must be `https://` (or `http://`) and get `rel="noopener noreferrer"` and `target="_blank"`; `javascript:`, `data:`, `vbscript:`, `file:` rejected. **src:** must match `^/help-content/assets/`. **Forbidden:** `script`, `style`, `iframe`, `object`, `embed`, `link`, `meta`, `form`, `input`, `on*` attributes, `style` attributes. |
 | FR-S-03 | The pipeline refuses non-HTTPS image URLs and SVG images (SVG can carry script); refused images count as `imagesFailed`. |
-| FR-S-04 | The Confluence token is read from environment variables only (GitHub Actions secrets in CI), never written to output, logs or `refresh-report.json`. Live mode exits with a clear message if a variable is missing. Use a dedicated read-only service account, not a personal token. |
+| FR-S-04 | The Confluence token is read from environment variables only, never written to output, logs or `refresh-report.json`, and never committed. Live mode exits with a clear message if a variable is missing. In v1 the person running the refresh uses their own Atlassian API token (read access to the space is enough). |
 
 ---
 
@@ -317,8 +327,8 @@ Content inside page chunks is not translated by the viewer; it comes translated 
 | NFR-01 | Offline: no runtime calls to Atlassian, Google or any external host, except when the user follows an `oe-help-link--online` link. |
 | NFR-02 | Initial paint (manifest + first page) ≤500 ms on 4G, cold cache. |
 | NFR-03 | Search ≤150 ms p95 from keystroke to results (debounce included), corpus up to 300 pages / 80,000 words per locale. |
-| NFR-04 | Total `help-content/` size ≤25 MB for both locales together, after WebP conversion and cross-locale dedupe. CI fails above budget (FR-P-18). If the corpus outgrows it, revisit (Git LFS or a separate content artifact) before raising the budget. |
-| NFR-05 | Full live refresh of both locales ≤5 minutes in CI. |
+| NFR-04 | Total `help-content/` size ≤25 MB for both locales together, after WebP conversion and cross-locale dedupe. The refresh refuses to write above budget (FR-P-18). If the corpus outgrows it, revisit (Git LFS or a separate content artifact) before raising the budget. |
+| NFR-05 | Full live refresh of both locales ≤5 minutes on a maintainer laptop. |
 | NFR-06 | WCAG 2.1 AA: landmarks (`header`, `nav`, `main`), contrast with deployment branding applied, visible focus, keyboard reachability, image alt text from the source. |
 
 ### 8.1 Dependencies
@@ -339,10 +349,10 @@ No other new dependencies without review. The pipeline otherwise uses Node built
 |---|---|
 | Page deleted between runs | Omitted; links to it become online links if the page still exists elsewhere, otherwise broken links; counted in the report |
 | Page moved between folders | Slug unchanged (title-based); TOC position follows the new parent |
-| Page renamed | New slug; previous slug kept as an alias in the manifest (`aliases`) for one release so old bookmarks still resolve |
+| Page renamed | New slug; an old bookmark shows "Page not found" with a link to help home (aliases deferred, section 11) |
 | French page without an English match | Excluded; reported |
 | English page without a French translation | French viewer shows the English page with the fallback Tag |
-| Translation older than English | Shown with the outdated Tag (FR-V-12) |
+| Translation older than English | Shown as is; listed in the refresh report; reader can use the latest-online link |
 | Unknown macro or node type | Visible placeholder; reported; build continues |
 | Attachment download fails | Placeholder (FR-P-09); reported |
 | Output over budget | Build fails (FR-P-18) |
@@ -366,11 +376,13 @@ No other new dependencies without review. The pipeline otherwise uses Node built
 10. **Search.** "work plan" (en) and "plan de travail" (fr) each return the work plan page within 150 ms after the index loads. (FR-V-07, NFR-03)
 11. **Open from the menu.** Help → "User Manual" opens `/help` in a new tab; the original tab is unchanged; "Return to OpenELIS" focuses it and closes the help tab. Opened from a bookmark, it navigates to `/`. (FR-I-02, FR-V-01b)
 12. **Kill switch.** With `useInApp=false` and a manual URL set, "User Manual" opens the URL as before. With the property absent, in-app mode is used. (FR-I-04)
-13. **French.** With the session in French, help opens in French; a page with no translation shows English with the fallback Tag; a stale translation shows the outdated Tag. (FR-V-02, FR-V-12)
+13. **French.** With the session in French, help opens in French; a page with no translation shows English with the fallback Tag. (FR-V-02)
 14. **Offline.** With external network blocked, the viewer works; the only requests are same-origin `/help-content/...` and the existing OpenELIS REST calls. (NFR-01)
 15. **Accessibility.** A Playwright test using `@axe-core/playwright` on `/help`, a long page and a search result reports zero critical or serious violations, in both locales. (NFR-06)
 16. **Narrow viewport.** At 480 px and 360 px the TOC collapses behind the hamburger, content has no horizontal scroll (tables scroll inside their wrapper), and search is reachable. (§5.1)
-17. **Size budget.** `help-content/` ≤25 MB; CI fails above it. (NFR-04, FR-P-18)
+17. **Size budget.** `help-content/` ≤25 MB; the refresh refuses to write above it. (NFR-04, FR-P-18)
+18. **Latest online.** Every page shows "View the latest version online", opening its Confluence page in a new tab. (FR-V-12)
+19. **Version labels.** A page labelled only `applies-v3-2` is absent from a 3.3.0 build; a page labelled `applies-v3-2` and `applies-v3-3` is present. (FR-P-16)
 
 ---
 
@@ -380,6 +392,9 @@ No other new dependencies without review. The pipeline otherwise uses Node built
 - **SOP management.** Lab SOPs are site-specific controlled documents stored in OpenELIS, not release-pinned product documentation, so they are not bundled, indexed or rendered by this viewer. A "Lab SOPs" entry in the Help menu belongs to the SOP management feature.
 - Print view, feedback widget, reading analytics, in-app editing, single-page "whole manual" view.
 - Locales beyond English and French (the model supports them; add when a translated tree exists).
+- **Automated refresh** (GitHub Actions, scheduled or release-triggered runs, CI content gates, shared service account). Revisit if releases ship with stale help.
+- **Outdated-translation Tag** (the data, `sourceVersion`, is already recorded).
+- **Old-slug aliases** for renamed pages.
 - Deployment-specific help overlays.
 - Developer and implementer documentation (the "For Implementers" / "For SysAdmins-Operators" trees).
 
@@ -396,59 +411,53 @@ No other new dependencies without review. The pipeline otherwise uses Node built
 5. **Legacy pages (2026-10-15)**: excluded from a release build; sites on older releases keep the help bundled with their release. "(legacy screen)" pages stay.
 6. **Authoring follow-up from v1.0 (closed)**: new pages use Confluence's native attachments and panels, which is what v1.0 asked authors to do.
 
-### Open (resolve in the section 13 review)
+7. **Refresh (2026-10-15, v1.2)**: manual, at release cut, by the release manager, reviewed as a pull request (section 13). Automation deferred.
+8. **Inclusion gates**: WIP pages included with the notice; `doc-blocked` pages excluded (config switches).
+9. **Hotfix releases** keep the help from their `.0` release unless the release manager chooses to refresh.
+10. **Latest-online link** on every page instead of any runtime fetch.
 
-7. Refresh triggers, branch targets and ownership.
-8. Which review states gate inclusion (`doc-blocked`, WIP).
-9. Whether the HTML preview and JSX mockup are updated to show French, the two guides and the WIP notice before build, or after.
+### Open
 
----
-
-## 13. Refresh triggers and workflow (PROPOSED, for review)
-
-This replaces v1.0's "maintainer runs a script on their laptop". Everything here is a proposal to review with the docs owner and release manager before implementation.
-
-### 13.1 Workflow
-
-A GitHub Actions workflow in `DIGI-UW/OpenELIS-Global-2`, `.github/workflows/help-refresh.yml`:
-
-1. Check out the target branch; install frontend dependencies.
-2. Run `node frontend/scripts/help-refresh.mjs --live` with `CONFLUENCE_HOST`, `CONFLUENCE_EMAIL`, `CONFLUENCE_TOKEN` from repository secrets (read-only service account).
-3. If the output is byte-identical to the branch, stop (no PR).
-4. Otherwise open or update a single PR `chore(help): refresh help content for <releaseVersion>` from branch `help-refresh/<target>`, with `refresh-report.json` summarized in the PR body: pages per locale, added/removed/renamed pages, failed images, broken links, online-only links, outdated translations, size.
-5. PR checks: the existing frontend CI, plus a help job that fails on size over budget, unhandled node types, or broken links above an agreed threshold.
-
-### 13.2 Proposed triggers
-
-| Trigger | When | Target branch | Purpose |
-|---|---|---|---|
-| Manual (`workflow_dispatch`) | Any time, inputs: target branch, release version | Chosen branch | Docs owner refreshes after a batch of edits |
-| Release cut | A `release/*` branch is created | That release branch | The help that ships is refreshed from current Confluence; merging the PR is a release checklist item |
-| Scheduled (optional) | Weekly | `develop` | Keeps drift small so release-time PRs are reviewable; no PR when nothing changed |
-
-### 13.3 Proposed ownership
-
-- **Content owner (docs team):** reviews the refresh PR for content (missing pages, outdated translations, WIP pages).
-- **Developer reviewer:** reviews structure and CI results.
-- **Release manager:** confirms the refresh PR is merged before tagging.
-
-### 13.4 Questions for the review
-
-1. Are all three triggers wanted, and is a weekly cadence right for `develop`?
-2. Should a release refresh run once at branch creation, or also on each release candidate?
-3. Inclusion gates: include WIP pages with the notice (proposed: yes)? Exclude `doc-blocked` pages (proposed: yes)? Require `doc-verified` (proposed: no, too few pages are verified today)?
-4. Broken-link threshold that fails CI (proposed: 0 for links inside the corpus, warn-only for online links).
-5. Who owns the Confluence service account and its token rotation?
-6. Do hotfix releases (`3.3.x`) refresh help, or keep the help from the `.0` release?
+11. Whether the HTML preview and JSX mockup are updated to show French, the two guides and the WIP notice before build, or after.
+12. Docs team acceptance of the conventions in 13.3.
 
 ---
+
+## 13. Refreshing help content
+
+### 13.1 Procedure (manual, at release cut)
+
+1. On the release branch (or `develop` before cutting it), set `releaseVersion` in `help-refresh.config.json`.
+2. Run `npm run help:refresh` from `frontend/` with `CONFLUENCE_HOST`, `CONFLUENCE_EMAIL`, `CONFLUENCE_TOKEN` set in the shell.
+3. Read the summary (FR-P-14). Fix blockers in Confluence and re-run: unhandled node types, broken internal links, failed images, unmatched French pages.
+4. Commit `frontend/public/help-content/` and open a PR titled `chore(help): refresh help content for <releaseVersion>`, pasting the summary into the PR body.
+5. Review: docs owner for content (missing pages, WIP pages, French coverage); a developer for structure. Merge before tagging.
+
+The release checklist gets one item: **"Help content refreshed and PR merged"**. The script also runs against the committed fixtures in normal frontend tests (AC-1), so the converter is exercised without credentials.
+
+### 13.2 Ownership
+
+- **Release manager:** runs the refresh and owns the checklist item.
+- **Docs owner:** reviews the refresh PR for content.
+
+### 13.3 Authoring conventions (proposed to the docs team)
+
+These keep the export simple and set up later features. None blocks v1.
+
+| Convention | Purpose |
+|---|---|
+| **Link by page id** (already in the user manual style guide) | Internal links survive renames and moves, so the pipeline can resolve them |
+| **Version labels `applies-vX-Y`** (e.g. `applies-v3-3`; hyphens because labels cannot contain dots) | The export picks pages by release (FR-P-16). Over time this can replace the "(before X.Y.Z)" duplicate-page pattern |
+| **`helpkey-<screen>` labels** (e.g. `helpkey-order-entry`) | Sets up the deferred context-sensitive help: a screen maps to a label, the label to a page. Labels can be added now with no code |
+| **Translations through Lango** (already in use) | Records the English source page, which the French matching relies on (FR-P-15) |
+| **Images as Confluence attachments, callouts as panels** (already the practice for new pages) | Handled natively by the pipeline (FR-P-05, FR-P-08) |
 
 ## 14. Implementation slices
 
 So the work can ship incrementally (or be split into child stories of an epic):
 
-1. **Pipeline + CI workflow**: corpus walk, attachments, ADF handlers, translations matching, exclusions, stripping, images, links, manifest, index, report, size budget, fixtures, `help-refresh.yml` (after the section 13 review). AC-1 to AC-6, AC-17.
-2. **Viewer**: `Layout` standalone mode, `HelpViewer.jsx`, branding, TOC, page render, deep links, search, locale fallback and Tags, error states, narrow viewport, i18n keys. AC-7 to AC-10, AC-13 to AC-16.
+1. **Pipeline**: corpus walk, attachments, ADF handlers, translation matching, exclusions and version labels, stripping, images, links, manifest, index, report, size budget, fixtures, `npm run help:refresh`. AC-1 to AC-6, AC-17, AC-19.
+2. **Viewer**: `Layout` standalone mode, `HelpViewer.jsx`, branding, TOC, page render, deep links, search, locale fallback, latest-online link, error states, narrow viewport, i18n keys. AC-7 to AC-10, AC-13 to AC-16, AC-18.
 3. **Integration**: `HelpMenu.jsx` change, `useInApp` property, default URL update, Playwright tests for the open/return flow. AC-11, AC-12.
 
 ---
@@ -465,4 +474,5 @@ So the work can ship incrementally (or be split into child stories of an epic):
 | **Manifest** | Per-locale TOC and metadata JSON. |
 | **Slug** | URL-safe identifier from the English title; shared by all locales. |
 | **Source page** | The English page a translation was made from. |
-| **HelpKey** | Future identifier tying an OpenELIS screen to help content (not in v1). |
+| **HelpKey** | Future identifier tying an OpenELIS screen to help content, carried as a `helpkey-<screen>` Confluence label (not used by v1 code). |
+| **Version label** | `applies-vX-Y` Confluence label stating which releases a page applies to. |
