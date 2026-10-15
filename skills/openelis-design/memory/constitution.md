@@ -12,9 +12,13 @@
 - **Raw URL:** https://raw.githubusercontent.com/DIGI-UW/OpenELIS-Global-2/develop/.specify/memory/constitution.md
 - **Web view:** https://github.com/DIGI-UW/OpenELIS-Global-2/blob/develop/.specify/memory/constitution.md
 
-**Synced version:** `1.11.0` (Principle VII: i18n Key Reuse & Hygiene, amended 2026-07-15)
-**Last synced into this skill:** 2026-08-01
-**Last verified against upstream:** 2026-08-01 — upstream footer now reads
+**Synced version:** `1.12.0` (v1.11.0 2026-07-15: Principle VII Key Reuse & Hygiene; v1.11.1 2026-09-07:
+frontend data-fetching stack corrected; v1.11.2 2026-09-25: branch strategy corrected; v1.12.0 2026-09-29:
+Principle V.7 Test Isolation)
+**Last synced into this skill:** 2026-10-06
+**Last verified against upstream:** 2026-10-06 (see the 2026-10-06 note below).
+
+**2026-08-01 verification:** upstream footer then read
 `**Version**: 1.11.0 | **Ratified**: 2025-10-30 | **Last Amended**: 2026-07-15`. The
 re-sync trigger **fired** this cycle (upstream 1.11.0 > previously-synced 1.10.0) and the
 pointer has been resynced. ✅ The July 2026 label discrepancy (footer showing 1.9.1 while
@@ -30,6 +34,38 @@ were never added to that list. Read the `**Version**` line, not the amendment lo
 `**Version**: 1.11.0 | **Ratified**: 2025-10-30 | **Last Amended**: 2026-07-15`, unchanged
 since the 2026-08-01 sync. Re-sync trigger did **not** fire this cycle.
 
+**2026-10-01 verification: re-sync trigger FIRED (1.11.0 → 1.11.2).** Upstream footer now reads
+`**Version**: 1.11.2 | **Ratified**: 2025-10-30 | **Last Amended**: 2026-09-25`. Two PATCH
+amendments since the last sync, neither touching a Core Principle:
+- **v1.11.1 (2026-09-07), Technology Stack > Frontend.** The "SWR 2.0.3 for data fetching" line was
+  false (SWR was never installed). Upstream now says no query/cache layer is installed and
+  **TanStack Query v4** is the adopted target (`docs/planning/query-layer-adoption.md`). Design
+  relevance: a spec should say *which data a screen shows after a save* (for example, every panel of
+  a case reflects the new value), not "reload the page"; upstream records that 84 screens reload the
+  document after a save for lack of a refetch primitive. Note: develop PR #4213 "refetch screen data
+  through a query cache" merged 2026-09-09 but the constitution text still says "not installed yet".
+  UNVERIFIED which is current; don't assert either in a spec.
+- **v1.11.2 (2026-09-25), Development Workflow > Branch Strategy.** `main` now holds the latest
+  release (3.2.3.0, set 2026-09-25) and changes only through a release PR from `release/<X.Y>.x`;
+  fixes go to `develop` and are cherry-picked onto release branches. Not design-relevant, but it
+  means "shipped" = on `main`/a release tag, and `develop` ≠ released.
+- Design-relevant principles and `design-addendum.md` need no change for either amendment.
+
+**2026-10-06 verification: re-sync trigger FIRED (1.11.2 → 1.12.0).** Upstream footer on `develop`
+(read 2026-10-06, head `f4343a8`) reads `**Version**: 1.12.0 | **Ratified**: 2025-10-30 | **Last Amended**: 2026-09-29`.
+One MINOR amendment:
+- **v1.12.0 (2026-09-29), Principle V > new V.7 Test Isolation (MANDATORY).** A test's result may
+  depend only on the code under test and the data that test created: tests own their data, scope
+  their reads to it, never widen an assertion to tolerate other rows, and pin time. Universal rule U4
+  points at it. Motivation: Playwright suites share one database per stack, and specs that read
+  "everything from today" broke when unrelated specs were added. Backend counterpart is OGC-1391.
+- Design relevance: LOW for screens, but an FRS acceptance criterion should be checkable on data the
+  test creates (name the record, not "the list shows today's orders"). It matters most to the QA
+  skill and its Playwright harness, which this pass flags separately.
+- A later develop commit (`cf5faf2`, #4586, 2026-10-06) only replaced the local dev-setup commands
+  with `scripts/dev-stack`; no version change.
+- `design-addendum.md` needs no change.
+
 > ⚠️ **Re-sync trigger:** Before relying on this summary in `/analyze` or `/specify`, check
 > the raw URL's version header. If upstream is newer than the "Synced version" above,
 > re-read the upstream constitution, update this pointer (version + date + any changed
@@ -37,7 +73,7 @@ since the 2026-08-01 sync. Re-sync trigger did **not** fire this cycle.
 > the upstream constitution from this skill — propose changes via the repo's amendment
 > process (see its Governance section).
 
-## Constitution structure (upstream, v1.11.0)
+## Constitution structure (upstream, v1.12.0: Principle V gained V.7 Test Isolation; others unchanged since v1.11.0)
 
 Ten Core Principles, followed by Technical Stack Constraints, Development Workflow, and
 Governance. The principles are:
@@ -48,7 +84,7 @@ Governance. The principles are:
 | II | **Carbon Design System First** | **CRITICAL — the basis for `references/carbon-anti-patterns.md`** |
 | III | FHIR/IHE Standards Compliance | MED — referrals are FHIR, not multitenancy |
 | IV | Layered Architecture Pattern | LOW (backend) — informs Dependencies declarations |
-| V | Test-Driven Development | LOW (design) |
+| V | Test-Driven Development (+ V.7 Test Isolation, v1.12.0) | LOW (design): acceptance criteria should be checkable on data the test creates |
 | VI | Database Schema Management | MED — informs Envers/audit declarations |
 | VII | **Internationalization First** (+ Key Reuse & Hygiene, v1.11.0) | **CRITICAL — every visible string needs an i18n key, and the key must be REUSED where one exists. See the section below.** |
 | VIII | Security & Compliance | HIGH — role bundles, audit_trail |
@@ -96,7 +132,7 @@ The mandate (now constitutional, not merely a skill convention):
 - Consolidating existing keys requires a **translation-preserving Transifex migration**
   (add new keys → API-copy translations → codemod → delete old) — never a bare rename.
 
-**What this means for design work.** This elevates decision **D-044** (reuse-first
+**What this means for design work.** This elevates decision **D-221** (was D-044, then D-066, then D-174 on the unmerged 2026-10-01 branch; reuse-first
 Localization tables, `/analyze` Pass Q) from a house rule to a constitutional requirement:
 a spec that mints a near-synonym key is now a **CRITICAL** finding, not a nit. The
 `openelis-ui-vocabulary` skill is the operational tool for this — compose UI strings from

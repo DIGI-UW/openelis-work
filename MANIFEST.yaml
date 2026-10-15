@@ -1419,16 +1419,17 @@
   path: designs/system/in-app-help-preview.html
   spec: designs/system/help-menu.md
   category: system
-  description: "Contextual in-app help viewer — slide-over panel, page-aware articles, full-text search, feedback, community escape hatch. FRS v1.0 with full data model, i18n keys, acceptance criteria, and checklist."
+  description: "In-app help viewer (OGC-737): user and administrator guides in their own tab, TOC, search, deep links, branding, English and French, bundled offline with each release. FRS, mockup and preview v1.2."
   related:
     - designs/system/help-menu.jsx
     - designs/system/in-app-help-checklist.md
     - designs/system/in-app-help-dev-bundle.zip
   links:
     github: 44
-    jira: null
+    jira: ["OGC-737"]
     gallery: "https://digi-uw.github.io/openelis-work/#/system/in-app-help-system"
   added: "2026-05-12"
+  updated: "2026-10-15"
   status: draft
 
 - id: analyzer-import
