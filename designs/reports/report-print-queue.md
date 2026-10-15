@@ -1,12 +1,12 @@
 # Report Print Queue
-## Functional Requirements Specification, v2.2 (r4)
+## Functional Requirements Specification, v2.3 (r4)
 
-**Version:** 2.2 (r4: rebuilt on the shipped Compliance Report page; approved for handoff 2026-09-29; v2.2 adds data export jobs and the Partial / Final / Amended report state)
-**Date:** 2026-09-29
+**Version:** 2.3 (r4: rebuilt on the shipped Compliance Report page; approved for handoff 2026-09-29; v2.2 adds data export jobs and the Partial / Final / Amended report state; v2.3 adds Send, sends in the version history, archived masked copies and nominated privileges, from the Result Delivery FRS)
+**Date:** 2026-10-15
 **Status:** Approved for handoff
 **Jira:** Epic [OGC-1031](https://uwdigi.atlassian.net/browse/OGC-1031) (to be re-scoped; its 12 child stories were sliced against r3)
 **Builds on (shipped):** OGC-552 Compliance Report page `/LaporanHasil` (Done); OGC-776 LHU amendment workflow (code on `develop`, ticket still Backlog: confirm deployment before calling it shipped); Custom Data Export and its My Report Queue job runner (`/reports/custom-data-export`, OGC-479 / OGC-481, `ReportingJobService`)
-**Coordinates with:** OGC-1111 patient report redesign (`patient-report-and-report-management-frs.md` v2.2); S06c environmental and S06d vector certificate templates; navigation redesign (`navigation-redesign-frs.md`); OGC-1070 lab-unit domain filtering
+**Coordinates with:** Result Delivery FRS (`result-delivery/result-delivery-frs.md`: sending reports by email, SMS and WhatsApp from this page); OGC-1111 patient report redesign (`patient-report-and-report-management-frs.md` v2.2); S06c environmental and S06d vector certificate templates; navigation redesign (`navigation-redesign-frs.md`); OGC-1070 lab-unit domain filtering
 **Supersedes:** r3 (`report-print-queue-frs-r3.md`, 2026-07-06) and the list page of S06 (§5.2, §5.5 of `S06-laporan-hasil-compliance-report-frs-v1.0.md`)
 
 > **What r4 changes.** r3 designed a new page and a new queue table for patient reports.
@@ -281,6 +281,7 @@ An order never appears twice.
 | Released / Submitted | Latest release time of any result on the order | Same | Submitted at | yes (default) |
 | State | Report state Tag (FR-4.1), plus Critical Tag when any released result is critical | Report state Tag | Job state Tag (FR-11.2) | yes |
 | Print status | Print status Tag (FR-4.2) | Same | "–" | yes |
+| Sent | The current version's send state: "Sent v{n} {time}" (`green`), "Queued: sends {time}" (`blue`), "Not sent" (text), or "Failed" (`red`) when the last send of the current version failed | Same | "–" | no |
 | Version | Current version (`v2`), "Not printed" when never printed | Same; certificates add the `/Am.N` number | "–" | no |
 | Action | One-click Print button (D-078) | Same | The job's one action: Download, Cancel, Retry or Re-run (FR-11.3) | no |
 
@@ -357,6 +358,8 @@ chips with their labels. When Type is Data export, the options are the job state
 (Queued, Generating, Ready to download, Failed, Expired, Cancelled). When Type is All and at
 least one report state is selected, data export rows are left out, because they have no report
 state.
+
+**FR-3.7b Sent**: All (default), Not sent, Sent, Failed. Hidden when Type is Data export. "Not sent" lists rows whose current version has not been sent to any recipient.
 
 **FR-3.7a Print status**: All (default), Unprinted, Printed. Hidden when Type is Data export;
 when Type is All and it is not All, data export rows are left out. The two filters combine:
@@ -438,7 +441,10 @@ signatures), then the version history and Reissue with correction.
 
 **FR-5.4 Version history table:** Version, Issued (date and time), By, Change (summary or
 "First issue"), Completeness at issue, Fingerprint (first 12 characters of the SHA-256, full
-value on hover), and an **Open PDF** link that opens the archived file in a new tab. Reprints
+value on hover), and an **Open PDF** link that opens the archived file in a new tab. Sends of a
+version are listed under it like reprints, one compact line per recipient: "Sent {time} to
+{recipient}, {protected | masked}, by {user | Automatic}", with a link to its Sent Messages row
+(Result Delivery FR-C12). Reprints
 are listed under their version as "Reprinted {date} by {user}" in a compact line. Versions
 issued before archiving began show "Not archived (issued before {install date})" instead of a
 link.
@@ -501,6 +507,14 @@ evaluations, so today such an order would print with no results at all.
 unchanged and an evaluation is added); its change summary is "Evaluated against {standard}".
 Changing or removing a standard after a certificate was printed with it is an amended version.
 
+**FR-6.13 Send.** Beside Print, each row's actions and the batch toolbar offer **Send**, for users
+with `report:send`. It opens the Result Delivery Send dialog (Result Delivery FR-C5 to FR-C8,
+FR-J4): recipients grouped by facility or client, protected full report or masked copy, and an
+address typed for one send. Send needs a released, archived version: when the current content
+has no version yet, Send creates it through the same pipeline as Print (FR-6.2) without opening
+a PDF, so what is sent is always an archived version. Send respects the 100-order batch limit
+(FR-6.7).
+
 ### 5.7 Reissue with correction
 
 **FR-7.1** A printed row's expansion shows a **Reissue with correction** tertiary button for
@@ -532,6 +546,11 @@ reviewer can check a file they were given against it.
 **FR-8.3** If storing the archive fails, the print still reaches the user, the failure is
 logged, and the version is flagged "Archive failed" in its history with a Retry archive action
 for Admin users. (The shipped code logs and continues; r4 makes the gap visible.)
+
+**FR-8.4 Masked copies.** A masked copy rendered for delivery (OGC-1111 FR-A61) is archived with
+its own SHA-256, linked to the version it was rendered from, and is never overwritten. A protected
+copy is the version's archived bytes encrypted for one recipient; it is not archived again, and
+the send records that it was encrypted and the recipient's password date (never the password).
 
 ### 5.9 Tiles
 
@@ -706,13 +725,30 @@ counts, lookups and batch actions, and only their own data export jobs.
   certificates; Vector sees vector certificates; a user with several sees each. Admin sees all.
 - **Print, reprint, batch print, download, open archived PDF:** anyone with page access, for
   rows they can see.
+- **Send:** anyone with page access (decided 2026-10-15: they can already download the PDF and
+  email it), through `report:send`.
 - **Reissue with correction:** users with the Results, Validation or Admin role (the rule the
   shipped `ComplianceReportRestController` already enforces). For others the control is
   disabled with its reason (FR-7.1).
 - **Retry archive** (FR-8.3): Admin.
 - **Data export rows:** shown to users who can use Custom Data Export today, and only their own
   jobs (FR-11.1). Download, Cancel, Retry and Re-run follow the shipped Custom Data Export rules.
-- No new permission keys (D-006).
+
+### 8.1 Nominated privileges
+
+| Capability | Privilege | Group | Default grant on upgrade |
+|---|---|---|---|
+| Open the queue; print, reprint, batch print, download, open archived PDF | `report:run` (existing) | Reports | Roles that can open Patient Status Report or Compliance Report today |
+| Send reports from the queue, including to a typed address | **NEW** `report:send` (owned by Result Delivery) | Reports | Roles with `report:run` |
+| Reissue with correction | **NEW** `report:reissue` | Reports | Roles with `result:validate` or `result:modify` |
+| Retry archive | `report:configure` (existing) | Reports | As today |
+| See and act on own data export jobs | `report:export` (existing) | Reports | As today |
+| See certificate rows (row scope) | Lab-unit domain (OGC-1070), not a privilege | | |
+
+NEW codes: `report:reissue` (and `report:send`, defined in Result Delivery). Until PR #3443
+merges, the Reports module grant stands in for `report:run` and `report:send`, and the Results,
+Validation or Admin role check stands in for `report:reissue`. This supersedes "No new permission
+keys (D-006)" for this page.
 
 ---
 
@@ -778,6 +814,15 @@ code that used them (Constitution VII key hygiene). `lhu.amendment.reason.*` are
 | `reportQueue.action.print` | Print | NEW |
 | `reportQueue.action.printSelected` | Print selected | NEW |
 | `reportQueue.action.downloadSelected` | Download selected | NEW |
+| `delivery.send.button` | Send | REUSE (Result Delivery) |
+| `reportQueue.action.sendSelected` | Send selected | NEW |
+| `reportQueue.col.sent` | Sent | NEW |
+| `reportQueue.sent.value` | Sent v{n} {time} | NEW |
+| `reportQueue.sent.queued` | Queued: sends {time} | NEW |
+| `reportQueue.sent.none` | Not sent | NEW |
+| `reportQueue.sent.failed` | Failed | NEW |
+| `reportQueue.filter.sent` | Sent | NEW |
+| `reportQueue.history.sent` | Sent {time} to {recipient}, {format}, by {user} | NEW |
 | `reportQueue.batch.tooMany` | Select 100 or fewer orders to print or download at once | NEW |
 | `reportQueue.batch.progress` | Preparing {done} of {total} | NEW |
 | `reportQueue.print.disabled.nothingReleased` | Nothing released yet on this order | NEW |
@@ -890,7 +935,8 @@ report templates and are keyed in OGC-1111 (`report.patient.*`) and S06c / S06d.
 - Other long-running report types that do not run on the export job runner today; they can join
   as further row types once they do.
 - Seeing another user's exports, including for Admin (Custom Data Export BR-016).
-- Sending reports electronically (email, FHIR DiagnosticReport push, portal).
+- Delivery rules, channels, recipients and templates for sending reports (Result Delivery FRS). This page only hosts Send and shows sends.
+- A patient portal.
 - A certificate numbering scheme (`LHU-YYYY-NNNN`). Certificates keep the lab number with
   `/Am.N`.
 - Printing a preview of an order with nothing released.
@@ -965,6 +1011,9 @@ report templates and are keyed in OGC-1111 (`report.patient.*`) and S06c / S06d.
     export rows cannot be selected for batch print.
 28. Opening the old My Report Queue panel link, or the builder's "View My Report Queue" link after
     an asynchronous submit, lands on `/ReportPrintQueue?type=export`.
+29. Pressing Send on 7 selected rows opens the Result Delivery Send dialog; after sending, each row's Sent column shows "Sent v{n}" or "Queued", and each version history lists the sends with recipient and format.
+30. Send on a Final, Unprinted row with no version creates and archives the version first, without opening a PDF, and sends that version.
+31. A masked copy sent from the queue appears in the archive with its own SHA-256, linked to its version.
 
 ---
 

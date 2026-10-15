@@ -97,7 +97,7 @@
   breakdown: designs/admin-config/locations-organizations-breakdown.md
   category: admin-config
   description: >
-    Locations & Organizations FRS v0.3: one admin menu for facilities, wards and departments,
+    Locations & Organizations FRS v0.4: one admin menu for facilities, wards and departments,
     sampling sites and geographic areas, with codes, search, filters, GUI CSV import matching
     the startup loader, and deactivation instead of delete. Supersedes organizations-management.
   links:
@@ -106,7 +106,7 @@
     gallery: https://digi-uw.github.io/openelis-work/#/admin-config/locations-organizations
     preview: https://digi-uw.github.io/openelis-work/designs/admin-config/locations-organizations.html
   added: "2026-09-28"
-  updated: "2026-09-28"
+  updated: "2026-10-15"
 
 - id: optional-sex-age
   type: spec
@@ -1573,7 +1573,7 @@
   html: designs/reports/report-print-queue.html
   category: reports
   description: >
-    Report-type-agnostic print queue (r4, FRS v2.2, 2026-09-29): rebuilt on the shipped
+    Report-type-agnostic print queue (r4, FRS v2.3, 2026-10-15): rebuilt on the shipped
     Compliance Report page — /LaporanHasil merges into /ReportPrintQueue. Three report types in
     one list (patient, environmental, vector certificates); report state Partial / Final /
     Amended with a separate Print status filter; every released version archived with SHA-256
@@ -1589,7 +1589,7 @@
     - print-queue
     - PNG
   added: "2026-06-10"
-  updated: "2026-09-29"
+  updated: "2026-10-15"
   status: draft
 
 - id: patient-report-redesign-spec
@@ -1597,7 +1597,7 @@
   path: designs/reports/patient-report-redesign.md
   category: results-validation
   description: >
-    Patient Report & Report Management FRS v2.4.3: the patient report (Part A). Report Management
+    Patient Report & Report Management FRS v2.5: the patient report (Part A). Report Management
     (Part B) moved to the Admin Redesign FRS section 13. Labels from the UI translation
     catalogue, completed date and time per test, microbiology rows. OGC-932 is the V1 PNG / CPHL
     deliverable.
@@ -2075,7 +2075,7 @@
   type: mockup
   path: designs/notifications/notification-admin.jsx
   category: notifications
-  description: Unified notification admin — configure email and TextIt SMS alert rules, provider contact mapping, escalation chains, and notification log
+  description: Unified notification admin — configure email and TextIt SMS alert rules, provider contact mapping, escalation chains, and notification log. Superseded in part by Result Delivery (OGC-1506), 2026-10-15.
   paired_with: email-notification-integration-spec
   added: "2026-03-23"
 
@@ -2083,7 +2083,7 @@
   type: spec
   path: designs/notifications/email-notification-integration.md
   category: notifications
-  description: Email Notification Integration FRS v1.2
+  description: Email Notification Integration FRS v1.2. Superseded in part by Result Delivery (OGC-1506), 2026-10-15.
   paired_with: notification-admin
   links:
     jira: [OGC-437]
@@ -2093,7 +2093,7 @@
   type: mockup
   path: designs/notifications/textit-sms-integration.jsx
   category: notifications
-  description: TextIt SMS integration admin — API credentials, flow selection, message templates, and per-event trigger mapping
+  description: TextIt SMS integration admin — API credentials, flow selection, message templates, and per-event trigger mapping. Superseded in part by Result Delivery (OGC-1506), 2026-10-15.
   paired_with: textit-sms-integration-spec
   added: "2026-03-23"
 
@@ -2101,11 +2101,35 @@
   type: spec
   path: designs/notifications/textit-sms-integration.md
   category: notifications
-  description: TextIt SMS Notification Integration FRS v1.2
+  description: TextIt SMS Notification Integration FRS v1.2. Superseded in part by Result Delivery (OGC-1506), 2026-10-15.
   paired_with: textit-sms-integration
   links:
     jira: [OGC-435, OGC-436]
   added: "2026-03-23"
+
+- id: result-delivery-spec
+  type: spec
+  path: designs/notifications/result-delivery.md
+  preview: designs/notifications/result-delivery.html
+  category: notifications
+  description: >
+    Result Delivery FRS v0.1 (Epic OGC-1506): one model for delivering results to patients,
+    clinics and environmental/vector clients - secure download links, email and SMS, masked
+    copies, delivery password, nominated privileges, and a Sent Messages view. Supersedes in
+    part the Email/SMTP, TextIt SMS and LH certificate-delivery designs. Companion critique
+    doc (designs/notifications/result-delivery-critique.md) carries the decisions. No JSX
+    mockup or breakdown yet (built at /breakdown after review).
+  links:
+    jira: ["OGC-1506", "OGC-439", "OGC-437", "OGC-587"]
+    gallery: https://digi-uw.github.io/openelis-work/#/notifications/result-delivery
+    preview: https://digi-uw.github.io/openelis-work/designs/notifications/result-delivery.html
+  tags:
+    - global
+    - result-delivery
+    - notifications
+    - iso-15189
+  added: "2026-10-15"
+  updated: "2026-10-15"
 
 - id: reagent-forecasting-workbench
   type: mockup

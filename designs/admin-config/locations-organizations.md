@@ -1,14 +1,14 @@
 # Locations & Organizations: Functional Requirements Specification
 
-**Version:** 0.3 (post-analyze, ready for handoff)
-**Date:** 2026-09-28
-**Author:** Casey Iiams-Hauser, Director of Product
+**Version:** 0.4 (adds the Result delivery section and nominated privileges, from the Result Delivery FRS)
+**Date:** 2026-10-15
+**Author:** Casey, Director of Product (drafted with Claude)
 **Status:** Draft, awaiting review
 **Supersedes:** `designs/admin-config/organizations-management.md` (Region/District/Facility/Ward spec, which assumed separate tables that do not exist)
-**Related:** S-02 Sampling Site Registry (OGC-531, under OGC-527), Catalog CSV import (OGC-1194, PR #4329), Address hierarchy configuration loader, Environmental and Vector Order Entry v4
+**Related:** Result Delivery FRS (`result-delivery/result-delivery-frs.md`, owns the Result delivery section's behaviour), S-02 Sampling Site Registry (OGC-531, under OGC-527), Catalog CSV import (OGC-1194, PR #4329), Address hierarchy configuration loader, Environmental and Vector Order Entry v4
 **Jira:** [OGC-1363](https://uwdigi.atlassian.net/browse/OGC-1363)
 **Decisions:** D-106 to D-112 (decision log)
-**Preview:** `locations-organizations.html`
+**Preview:** `locations-organizations-preview.html`
 
 ---
 
@@ -127,7 +127,7 @@ Items considered and deliberately left for later are listed under **Deferred** a
 |---|---|---|
 | FR-C1 | Only the row's **Edit** button expands it inline to the detail form (D-005); clicking elsewhere on the row does not, so scrolling and selecting never open a form by accident. Only one row is expanded at a time. Unsaved changes prompt before collapsing or leaving the page. A long form (an organization with its wards / depts) shows **jump links** to its sections at the top and keeps a **sticky Save / Cancel bar** at the bottom of the viewport while any part of the form is on screen. | |
 | FR-C2 | **Add** (toolbar) opens the same form as a new inline row at the top of the table, with the kind preset from the view (Facility on Organizations, Sampling site on Sampling Sites, the selected level on Geographic Areas). | |
-| FR-C3 | The form is built from the sampling-site form and shows the sections relevant to the kind. **Identity:** Name (required); Short name; Organization type(s) (required; filterable MultiSelect with labelled tags); for organizations, **Category** and **Ownership** (single selects from admin-managed lists: for example Category = National referral hospital, Provincial hospital, District hospital, Health centre, Urban clinic, Aid post, Laboratory; Ownership = Government, Church, Private, NGO, Other); Description (for sites, with the helper "Include directions so someone else can find the exact spot"). (Active status is the row's toggle, not a form field; new records start active.) **Identifiers** (section I). **Location:** a Location ComboBox (typeahead, D-007) whose options show the full path and level, with the helper "Pick the most specific area you know. A district is fine if you don't know the LLG."; the existing address search that fills it; Street address, City, State/Province, Postal code; GPS latitude and longitude in decimal degrees (WGS84). **Contact:** Contact name, Phone, Email, Website. **Referral laboratory** (records with a referral-lab type; section J). **Site details** (Sampling site only): Site type, Subtype, Environmental zone. **Wards / Depts** (organizations only; section D). A **History** button in the form footer opens the record's history (section K). | Geographic areas show Name, Code and Parent only. |
+| FR-C3 | The form is built from the sampling-site form and shows the sections relevant to the kind. **Identity:** Name (required); Short name; Organization type(s) (required; filterable MultiSelect with labelled tags); for organizations, **Category** and **Ownership** (single selects from admin-managed lists: for example Category = National referral hospital, Provincial hospital, District hospital, Health centre, Urban clinic, Aid post, Laboratory; Ownership = Government, Church, Private, NGO, Other); Description (for sites, with the helper "Include directions so someone else can find the exact spot"). (Active status is the row's toggle, not a form field; new records start active.) **Identifiers** (section I). **Location:** a Location ComboBox (typeahead, D-007) whose options show the full path and level, with the helper "Pick the most specific area you know. A district is fine if you don't know the LLG."; the existing address search that fills it; Street address, City, State/Province, Postal code; GPS latitude and longitude in decimal degrees (WGS84). **Contact:** Contact name, Phone, Email, Website. **Referral laboratory** (records with a referral-lab type; section J). **Site details** (Sampling site only): Site type, Subtype, Environmental zone. **Result delivery** (organizations, including environmental and vector clients; section N). **Wards / Depts** (organizations only; section D). A **History** button in the form footer opens the record's history (section K). | Geographic areas show Name, Code and Parent only. |
 | FR-C4 | Validation, inline on the field. Name required. An identifier value is unique among records of the same kind with the same identifier label (section I). GPS latitude between -90 and 90 and longitude between -180 and 180, decimal degrees. Email format. Parent required and of the right kind per FR-A4. Duplicate name within the same type and same parent is a warning ("Another active organization named '9 Mile Urban Clinic' exists here"), not a block. | |
 | FR-C5 | Save writes the record and shows a success notification. On a version conflict (another admin saved first), the form keeps the user's input and shows the other admin's changes so the user can reapply. | Existing optimistic-lock behaviour, surfaced properly. |
 
@@ -135,7 +135,7 @@ Items considered and deliberately left for later are listed under **Deferred** a
 
 | ID | Requirement | Notes |
 |---|---|---|
-| FR-D1 | An organization's expanded row lists its wards / depts as inline rows: Name, Code, **Service type**, Contact name, Phone, Email, GPS, In use, Active toggle, Edit. Inactive wards / depts are hidden unless the list's Status filter includes Inactive. **Service type** (required for new wards / depts, select): Inpatient, Outpatient, Intensive care, Emergency, Maternity, Laboratory, Other. It maps to the WHONET / GLASS location-type codes that antimicrobial resistance surveillance exports need (mapping owned by M-09 WHONET Export). | Service type lets AMR reports split inpatient from outpatient isolates without a separate mapping step. |
+| FR-D1 | An organization's expanded row lists its wards / depts as inline rows: Name, Code, **Service type**, Contact name, Phone, Email, **Report email** (blank means the organization's report addresses are used, shown as "Uses facility addresses"), GPS, In use, Active toggle, Edit. Inactive wards / depts are hidden unless the list's Status filter includes Inactive. **Service type** (required for new wards / depts, select): Inpatient, Outpatient, Intensive care, Emergency, Maternity, Laboratory, Other. It maps to the WHONET / GLASS location-type codes that antimicrobial resistance surveillance exports need (mapping owned by M-09 WHONET Export). | Service type lets AMR reports split inpatient from outpatient isolates without a separate mapping step. |
 | FR-D2 | **Add ward / dept** inserts a new inline row (Name and Service type required; Code, Contact name, Phone, Email, GPS optional). The ward / dept is saved with type `dept` and this organization as parent, and is active. Several can be added before saving. | Replaces creating a ward as a standalone organization. |
 | FR-D2a | **GPS: own, else inherited.** A ward / dept has optional GPS latitude and longitude of its own (for example a clinic on a separate campus). When they are blank it uses its parent organization's coordinates, shown in the ward row as grey "inherited" values ("-9.4705, 147.1597 inherited from Port Moresby General Hospital"). Clearing a ward's own GPS returns it to inheriting. Moving a ward that inherits gives it the new parent's coordinates; a ward with its own GPS keeps it. Address is always the parent's. Contact name, phone and email are the ward's own, blank until set (no copy from the parent). | Maps and M-16 cluster detection read the ward's own GPS if set, else the parent's. |
 | FR-D3 | A ward / dept row shows an Active toggle and Edit. In edit mode it can be renamed, recoded, given contact details and its own GPS, or **moved** to another organization (Move opens an organization ComboBox). Moving keeps the ward / dept's identity and its order history. | |
@@ -214,7 +214,7 @@ ISO 15189:2022 clauses 7.11 (information management) and 8.4 (records) require t
 
 | ID | Requirement | Notes |
 |---|---|---|
-| FR-K1 | Every create, edit, activate / deactivate, move, identifier change, referral-lab review change, import-run change and registry sync change writes a history entry: date and time, user (or "Import run #N" / "Registry sync"), action, and each field's old and new value. | Reuse OpenELIS's existing audit history for audited tables where it covers this (developer to confirm). |
+| FR-K1 | Every create, edit, activate / deactivate, move, identifier change, referral-lab review change, result delivery change, delivery password set, change, Show and Copy (recorded without the password), import-run change and registry sync change writes a history entry: date and time, user (or "Import run #N" / "Registry sync"), action, and each field's old and new value. | Reuse OpenELIS's existing audit history for audited tables where it covers this (developer to confirm). |
 | FR-K2 | **History** in the form footer opens the record's history inline as a timeline, newest first, filterable by action. Each import-run entry links to its run in Recent imports. | |
 | FR-K3 | History is read-only and kept for as long as the record exists (records are never deleted). Former names are derived from history and used by search and import matching, so a renamed record is still found by its old name. | |
 
@@ -246,6 +246,7 @@ One file can hold facilities, wards and sampling sites together. Columns are add
 | `serviceType` | Wards / depts: yes for new rows | Inpatient, Outpatient, Intensive care, Emergency, Maternity, Laboratory, Other |
 | `siteType`, `subtype`, `environmentalZone`, `description` | No | Sampling sites (`description` allowed for any kind) |
 | `approvalStatus`, `accreditationBody`, `accreditationNumber`, `accreditationExpiry`, `lastReviewDate`, `nextReviewDue` | No | Referral laboratories (section J); dates as `YYYY-MM-DD` |
+| `reportEmail`, `reportPhone`, `autoDelivery` | No | Result delivery (section N): report addresses separated by `;`, report number, `Y` / `N`. Wards / depts accept `reportEmail` only. The delivery password is never in a file. |
 
 For ward / dept rows (`type` = `dept`), `contactName`, `phone`, `email`, `gpsLatitude` and `gpsLongitude` apply to the ward; blank GPS means the ward inherits its parent's. Address columns are ignored with a warning, because a ward always uses its parent's address. Exports leave inherited GPS and address blank for wards.
 
@@ -258,6 +259,18 @@ dept,PMGH-OPD,Outpatient Department,,,,Outpatient,PMGH,,,Y,,,Sister Ruth Moi,+67
 dept,PMGH-MAT,Maternity Ward,,,,Maternity,PMGH,,,Y,,,,
 sampling site,VT-LAE-03,Bumbu Settlement light trap,,,,,,Lae Urban,LLG,Y,-6.7160,147.0010,John Wari,+675 7123 4567
 ```
+
+### N. Result delivery
+
+How this organization receives its reports and messages. Behaviour (when reports are sent, formats, masking) is owned by the Result Delivery FRS; this section is where the settings live.
+
+| ID | Requirement | Notes |
+|---|---|---|
+| FR-N1 | Organizations (not geographic areas or sampling sites) have a **Result delivery** form section: Report email addresses (one or more), Report SMS or WhatsApp number, Send reports automatically (On, Off), Include partial reports (Lab default, Yes, No), Language, Delivery password. | Result Delivery FR-B1 |
+| FR-N2 | **Delivery password**: masked, with **Show**, **Copy**, **Generate** and **Change**, for users with `delivery_password:view`; others see "Password set {date}" only. Generate makes a 12-character password with no look-alike characters, grouped in threes. Change asks for confirmation and warns that reports already sent stay locked with the old password. Show hides again after 30 seconds or when the row closes. | Result Delivery FR-B3 to FR-B5 |
+| FR-N3 | The list's **Delivery** column (Organizations view) shows "Automatic, protected", "Manual, protected", "Manual, masked" or "No report email" as a Tag with text. | |
+| FR-N4 | Order entry never changes these addresses; an address typed for the referring site at order entry applies to that order only. | Result Delivery FR-B8 |
+| FR-N5 | Report addresses import and export as columns (section M); the delivery password never imports or exports. | |
 
 ---
 
@@ -283,6 +296,19 @@ Uniqueness: identifier value unique within its label and kind. Name is not uniqu
 
 - **Who can use it:** users with the existing **Admin** role, as today for Organization Management and Sampling Sites. Users without Admin do not see the menu, and its routes redirect to the admin home.
 - **Who can do what:** Admin can view, add, edit, deactivate, reactivate, import (both modes), resolve decisions, view history and export. There is no read-only variant in this release.
+- **Delivery password:** users who can edit the record, and Report Print Queue users (from the Send dialog), can show and copy it; every Show and Copy is in History.
+
+### Nominated privileges
+
+| Capability | Privilege | Group | Default grant on upgrade |
+|---|---|---|---|
+| See the menu and records | `organization:view` (existing) | Test catalog and reference data | Roles with Admin today |
+| Add, edit, deactivate, reactivate, move, identifiers, referral-lab fields, result delivery settings | `organization:manage` (existing) | Test catalog and reference data | Roles with Admin today |
+| Import (both modes), resolve decisions | **NEW** `organization:import` | Test catalog and reference data | Roles with `organization:manage` |
+| Show or copy a delivery password | **NEW** `delivery_password:view` (owned by Result Delivery) | Reports | Roles with `organization:manage`, `sample_requester:manage` or `report:run` |
+| View history | `organization:view` (existing) | Test catalog and reference data | As above |
+
+NEW codes: `organization:import` (Replace can deactivate many records at once, so a lab may want to keep it narrower than editing). Until PR #3443 merges, the Admin role stands in for all of these.
 
 ---
 
@@ -442,6 +468,13 @@ Keys follow `[category].[feature].[identifier]` under the `locations` feature na
 | `label.locations.history.title` | History of {name} | History panel |
 | `label.locations.history.formerly` | Formerly {name} | Search result note, order display |
 | `label.locations.form.jump` | Jump to | Form section links |
+| `label.locations.section.delivery` | Result delivery | Form section (keys for its fields are `delivery.facility.*` and `delivery.password.*`, owned by Result Delivery) |
+| `label.locations.column.delivery` | Delivery | Column (Organizations) |
+| `label.locations.delivery.autoProtected` | Automatic, protected | Delivery tag |
+| `label.locations.delivery.manualProtected` | Manual, protected | Delivery tag |
+| `label.locations.delivery.manualMasked` | Manual, masked | Delivery tag |
+| `label.locations.delivery.noEmail` | No report email | Delivery tag |
+| `label.locations.ward.usesFacility` | Uses facility addresses | Ward report email placeholder |
 
 ---
 
@@ -464,6 +497,7 @@ New data and capabilities, declared per design-addendum MUST A:
 13. **Ward / dept service type** attribute with a WHONET / GLASS mapping (coordinate with M-01 department `whonet_code` and M-09).
 14. **Referral-lab fields:** approval status, accreditation body / number / expiry, last review, next review due, review notes.
 15. **History** covering every change listed in FR-K1, including import runs and registry syncs (reuse the existing audit history where possible).
+16. **Result delivery fields** on Organization (report addresses, report number, automatic delivery, partials, language, delivery password with reversible encryption and its set date) and **Report email** on wards / depts, per the Result Delivery FRS.
 
 ## Coordination (overlaps)
 
@@ -505,6 +539,9 @@ New data and capabilities, declared per design-addendum MUST A:
 23. Deactivating with the toggle shows an Undo link; Undo reactivates the record and any children deactivated with it.
 24. The Geographic Areas tree can be expanded, collapsed and navigated with the keyboard alone, and a screen reader announces each row's level and expanded state.
 25. Clicking a row outside its Edit button does not expand it; the expanded form keeps Save / Cancel visible while scrolling.
+26. An organization's Result delivery section saves two report addresses and automatic delivery; the list's Delivery column shows "Automatic, protected" once a delivery password is set.
+27. Show reveals the delivery password, hides it after 30 seconds, and the record's History lists the Show with user and time and without the password; a user without `delivery_password:view` sees only "Password set {date}".
+28. Exporting organizations includes `reportEmail`, `reportPhone` and `autoDelivery` and never the delivery password.
 
 ---
 
