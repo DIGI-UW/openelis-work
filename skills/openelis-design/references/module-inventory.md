@@ -8,7 +8,7 @@
 | Module | SideNav / route | Interaction pattern | Jira anchor | Notes |
 |---|---|---|---|---|
 | Analyzers | `/analyzers`, `/analyzers/types`, `/analyzers/errors` | Nested SideNav list + Add form | — | Not tabs; Generic ASTM type; QC submenu |
-| Test Catalog (Test Management) | `/MasterListsPage/testManagement` | Table + rename cards | — | Reagents tab needs Test↔Reagent linkage (not built) |
+| Test Catalog (Test Management) | `/MasterListsPage/testManagement` | Table + rename cards | — | Reagents tab built (Test↔Reagent linkage on develop, OGC-991/992/993) |
 | Reflex Tests | `/MasterListsPage/reflex` | Rule Card (Toggle + Active + Deactivate) | — | POST `/rest/reflexrule`; "Over All Option" ANY/ALL required |
 | Calculated Values | `/MasterListsPage/calculatedValue` | Rule Card | — | Endpoint `/rest/test-calculations`; no DELETE |
 | Application/Common Properties | `/MasterListsPage/commonproperties` | Key-value table | — | 61 props, 7 domains (see verified-data-models) |
