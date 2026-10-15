@@ -1,6 +1,6 @@
 # FRS Quality Checklist — In-App Help System
 
-**Companion to:** `help-menu.md` (FRS v1.1, 2026-10-15)
+**Companion to:** `help-menu.md` (FRS v1.2, 2026-10-15)
 **Purpose:** "Unit tests for English." Validate that the FRS is complete, unambiguous, and ready for implementation. Run before creating the OGC Jira story.
 
 **How to use:** Walk through each item. If you can't answer "yes" or point to a line in the FRS, that's a gap to fill. Items marked **CRITICAL** block implementation; the rest are quality polish.
@@ -14,7 +14,7 @@
 - [ ] Error messages, button labels, placeholders, and accessibility labels are all covered.
 - [ ] The locale fallback behavior is specified for every text surface — both UI chrome (handled by the existing i18n provider) AND help content body (handled by FR-V-02's English fallback + Tag badge).
 - [ ] Pipeline output paths use `/<locale>/` segments so additional locales can be added without code changes (FR-P-04, FR-V-02).
-- [ ] The "Available in English only" Tag appears on any page missing in the active locale, and the outdated-translation Tag when the English page is newer (AC-13).
+- [ ] The "Available in English only" Tag appears on any page missing in the active locale, (AC-13). Every page has the "View the latest version online" link (AC-18).
 
 ## Permissions & Security
 
@@ -112,11 +112,12 @@
 - [ ] French pages are matched to their English source page id and share its slug (FR-P-15).
 - [ ] Provenance sections are stripped and WIP panels become the standard notice (FR-P-17, AC-6).
 - [ ] `Layout` renders `/help` routes without Header, side nav or Footer, and no other route changes (FR-I-06, AC-7). (CRITICAL)
-- [ ] Size budget is enforced in CI (NFR-04, FR-P-18).
-- [ ] Section 13 (refresh triggers and workflow) has been reviewed and its questions closed. (CRITICAL)
+- [ ] Size budget is enforced by the refresh script (NFR-04, FR-P-18).
+- [ ] `applies-vX-Y` version labels override the title rule when present (FR-P-16, AC-19).
+- [ ] The manual refresh procedure (section 13.1) is on the release checklist, and the converter runs against committed fixtures in frontend tests. (CRITICAL)
 
 ## Severity summary
 
 If you can answer "yes" to every CRITICAL item above, the FRS is implementation-ready. Track any remaining "no" answers as gaps to resolve before opening the OGC Jira story.
 
-CRITICAL items count: **16** (v1.0 items as revised, plus the v1.1 additions: legacy exclusion, attachments, standalone layout, section 13 review).
+CRITICAL items count: **16** (v1.0 items as revised, plus the v1.1 additions: legacy exclusion, attachments, standalone layout, release refresh procedure).
