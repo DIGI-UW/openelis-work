@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Result Delivery: OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif; color: #161616; }
+    .preview-banner { background: #0f62fe; color: #fff; padding: 6px 1rem; font-size: 12px; font-family: monospace; }
+    .shell { display: flex; min-height: calc(100vh - 28px); }
+    .switcher { width: 250px; background: #fff; border-right: 1px solid #e0e0e0; padding: 1rem 0; flex-shrink: 0; }
+    .switcher h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .32px; color: #525252; margin: 1rem 1rem .5rem; }
+    .switcher button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: .5rem 1rem; font-size: 14px; cursor: pointer; color: #161616; border-left: 3px solid transparent; }
+    .switcher button.active { background: #e8e8e8; border-left-color: #0f62fe; font-weight: 600; }
+    .main { flex: 1; padding: 1.5rem 2rem; max-width: 1200px; }
+    .crumb { font-size: 12px; color: #525252; margin-bottom: .25rem; }
+    .crumb a { color: #0f62fe; text-decoration: none; }
+    h1.page { font-size: 28px; font-weight: 400; margin: .25rem 0 .25rem; }
+    .desc { color: #525252; font-size: 14px; margin: 0 0 1.25rem; max-width: 760px; }
+    .route { font-family: monospace; font-size: 12px; color: #6f6f6f; margin-bottom: 1rem; }
+    .toolbar { display: flex; gap: .5rem; align-items: center; background: #fff; padding: .5rem; border-bottom: 1px solid #e0e0e0; flex-wrap: wrap; }
+    .toolbar input, .toolbar select { height: 32px; border: 0; border-bottom: 1px solid #8d8d8d; background: #f4f4f4; padding: 0 .5rem; font-size: 14px; }
+    .batchbar { background: #0f62fe; color: #fff; display: flex; align-items: center; gap: 1rem; padding: .5rem 1rem; }
+    .batchbar button { background: transparent; color: #fff; border: 0; font-size: 14px; cursor: pointer; padding: .25rem .5rem; }
+    .batchbar button:hover { background: #0353e9; }
+    table.cds--data-table { width: 100%; background: #fff; }
+    table.cds--data-table td, table.cds--data-table th { vertical-align: top; }
+    .expand { background: #f4f4f4; padding: 1rem 1.25rem; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 2rem; }
+    .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem 2rem; }
+    .field label { display: block; font-size: 12px; color: #525252; margin-bottom: .25rem; }
+    .field input, .field select, .field textarea { width: 100%; box-sizing: border-box; height: 40px; border: 0; border-bottom: 1px solid #8d8d8d; background: #fff; padding: 0 .75rem; font-size: 14px; }
+    .field textarea { height: 96px; padding: .5rem .75rem; font-family: inherit; }
+    .helper { font-size: 12px; color: #6f6f6f; margin-top: .25rem; }
+    .secret { display: flex; gap: .5rem; align-items: center; }
+    .secret code { background: #fff; padding: .5rem .75rem; font-size: 15px; letter-spacing: 1px; min-width: 170px; border-bottom: 1px solid #8d8d8d; }
+    .btnrow { display: flex; gap: .5rem; margin-top: 1rem; flex-wrap: wrap; }
+    .mono { font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
+    .muted { color: #6f6f6f; font-size: 12px; }
+    .modal-back { position: fixed; inset: 0; background: rgba(22,22,22,.5); display: flex; align-items: center; justify-content: center; z-index: 10; }
+    .modal { background: #fff; width: 860px; max-height: 88vh; overflow: auto; }
+    .modal header { padding: 1rem 1rem .5rem; }
+    .modal header h3 { margin: 0; font-size: 20px; font-weight: 400; }
+    .modal .body { padding: 0 1rem 1rem; }
+    .modal footer { display: flex; justify-content: flex-end; border-top: 1px solid #e0e0e0; }
+    .modal footer button { flex: 0 0 50%; height: 56px; border: 0; font-size: 14px; text-align: left; padding: 0 1rem; cursor: pointer; }
+    .group { border: 1px solid #e0e0e0; margin-bottom: .75rem; }
+    .group h5 { margin: 0; padding: .5rem .75rem; background: #f4f4f4; font-size: 14px; }
+    .reciprow { display: grid; grid-template-columns: 24px 1.4fr 1.3fr 1.2fr 1.4fr; gap: .5rem; align-items: center; padding: .5rem .75rem; border-top: 1px solid #e0e0e0; font-size: 14px; }
+    .tile { background: #fff; padding: 1rem; margin-bottom: 1rem; }
+    .section-title { font-size: 16px; font-weight: 600; margin: 0 0 .75rem; }
+    .chip { display: inline-block; background: #e0e0e0; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin: 0 4px 4px 0; }
+    .mf { display: inline-block; border: 1px solid #8d8d8d; padding: 2px 8px; font-size: 12px; margin: 0 4px 4px 0; cursor: pointer; background: #fff; font-family: monospace; }
+    .previewbox { background: #fff; border: 1px dashed #8d8d8d; padding: .75rem; font-size: 13px; white-space: pre-wrap; }
+    .toast { background: #defbe6; border-left: 3px solid #24a148; padding: .75rem 1rem; margin-bottom: 1rem; font-size: 14px; }
+    .warn { background: #fcf4d6; border-left: 3px solid #f1c21b; padding: .75rem 1rem; font-size: 14px; margin: .5rem 0; }
+    .info { background: #edf5ff; border-left: 3px solid #0f62fe; padding: .75rem 1rem; font-size: 14px; margin: .5rem 0; }
+    .rowlink { color: #0f62fe; cursor: pointer; }
+    .cds--tag { white-space: nowrap; }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">Visual Preview: Result Delivery &nbsp;|&nbsp; OpenELIS Design Mockup &nbsp;|&nbsp; Not a live application &nbsp;|&nbsp; Routes: /ReportPrintQueue, /SentMessages, /MasterListsPage/notificationTriggerConfig/*</div>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+
+    const Tag = ({ kind, children }) => <span className={`cds--tag cds--tag--${kind}`}>{children}</span>;
+    const Btn = ({ kind = 'primary', size = 'sm', children, onClick, disabled }) => (
+      <button className={`cds--btn cds--btn--${kind} cds--btn--${size}`} onClick={onClick} disabled={disabled}>{children}</button>
+    );
+    const Crumb = ({ items }) => (
+      <div className="crumb">{items.map((c, i) => <span key={i}>{i > 0 && ' / '}{i < items.length - 1 ? <a href="#">{c}</a> : c}</span>)}</div>
+    );
+    const statusTag = (s) => ({ Sent: <Tag kind="green">Sent</Tag>, Failed: <Tag kind="red">Failed</Tag>, Queued: <Tag kind="blue">Queued</Tag>, Skipped: <Tag kind="gray">Skipped</Tag> }[s]);
+    const stateTag = (s) => ({ Final: <Tag kind="green">Final</Tag>, Partial: <Tag kind="blue">Partial</Tag>, Amended: <Tag kind="magenta">Amended</Tag> }[s]);
+
+    // ---------- 1. Report Print Queue with Send ----------
+    const queueRows = [
+      { id: 1, type: 'Patient report', lab: 'CPHL-26-004188', subj: 'M. K.', code: 'PT-77120', req: 'Port Moresby General Hospital / Ward 4B', ext: 'PMGH-88213', state: 'Final', print: 'Printed v2', sent: 'Sent v2 14:32' },
+      { id: 2, type: 'Patient report', lab: 'CPHL-26-004191', subj: 'J. T.', code: 'PT-77134', req: 'Port Moresby General Hospital / Emergency', ext: 'PMGH-88219', state: 'Partial', print: 'Unprinted', sent: 'Queued: sends 14:52' },
+      { id: 3, type: 'Patient report', lab: 'CPHL-26-004195', subj: 'A. W.', code: 'PT-77141', req: 'Port Moresby General Hospital / Maternity', ext: 'PMGH-88230', state: 'Amended', print: 'Printed v3', sent: 'Sent v2' },
+      { id: 4, type: 'Patient report', lab: 'CPHL-26-004203', subj: 'S. N.', code: 'PT-77160', req: '9 Mile Urban Clinic', ext: '9M-2210', state: 'Final', print: 'Unprinted', sent: 'Not sent' },
+      { id: 5, type: 'Patient report', lab: 'CPHL-26-004207', subj: 'P. B.', code: 'PT-77172', req: '9 Mile Urban Clinic', ext: '9M-2214', state: 'Final', print: 'Unprinted', sent: 'Not sent' },
+      { id: 6, type: 'Environmental', lab: 'CPHL-26-E00412', subj: 'Sabama Water Intake', code: 'WS-014', req: 'Eda Ranu Water Utility', ext: 'ER-Q4-118', state: 'Final', print: 'Printed v1', sent: 'Not sent' },
+      { id: 7, type: 'Patient report', lab: 'CPHL-26-004211', subj: 'D. K.', code: 'PT-77180', req: 'Gerehu General Hospital', ext: 'GGH-5521', state: 'Final', print: 'Unprinted', sent: 'Not sent' },
+    ];
+
+    function SendDialog({ selected, onClose, onSent }) {
+      const [showPw, setShowPw] = useState(false);
+      const [typed, setTyped] = useState('');
+      const [addedTyped, setAddedTyped] = useState(false);
+      const [maskPmgh, setMaskPmgh] = useState(false);
+      return (
+        <div className="modal-back"><div className="modal" role="dialog" aria-label="Send reports">
+          <header><div className="muted">Report Print Queue</div><h3>Send reports</h3></header>
+          <div className="body">
+            <p style={{ fontSize: 14, marginTop: 0 }}>Each recipient gets one email with all its reports attached. Full reports are always password protected.</p>
+            <div className="group">
+              <h5>Port Moresby General Hospital &nbsp;<span className="muted">3 reports: CPHL-26-004188 v2, CPHL-26-004191 v1 (partial), CPHL-26-004195 v3 (amended)</span></h5>
+              <div className="reciprow" style={{ fontWeight: 600, fontSize: 12, color: '#525252' }}><span></span><span>Recipient</span><span>Address</span><span>Format</span><span>Password</span></div>
+              <div className="reciprow"><input type="checkbox" defaultChecked aria-label="Send to Port Moresby General Hospital lab office" /><span>Facility: Lab results office</span><span className="mono">results@pmgh.health.gov.pg</span>
+                <select value={maskPmgh ? 'masked' : 'protected'} onChange={e => setMaskPmgh(e.target.value === 'masked')}><option value="protected">Protected full report</option><option value="masked">Masked copy</option></select>
+                <span className="secret"><code>{showPw ? 'K7M-PQ4-RTW-9XF' : '•••-•••-•••-•••'}</code><Btn kind="ghost" onClick={() => setShowPw(!showPw)}>{showPw ? 'Hide' : 'Show'}</Btn></span></div>
+              <div className="reciprow"><input type="checkbox" defaultChecked aria-label="Send to Ward 4B" /><span>Ward 4B</span><span className="mono">ward4b@pmgh.health.gov.pg</span><span>Protected full report</span><span className="muted">Facility password</span></div>
+              <div className="reciprow"><input type="checkbox" aria-label="Send to Dr Kila" /><span>Clinician: Dr R. Kila</span><span className="mono">r.kila@pmgh.health.gov.pg</span><span>Protected full report</span><span className="muted">Facility password</span></div>
+            </div>
+            <div className="group">
+              <h5>9 Mile Urban Clinic &nbsp;<span className="muted">2 reports: CPHL-26-004203 v1, CPHL-26-004207 v1</span></h5>
+              <div className="reciprow"><input type="checkbox" defaultChecked aria-label="Send to 9 Mile Urban Clinic" /><span>Facility</span><span className="mono">9mile.clinic@gmail.com</span><span>Masked copy</span><span className="muted">No password: masked copy</span></div>
+              {addedTyped && <div className="reciprow"><input type="checkbox" defaultChecked aria-label="Send to typed address" /><span>Added for this send</span><span className="mono">{typed}</span><span>Masked copy</span><span className="muted">Typed address: masked copy</span></div>}
+              <div style={{ padding: '.5rem .75rem', borderTop: '1px solid #e0e0e0', display: 'flex', gap: '.5rem', alignItems: 'end' }}>
+                <div className="field" style={{ flex: 1 }}><label>Add an address for this send</label><input value={typed} onChange={e => setTyped(e.target.value)} placeholder="name@example.org or +675 7xxx xxxx" /></div>
+                <Btn kind="tertiary" onClick={() => typed && setAddedTyped(true)}>Add</Btn>
+              </div>
+              {addedTyped && <div className="warn">Send 2 reports to {typed} as masked copies? This address is not in the directory and will not be saved.</div>}
+            </div>
+            <div className="group">
+              <h5>Eda Ranu Water Utility &nbsp;<span className="muted">1 certificate: CPHL-26-E00412 v1</span></h5>
+              <div className="reciprow"><input type="checkbox" defaultChecked aria-label="Send to Eda Ranu" /><span>Client: Requestor contact (V. Gare)</span><span className="mono">v.gare@edaranu.com.pg</span><span>Masked copy</span><span className="muted">No password set</span></div>
+            </div>
+            <div className="group">
+              <h5>Gerehu General Hospital &nbsp;<span className="muted">1 report: CPHL-26-004211 v1</span></h5>
+              <div className="reciprow"><input type="checkbox" disabled aria-label="Gerehu has no address" /><span>Facility</span><span className="muted">No report email</span><span>-</span><span><Tag kind="gray">Will be skipped</Tag></span></div>
+            </div>
+          </div>
+          <footer>
+            <button className="cds--btn--secondary" style={{ background: '#393939', color: '#fff' }} onClick={onClose}>Cancel</button>
+            <button style={{ background: '#0f62fe', color: '#fff' }} onClick={onSent}>Send {selected} reports to {addedTyped ? 6 : 5} recipients</button>
+          </footer>
+        </div></div>
+      );
+    }
+
+    function PrintQueue() {
+      const [sel, setSel] = useState([1, 2, 3, 4, 5, 6, 7]);
+      const [open, setOpen] = useState(false);
+      const [done, setDone] = useState(false);
+      const [exp, setExp] = useState(1);
+      const toggle = (id) => setSel(sel.includes(id) ? sel.filter(x => x !== id) : [...sel, id]);
+      return (
+        <div>
+          <Crumb items={['Home', 'Reports', 'Report Print Queue']} />
+          <h1 className="page">Report Print Queue</h1>
+          <p className="desc">Print, reprint, reissue and send released reports. Sending emails each recipient its reports as protected PDFs, or masked copies when it has no delivery password.</p>
+          <div className="route">/ReportPrintQueue</div>
+          {done && <div className="toast" role="status">7 reports queued to 4 recipients. 1 recipient skipped: no email for Gerehu General Hospital. <span className="rowlink">View in Sent Messages</span></div>}
+          {sel.length > 0 && <div className="batchbar"><span>{sel.length} selected</span><span style={{ flex: 1 }}></span><button>Print selected</button><button>Download selected</button><button onClick={() => setOpen(true)}>Send selected</button><button onClick={() => setSel([])}>Cancel</button></div>}
+          <div className="toolbar"><input placeholder="Search lab number, name, order number" style={{ width: 300 }} /><select><option>Type: All</option></select><select><option>State: All</option></select><select><option>Sent: All</option><option>Not sent</option></select><select><option>Last 7 days</option></select></div>
+          <table className="cds--data-table cds--data-table--sm">
+            <thead><tr><th></th><th></th><th>Type</th><th>Lab No</th><th>Subject</th><th>Requester / order no.</th><th>State</th><th>Print</th><th>Sent</th></tr></thead>
+            <tbody>
+              {queueRows.map(r => (
+                <React.Fragment key={r.id}>
+                  <tr>
+                    <td><input type="checkbox" checked={sel.includes(r.id)} onChange={() => toggle(r.id)} aria-label={`Select ${r.lab}`} /></td>
+                    <td><span className="rowlink" onClick={() => setExp(exp === r.id ? null : r.id)}>{exp === r.id ? '▾' : '▸'}</span></td>
+                    <td>{r.type}</td><td className="mono">{r.lab}</td><td>{r.subj}<div className="muted">{r.code}</div></td>
+                    <td>{r.req}<div className="muted mono">{r.ext}</div></td><td>{stateTag(r.state)}</td><td>{r.print}</td>
+                    <td>{r.sent.startsWith('Sent') ? <Tag kind="green">{r.sent}</Tag> : r.sent.startsWith('Queued') ? <Tag kind="blue">{r.sent}</Tag> : <span className="muted">{r.sent}</span>}</td>
+                  </tr>
+                  {exp === r.id && r.id === 1 && (
+                    <tr><td colSpan={9}><div className="expand">
+                      <div className="section-title">Version history</div>
+                      <table className="cds--data-table cds--data-table--xs" style={{ background: '#fff' }}>
+                        <thead><tr><th>Version</th><th>Event</th><th>When</th><th>By</th><th>Detail</th></tr></thead>
+                        <tbody>
+                          <tr><td>v2</td><td>Sent</td><td>15/10/26 14:32</td><td>J. Kaupa</td><td>results@pmgh.health.gov.pg, protected (password set 02/09/26)</td></tr>
+                          <tr><td>v2</td><td>Sent</td><td>15/10/26 14:32</td><td>J. Kaupa</td><td>ward4b@pmgh.health.gov.pg, protected</td></tr>
+                          <tr><td>v2</td><td>Printed</td><td>15/10/26 14:20</td><td>J. Kaupa</td><td>Final. Added: Creatinine, Urea</td></tr>
+                          <tr><td>v1</td><td>Sent</td><td>15/10/26 10:41</td><td>Automatic</td><td>results@pmgh.health.gov.pg, protected. Partial 4 of 6</td></tr>
+                          <tr><td>v1</td><td>Printed</td><td>15/10/26 10:30</td><td>M. Aiwa</td><td>Partial 4 of 6</td></tr>
+                        </tbody>
+                      </table>
+                      <div className="btnrow"><Btn kind="tertiary">Open PDF v2</Btn><Btn kind="tertiary" onClick={() => setOpen(true)}>Send</Btn><Btn kind="ghost">Reissue with correction</Btn></div>
+                    </div></td></tr>
+                  )}
+                  {exp === r.id && r.id !== 1 && (
+                    <tr><td colSpan={9}><div className="expand"><span className="muted">Version history: {r.print}. {r.sent}.</span><div className="btnrow"><Btn kind="tertiary">Print</Btn><Btn kind="tertiary" onClick={() => setOpen(true)}>Send</Btn></div></div></td></tr>
+                  )}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+          {open && <SendDialog selected={sel.length} onClose={() => setOpen(false)} onSent={() => { setOpen(false); setDone(true); }} />}
+        </div>
+      );
+    }
+
+    // ---------- 2. Sent Messages ----------
+    const sent = [
+      { t: '15/10/26 14:32', p: 'Report', lab: 'CPHL-26-004188', to: 'Port Moresby General Hospital', addr: 're••••@pmgh.health.gov.pg', ch: 'Email', fmt: 'Protected, v2', s: 'Sent', a: 1, by: 'J. Kaupa' },
+      { t: '15/10/26 14:05', p: 'Alert', lab: 'CPHL-26-004211', to: 'Provincial Health Office: Cholera', addr: '3 members', ch: 'SMS + Email', fmt: 'Rule: Cholera RDT positive', s: 'Sent', a: 1, by: 'Automatic', ack: 'Acknowledged 14:19 by Dr L. Hasu' },
+      { t: '15/10/26 13:50', p: 'Ready notice', lab: 'CPHL-26-004176', to: 'Patient', addr: '+675 7•••• 412', ch: 'SMS', fmt: 'No result', s: 'Sent', a: 1, by: 'Automatic' },
+      { t: '15/10/26 13:12', p: 'Report', lab: 'CPHL-26-004160', to: 'Gerehu General Hospital', addr: 'No email', ch: 'Email', fmt: '-', s: 'Skipped', a: 0, by: 'Automatic', reason: 'No email address' },
+      { t: '15/10/26 12:40', p: 'Report', lab: 'CPHL-26-E00398', to: 'Eda Ranu Water Utility', addr: 'v.••••@edaranu.com.pg', ch: 'Email', fmt: 'Masked, v1', s: 'Failed', a: 4, by: 'M. Aiwa', reason: 'Mailbox full (552)' },
+      { t: '15/10/26 11:58', p: 'Ready notice', lab: 'CPHL-26-004150', to: 'Patient', addr: '+675 7•••• 088', ch: 'SMS', fmt: 'Result included (SARS-CoV-2 RDT)', s: 'Sent', a: 1, by: 'Automatic' },
+      { t: '15/10/26 11:20', p: 'Notification', lab: 'CPHL-26-004102', to: 'Lae Provincial Lab', addr: 'la••••@lpl.health.gov.pg', ch: 'Email', fmt: 'Referral out', s: 'Sent', a: 1, by: 'Automatic' },
+      { t: '15/10/26 10:41', p: 'Report', lab: 'CPHL-26-004188', to: 'Port Moresby General Hospital', addr: 're••••@pmgh.health.gov.pg', ch: 'Email', fmt: 'Protected, v1 partial', s: 'Sent', a: 1, by: 'Automatic' },
+      { t: '15/10/26 10:39', p: 'Report', lab: 'CPHL-26-004201', to: 'Port Moresby General Hospital', addr: 're••••@pmgh.health.gov.pg', ch: 'Email', fmt: 'Protected, v1', s: 'Queued', a: 0, by: 'Automatic', reason: 'Waiting for the 10 minute hold' },
+    ];
+    function SentMessages() {
+      const [exp, setExp] = useState(1);
+      const [prod, setProd] = useState('All');
+      const rows = sent.filter(r => prod === 'All' || r.p === prod);
+      return (
+        <div>
+          <Crumb items={['Home', 'Reports', 'Sent Messages']} />
+          <h1 className="page">Sent Messages</h1>
+          <p className="desc">Every report, alert, patient notice and notification OpenELIS has sent or tried to send, with what was sent and to whom.</p>
+          <div className="route">/SentMessages?product={prod === 'All' ? '' : prod.toLowerCase()}</div>
+          <div className="toolbar">
+            <input placeholder="Lab number or recipient" style={{ width: 240 }} />
+            <select value={prod} onChange={e => setProd(e.target.value)}><option>All</option><option>Report</option><option>Alert</option><option>Ready notice</option><option>Notification</option></select>
+            <select><option>Status: All</option><option>Failed</option><option>Skipped</option><option>Queued</option></select>
+            <select><option>Channel: All</option><option>Email</option><option>SMS</option><option>WhatsApp</option></select>
+            <select><option>Today</option><option>Last 7 days</option></select>
+          </div>
+          <table className="cds--data-table cds--data-table--sm">
+            <thead><tr><th></th><th>Time</th><th>Product</th><th>Lab No</th><th>Recipient</th><th>Channel</th><th>Content</th><th>Status</th><th>Attempts</th><th>Sent by</th></tr></thead>
+            <tbody>{rows.map((r, i) => (
+              <React.Fragment key={i}>
+                <tr>
+                  <td><span className="rowlink" onClick={() => setExp(exp === i ? null : i)}>{exp === i ? '▾' : '▸'}</span></td>
+                  <td>{r.t}</td><td>{r.p}</td><td className="mono">{r.lab}</td><td>{r.to}<div className="muted mono">{r.addr}</div></td><td>{r.ch}</td><td>{r.fmt}</td>
+                  <td>{statusTag(r.s)}{r.reason && <div className="muted">{r.reason}</div>}</td><td>{r.a}</td><td>{r.by}</td>
+                </tr>
+                {exp === i && (
+                  <tr><td colSpan={10}><div className="expand">
+                    {r.p === 'Alert' ? (
+                      <div className="grid2">
+                        <div><div className="section-title">SMS sent</div><div className="previewbox">CPHL ALERT: Cholera RDT POSITIVE. Lab no CPHL-26-004211, order GGH-5521, Gerehu General Hospital. Collected 15/10/26 08:10, male 34 y. Confirm: 325 6800. Ack: cphl.health.gov.pg/a/7Hq2</div></div>
+                        <div><div className="section-title">Members and acknowledgement</div><p style={{ fontSize: 14 }}>Dr L. Hasu (email, SMS): Sent, acknowledged 14:19<br />S. Moide (SMS): Sent<br />NDoH Surveillance desk (email): Sent</p><div className="info">Acknowledged within the rule's 60 minute limit. No escalation raised.</div></div>
+                      </div>
+                    ) : r.s === 'Failed' ? (
+                      <div>
+                        <div className="section-title">Attempts</div>
+                        <p style={{ fontSize: 14 }}>12:40 Failed: 552 Mailbox full<br />12:41 Failed: 552 Mailbox full<br />12:46 Failed: 552 Mailbox full<br />13:01 Failed: 552 Mailbox full. Marked Failed.</p>
+                        <div className="btnrow"><Btn kind="primary">Resend</Btn><Btn kind="ghost">Open order</Btn></div>
+                      </div>
+                    ) : (
+                      <div className="grid2">
+                        <div><div className="section-title">Subject</div><div className="previewbox">CPHL results: {r.fmt.includes('partial') ? 'Partial' : 'Final'}, 1 report</div><div className="section-title" style={{ marginTop: '.75rem' }}>Body</div><div className="previewbox">{`Central Public Health Laboratory sends you the following report:\n\n  ${r.lab}  (your order PMGH-88213)  ${r.fmt.includes('partial') ? 'Partial, 4 of 6 results' : 'Final'}\n\nThe attached PDF is protected with your facility's delivery password.\nQuestions: CPHL results desk, 325 6800, results@cphl.health.gov.pg, Mon-Fri 08:00-16:00`}</div></div>
+                        <div><div className="section-title">What was sent</div><p style={{ fontSize: 14 }}>Attachment: <span className="mono">{r.lab}-v{r.fmt.includes('v2') ? 2 : 1}.pdf</span><br />Format: {r.fmt}<br />Archive SHA-256: <span className="mono">9f2c…e41a</span></p><div className="btnrow"><Btn kind="tertiary">Open version in print queue</Btn><Btn kind="ghost">Resend</Btn></div></div>
+                      </div>
+                    )}
+                  </div></td></tr>
+                )}
+              </React.Fragment>
+            ))}</tbody>
+          </table>
+        </div>
+      );
+    }
+
+    // ---------- 3. Facility delivery settings ----------
+    function Facility() {
+      const [show, setShow] = useState(false);
+      const [pw, setPw] = useState('K7M-PQ4-RTW-9XF');
+      const [copied, setCopied] = useState(false);
+      const [confirm, setConfirm] = useState(false);
+      return (
+        <div>
+          <Crumb items={['Home', 'Admin', 'Locations & Organizations', 'Organizations']} />
+          <h1 className="page">Organizations</h1>
+          <p className="desc">Health facilities and laboratories your lab works with. The Result delivery section says how this facility receives its reports.</p>
+          <div className="route">/MasterListsPage/locations</div>
+          <table className="cds--data-table cds--data-table--sm">
+            <thead><tr><th>Name</th><th>Type</th><th>Code</th><th>Location</th><th>Delivery</th><th>Active</th></tr></thead>
+            <tbody>
+              <tr><td><b>Port Moresby General Hospital</b></td><td>Referring clinic</td><td className="mono">NCD-PMGH</td><td>NCD / Moresby South</td><td><Tag kind="green">Automatic, protected</Tag></td><td>On</td></tr>
+              <tr><td colSpan={6}><div className="expand">
+                <div className="section-title">Result delivery</div>
+                <div className="grid2">
+                  <div className="field"><label>Report email addresses</label><div><span className="chip">results@pmgh.health.gov.pg ✕</span><span className="chip">labmanager@pmgh.health.gov.pg ✕</span></div><input placeholder="Add an address" /></div>
+                  <div className="field"><label>Report SMS or WhatsApp number</label><input defaultValue="+675 7230 1188" /><div className="helper">Used to say reports are ready. Reports are attached only to email.</div></div>
+                  <div className="field"><label>Send reports automatically</label><select defaultValue="on"><option value="on">On: send each version when released</option><option>Off: send from the print queue only</option></select></div>
+                  <div className="field"><label>Include partial reports</label><select><option>Lab default (Yes)</option><option>Yes</option><option>No</option></select></div>
+                  <div className="field"><label>Language</label><select><option>English</option><option>Tok Pisin</option></select></div>
+                  <div className="field"><label>Delivery password</label>
+                    <div className="secret"><code aria-live="polite">{show ? pw : '•••-•••-•••-•••'}</code>
+                      <Btn kind="ghost" onClick={() => setShow(!show)}>{show ? 'Hide' : 'Show'}</Btn>
+                      <Btn kind="ghost" onClick={() => setCopied(true)}>Copy</Btn>
+                      <Btn kind="ghost" onClick={() => setConfirm(true)}>Change</Btn></div>
+                    <div className="helper">Password set 02/09/26 by S. Arua. Give it to the facility by phone or in person. Every Show and Copy is recorded in History.</div>
+                    {copied && <div className="helper" style={{ color: '#24a148' }}>Copied. Recorded in History.</div>}
+                  </div>
+                </div>
+                {confirm && <div className="warn">Change the delivery password? Reports already sent stay locked with the old password, so the facility will need both for a while. <span className="rowlink" onClick={() => { setPw('W3H-CN8-ZPK-4RY'); setConfirm(false); setShow(true); }}>Generate new password</span> &nbsp; <span className="rowlink" onClick={() => setConfirm(false)}>Cancel</span></div>}
+                <div className="section-title" style={{ marginTop: '1rem' }}>Wards / Depts</div>
+                <table className="cds--data-table cds--data-table--xs" style={{ background: '#fff' }}>
+                  <thead><tr><th>Name</th><th>Service type</th><th>Report email</th><th>Active</th></tr></thead>
+                  <tbody>
+                    <tr><td>Ward 4B</td><td>Inpatient</td><td className="mono">ward4b@pmgh.health.gov.pg</td><td>On</td></tr>
+                    <tr><td>Emergency</td><td>Emergency</td><td className="muted">Uses facility addresses</td><td>On</td></tr>
+                    <tr><td>Maternity</td><td>Maternity</td><td className="muted">Uses facility addresses</td><td>On</td></tr>
+                  </tbody>
+                </table>
+                <div className="btnrow"><Btn kind="primary">Save</Btn><Btn kind="ghost">Cancel</Btn><Btn kind="ghost">History</Btn></div>
+              </div></td></tr>
+              <tr><td>9 Mile Urban Clinic</td><td>Referring clinic</td><td className="mono">NCD-9MUC</td><td>NCD / Moresby North-East</td><td><Tag kind="gray">Manual, masked</Tag></td><td>On</td></tr>
+              <tr><td>Gerehu General Hospital</td><td>Referring clinic</td><td className="mono">NCD-GGH</td><td>NCD / Moresby North-West</td><td><Tag kind="warm-gray">No report email</Tag></td><td>On</td></tr>
+              <tr><td>Eda Ranu Water Utility</td><td>Environmental client</td><td className="mono">ENV-EDR</td><td>NCD</td><td><Tag kind="gray">Manual, masked</Tag></td><td>On</td></tr>
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    // ---------- 4. Channels ----------
+    function Channels() {
+      const [exp, setExp] = useState('Email');
+      const [tested, setTested] = useState(false);
+      return (
+        <div>
+          <Crumb items={['Home', 'Admin', 'Notifications', 'Channels']} />
+          <h1 className="page">Channels</h1>
+          <p className="desc">How OpenELIS sends email, SMS and WhatsApp messages. Set each up once; reports, alerts and patient notices all use them.</p>
+          <div className="route">/MasterListsPage/notificationTriggerConfig/channels</div>
+          <table className="cds--data-table cds--data-table--sm">
+            <thead><tr><th>Channel</th><th>Connection</th><th>Status</th><th>Last successful send</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>Email</td><td>smtp.health.gov.pg:587, STARTTLS</td><td><Tag kind="green">Ready</Tag></td><td>15/10/26 14:32</td><td><span className="rowlink" onClick={() => setExp(exp === 'Email' ? null : 'Email')}>Edit</span></td></tr>
+              {exp === 'Email' && <tr><td colSpan={5}><div className="expand">
+                <div className="grid3">
+                  <div className="field"><label>SMTP host</label><input defaultValue="smtp.health.gov.pg" /></div>
+                  <div className="field"><label>Port</label><input defaultValue="587" /></div>
+                  <div className="field"><label>Security</label><select><option>STARTTLS</option><option>SSL/TLS</option><option>None</option></select></div>
+                  <div className="field"><label>Username</label><input defaultValue="cphl-results" /></div>
+                  <div className="field"><label>Password</label><div className="secret"><code>Set</code><Btn kind="ghost">Replace</Btn></div></div>
+                  <div className="field"><label>Reply-to address</label><input defaultValue="results@cphl.health.gov.pg" /></div>
+                  <div className="field"><label>Sender address</label><input defaultValue="no-reply@cphl.health.gov.pg" /></div>
+                  <div className="field"><label>Sender name</label><input defaultValue="CPHL Results" /></div>
+                  <div className="field"><label>Send test email to</label><input defaultValue="s.arua@cphl.health.gov.pg" /></div>
+                </div>
+                {tested && <div className="toast" role="status">Test message sent to s.arua@cphl.health.gov.pg.</div>}
+                <div className="btnrow"><Btn kind="primary">Save</Btn><Btn kind="tertiary" onClick={() => setTested(true)}>Send test</Btn><Btn kind="ghost" onClick={() => setExp(null)}>Cancel</Btn></div>
+              </div></td></tr>}
+              <tr><td>SMS</td><td>TextIt, channel 4f1c…a2</td><td><Tag kind="green">Ready</Tag></td><td>15/10/26 14:05</td><td><span className="rowlink" onClick={() => setExp(exp === 'SMS' ? null : 'SMS')}>Edit</span></td></tr>
+              {exp === 'SMS' && <tr><td colSpan={5}><div className="expand"><div className="grid3">
+                <div className="field"><label>Gateway</label><select><option>TextIt</option><option>BMP</option><option>SMPP</option></select></div>
+                <div className="field"><label>API address</label><input defaultValue="https://textit.com/api/v2/" /></div>
+                <div className="field"><label>Token</label><div className="secret"><code>Set</code><Btn kind="ghost">Replace</Btn></div></div>
+                <div className="field"><label>Channel UUID</label><input defaultValue="4f1c8d2e-9b7a-4c1e-a3f0-2b6d1e9c07a2" /></div>
+                <div className="field"><label>Default country code</label><input defaultValue="+675" /></div>
+                <div className="field"><label>Send test SMS to</label><input defaultValue="+675 7230 4410" /></div>
+              </div><div className="btnrow"><Btn kind="primary">Save</Btn><Btn kind="tertiary">Send test</Btn><Btn kind="ghost" onClick={() => setExp(null)}>Cancel</Btn></div></div></td></tr>}
+              <tr><td>WhatsApp</td><td>Not set up</td><td><Tag kind="gray">Not set up</Tag></td><td>-</td><td><span className="rowlink" onClick={() => setExp(exp === 'WA' ? null : 'WA')}>Set up</span></td></tr>
+              {exp === 'WA' && <tr><td colSpan={5}><div className="expand"><div className="grid3">
+                <div className="field"><label>API address</label><input placeholder="https://graph.facebook.com/v19.0/{phone-id}/messages" /></div>
+                <div className="field"><label>Access token</label><input type="password" placeholder="Paste token" /></div>
+                <div className="field"><label>Send test message to</label><input placeholder="+675 ..." /></div>
+              </div><div className="btnrow"><Btn kind="primary">Save</Btn><Btn kind="tertiary">Send test</Btn><Btn kind="ghost" onClick={() => setExp(null)}>Cancel</Btn></div></div></td></tr>}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    // ---------- 5. Distribution lists ----------
+    function Lists() {
+      const [exp, setExp] = useState(0);
+      const lists = [
+        { n: 'Provincial Health Office: Cholera', d: 'NCD and Central province cholera response', m: 3, id: 'Yes', used: 'Cholera RDT positive; Vibrio cholerae isolated' },
+        { n: 'NDoH Surveillance: Viral haemorrhagic fever', d: 'National duty officers, 24 hours', m: 4, id: 'Yes', used: 'Ebola PCR detected' },
+        { n: 'NCD Malaria programme', d: 'Weekly programme contacts', m: 2, id: 'No', used: 'Malaria RDT positive (pregnant women)' },
+      ];
+      return (
+        <div>
+          <Crumb items={['Home', 'Admin', 'Notifications', 'Distribution Lists']} />
+          <h1 className="page">Distribution Lists</h1>
+          <p className="desc">Named groups of people who receive priority result alerts. Alert rules on a test pick a list, so a change of duty officer is one edit here.</p>
+          <div className="route">/MasterListsPage/notificationTriggerConfig/lists</div>
+          <div className="toolbar"><input placeholder="Search lists" style={{ width: 240 }} /><select><option>Status: Active</option><option>All</option></select><span style={{ flex: 1 }}></span><Btn kind="primary">Add list</Btn></div>
+          <table className="cds--data-table cds--data-table--sm">
+            <thead><tr><th>Name</th><th>Members</th><th>May receive patient identifiers</th><th>Used by rules</th><th>Active</th><th></th></tr></thead>
+            <tbody>{lists.map((l, i) => (
+              <React.Fragment key={i}>
+                <tr><td><b>{l.n}</b><div className="muted">{l.d}</div></td><td>{l.m}</td><td>{l.id}</td><td>{l.used}</td><td>On</td><td><span className="rowlink" onClick={() => setExp(exp === i ? null : i)}>Edit</span></td></tr>
+                {exp === i && i === 0 && <tr><td colSpan={6}><div className="expand">
+                  <div className="grid2">
+                    <div className="field"><label>Name</label><input defaultValue={l.n} /></div>
+                    <div className="field"><label>May receive patient identifiers</label><select defaultValue="Yes"><option>Yes</option><option>No</option></select><div className="helper">Yes lets alert messages to this list include patient name, ID, phone and village for contact tracing.</div></div>
+                  </div>
+                  <div className="section-title" style={{ marginTop: '1rem' }}>Members</div>
+                  <table className="cds--data-table cds--data-table--xs" style={{ background: '#fff' }}>
+                    <thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Active</th></tr></thead>
+                    <tbody>
+                      <tr><td>Dr L. Hasu, Provincial Health Officer</td><td className="mono">l.hasu@ncdpha.gov.pg</td><td className="mono">+675 7120 3345</td><td>On</td></tr>
+                      <tr><td>S. Moide, Disease Control Officer</td><td className="muted">-</td><td className="mono">+675 7344 0921</td><td>On</td></tr>
+                      <tr><td>NDoH Surveillance desk</td><td className="mono">surveillance@health.gov.pg</td><td className="muted">-</td><td>On</td></tr>
+                    </tbody>
+                  </table>
+                  <div className="btnrow"><Btn kind="ghost">Add member</Btn><Btn kind="primary">Save</Btn><Btn kind="ghost" onClick={() => setExp(null)}>Cancel</Btn><Btn kind="ghost">Deactivate list</Btn></div>
+                </div></td></tr>}
+                {exp === i && i !== 0 && <tr><td colSpan={6}><div className="expand"><span className="muted">{l.m} members. Open to edit names, emails and mobile numbers.</span></div></td></tr>}
+              </React.Fragment>
+            ))}</tbody>
+          </table>
+        </div>
+      );
+    }
+
+    // ---------- 6. Delivery settings ----------
+    function Settings() {
+      const [central, setCentral] = useState(false);
+      return (
+        <div>
+          <Crumb items={['Home', 'Admin', 'Notifications', 'Delivery Settings']} />
+          <h1 className="page">Delivery Settings</h1>
+          <p className="desc">Lab-wide rules for how reports, alerts and patient notices are sent.</p>
+          <div className="route">/MasterListsPage/notificationTriggerConfig/delivery</div>
+          <div className="tile"><div className="section-title">Reports</div><div className="grid2">
+            <div className="field"><label>Format for recipients without a password</label><select><option>Masked copy</option></select><div className="helper">Full reports are only sent protected with the recipient's delivery password.</div></div>
+            <div className="field"><label>Wait before sending a new version (minutes)</label><input defaultValue="10" /><div className="helper">Results validated together go out as one version.</div></div>
+            <div className="field"><label>Send partial reports automatically</label><select><option>Yes</option><option>No</option></select></div>
+            <div className="field"><label>Retry after (minutes)</label><input defaultValue="1, 5, 15" /></div>
+          </div></div>
+          <div className="tile"><div className="section-title">Patient notices</div><div className="grid2">
+            <div className="field"><label>Lab contact line</label><input defaultValue="CPHL results desk, 325 6800, Mon-Fri 08:00-16:00" /><div className="helper">Used in patient notices and masked copies.</div></div>
+            <div className="field"><label>Preview</label><div className="previewbox">CPHL: your results are ready. Please contact your clinician or the lab (CPHL results desk, 325 6800, Mon-Fri 08:00-16:00).</div></div>
+          </div></div>
+          <div className="tile"><div className="section-title">Where messages are sent from</div>
+            <div className="field"><label>Where reports are sent from</label><select value={central ? 'c' : 'l'} onChange={e => setCentral(e.target.value === 'c')}><option value="l">This lab</option><option value="c">Central delivery service</option></select></div>
+            {central && <div className="warn">Reports, alerts and patient notices for this lab will be sent by the central service at https://results.health.gov.pg. This lab will stop sending them. <span className="rowlink">Confirm</span></div>}
+            <div className="grid2" style={{ marginTop: '1rem' }}>
+              <div className="field"><label>Secure links</label><select disabled><option>Off: this server has no public address</option></select></div>
+              <div className="field"><label>Link lifetime (days)</label><input defaultValue="30" disabled /></div>
+            </div>
+          </div>
+          <div className="btnrow"><Btn kind="primary">Save</Btn><Btn kind="ghost">Export recipients and templates</Btn></div>
+        </div>
+      );
+    }
+
+    // ---------- 7. Templates ----------
+    function Templates() {
+      const [which, setWhich] = useState('report');
+      const t = {
+        report: { title: 'Report delivery: email', fields: ['lab_name', 'lab_number', 'order_number', 'facility', 'ward', 'report_state', 'report_count', 'lab_contact'], subj: '{lab_name} results: {report_state}, {report_count} reports', body: '{lab_name} sends you the following reports:\n\n{report_list}\n\nThe attached PDFs are protected with your facility\'s delivery password.\nQuestions: {lab_contact}', prevS: 'CPHL results: Final, 3 reports', prevB: 'CPHL sends you the following reports:\n\n  CPHL-26-004188 (your order PMGH-88213) Final, version 2\n  CPHL-26-004191 (your order PMGH-88219) Partial, 4 of 6 results\n  CPHL-26-004195 (your order PMGH-88230) Amended, version 3\n\nThe attached PDFs are protected with your facility\'s delivery password.\nQuestions: CPHL results desk, 325 6800' },
+        notice: { title: 'Patient ready notice: SMS', fields: ['lab_name', 'patient_first_name', 'lab_contact'], subj: null, body: '{lab_name}: {patient_first_name}, your results are ready. Please contact your clinician or the lab ({lab_contact}).', prevB: 'CPHL: Mary, your results are ready. Please contact your clinician or the lab (CPHL results desk, 325 6800).' },
+        alert: { title: 'Priority alert: patient instruction (SMS)', fields: ['lab_name', 'patient_first_name', 'test_name', 'result', 'instruction', 'lab_contact'], subj: null, body: '{lab_name}: {patient_first_name}, your {test_name} result is {result}. {instruction}', prevB: 'CPHL: Mary, your SARS-CoV-2 RDT result is POSITIVE. Please stay at home for 7 days and call 1800 200 for advice.' },
+      }[which];
+      return (
+        <div>
+          <Crumb items={['Home', 'Admin', 'Notifications', 'Templates']} />
+          <h1 className="page">Templates</h1>
+          <p className="desc">The words OpenELIS sends. Each message type only offers fields that are safe for it: report messages never carry a patient's name or national ID.</p>
+          <div className="route">/MasterListsPage/notificationTriggerConfig/templates</div>
+          <div className="toolbar"><select value={which} onChange={e => setWhich(e.target.value)}><option value="report">Report delivery: email</option><option value="notice">Patient ready notice: SMS</option><option value="alert">Priority alert: patient instruction (SMS)</option></select><select><option>English</option><option>Tok Pisin</option><option>Français</option></select></div>
+          <div className="tile">
+            <div className="section-title">{t.title}</div>
+            <div className="muted" style={{ marginBottom: '.5rem' }}>Insert field:</div>
+            <div>{t.fields.map(f => <span key={f} className="mf">{`{${f}}`}</span>)}</div>
+            <div className="grid2" style={{ marginTop: '1rem' }}>
+              <div>
+                {t.subj && <div className="field"><label>Subject</label><input defaultValue={t.subj} /></div>}
+                <div className="field" style={{ marginTop: '.75rem' }}><label>{t.subj ? 'Body' : 'Message'}</label><textarea defaultValue={t.body} style={{ height: 160 }} /></div>
+                {which !== 'report' && <div className="helper">{t.prevB.length} of 160 characters, 1 SMS</div>}
+                {which === 'alert' && <div className="info">The result is included only for tests whose Patient messages setting is "Result by default". For other tests the result and test name are left out.</div>}
+              </div>
+              <div><label className="muted">Preview</label>{t.prevS && <div className="previewbox" style={{ marginBottom: '.5rem' }}><b>{t.prevS}</b></div>}<div className="previewbox">{t.prevB}</div></div>
+            </div>
+            <div className="btnrow"><Btn kind="primary">Save</Btn><Btn kind="ghost">Restore default</Btn></div>
+          </div>
+        </div>
+      );
+    }
+
+    // ---------- 8. Order entry ----------
+    function OrderEntry() {
+      const [inc, setInc] = useState({ covid: true, hiv: false, fbc: false });
+      return (
+        <div>
+          <Crumb items={['Home', 'Orders & Patients', 'Add Order']} />
+          <h1 className="page">Add Order</h1>
+          <p className="desc">Result reporting block. Patient boxes send a "results ready" notice; "Include the result" adds the result. Their starting state comes from each test's Patient messages setting.</p>
+          <div className="route">/SamplePatientEntry (existing), Result reporting block</div>
+          <div className="tile">
+            <div className="grid3" style={{ marginBottom: '1rem' }}>
+              <div><div className="muted">Patient</div>Mary Kaupa, F, 29 y<div className="mono muted">+675 7•••• 412</div></div>
+              <div><div className="muted">Requesting facility</div>Port Moresby General Hospital / Emergency</div>
+              <div className="field"><label>Facility email for this order</label><input defaultValue="results@pmgh.health.gov.pg" /><div className="helper">Used for this order only. Change the facility's addresses in Locations &amp; Organizations.</div></div>
+            </div>
+            <table className="cds--data-table cds--data-table--sm">
+              <thead><tr><th>Test</th><th>Patient messages (test setting)</th><th>Patient SMS</th><th>Patient email</th><th>Include the result</th><th>Facility</th></tr></thead>
+              <tbody>
+                <tr><td>SARS-CoV-2 RDT</td><td>Result by default</td><td><input type="checkbox" defaultChecked aria-label="Patient SMS SARS-CoV-2" /></td><td><input type="checkbox" aria-label="Patient email SARS-CoV-2" /></td><td><input type="checkbox" checked={inc.covid} onChange={() => setInc({ ...inc, covid: !inc.covid })} aria-label="Include result SARS-CoV-2" /></td><td>Automatic</td></tr>
+                <tr><td>Full blood count</td><td>Result when the order asks for it</td><td><input type="checkbox" aria-label="Patient SMS FBC" /></td><td><input type="checkbox" aria-label="Patient email FBC" /></td><td><input type="checkbox" checked={inc.fbc} onChange={() => setInc({ ...inc, fbc: !inc.fbc })} aria-label="Include result FBC" /></td><td>Automatic</td></tr>
+                <tr><td>HIV 1/2 rapid test</td><td>Ready notice only</td><td><input type="checkbox" aria-label="Patient SMS HIV" /></td><td><input type="checkbox" aria-label="Patient email HIV" /></td><td><input type="checkbox" disabled title="This lab does not send this test's results to patients by message." aria-label="Include result HIV, not allowed" /> <span className="muted">Not allowed</span></td><td>Automatic</td></tr>
+              </tbody>
+            </table>
+            <div className="info">Mary will get one SMS with her SARS-CoV-2 RDT result when it is validated, and one "results ready" notice when the whole order is final. The notice never names a test.</div>
+          </div>
+        </div>
+      );
+    }
+
+    // ---------- 9. Test Catalog alert rule ----------
+    function AlertRule() {
+      return (
+        <div>
+          <Crumb items={['Home', 'Admin', 'Test Catalog', 'Tests', 'Cholera RDT', 'Alerts']} />
+          <h1 className="page">Cholera RDT: Alerts</h1>
+          <p className="desc">Rules that tell people outside the lab about a validated result. Alerts never go out before the result is validated.</p>
+          <div className="route">/MasterListsPage/TestCatalogEditor (existing), Alerts section</div>
+          <div className="tile"><div className="grid2">
+            <div className="field"><label>Patient messages</label><select defaultValue="b"><option value="a">Ready notice only</option><option value="b">Result when the order asks for it</option><option value="c">Result by default</option></select><div className="helper">Controls whether patient messages for this test may include the result.</div></div>
+          </div></div>
+          <table className="cds--data-table cds--data-table--sm">
+            <thead><tr><th>Rule</th><th>When</th><th>Recipients</th><th>Channels</th><th>Acknowledgement</th><th>Active</th></tr></thead>
+            <tbody>
+              <tr><td><b>Cholera RDT positive</b></td><td>Result = Positive, on validation</td><td>Provincial Health Office: Cholera; order's facility; ordering clinician</td><td>SMS, Email</td><td>Required within 60 min</td><td>On</td></tr>
+              <tr><td colSpan={6}><div className="expand">
+                <div className="grid2">
+                  <div className="field"><label>Trigger</label><select><option>Specific value</option><option>Abnormal</option><option>Critical</option><option>Any result</option></select></div>
+                  <div className="field"><label>Value</label><select><option>Positive</option></select></div>
+                </div>
+                <div className="section-title" style={{ marginTop: '1rem' }}>Recipients</div>
+                <div className="grid2">
+                  <div className="field"><label>Distribution lists</label><div><span className="chip">Provincial Health Office: Cholera ✕</span></div><input placeholder="Search lists" /></div>
+                  <div style={{ fontSize: 14 }}>
+                    <label><input type="checkbox" defaultChecked /> The order's facility</label><br />
+                    <label><input type="checkbox" defaultChecked /> The ordering clinician</label><br />
+                    <label><input type="checkbox" /> The patient (instruction)</label><br />
+                    <label><input type="checkbox" /> A fixed address</label>
+                  </div>
+                </div>
+                <div className="grid2" style={{ marginTop: '1rem' }}>
+                  <div className="field"><label>Channels</label><select><option>SMS and email</option><option>Email</option><option>SMS</option><option>WhatsApp</option></select></div>
+                  <div className="field"><label>Acknowledgement</label><select><option>Required within 60 minutes, then alert validators</option><option>Not required</option></select></div>
+                </div>
+                <div className="info">The list may receive patient identifiers, so its message includes the patient's name and village. The facility and clinician messages carry the lab number and their own order number instead.</div>
+                <div className="btnrow"><Btn kind="primary">Save rule</Btn><Btn kind="ghost">Cancel</Btn><Btn kind="ghost">Turn off rule</Btn></div>
+              </div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    const screens = [
+      { g: 'Reports (main menu)', items: [['queue', 'Report Print Queue: Send', PrintQueue], ['sent', 'Sent Messages', SentMessages]] },
+      { g: 'Admin › Notifications', items: [['channels', 'Channels', Channels], ['templates', 'Templates', Templates], ['lists', 'Distribution Lists', Lists], ['settings', 'Delivery Settings', Settings]] },
+      { g: 'Elsewhere', items: [['facility', 'Organization: Result delivery', Facility], ['alert', 'Test Catalog: Alert rule', AlertRule], ['order', 'Order entry: patient notices', OrderEntry]] },
+    ];
+    function App() {
+      const [cur, setCur] = useState('queue');
+      const Screen = screens.flatMap(s => s.items).find(i => i[0] === cur)[2];
+      return (
+        <div className="shell">
+          <nav className="switcher" aria-label="Preview screens">
+            {screens.map(s => <div key={s.g}><h4>{s.g}</h4>{s.items.map(([k, label]) => <button key={k} className={cur === k ? 'active' : ''} onClick={() => setCur(k)}>{label}</button>)}</div>)}
+          </nav>
+          <main className="main"><Screen /></main>
+        </div>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
