@@ -1419,7 +1419,7 @@
   path: designs/system/in-app-help-preview.html
   spec: designs/system/help-menu.md
   category: system
-  description: "In-app help viewer (OGC-737): user and administrator guides in their own tab, TOC, search, deep links, branding, English and French, bundled offline with each release. FRS v1.2."
+  description: "In-app help viewer (OGC-737): user and administrator guides in their own tab, TOC, search, deep links, branding, English and French, bundled offline with each release. FRS, mockup and preview v1.2."
   related:
     - designs/system/help-menu.jsx
     - designs/system/in-app-help-checklist.md

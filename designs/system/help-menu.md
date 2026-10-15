@@ -15,7 +15,8 @@ v1.2 (2026-10-15, same day) simplifies v1.1 after review:
 
 - **Refresh is manual, at release cut** (section 13). The proposed GitHub Actions workflow, its three triggers, CI gates and shared service account are dropped for v1. One command, run by the release manager, output reviewed as a normal pull request.
 - **"View the latest version online"** link on every page, to its Confluence page (FR-V-12). This covers changes made between releases without any runtime dependency.
-- **Authoring conventions** proposed to the docs team (section 13.3): version-applicability labels and `helpkey` labels. The pipeline honours version labels when present (FR-P-16).
+- **Authoring conventions** (section 13.3), adopted into the [user manual style guide](https://uwdigi.atlassian.net/wiki/spaces/OG/pages/1529872422) on 2026-10-15: version-applicability labels and `helpkey` labels. The pipeline honours version labels when present (FR-P-16).
+- **Mockups updated** to v1.2: the HTML preview and JSX mockup show both guides, English and French, the fallback Tag, the WIP notice, the latest-online link and the 480 px layout.
 - **Deferred:** the outdated-translation Tag and old-slug aliases (section 11).
 
 ## What changed in v1.1
@@ -416,10 +417,8 @@ No other new dependencies without review. The pipeline otherwise uses Node built
 9. **Hotfix releases** keep the help from their `.0` release unless the release manager chooses to refresh.
 10. **Latest-online link** on every page instead of any runtime fetch.
 
-### Open
-
-11. Whether the HTML preview and JSX mockup are updated to show French, the two guides and the WIP notice before build, or after.
-12. Docs team acceptance of the conventions in 13.3.
+11. **Mockups (2026-10-15)**: HTML preview and JSX mockup updated to v1.2 before build.
+12. **Authoring conventions (2026-10-15)**: section 13.3 adopted into the user manual style guide (sections 5.1, 6 and 8 of that page).
 
 ---
 
@@ -440,9 +439,9 @@ The release checklist gets one item: **"Help content refreshed and PR merged"**.
 - **Release manager:** runs the refresh and owns the checklist item.
 - **Docs owner:** reviews the refresh PR for content.
 
-### 13.3 Authoring conventions (proposed to the docs team)
+### 13.3 Authoring conventions (adopted 2026-10-15)
 
-These keep the export simple and set up later features. None blocks v1.
+Written into the [user manual style guide](https://uwdigi.atlassian.net/wiki/spaces/OG/pages/1529872422) (sections 5.1, 6 and 8). They keep the export simple and set up later features. None blocks v1.
 
 | Convention | Purpose |
 |---|---|
