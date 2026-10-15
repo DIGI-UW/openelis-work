@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>In-App Help Viewer v1.2 | OpenELIS Preview</title>
+  <title>In-App Help Viewer v1.3 | OpenELIS Preview</title>
   <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
@@ -125,7 +125,7 @@
 </head>
 <body>
   <div class="preview-banner">
-    Visual Preview | In-App Help Viewer (FRS v1.2, OGC-737) | Route: /help/:slug? | Opened from Main header Help (?) &rarr; User Manual | Not a live application
+    Visual Preview | In-App Help Viewer (FRS v1.3, OGC-737) | Route: /help/:slug? | Opened from Main header Help (?) &rarr; User Manual | Help page text is illustrative | Not a live application
   </div>
   <div id="root"></div>
   <script type="text/babel">
@@ -151,6 +151,10 @@
         'help.viewer.error.not-found.body': 'The help page you requested does not exist.',
         'help.viewer.error.page.home': 'Back to help home',
         'help.viewer.landing.lead': 'Guides for this OpenELIS release. Pick a topic, or search above.',
+        'help.viewer.toc.label': 'Help contents',
+        'help.viewer.error.manifest': 'Help content could not be loaded. Please contact your administrator.',
+        'help.viewer.error.page.title': 'Page could not be loaded',
+        'help.viewer.error.page.retry': 'Try again',
       },
       fr: {
         'help.viewer.title': 'Aide',
@@ -170,6 +174,10 @@
         'help.viewer.error.not-found.body': 'La page d’aide demandée n’existe pas.',
         'help.viewer.error.page.home': 'Retour à l’accueil de l’aide',
         'help.viewer.landing.lead': 'Guides pour cette version d’OpenELIS. Choisissez un sujet ou faites une recherche.',
+        'help.viewer.toc.label': 'Sommaire de l’aide',
+        'help.viewer.error.manifest': 'Le contenu de l’aide n’a pas pu être chargé. Contactez votre administrateur.',
+        'help.viewer.error.page.title': 'La page n’a pas pu être chargée',
+        'help.viewer.error.page.retry': 'Réessayer',
       },
     };
     const tr = (locale, key, vars = {}) =>
@@ -312,7 +320,6 @@
             {panelOpen && (
               <div className="oe-help-panel">
                 <button onClick={openManual}>User Manual</button>
-                <div className="hint">Opens the in-app help in a new tab</div>
                 <button>Video Tutorials</button>
                 <button>Release Notes</button>
               </div>
@@ -332,7 +339,7 @@
     }
 
     // ---------- Right: the Help tab ----------
-    function HelpTab({ brand, locale, narrow, slug, hash, navigate, onReturn, opener }) {
+    function HelpTab({ brand, locale, narrow, slug, hash, navigate, onReturn, opener, fail, clearFail }) {
       const [query, setQuery] = useState('');
       const [railOpen, setRailOpen] = useState(!narrow);
       const [openFolders, setOpenFolders] = useState({});
@@ -401,8 +408,8 @@
               <button className="return" onClick={onReturn} title={opener ? 'Closes this tab and focuses OpenELIS' : 'No opener: goes to /'}>{narrow ? '↩' : T('help.viewer.return-to-app')}</button>
             </header>
             <div className="hg">
-              {railOpen && (
-                <nav className="rail" aria-label="Help contents">
+              {railOpen && fail !== 'manifest' && (
+                <nav className="rail" aria-label={T('help.viewer.toc.label')}>
                   {results ? (
                     results.length === 0
                       ? <div className="empty">{T('help.viewer.search.no-results', { query })}</div>
@@ -429,7 +436,10 @@
               )}
               <main className="main">
                 <div className="main-inner">
-                  {!slug && (
+                  {fail === 'manifest' && (
+                    <div className="note err" role="alert"><div>{T('help.viewer.error.manifest')}</div></div>
+                  )}
+                  {fail !== 'manifest' && !slug && (
                     <div className="landing">
                       <h1>{T('help.viewer.brand', { siteName: brand.banner })}</h1>
                       <p className="lead">{T('help.viewer.landing.lead')}</p>
@@ -446,16 +456,17 @@
                       </div>
                     </div>
                   )}
-                  {slug && !page && (
+                  {fail !== 'manifest' && slug && !page && (
                     <div className="note err" role="alert"><div><b>{T('help.viewer.error.not-found.title')}</b><div>{T('help.viewer.error.not-found.body')}</div>
                       <a className="latest" style={{ margin: '6px 0 0' }} onClick={() => go(null)}>{T('help.viewer.error.page.home')}</a></div></div>
                   )}
-                  {page && (
+                  {fail !== 'manifest' && page && (
                     <>
                       <div className="bc">
                         <a onClick={() => go(null)}>{T('help.viewer.breadcrumb.home')}</a><span className="sep">/</span>
                         <span>{sectionLabel(page.section)}</span><span className="sep">/</span>
-                        <span>{titleOf(page.folder, locale)}</span>
+                        <span>{titleOf(page.folder, locale)}</span><span className="sep">/</span>
+                        <span aria-current="page">{titleOf(page, locale)}</span>
                       </div>
                       <div className="titlerow">
                         <h1>{titleOf(page, locale)}</h1>
@@ -465,7 +476,12 @@
                         {T('help.viewer.link.latest')} &#8599;<span className="cds--visually-hidden"> {T('help.viewer.link.online')}</span>
                       </a>
                       {page.wip && <div className="note" role="status"><div>{T('help.viewer.wip.notice')}</div></div>}
-                      {loading
+                      {fail === 'page'
+                        ? <div className="note err" role="alert"><div><b>{T('help.viewer.error.page.title')}</b>
+                            <div style={{ marginTop: 6, display: 'flex', gap: 16 }}>
+                              <a className="latest" style={{ margin: 0 }} onClick={clearFail}>{T('help.viewer.error.page.retry')}</a>
+                              <a className="latest" style={{ margin: 0 }} onClick={() => { clearFail(); go(null); }}>{T('help.viewer.error.page.home')}</a></div></div></div>
+                        : loading
                         ? <div><div className="skel" style={{ width: '40%' }} /><div className="skel" /><div className="skel" style={{ width: '85%' }} /><div className="skel" style={{ width: '70%' }} /></div>
                         : <div className="oe-help-content" onClick={onContentClick} dangerouslySetInnerHTML={{ __html: body }} />}
                     </>
@@ -486,6 +502,7 @@
       const [helpOpen, setHelpOpen] = useState(true);
       const [opener, setOpener] = useState(true);
       const [route, setRoute] = useState({ slug: 'print-a-work-plan', hash: null });
+      const [fail, setFail] = useState(null);
       const brand = BRANDS[brandKey];
       useEffect(() => { document.body.style.setProperty('--brand-primary', brand.primaryColor); }, [brand]);
 
@@ -506,12 +523,14 @@
             <div className="grp"><span>Try:</span>
               <Btn onClick={() => { setHelpOpen(true); setOpener(false); navigate('print-a-work-plan', 'step-4-print-the-work-plan'); }}>Bookmarked deep link</Btn>
               <Btn onClick={() => { setHelpOpen(true); navigate('enter-a-clinical-order'); }}>Page with no French</Btn>
-              <Btn onClick={() => { setHelpOpen(true); navigate('old-renamed-page'); }}>Old bookmark (not found)</Btn></div>
+              <Btn onClick={() => { setHelpOpen(true); setFail(null); navigate('old-renamed-page'); }}>Old bookmark (not found)</Btn>
+              <Btn on={fail === 'page'} onClick={() => { setHelpOpen(true); setFail(fail === 'page' ? null : 'page'); }}>Page fails to load</Btn>
+              <Btn on={fail === 'manifest'} onClick={() => { setHelpOpen(true); setFail(fail === 'manifest' ? null : 'manifest'); }}>Help content missing</Btn></div>
           </div>
           <div className="split">
             <OpenELISTab brand={brand} panelOpen={panelOpen} togglePanel={() => setPanelOpen(!panelOpen)} openManual={openManual} />
             {helpOpen
-              ? <HelpTab brand={brand} locale={locale} narrow={narrow} slug={route.slug} hash={route.hash} navigate={navigate} onReturn={onReturn} opener={opener} />
+              ? <HelpTab brand={brand} locale={locale} narrow={narrow} slug={route.slug} hash={route.hash} navigate={navigate} onReturn={onReturn} opener={opener} fail={fail} clearFail={() => setFail(null)} />
               : <div className="pane help"><div className="closed"><div>Help tab closed by <strong>Return to OpenELIS</strong>.<br/>Open it again from <strong>?</strong> &rarr; <strong>User Manual</strong> in the OpenELIS tab.</div></div></div>}
           </div>
         </div>

@@ -1,4 +1,4 @@
-// HelpViewer mockup: OpenELIS Global in-app help (FRS v1.2, OGC-737)
+// HelpViewer mockup: OpenELIS Global in-app help (FRS v1.3, OGC-737)
 //
 // Route:      /help/:slug?            (SecureRoute in App.jsx; opened in its own tab)
 // Opened by:  Main header Help (?) -> "User Manual" -> window.open("/help", "_blank")
@@ -22,7 +22,7 @@ import {
   Header, HeaderName, HeaderMenuButton, HeaderGlobalBar, HeaderGlobalAction,
   SideNav, SideNavItems, SideNavMenu, SideNavMenuItem, SideNavDivider,
   Search, Breadcrumb, BreadcrumbItem, Tag, InlineNotification, Link,
-  SkeletonText, Tile, Theme,
+  SkeletonText, Tile, Theme, Grid, Column, Button,
 } from '@carbon/react';
 import { Undo, Launch } from '@carbon/icons-react';
 
@@ -44,6 +44,11 @@ const MESSAGES = {
     'help.viewer.error.not-found.title': 'Page not found',
     'help.viewer.error.not-found.body': 'The help page you requested does not exist.',
     'help.viewer.error.page.home': 'Back to help home',
+    'help.viewer.error.manifest': 'Help content could not be loaded. Please contact your administrator.',
+    'help.viewer.error.page.title': 'Page could not be loaded',
+    'help.viewer.error.page.retry': 'Try again',
+    'help.viewer.toc.label': 'Help contents',
+    'help.viewer.landing.lead': 'Guides for this OpenELIS release. Pick a topic, or search above.',
   },
   fr: {
     'help.viewer.brand': 'Aide {siteName}',
@@ -61,6 +66,11 @@ const MESSAGES = {
     'help.viewer.error.not-found.title': 'Page introuvable',
     'help.viewer.error.not-found.body': 'La page d’aide demandée n’existe pas.',
     'help.viewer.error.page.home': 'Retour à l’accueil de l’aide',
+    'help.viewer.error.manifest': 'Le contenu de l’aide n’a pas pu être chargé. Contactez votre administrateur.',
+    'help.viewer.error.page.title': 'La page n’a pas pu être chargée',
+    'help.viewer.error.page.retry': 'Réessayer',
+    'help.viewer.toc.label': 'Sommaire de l’aide',
+    'help.viewer.landing.lead': 'Guides pour cette version d’OpenELIS. Choisissez un sujet ou faites une recherche.',
   },
 };
 const useT = (locale) => (id, vars = {}) =>
@@ -117,6 +127,14 @@ const PAGES = {
 const BRANDING = { headerColor: '#0f5e3b', primaryColor: '#0f5e3b', headerLogoUrl: null };
 const BANNER_TEXT = 'Madagascar OpenELIS';
 
+// "Return to OpenELIS": text button from 672 px, icon-only below (FRS 5.1).
+const useNarrow = (px = 672) => {
+  const q = typeof window !== 'undefined' ? window.matchMedia(`(max-width: ${px - 1}px)`) : null;
+  const [narrow, setNarrow] = useState(q ? q.matches : false);
+  useEffect(() => { if (!q) return undefined; const h = (e) => setNarrow(e.matches); q.addEventListener('change', h); return () => q.removeEventListener('change', h); }, []); // eslint-disable-line
+  return narrow;
+};
+
 const flatten = (tree) => tree.flatMap((s) => s.folders.flatMap((f) => f.pages.map((p) => ({ ...p, folder: f, section: s.section }))));
 
 export default function HelpViewerMockup() {
@@ -126,6 +144,9 @@ export default function HelpViewerMockup() {
   const [query, setQuery] = useState('');
   const [navOpen, setNavOpen] = useState(true);
   const [loading, setLoading] = useState(false);
+  // FR-V-11: set from fetch failures in the real component ('manifest' | 'page' | null).
+  const [loadError, setLoadError] = useState(null);
+  const narrow = useNarrow();
 
   // FR-V-02: active-locale manifest, English as fallback.
   const manifest = MANIFESTS[locale] || MANIFESTS.en;
@@ -186,16 +207,21 @@ export default function HelpViewerMockup() {
           </div>
           <HeaderGlobalBar>
             <Tag type="outline" size="sm" style={{ alignSelf: 'center' }} onClick={() => setLocale(locale === 'en' ? 'fr' : 'en')}>{locale.toUpperCase()}</Tag>
-            <HeaderGlobalAction aria-label={t('help.viewer.return-to-app')} tooltipAlignment="end" onClick={onReturn}>
-              <Undo size={20} />
-            </HeaderGlobalAction>
+            {narrow ? (
+              <HeaderGlobalAction aria-label={t('help.viewer.return-to-app')} tooltipAlignment="end" onClick={onReturn}>
+                <Undo size={20} />
+              </HeaderGlobalAction>
+            ) : (
+              <Button kind="ghost" size="lg" renderIcon={Undo} onClick={onReturn}>{t('help.viewer.return-to-app')}</Button>
+            )}
           </HeaderGlobalBar>
         </Header>
       </Theme>
 
-      <div style={{ display: 'flex', minHeight: 640 }}>
-        {navOpen && (
-          <SideNav aria-label="Help contents" expanded isPersistent isChildOfHeader={false} style={{ position: 'relative', width: 280, height: 'auto' }}>
+      <Grid fullWidth condensed>
+        {navOpen && loadError !== 'manifest' && (
+          <Column sm={4} md={3} lg={4}>
+          <SideNav aria-label={t('help.viewer.toc.label')} expanded isPersistent isChildOfHeader={false} style={{ position: 'relative', width: 280, height: 'auto' }}>
             <SideNavItems>
               {results ? (
                 results.length === 0
@@ -218,31 +244,65 @@ export default function HelpViewerMockup() {
               ))}
             </SideNavItems>
           </SideNav>
+          </Column>
         )}
 
-        <main style={{ flex: 1, padding: '1.5rem 2rem', maxWidth: 920 }}>
-          {!page && route.slug && (
+        <Column as="main" sm={4} md={navOpen ? 5 : 8} lg={navOpen ? 12 : 16} style={{ paddingBlock: 'var(--cds-spacing-07)' }}>
+          {loadError === 'manifest' && (
+            <InlineNotification kind="error" lowContrast hideCloseButton title={t('help.viewer.error.manifest')} />
+          )}
+          {loadError !== 'manifest' && !route.slug && (
+            <section>
+              <h1 className="cds--type-heading-05">{t('help.viewer.brand', { siteName: BANNER_TEXT })}</h1>
+              <p className="cds--type-body-02" style={{ marginBlock: 'var(--cds-spacing-03) var(--cds-spacing-06)' }}>{t('help.viewer.landing.lead')}</p>
+              <Grid condensed>
+                {tree.map((s) => (
+                  <Column key={s.section} sm={4} md={4} lg={8}>
+                    <Tile>
+                      <h2 className="cds--type-heading-03">{sectionLabel(s.section)}</h2>
+                      {s.folders.map((f) => (
+                        <div key={f.slug} style={{ marginTop: 'var(--cds-spacing-05)' }}>
+                          <p className="cds--type-heading-compact-01">{f.title}</p>
+                          {f.pages.map((p) => (
+                            <div key={p.slug}><Link href={`/help/${p.slug}`} onClick={(e) => { e.preventDefault(); route.push(p.slug); }}>{p.title}</Link></div>
+                          ))}
+                        </div>
+                      ))}
+                    </Tile>
+                  </Column>
+                ))}
+              </Grid>
+            </section>
+          )}
+          {loadError !== 'manifest' && !page && route.slug && (
             <InlineNotification kind="error" lowContrast hideCloseButton
               title={t('help.viewer.error.not-found.title')} subtitle={t('help.viewer.error.not-found.body')} />
           )}
-          {page && (
+          {loadError !== 'manifest' && page && (
             <>
               <Breadcrumb noTrailingSlash>
                 <BreadcrumbItem href="/help" onClick={(e) => { e.preventDefault(); route.push(null); }}>{t('help.viewer.breadcrumb.home')}</BreadcrumbItem>
                 <BreadcrumbItem>{sectionLabel(page.section)}</BreadcrumbItem>
                 <BreadcrumbItem>{(tree.find((s) => s.section === page.section)?.folders.find((f) => f.slug === page.folder.slug) || page.folder).title}</BreadcrumbItem>
+                <BreadcrumbItem isCurrentPage>{page.title}</BreadcrumbItem>
               </Breadcrumb>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-                <h1 style={{ fontSize: 28, fontWeight: 400, margin: 0 }}>{page.title}</h1>
+              <h1 className="cds--type-heading-05" style={{ marginTop: 'var(--cds-spacing-05)' }}>
+                {page.title}{' '}
                 {isFallback && <Tag type="gray">{t('help.viewer.fallback.tag')}</Tag>}
-              </div>
+              </h1>
               {/* FR-V-12: latest version online */}
-              <Link href={page.sourceUrl} target="_blank" rel="noopener noreferrer" renderIcon={Launch} style={{ margin: '0.5rem 0 1rem' }}>
+              <Link href={page.sourceUrl} target="_blank" rel="noopener noreferrer" renderIcon={Launch} style={{ marginBlock: 'var(--cds-spacing-03) var(--cds-spacing-05)' }}>
                 {t('help.viewer.link.latest')}<span className="cds--visually-hidden"> {t('help.viewer.link.online')}</span>
               </Link>
               {/* FR-V-13: WIP notice */}
-              {page.wip && <InlineNotification kind="info" lowContrast hideCloseButton title="" subtitle={t('help.viewer.wip.notice')} style={{ marginBottom: 16 }} />}
-              {loading
+              {page.wip && <InlineNotification kind="info" lowContrast hideCloseButton title="" subtitle={t('help.viewer.wip.notice')} />}
+              {loadError === 'page' ? (
+                <InlineNotification kind="error" lowContrast hideCloseButton title={t('help.viewer.error.page.title')}
+                  subtitle={<>
+                    <Link href="#" onClick={(e) => { e.preventDefault(); setLoadError(null); }}>{t('help.viewer.error.page.retry')}</Link>{'  '}
+                    <Link href="/help" onClick={(e) => { e.preventDefault(); setLoadError(null); route.push(null); }}>{t('help.viewer.error.page.home')}</Link>
+                  </>} />
+              ) : loading
                 ? <SkeletonText paragraph lineCount={5} />
                 : <Tile style={{ background: 'transparent', padding: 0 }}>
                     {/* Real code: dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html, HELP_PURIFY_CONFIG) }} */}
@@ -250,8 +310,8 @@ export default function HelpViewerMockup() {
                   </Tile>}
             </>
           )}
-        </main>
-      </div>
+        </Column>
+      </Grid>
     </div>
   );
 }
