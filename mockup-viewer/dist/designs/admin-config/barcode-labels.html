@@ -373,9 +373,53 @@
     fields rendered on the label. Test catalog entries link to one or more presets to drive automatic
     label generation at order time.
   </p>
-  <p class="page-sub" style="font-style:italic; color:#6f6f6f; margin-top:-0.25rem;">
-    Site-wide settings (preprinted barcode) remain on the legacy Barcode Configuration page.
-  </p>
+  <!-- Site-wide Barcode Settings — FRS 5.1 · OGC-1217.
+       Restored to this surface in v2.6: the legacy Barcode Configuration page was deleted
+       during OGC-285 implementation, leaving the shipped backend with no control. -->
+  <div class="editor-card" style="margin: 1rem 0 1.25rem;">
+    <div class="editor-card-header" style="display:flex; justify-content:space-between; align-items:center; gap:1rem;">
+      <span>Site-wide Barcode Settings</span>
+      <span style="display:inline-flex; align-items:center; gap:0.375rem; font-size:0.75rem; color:#525252; font-weight:400;">
+        <svg width="14" height="14" viewBox="0 0 32 32" fill="#525252" aria-hidden="true">
+          <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2zm0 6a2 2 0 1 1-2 2 2 2 0 0 1 2-2zm4 16h-8v-2h3v-6h-2v-2h4v8h3z"/>
+        </svg>
+        Applies laboratory-wide
+      </span>
+    </div>
+    <div class="editor-card-body">
+      <p class="form-hint" style="margin-top:0; margin-bottom:0.875rem;">
+        These apply to the whole laboratory, not to an individual preset. Changing the number
+        source changes which lab-number formats are accepted at order entry and at scan, for
+        every preset.
+      </p>
+
+      <div class="form-group">
+        <div class="form-group-legend">Pre-printed label numbers come from</div>
+        <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem; font-size:0.875rem;">
+          <input type="radio" name="preprint-source" checked />
+          The same format and number pool as order entry
+        </label>
+        <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem;">
+          <input type="radio" name="preprint-source" />
+          A separate pre-printed series
+        </label>
+      </div>
+
+      <div class="form-group" style="max-width:260px; margin-top:0.875rem;">
+        <div class="form-group-legend">Pre-printed series prefix</div>
+        <input type="text" class="toolbar-search" value="PRE1" maxlength="4" disabled
+               style="width:100%; opacity:0.5;" />
+        <div class="form-hint">Exactly 4 characters. Enabled only for a separate series.</div>
+      </div>
+
+      <p class="form-hint" style="margin-top:0.875rem;">
+        A label printed in advance carries no order and no patient yet, so patient-derived
+        content fields render blank on it.
+      </p>
+
+      <button class="btn btn-primary btn-sm" style="margin-top:0.75rem;">Save site-wide settings</button>
+    </div>
+  </div>
 
   <div class="notification notif-info">
     <span class="notif-icon" aria-hidden="true">

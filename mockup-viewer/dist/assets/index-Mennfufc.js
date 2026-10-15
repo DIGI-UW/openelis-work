@@ -1,0 +1,1 @@
+const c=s=>`${s/16}rem`,k={lg:{width:c(1056)}},n=s=>c(8*s),t=n(.25),i=n(.5),o=n(1),a=n(1.5),p=n(2),g=n(3),r=n(4),e=n(5),m=n(6),b=n(8),u=n(10),d=n(12),h=n(20),l=[t,i,o,a,p,g,r,e,m,b,u,d,h];export{k as b,l as s};

@@ -1,419 +1,595 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Report Print Queue (r3) — OpenELIS Preview</title>
-  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
-  <style>
-    body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans', sans-serif; }
-    .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
-    .preview-content { padding:1rem 2rem 3rem; max-width:1500px; margin:0 auto; }
-    .pq-filterbar { background:#fff; border:1px solid #e0e0e0; padding:1rem; display:flex; flex-wrap:wrap; gap:1rem; align-items:flex-end; position:relative; }
-    .pq-filter { display:flex; flex-direction:column; gap:4px; min-width:170px; }
-    .pq-filter label { font-size:12px; color:#525252; }
-    .pq-filter select, .pq-filter input { height:32px; border:none; border-bottom:1px solid #8d8d8d; background:#f4f4f4; padding:0 8px; font-size:13px; font-family:inherit; }
-    .pq-filter.pq-disabled { opacity:.4; pointer-events:none; }
-    .hint { font-size:11px; color:#6f6f6f; margin-top:2px; }
-    .pq-guidance { background:#edf5ff; border-left:3px solid #0f62fe; padding:.75rem 1rem; font-size:13px; margin:0 0 1rem; }
-    .mts { position:relative; }
-    .mts-field { display:flex; align-items:center; gap:6px; background:#f4f4f4; border-bottom:1px solid #8d8d8d; height:32px; padding:0 8px; }
-    .mts-field input { flex:1; border:none; background:transparent; height:30px; padding:0; font-size:13px; font-family:inherit; outline-offset:-2px; }
-    .mts-count { display:inline-flex; align-items:center; gap:4px; background:#393939; color:#fff; border-radius:12px; font-size:12px; padding:1px 4px 1px 8px; white-space:nowrap; }
-    .mts-count button { background:transparent; border:none; color:#fff; cursor:pointer; font-size:12px; line-height:1; padding:2px 4px; border-radius:8px; }
-    .mts-count button:hover { background:#525252; }
-    .mts-drop { position:absolute; z-index:30; top:100%; left:0; right:0; min-width:260px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.3); max-height:280px; overflow:auto; }
-    .mts-opt { display:flex; align-items:center; gap:8px; padding:8px 10px; font-size:13px; cursor:pointer; }
-    .mts-opt:hover { background:#e8e8e8; }
-    .mts-hint { padding:8px 10px; font-size:12px; color:#525252; font-style:italic; }
-    .mts-foot { padding:6px 10px; font-size:11px; color:#525252; background:#f4f4f4; border-top:1px solid #e0e0e0; position:sticky; bottom:0; }
-    .pq-searchstrip { background:#edf5ff; border:1px solid #d0e2ff; border-top:none; padding:.65rem 1rem; display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
-    .pq-panel { background:#fff; border:1px solid #e0e0e0; border-top:2px solid #0f62fe; padding:1rem; }
-    .pq-panel h4 { margin:0 0 .75rem; font-size:14px; }
-    .pq-panel .fields { display:flex; flex-wrap:wrap; gap:1rem; align-items:flex-end; }
-    table.cds--data-table td, table.cds--data-table th { vertical-align:middle; }
-    .click-catch { position:fixed; inset:0; z-index:20; }
-    .rowbtn { white-space:nowrap; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Report Print Queue - OpenELIS Preview</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',sans-serif; color:#161616; }
+  .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:'IBM Plex Mono',monospace; display:flex; gap:1rem; align-items:center; flex-wrap:wrap; }
+  .preview-banner select { font:inherit; background:#fff; color:#161616; border:0; padding:2px 4px; }
+  .shell { display:flex; min-height:calc(100vh - 28px); }
+  .sidenav { width:232px; background:#fff; border-right:1px solid #e0e0e0; padding:1rem 0; font-size:14px; flex-shrink:0; }
+  .sidenav .sec { font-size:12px; color:#6f6f6f; padding:1rem 1rem .25rem; text-transform:uppercase; letter-spacing:.32px; }
+  .sidenav .item { padding:.5rem 1rem; color:#525252; }
+  .sidenav .item.sub { padding-left:2rem; }
+  .sidenav .item.active { background:#e0e0e0; color:#161616; font-weight:600; border-left:3px solid #0f62fe; padding-left:calc(1rem - 3px); }
+  .main { flex:1; padding:1rem 2rem 3rem; max-width:1440px; min-width:0; }
+  .crumbs { font-size:14px; color:#0f62fe; margin-bottom:.5rem; }
+  .crumbs span { color:#525252; }
+  h1.title { font-size:28px; font-weight:400; margin:.25rem 0; }
+  .subtitle { color:#525252; margin:0 0 1rem; }
+  .tiles { display:flex; gap:1rem; margin:1rem 0; }
+  .tile { background:#fff; padding:1rem; min-width:180px; cursor:pointer; border-left:4px solid var(--cds-border-strong-01,#8d8d8d); }
+  .tile:hover { background:#e8e8e8; }
+  .tile .n { font-size:32px; font-weight:300; }
+  .tile.amber { border-left-color:#d02670; }
+  .tile.purple { border-left-color:#8a3ffc; }
+  .tile.green { border-left-color:#24a148; }
+  .filters { background:#fff; padding:1rem; display:flex; gap:1rem; flex-wrap:wrap; align-items:flex-start; }
+  .f { display:flex; flex-direction:column; min-width:160px; }
+  .f .cds--label { margin-bottom:.5rem; }
+  .f input, .f select { height:40px; border:0; border-bottom:1px solid #8d8d8d; background:#f4f4f4; padding:0 1rem; font:inherit; font-size:14px; }
+  .f input:disabled, .f select:disabled { color:#c6c6c6; border-bottom-color:transparent; cursor:not-allowed; }
+  .helper { font-size:12px; color:#6f6f6f; margin-top:.25rem; max-width:220px; }
+  .mono { font-family:'IBM Plex Mono',monospace; font-size:13px; }
+  .chips { display:flex; gap:.25rem; flex-wrap:wrap; margin-top:.25rem; max-width:260px; }
+  .ms { position:relative; }
+  .ms-list { position:absolute; top:100%; left:0; right:0; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.3); z-index:10; max-height:220px; overflow:auto; }
+  .ms-list div { padding:.5rem 1rem; font-size:14px; cursor:pointer; }
+  .ms-list div:hover { background:#e8e8e8; }
+  .active-search { background:#edf5ff; padding:.5rem 1rem; display:flex; gap:1rem; align-items:center; font-size:14px; }
+  table.q { width:100%; border-collapse:collapse; background:#fff; font-size:14px; }
+  table.q th { background:#e0e0e0; text-align:left; padding:.75rem .5rem; font-weight:600; white-space:nowrap; }
+  table.q td { padding:.5rem; border-bottom:1px solid #e0e0e0; vertical-align:top; }
+  table.q tr.row:hover td { background:#e8e8e8; }
+  table.q tr.expanded td { background:#f4f4f4; }
+  .sub2 { font-size:12px; color:#6f6f6f; }
+  .batchbar { background:#0f62fe; color:#fff; display:flex; align-items:center; justify-content:space-between; padding:0 0 0 1rem; min-height:48px; }
+  .batchbar .cds--btn { color:#fff; }
+  .toolbar { background:#fff; display:flex; justify-content:space-between; align-items:center; padding:.5rem 1rem; border-bottom:1px solid #e0e0e0; }
+  .detail { padding:1rem 1rem 1.5rem 3rem; display:grid; grid-template-columns:repeat(12,1fr); gap:1rem; }
+  .detail h5 { font-size:14px; font-weight:600; margin:0 0 .5rem; }
+  .kv { display:grid; grid-template-columns:150px 1fr; font-size:13px; row-gap:.35rem; }
+  .kv div:nth-child(odd) { color:#525252; }
+  table.mini { width:100%; border-collapse:collapse; font-size:13px; background:#fff; }
+  table.mini th { text-align:left; background:#e0e0e0; padding:.4rem .5rem; font-weight:600; }
+  table.mini td { padding:.4rem .5rem; border-bottom:1px solid #e0e0e0; }
+  .sig { background:#fff; padding:.75rem; font-size:13px; }
+  .reissue { background:#fff; padding:1rem; border-left:3px solid #0f62fe; }
+  .reissue textarea { width:100%; min-height:72px; font:inherit; font-size:14px; background:#f4f4f4; border:0; border-bottom:1px solid #8d8d8d; padding:.5rem; box-sizing:border-box; }
+  .reissue textarea.invalid { outline:2px solid #da1e28; }
+  .err { color:#da1e28; font-size:12px; margin-top:.25rem; }
+  .notif { display:flex; gap:.75rem; padding:.75rem 1rem; margin:.75rem 0; font-size:14px; border-left:3px solid; }
+  .notif.info { background:#edf5ff; border-color:#0043ce; }
+  .notif.success { background:#defbe6; border-color:#24a148; }
+  .legend { display:flex; gap:1.25rem; flex-wrap:wrap; margin-top:.5rem; font-size:13px; }
+  .legend span.t { margin-right:.35rem; }
+  .pager { background:#fff; display:flex; justify-content:space-between; padding:.5rem 1rem; font-size:14px; color:#525252; border-top:1px solid #e0e0e0; }
+  .cds--tag { margin:0 .25rem .15rem 0; }
+  .note { font-size:12px; color:#6f6f6f; margin-top:.5rem; }
+  .strike { color:#6f6f6f; }
+  .linkish { color:#0f62fe; cursor:pointer; text-decoration:underline; background:none; border:0; padding:0; font:inherit; }
+</style>
 </head>
 <body class="cds--white">
-  <div class="preview-banner">
-    ⚡ Visual Preview — Report Print Queue (r3: filter bar redesign) &nbsp;|&nbsp; Route: /ReportPrintQueue &nbsp;|&nbsp; SideNav: Reports → Report Print Queue &nbsp;|&nbsp; Not a live application
-  </div>
-  <div class="preview-content" id="root"></div>
-  <script type="text/babel">
-    const { useState, useMemo } = React;
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo } = React;
+const t = (k, f) => f;
 
-    /* ---------- Mock reference data (deployment-scale sets are server-side; these are the “first matches”) ---------- */
-    const FACILITY_TOTAL = 2340, REQUESTOR_TOTAL = 1812, WARD_TOTAL = 5160;
-    const FACILITIES = [
-      'Hôpital Central Antananarivo','Hôpital Universitaire Andohatapenaka','Hôpital de District Antsirabe',
-      'Clinique Urbaine Nord','Clinique Urbaine Sud','Centre de Santé de Base Ambohipo',
-      'Centre de Santé de Base Ankadifotsy','Centre Hospitalier de Toamasina','Centre Hospitalier de Mahajanga',
-      'Hôpital de District Fianarantsoa','Hôpital de District Toliara','Centre de Santé Itaosy',
-      'Clinique des Soeurs Franciscaines','Hôpital Militaire Soavinandriana','Centre de Santé de Base Isotry',
-      'Polyclinique d’Ilafy','Centre Hospitalier Antsohihy','Hôpital de District Moramanga',
-      'Centre de Santé Ambatolampy','Hôpital Luthérien Ambohibao'
-    ];
-    const WARDS = {
-      'Hôpital Central Antananarivo': ['Médecine Interne','Pédiatrie','Réanimation','Chirurgie','Maternité'],
-      'Clinique Urbaine Nord': ['Urgences','Consultations Externes'],
-      'Hôpital Universitaire Andohatapenaka': ['Néphrologie','Oncologie','Pédiatrie'],
-      'Centre Hospitalier de Toamasina': ['Médecine Interne','Urgences'],
-      'Hôpital de District Antsirabe': ['Maternité','Pédiatrie'],
-    };
-    const ALL_WARDS = [...new Set(Object.values(WARDS).flat())];
-    const REQUESTORS = [
-      'Dr. Rabe, Haja','Dr. Rasoa, Voahangy','Dr. Randria, Mamy','Dr. Rakoto, Solofo','Dr. Andrianina, Fara',
-      'Dr. Razafindrakoto, Tiana','Dr. Rajaonarison, Lova','Dr. Ranaivoson, Hery','Dr. Ravelojaona, Niry',
-      'Dr. Andriamasy, Koto','Dr. Rasolofo, Mialy','Dr. Ratsimba, Naina','Dr. Raharison, Zo',
-      'Dr. Rakotondrabe, Vero','Dr. Ramanantsoa, Feno'
-    ];
+// ---- Mock data: one regional health laboratory (clinical + environmental + vector) ----
+const NOW = new Date('2026-09-29T15:10:00');
+const daysAgo = (d, h = 10, m = 0) => { const x = new Date(NOW); x.setDate(x.getDate() - d); x.setHours(h, m); return x; };
+const fmt = (d) => d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ' ' + d.toTimeString().slice(0, 5);
+const sha = (s) => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return (h.toString(16) + 'a3f9c2e17b4d' + (h * 7).toString(16)).slice(0, 12); };
 
-    /* ---------- Mock queue (autoQueued:false = reachable only via targeted search, FR-2-005f) ---------- */
-    const QUEUE = [
-      { id:'1', type:'PATIENT', acc:'LAB-2026-00891', patient:'Rakoto, Jean', subject:'LAB-2026-00891 — Rakoto, Jean', facility:'Hôpital Central Antananarivo', ward:'Médecine Interne', requestor:'Dr. Rabe, Haja', at:'2026-07-06 08:42', gen:'READY', print:'UNPRINTED', amended:false, critical:true, rep:6, total:7, autoQueued:true },
-      { id:'2', type:'PATIENT', acc:'LAB-2026-00874', patient:'Andriantsoa, Marie', subject:'LAB-2026-00874 — Andriantsoa, Marie', facility:'Hôpital Central Antananarivo', ward:'Pédiatrie', requestor:'Dr. Rasoa, Voahangy', at:'2026-07-06 07:15', gen:'READY', print:'UNPRINTED', amended:true, critical:false, rep:1, total:1, autoQueued:true },
-      { id:'3', type:'PATIENT', acc:'LAB-2026-00865', patient:'Razafy, Pierre', subject:'LAB-2026-00865 — Razafy, Pierre', facility:'Clinique Urbaine Nord', ward:'Urgences', requestor:'Dr. Randria, Mamy', at:'2026-07-05 14:30', gen:'READY', print:'PRINTED', amended:false, critical:false, rep:5, total:5, autoQueued:true },
-      { id:'4', type:'PATIENT', acc:'LAB-2026-00893', patient:'Rasoanaivo, Lala', subject:'LAB-2026-00893 — Rasoanaivo, Lala', facility:'Hôpital Universitaire Andohatapenaka', ward:'Néphrologie', requestor:'Dr. Rajaonarison, Lova', at:'2026-07-06 09:05', gen:'READY', print:'UNPRINTED', amended:false, critical:false, rep:3, total:3, autoQueued:true },
-      { id:'5', type:'PATIENT', acc:'LAB-2026-00888', patient:'Rakotomalala, Naina', subject:'LAB-2026-00888 — Rakotomalala, Naina', facility:'Centre Hospitalier de Toamasina', ward:'Médecine Interne', requestor:'Dr. Ranaivoson, Hery', at:'2026-07-06 06:50', gen:'READY', print:'UNPRINTED', amended:false, critical:false, rep:2, total:4, autoQueued:true },
-      { id:'6', type:'MALARIA_CASE', acc:'', patient:'', subject:'Weekly Malaria Case Report — Wk 27', facility:'Clinique Urbaine Nord', ward:'', requestor:'', at:'2026-07-06 09:30', gen:'READY', print:'UNPRINTED', amended:false, critical:false, rep:null, total:null, autoQueued:true },
-      { id:'7', type:'RESULT_EXPORT', acc:'', patient:'', subject:'Result Export — Chemistry, 22 Jun–05 Jul', facility:'', ward:'', requestor:'', at:'2026-07-06 10:02', gen:'GENERATING', print:'UNPRINTED', amended:false, critical:false, rep:null, total:null, autoQueued:true },
-      { id:'8', type:'RESULT_EXPORT', acc:'', patient:'', subject:'Result Export — Microbiology, June', facility:'', ward:'', requestor:'', at:'2026-07-06 09:58', gen:'FAILED', print:'UNPRINTED', amended:false, critical:false, rep:null, total:null, autoQueued:true },
-      { id:'9', type:'PATIENT', acc:'LAB-2026-00902', patient:'Ratsima, Hery', subject:'LAB-2026-00902 — Ratsima, Hery', facility:'Hôpital Central Antananarivo', ward:'Réanimation', requestor:'Dr. Rabe, Haja', at:'2026-07-06 11:10', gen:'READY', print:'UNPRINTED', amended:false, critical:false, rep:0, total:9, autoQueued:false },
-      { id:'10', type:'PATIENT', acc:'LAB-2026-00610', patient:'Rakoto, Jean', subject:'LAB-2026-00610 — Rakoto, Jean', facility:'Hôpital Central Antananarivo', ward:'Médecine Interne', requestor:'Dr. Rabe, Haja', at:'2026-05-02 10:12', gen:'READY', print:'PRINTED', amended:false, critical:false, rep:4, total:4, autoQueued:false },
-    ];
-    const PATIENTS = [
-      { id:'p1', name:'Rakoto, Jean', pid:'STN-104-221', dob:'1968-03-14', gender:'M' },
-      { id:'p2', name:'Andriantsoa, Marie', pid:'STN-101-870', dob:'2019-11-02', gender:'F' },
-      { id:'p3', name:'Razafy, Pierre', pid:'STN-099-455', dob:'1990-07-21', gender:'M' },
-      { id:'p4', name:'Ratsima, Hery', pid:'STN-105-012', dob:'1975-01-30', gender:'M' },
-      { id:'p5', name:'Rasoanaivo, Lala', pid:'STN-103-644', dob:'1982-09-05', gender:'F' },
-    ];
+const FACILITIES = ['RSUD Dr. Pirngadi', 'Puskesmas Medan Johor', 'RS Haji Medan', 'Puskesmas Helvetia'];
+const WARDS = { 'RSUD Dr. Pirngadi': ['Penyakit Dalam', 'Anak', 'IGD'], 'Puskesmas Medan Johor': ['Poli Umum'], 'RS Haji Medan': ['ICU', 'Bedah'], 'Puskesmas Helvetia': ['KIA'] };
+const STANDARDS = ['PP 22/2021 (water quality)', 'Permenkes 2/2023 (drinking water)', 'Permenkes 1096/2011 (food hygiene)'];
+const SITES = ['Sungai Deli, Titik 4', 'PDAM Tirtanadi, Intake Hamparan Perak', 'Depot Air Isi Ulang Sejahtera', 'RM Padang Sederhana', 'Kel. Tegal Sari'];
 
-    const genTag = { READY:['cds--tag--teal','Ready'], GENERATING:['cds--tag--blue','Generating'], QUEUED:['cds--tag--gray','Queued'], FAILED:['cds--tag--red','Failed'] };
+const initialRows = [
+  { id: 'r1', type: 'patient', labNo: '26-004812', subject: 'Siti Rahmawati', subjectSub: 'PID 1207-5541', requester: 'dr. Andi Lubis', facility: 'RSUD Dr. Pirngadi', ward: 'Penyakit Dalam',
+    released: daysAgo(0, 14, 30), rel: 9, total: 9, critical: false,
+    printedContent: 'r1-v1', currentContent: 'r1-v2', pendingAmend: false, pendingSummary: 'Added: Ureum, Kreatinin, Asam urat',
+    history: [{ v: 1, at: daysAgo(0, 9, 12), by: 'Rina (reception)', change: 'First issue', comp: '6/9', amended: false, reprints: [] }],
+    tests: [['Hemoglobin', '12.8 g/dL', '', daysAgo(0, 8, 50), 'Budi S.'], ['Leukocytes', '11.2 10^3/uL', 'H', daysAgo(0, 8, 50), 'Budi S.'], ['Platelets', '245 10^3/uL', '', daysAgo(0, 8, 50), 'Budi S.'], ['Glucose (fasting)', '142 mg/dL', 'H', daysAgo(0, 9, 5), 'Budi S.'], ['SGOT', '31 U/L', '', daysAgo(0, 9, 5), 'Budi S.'], ['SGPT', '28 U/L', '', daysAgo(0, 9, 5), 'Budi S.'], ['Ureum', '38 mg/dL', '', daysAgo(0, 14, 30), 'dr. Maya H.'], ['Kreatinin', '1.1 mg/dL', '', daysAgo(0, 14, 30), 'dr. Maya H.'], ['Asam urat', '7.9 mg/dL', 'H', daysAgo(0, 14, 30), 'dr. Maya H.']],
+    collected: daysAgo(0, 7, 40), received: daysAgo(0, 8, 5) },
+  { id: 'r2', type: 'patient', labNo: '26-004790', subject: 'Ahmad Siregar', subjectSub: 'PID 1207-5519', requester: 'dr. Fitri Nasution', facility: 'RS Haji Medan', ward: 'ICU',
+    released: daysAgo(0, 13, 55), rel: 6, total: 6, critical: true,
+    printedContent: 'r2-v1', currentContent: 'r2-v2', pendingAmend: true, pendingSummary: 'Kalium 6.8 → 4.2 mmol/L. Note: hemolysed sample, repeated on fresh draw',
+    history: [{ v: 1, at: daysAgo(0, 11, 20), by: 'Rina (reception)', change: 'First issue', comp: '6/6', amended: false, reprints: [] }],
+    tests: [['Natrium', '138 mmol/L', '', daysAgo(0, 11, 0), 'dr. Maya H.'], ['Kalium', '4.2 mmol/L (was 6.8)', '', daysAgo(0, 13, 55), 'dr. Maya H.'], ['Klorida', '101 mmol/L', '', daysAgo(0, 11, 0), 'dr. Maya H.'], ['Kreatinin', '2.9 mg/dL', 'HH', daysAgo(0, 11, 0), 'dr. Maya H.'], ['Ureum', '96 mg/dL', 'H', daysAgo(0, 11, 0), 'dr. Maya H.'], ['Glucose', '104 mg/dL', '', daysAgo(0, 11, 0), 'dr. Maya H.']],
+    collected: daysAgo(0, 9, 10), received: daysAgo(0, 9, 30) },
+  { id: 'r3', type: 'patient', labNo: '26-004833', subject: 'Nur Aisyah', subjectSub: 'PID 1207-5560', requester: 'dr. Andi Lubis', facility: 'RSUD Dr. Pirngadi', ward: 'IGD',
+    released: daysAgo(0, 12, 40), rel: 3, total: 7, critical: true,
+    printedContent: null, currentContent: 'r3-v1', pendingAmend: false, pendingSummary: 'First issue', history: [],
+    tests: [['Hemoglobin', '6.1 g/dL', 'LL', daysAgo(0, 12, 40), 'Budi S.'], ['Leukocytes', '8.4 10^3/uL', '', daysAgo(0, 12, 40), 'Budi S.'], ['Platelets', '190 10^3/uL', '', daysAgo(0, 12, 40), 'Budi S.'], ['Ferritin', 'Pending', '', null, ''], ['Serum iron', 'Pending', '', null, ''], ['TIBC', 'Pending', '', null, ''], ['Reticulocytes', 'Pending', '', null, '']],
+    collected: daysAgo(0, 11, 30), received: daysAgo(0, 11, 45) },
+  { id: 'r4', type: 'patient', labNo: '26-004701', subject: 'Yohanes Simanjuntak', subjectSub: 'PID 1207-5432', requester: 'dr. Rudi Tarigan', facility: 'Puskesmas Medan Johor', ward: 'Poli Umum',
+    released: daysAgo(1, 16, 10), rel: 4, total: 4, critical: false,
+    printedContent: 'r4-v2', currentContent: 'r4-v2', pendingAmend: false, pendingSummary: '',
+    history: [{ v: 1, at: daysAgo(1, 10, 2), by: 'Dewi (reception)', change: 'First issue', comp: '2/4', amended: false, reprints: [] },
+              { v: 2, at: daysAgo(1, 16, 45), by: 'Dewi (reception)', change: 'Added: HbA1c, Kolesterol total', comp: '4/4', amended: false, reprints: [{ at: daysAgo(0, 8, 15), by: 'Rina (reception)' }] }],
+    tests: [['Glucose (fasting)', '96 mg/dL', '', daysAgo(1, 9, 40), 'Budi S.'], ['Trigliserida', '188 mg/dL', 'H', daysAgo(1, 9, 40), 'Budi S.'], ['HbA1c', '5.9 %', '', daysAgo(1, 16, 10), 'dr. Maya H.'], ['Kolesterol total', '212 mg/dL', 'H', daysAgo(1, 16, 10), 'dr. Maya H.']],
+    collected: daysAgo(1, 8, 0), received: daysAgo(1, 8, 30) },
+  { id: 'r5', type: 'patient', labNo: '26-004410', subject: 'Maria Sitompul', subjectSub: 'PID 1207-5102', requester: 'Bidan Rosmawati', facility: 'Puskesmas Helvetia', ward: 'KIA',
+    released: daysAgo(48, 15, 0), rel: 2, total: 2, critical: false,
+    printedContent: null, currentContent: 'r5-v1', pendingAmend: false, pendingSummary: 'First issue', history: [],
+    tests: [['HBsAg (rapid)', 'Non-reactive', '', daysAgo(48, 15, 0), 'Budi S.'], ['Syphilis (rapid)', 'Non-reactive', '', daysAgo(48, 15, 0), 'Budi S.']],
+    collected: daysAgo(48, 9, 0), received: daysAgo(48, 10, 0) },
+  { id: 'r6', type: 'patient', labNo: '26-004655', subject: 'Lestari Ginting', subjectSub: 'PID 1207-5390', requester: 'dr. Rudi Tarigan', facility: 'Puskesmas Medan Johor', ward: 'Poli Umum',
+    released: daysAgo(12, 11, 20), rel: 3, total: 3, critical: false,
+    printedContent: 'r6-v1', currentContent: 'r6-v1', pendingAmend: false, pendingSummary: '',
+    history: [{ v: 1, at: daysAgo(12, 13, 0), by: 'Dewi (reception)', change: 'First issue', comp: '3/3', amended: false, reprints: [], notArchived: true }],
+    tests: [['Widal', 'Negative', '', daysAgo(12, 11, 20), 'Budi S.'], ['Hemoglobin', '13.4 g/dL', '', daysAgo(12, 11, 20), 'Budi S.'], ['Leukocytes', '7.1 10^3/uL', '', daysAgo(12, 11, 20), 'Budi S.']],
+    collected: daysAgo(12, 8, 0), received: daysAgo(12, 8, 40) },
 
-    /* ---------- FilterableMultiSelect stand-in: server-side typeahead + count tag ---------- */
-    function MultiTypeahead({ label, placeholder, options, total, selected, setSelected, disabled, hint }) {
-      const [q, setQ] = useState('');
-      const [open, setOpen] = useState(false);
-      const CAP = 8;
-      const smallSet = total <= 25;  /* cascaded ward unions: list without typing */
-      const matches = q.trim().length >= 2 ? options.filter(o => o.toLowerCase().includes(q.trim().toLowerCase()))
-        : (smallSet ? options.filter(o => !q.trim() || o.toLowerCase().includes(q.trim().toLowerCase())) : []);
-      const shown = matches.slice(0, CAP);
-      const toggle = (o) => setSelected(selected.includes(o) ? selected.filter(s => s !== o) : [...selected, o]);
-      return (
-        <div className="pq-filter mts">
-          <label style={disabled ? {opacity:.4} : null}>{label}</label>
-          <div className="mts-field" style={disabled ? {opacity:.4, pointerEvents:'none'} : null} onClick={() => setOpen(true)}>
-            {selected.length > 0 && (
-              <span className="mts-count">{selected.length}
-                <button title="Clear selection" onClick={(e) => { e.stopPropagation(); setSelected([]); }}>✕</button>
-              </span>
-            )}
-            <input value={q} placeholder={selected.length ? '' : placeholder}
-              onChange={e => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)} />
-            <span style={{color:'#525252',fontSize:11}}>▾</span>
-          </div>
-          {hint && <div className="hint">{hint}</div>}
-          {open && !disabled && (
-            <React.Fragment>
-              <div className="click-catch" onClick={() => { setOpen(false); setQ(''); }}></div>
-              <div className="mts-drop">
-                {selected.length > 0 && selected.map(o => (
-                  <div key={'sel-'+o} className="mts-opt" onClick={() => toggle(o)}>
-                    <input type="checkbox" readOnly checked={true} /> <span>{o}</span>
-                  </div>
-                ))}
-                {q.trim().length < 2 && !smallSet
-                  ? <div className="mts-hint">Type 2+ characters to search {total.toLocaleString()} entries…</div>
-                  : shown.filter(o => !selected.includes(o)).map(o => (
-                      <div key={o} className="mts-opt" onClick={() => toggle(o)}>
-                        <input type="checkbox" readOnly checked={false} /> <span>{o}</span>
-                      </div>
-                    ))}
-                {q.trim().length >= 2 && shown.length === 0 && <div className="mts-hint">No matches for “{q}”.</div>}
-                {matches.length > CAP && <div className="mts-foot">Showing first {CAP} of {Math.max(matches.length, 40).toLocaleString()} matches — keep typing to narrow</div>}
-              </div>
-            </React.Fragment>
-          )}
-        </div>
-      );
+  { id: 'e1', type: 'environmental', labNo: 'ENV-26-0088', subject: 'Sungai Deli, Titik 4', subjectSub: 'SITE-042', standard: 'PP 22/2021 (water quality)', compliance: 'NON_COMPLIANT',
+    released: daysAgo(0, 10, 45), rel: 6, total: 6, printedContent: null, currentContent: 'e1-v1', pendingAmend: false, pendingSummary: 'First issue', history: [], amendCount: 0,
+    site: { gps: '3.5952, 98.6722', collected: daysAgo(2, 7, 30), method: 'Grab sample, surface', water: '28.4 °C', ambient: '31 °C', weather: 'Cloudy', preservation: 'Cooled 4 °C, H2SO4 for COD' },
+    params: [['pH', '7.2', '6 to 9', 'COMPLIANT'], ['TSS', '84 mg/L', '≤ 50 mg/L', 'NON_COMPLIANT'], ['BOD5', '6.8 mg/L', '≤ 3 mg/L', 'NON_COMPLIANT'], ['COD', '24 mg/L', '≤ 25 mg/L', 'BORDERLINE'], ['DO', '4.6 mg/L', '≥ 4 mg/L', 'COMPLIANT'], ['Total coliform', '9,200 MPN/100 mL', '≤ 5,000', 'NON_COMPLIANT']],
+    sigs: [['Lab Analyst', 'Rizky Pratama, S.Si', daysAgo(0, 9, 30)], ['Lab Manager', 'Dr. Hendra Wijaya, M.Kes', daysAgo(0, 10, 45)]] },
+  { id: 'e2', type: 'environmental', labNo: 'ENV-26-0091', subject: 'Depot Air Isi Ulang Sejahtera', subjectSub: 'SITE-117', standard: null, compliance: 'NOT_EVALUATED',
+    released: daysAgo(0, 11, 20), rel: 4, total: 4, printedContent: null, currentContent: 'e2-v1', pendingAmend: false, pendingSummary: 'First issue', history: [], amendCount: 0,
+    site: { gps: '3.5611, 98.6934', collected: daysAgo(1, 9, 0), method: 'Tap sample, sterile bottle', water: '26.1 °C', ambient: '30 °C', weather: 'Sunny', preservation: 'Cooled 4 °C' },
+    params: [['pH', '6.9', null, null], ['Turbidity', '0.8 NTU', null, null], ['Total coliform', '0 MPN/100 mL', null, null], ['E. coli', '0 MPN/100 mL', null, null]],
+    sigs: [['Lab Analyst', 'Putri Anggraini, S.Si', daysAgo(0, 10, 10)], ['Lab Manager', 'Dr. Hendra Wijaya, M.Kes', daysAgo(0, 11, 20)]] },
+  { id: 'e3', type: 'environmental', labNo: 'ENV-26-0071', subject: 'PDAM Tirtanadi, Intake Hamparan Perak', subjectSub: 'SITE-009', standard: 'Permenkes 2/2023 (drinking water)', compliance: 'COMPLIANT',
+    released: daysAgo(3, 14, 0), rel: 8, total: 8, printedContent: 'e3-v2', currentContent: 'e3-v2', pendingAmend: false, pendingSummary: '', amendCount: 1,
+    history: [{ v: 1, at: daysAgo(3, 15, 10), by: 'Sari (admin env)', change: 'First issue', comp: '8/8', amended: false, reprints: [] },
+              { v: 2, at: daysAgo(2, 9, 30), by: 'Dr. Hendra Wijaya', change: 'Reissued: collection date entered as 25/09, sample was collected 24/09', comp: '8/8', amended: true, reissue: true, reprints: [] }],
+    site: { gps: '3.7412, 98.6901', collected: daysAgo(5, 6, 45), method: 'Composite, 3 points', water: '27.0 °C', ambient: '29 °C', weather: 'Light rain', preservation: 'Cooled 4 °C' },
+    params: [['pH', '7.4', '6.5 to 8.5', 'COMPLIANT'], ['Turbidity', '1.2 NTU', '≤ 3 NTU', 'COMPLIANT'], ['Iron (Fe)', '0.12 mg/L', '≤ 0.2 mg/L', 'COMPLIANT'], ['Manganese (Mn)', '0.05 mg/L', '≤ 0.1 mg/L', 'COMPLIANT'], ['Nitrate', '4.1 mg/L', '≤ 20 mg/L', 'COMPLIANT'], ['Residual chlorine', '0.4 mg/L', '0.2 to 0.5 mg/L', 'COMPLIANT'], ['Total coliform', '0 CFU/100 mL', '0', 'COMPLIANT'], ['E. coli', '0 CFU/100 mL', '0', 'COMPLIANT']],
+    sigs: [['Lab Analyst', 'Rizky Pratama, S.Si', daysAgo(3, 11, 0)], ['Lab Manager', 'Dr. Hendra Wijaya, M.Kes', daysAgo(3, 14, 0)]] },
+  { id: 'e4', type: 'environmental', labNo: 'ENV-26-0095', subject: 'RM Padang Sederhana', subjectSub: 'SITE-133', standard: 'Permenkes 1096/2011 (food hygiene)', compliance: 'COMPLIANT',
+    released: daysAgo(0, 9, 50), rel: 2, total: 5, printedContent: null, currentContent: 'e4-v1', pendingAmend: false, pendingSummary: 'First issue', history: [], amendCount: 0,
+    site: { gps: '3.5898, 98.6780', collected: daysAgo(1, 11, 30), method: 'Surface swab (usap alat makan)', water: 'n/a', ambient: '30 °C', weather: 'Indoor', preservation: 'Cooled 4 °C' },
+    params: [['Angka kuman (plates)', '48 CFU/cm²', '≤ 100 CFU/cm²', 'COMPLIANT'], ['E. coli (plates)', 'Negative', 'Negative', 'COMPLIANT'], ['Salmonella', 'Pending', 'Negative', null], ['S. aureus', 'Pending', 'Negative', null], ['Total coliform (drinking water)', 'Pending', '0', null]],
+    sigs: [['Lab Analyst', 'Putri Anggraini, S.Si', daysAgo(0, 9, 10)], ['Lab Manager', 'Dr. Hendra Wijaya, M.Kes', daysAgo(0, 9, 50)]] },
+  { id: 'v1', type: 'vector', labNo: 'VEC-26-0014', subject: 'Kel. Tegal Sari', subjectSub: 'SITE-201', standard: null, compliance: null,
+    released: daysAgo(1, 13, 0), rel: 3, total: 3, printedContent: null, currentContent: 'v1-v1', pendingAmend: false, pendingSummary: 'First issue', history: [], amendCount: 0, noTemplate: true,
+    site: { gps: '3.5790, 98.6895', collected: daysAgo(4, 18, 0), method: 'Ovitrap, 7 days', water: 'n/a', ambient: '29 °C', weather: 'Rain overnight', preservation: 'Ethanol 70%' },
+    params: [['Species ID (PCR)', 'Aedes aegypti', null, null], ['House Index', '18 %', null, null], ['Breteau Index', '24', null, null]], sigs: [] },
+];
+
+// The current user's own data export jobs (Custom Data Export job runner, shipped)
+const EXPORT_ROWS = [
+  { id: 'x1', type: 'export', labNo: 'TAT Q3, all sections', subject: 'Sample & Testing', subjectSub: 'Spreadsheet', dateRange: '01 Jul to 28 Sep 2026', released: daysAgo(0, 9, 2), job: 'GENERATING', rowsSize: 'about 38,000 rows', variables: ['Lab number', 'Lab unit', 'Test', 'Received', 'Released', 'Turnaround (h)'], expires: null, failure: null },
+  { id: 'x2', type: 'export', labNo: 'Malaria positives, September', subject: 'Sample & Testing', subjectSub: 'Spreadsheet', dateRange: '01 Sep to 28 Sep 2026', released: daysAgo(1, 16, 40), job: 'READY', rowsSize: '4,312 rows · 847 KB', variables: ['Lab number', 'Collected', 'Facility', 'Test', 'Result', 'Species'], expires: daysAgo(-13, 16, 40), failure: null },
+  { id: 'x3', type: 'export', labNo: 'Referrals to BBLK, Q3', subject: 'Referrals', subjectSub: 'Spreadsheet', dateRange: '01 Jul to 28 Sep 2026', released: daysAgo(2, 11, 15), job: 'FAILED', rowsSize: '-', variables: ['Lab number', 'Referred to', 'Sent', 'Result returned'], expires: null, failure: 'Interrupted by system restart' },
+  { id: 'x4', type: 'export', labNo: 'NCE log, August', subject: 'Non-Conformance', subjectSub: 'Table', dateRange: '01 Aug to 31 Aug 2026', released: daysAgo(5, 10, 0), job: 'EXPIRED', rowsSize: '212 rows · 38 KB', variables: ['Event', 'Category', 'Reported', 'Status'], expires: daysAgo(1, 10, 0), failure: null },
+];
+initialRows.push(...EXPORT_ROWS);
+
+const isExport = (r) => r.type === 'export';
+const printOf = (r) => r.printedContent === r.currentContent ? 'printed' : 'unprinted';
+// FR-4.1: one state per report; Amended wins and stays once reached
+const stateOf = (r) => (r.pendingAmend || r.history.some(h => h.amended)) ? 'amended' : (r.rel < r.total ? 'partial' : 'final');
+const PRINT_TAG = { unprinted: ['purple', 'Unprinted'], printed: ['green', 'Printed'] };
+const STATE_TAG = { partial: ['warm-gray', 'Partial'], final: ['teal', 'Final'], amended: ['magenta', 'Amended'] };
+const JOB_TAG = { QUEUED: ['blue', 'Queued'], GENERATING: ['cyan', 'Generating'], READY: ['green', 'Ready to download'], FAILED: ['red', 'Failed'], EXPIRED: ['gray', 'Expired'], CANCELLED: ['gray', 'Cancelled'] };
+const JOB_ACTION = { READY: 'Download CSV', QUEUED: 'Cancel', FAILED: 'Retry', EXPIRED: 'Re-run' };
+const COMP = { COMPLIANT: ['green', '✓ Compliant'], BORDERLINE: ['warm-gray', '⚑ Borderline'], NON_COMPLIANT: ['red', '✗ Non-compliant'], NOT_EVALUATED: ['gray', '- Not evaluated'] };
+const TYPE_LABEL = { patient: 'Patient report', environmental: 'Environmental', vector: 'Vector', export: 'Data export' };
+const SCOPES = { all: ['patient', 'environmental', 'vector', 'export'], clinical: ['patient', 'export'], env: ['environmental', 'export'], clinicalNoExport: ['patient'] };
+
+function StateChips({ label, options, value, onChange, disabled }) {
+  return (
+    <div className="f" style={{ minWidth: 200 }}>
+      <label className="cds--label">{label}</label>
+      <div style={{ display: 'flex', gap: '.25rem', flexWrap: 'wrap', minHeight: 40, alignItems: 'center' }}>
+        {options.map(([k, lab]) => {
+          const on = value.includes(k);
+          return <button key={k} disabled={disabled} className={`cds--tag cds--tag--sm ${on ? 'cds--tag--high-contrast' : 'cds--tag--outline'}`} style={{ cursor: disabled ? 'not-allowed' : 'pointer', border: on ? 0 : '1px solid #8d8d8d' }}
+            aria-pressed={on} onClick={() => onChange(on ? value.filter(x => x !== k) : [...value, k])}><span className="cds--tag__label">{on ? '✓ ' : ''}{lab}</span></button>;
+        })}
+      </div>
+      <div className="helper">None selected shows all</div>
+    </div>
+  );
+}
+
+function Tag({ kind, children }) { return <span className={`cds--tag cds--tag--${kind} cds--tag--sm`}><span className="cds--tag__label">{children}</span></span>; }
+
+function MultiTypeahead({ label, options, value, onChange, disabled, helper }) {
+  const [q, setQ] = useState(''); const [open, setOpen] = useState(false);
+  const matches = options.filter(o => !value.includes(o) && (q.length >= 1 ? o.toLowerCase().includes(q.toLowerCase()) : options.length <= 25));
+  return (
+    <div className="f ms" style={{ minWidth: 220 }}>
+      <label className="cds--label">{label}</label>
+      <input disabled={disabled} value={q} placeholder={disabled ? '' : t('', 'Type to search')} onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)} onChange={e => setQ(e.target.value)} />
+      {open && !disabled && matches.length > 0 && <div className="ms-list">{matches.map(o => <div key={o} onMouseDown={() => { onChange([...value, o]); setQ(''); }}>{o}</div>)}</div>}
+      <div className="chips">{value.map(v => <span key={v} className="cds--tag cds--tag--filter cds--tag--high-contrast cds--tag--sm"><span className="cds--tag__label">{v}</span><button className="cds--tag__close-icon" aria-label={`Remove ${v}`} onClick={() => onChange(value.filter(x => x !== v))}>×</button></span>)}</div>
+      {helper && <div className="helper">{helper}</div>}
+    </div>
+  );
+}
+
+function App() {
+  const [rows, setRows] = useState(initialRows);
+  const [scope, setScope] = useState('all');
+  const [role, setRole] = useState('validator');
+  const [type, setType] = useState('all');
+  const [states, setStates] = useState([]);
+  const [printF, setPrintF] = useState('all');
+  const [win, setWin] = useState('7');
+  const [labNo, setLabNo] = useState(''); const [labTo, setLabTo] = useState(''); const [range, setRange] = useState(false);
+  const [lookup, setLookup] = useState(null);
+  const [facility, setFacility] = useState([]); const [ward, setWard] = useState([]);
+  const [standard, setStandard] = useState([]); const [compF, setCompF] = useState('all');
+  const [expanded, setExpanded] = useState(null);
+  const [selected, setSelected] = useState([]);
+  const [notice, setNotice] = useState(null);
+  const [reissue, setReissue] = useState({ id: null, text: '', touched: false });
+
+  const inScope = SCOPES[scope];
+  const effType = inScope.length === 1 ? inScope[0] : type;
+  const isTargeted = !!lookup;
+
+  const filtered = useMemo(() => rows.filter(r => {
+    if (!inScope.includes(r.type)) return false;
+    if (lookup) {
+      if (isExport(r)) return false;
+      const n = r.labNo.replace(/\D/g, ''); const a = lookup.from.replace(/\D/g, ''); const b = (lookup.to || lookup.from).replace(/\D/g, '');
+      return lookup.to ? (n >= a && n <= b && r.labNo.slice(0, 3) === lookup.from.slice(0, 3)) : r.labNo.toLowerCase() === lookup.from.toLowerCase();
     }
+    if (effType !== 'all' && r.type !== effType) return false;
+    const age = (NOW - r.released) / 864e5;
+    if (isExport(r)) {
+      // FR-3.7, FR-3.7a, FR-3.8 for export rows
+      if (effType === 'export') { if (states.length && !states.includes(r.job)) return false; }
+      else if (states.length || printF !== 'all') return false;
+      if (!['QUEUED', 'GENERATING'].includes(r.job) && win !== 'all' && age > Number(win)) return false;
+      return true;
+    }
+    const pr = printOf(r);
+    if (states.length && !states.includes(stateOf(r))) return false;
+    if (printF !== 'all' && pr !== printF) return false;
+    if (pr === 'printed' && win !== 'all' && age > Number(win)) return false;
+    if (effType === 'patient') { if (facility.length && !facility.includes(r.facility)) return false; if (ward.length && !ward.includes(r.ward)) return false; }
+    if (effType === 'environmental') {
+      if (standard.length && !standard.includes(r.standard)) return false;
+      if (compF !== 'all' && r.compliance !== compF) return false;
+    }
+    return true;
+  }).sort((a, b) => b.released - a.released), [rows, scope, lookup, effType, states, printF, win, facility, ward, standard, compF]);
 
-    function App() {
-      /* browse filters */
-      const [type, setType] = useState('ALL');
-      const [facilities, setFacilities] = useState([]);
-      const [wards, setWards] = useState([]);
-      const [requestors, setRequestors] = useState([]);
-      const [status, setStatus] = useState('ALL');
-      const [timeWin, setTimeWin] = useState('7d');
-      /* lab no toolbar lookup */
-      const [labNo, setLabNo] = useState('');
-      const [rangeOpen, setRangeOpen] = useState(false);
-      const [labTo, setLabTo] = useState('');
-      /* targeted search: null | {kind:'patient',name} | {kind:'labno',from,to} */
-      const [targeted, setTargeted] = useState(null);
-      const locked = !!targeted;
-      /* patient panel */
-      const [panelOpen, setPanelOpen] = useState(false);
-      const [pLast, setPLast] = useState('');
-      const [pResults, setPResults] = useState(null);
-      /* selection + notifications */
-      const [queue, setQueue] = useState(QUEUE);
-      const [selected, setSelected] = useState([]);
-      const [notice, setNotice] = useState(null);
+  const scoped = rows.filter(r => inScope.includes(r.type) && !isExport(r) && (effType === 'all' || r.type === effType));
+  const toPrint = scoped.filter(r => printOf(r) === 'unprinted').length;
+  const amendedN = scoped.filter(r => printOf(r) === 'unprinted' && stateOf(r) === 'amended').length;
+  const exportsReady = rows.filter(r => inScope.includes('export') && isExport(r) && r.job === 'READY').length;
+  const jobAction = (r) => {
+    if (r.job === 'READY') setNotice(`${r.labNo}: CSV downloading. Downloading again is allowed until the file expires.`);
+    if (r.job === 'QUEUED') setNotice('The shipped Cancel confirmation opens before the job is cancelled.');
+    if (r.job === 'FAILED') { setRows(prev => [...prev.map(x => x.id === r.id ? x : x), { ...r, id: r.id + 'r', job: 'QUEUED', released: NOW, failure: null, rowsSize: '~2 min wait' }]); setNotice(`${r.labNo} resubmitted as a new job; the failed job stays in the list.`); }
+    if (r.job === 'EXPIRED') setNotice('Re-run opens Custom Data Export with the same variables and filters and a blank date range.');
+  };
 
-      /* ward = subunit of facility: enabled only when ≥1 facility selected (FR-2-002) */
-      const wardOptions = [...new Set(facilities.flatMap(f => WARDS[f] || []))];
-      const wardTotal = Math.max(wardOptions.length, 1);
-      const setFacilitiesCascade = (next) => {
-        setFacilities(next);
-        if (!next.length) { setWards([]); return; }
-        const union = new Set(next.flatMap(f => WARDS[f] || [])); setWards(w => w.filter(x => union.has(x)));
-      };
+  const printRows = (ids, mode) => {
+    let done = 0, re = 0;
+    setRows(prev => prev.map(r => {
+      if (!ids.includes(r.id) || r.noTemplate) return r;
+      if (r.printedContent === r.currentContent) { re++; const h = [...r.history]; const last = { ...h[h.length - 1] }; last.reprints = [...last.reprints, { at: NOW, by: 'You' }]; h[h.length - 1] = last; return { ...r, history: h }; }
+      done++;
+      const v = r.history.length + 1; const amended = r.pendingAmend;
+      return { ...r, printedContent: r.currentContent, pendingAmend: false, amendCount: (r.amendCount || 0) + (amended ? 1 : 0),
+        history: [...r.history, { v, at: NOW, by: 'You', change: v === 1 ? 'First issue' : r.pendingSummary, comp: `${r.rel}/${r.total}`, amended, reprints: [] }] };
+    }));
+    setSelected([]);
+    const n = ids.filter(id => !rows.find(r => r.id === id)?.noTemplate).length;
+    setNotice(mode === 'zip' ? `${n} report${n === 1 ? '' : 's'} downloaded as reports_2026-09-29_${n}.zip` : `${n} report${n === 1 ? '' : 's'} ready. Opened in a new tab as one PDF${n > 1 ? ', each report paged from 1' : ''}.`);
+  };
 
-      const clearBrowse = () => { setType('ALL'); setFacilities([]); setWards([]); setRequestors([]); setStatus('ALL'); };
-      const applyTargeted = (t) => { clearBrowse(); setTargeted(t); setSelected([]); setPanelOpen(false); };
-      const clearTargeted = () => { setTargeted(null); setLabNo(''); setLabTo(''); setRangeOpen(false); setSelected([]); };
-      const clearFilters = () => { clearBrowse(); clearTargeted(); };
+  const doReissue = (r) => {
+    if (!reissue.text.trim()) { setReissue({ ...reissue, touched: true }); return; }
+    setRows(prev => prev.map(x => x.id !== r.id ? x : ({ ...x, currentContent: x.currentContent + 'c', printedContent: x.currentContent + 'c', amendCount: (x.amendCount || 0) + 1,
+      history: [...x.history, { v: x.history.length + 1, at: NOW, by: 'You', change: 'Reissued: ' + reissue.text.trim(), comp: `${x.rel}/${x.total}`, amended: true, reissue: true, reprints: [] }] })));
+    setReissue({ id: null, text: '', touched: false });
+    setNotice(`${r.labNo} reissued as an amended version and opened in a new tab.`);
+  };
 
-      const applyLabNo = () => {
-        if (!labNo.trim()) return;
-        if (rangeOpen && labTo.trim() && labNo.trim() > labTo.trim()) { setNotice({kind:'error', text:'"From" lab number must not be greater than "To".'}); return; }
-        applyTargeted({ kind:'labno', from: labNo.trim(), to: rangeOpen && labTo.trim() ? labTo.trim() : null });
-      };
+  const applyLookup = () => { if (!labNo.trim()) return; setLookup({ from: labNo.trim(), to: range && labTo.trim() ? labTo.trim() : null }); setType('all'); setStates([]); setPrintF('all'); setFacility([]); setWard([]); setStandard([]); setCompF('all'); };
+  const clearLookup = () => { setLookup(null); setLabNo(''); setLabTo(''); };
+  const clearAll = () => { clearLookup(); setType('all'); setStates([]); setPrintF('all'); setFacility([]); setWard([]); setStandard([]); setCompF('all'); };
 
-      const filtered = useMemo(() => queue.filter(r => {
-        if (targeted) {
-          if (targeted.kind === 'patient') return r.patient === targeted.name;               /* all time, in-progress incl. */
-          if (targeted.to) return r.acc && r.acc >= targeted.from && r.acc <= targeted.to;
-          return r.acc === targeted.from;
-        }
-        if (r.autoQueued === false) return false;                                            /* default = auto-queued only */
-        if (type !== 'ALL' && r.type !== type) return false;
-        if (facilities.length && !facilities.includes(r.facility)) return false;
-        if (wards.length && !wards.includes(r.ward)) return false;
-        if (requestors.length && !requestors.includes(r.requestor)) return false;
-        if (status !== 'ALL' && r.print !== status) return false;
-        return true;
-      }), [queue, targeted, type, facilities, wards, requestors, status]);
+  const wardOptions = facility.flatMap(f => WARDS[f] || []);
+  const canReissue = role !== 'reception';
 
-      const chip = !targeted ? '' : targeted.kind === 'patient' ? `Patient: ${targeted.name}`
-        : targeted.to ? `Lab No: ${targeted.from}–${targeted.to}` : `Lab No: ${targeted.from}`;
+  const versionCell = (r) => {
+    if (!r.history.length) return <span className="sub2">{t('reportQueue.version.none', 'Not printed')}</span>;
+    const last = r.history[r.history.length - 1];
+    return <span>v{last.v}{r.type !== 'patient' && r.amendCount > 0 && <div className="sub2 mono">{r.labNo}/Am.{r.amendCount}</div>}</span>;
+  };
 
-      const readyIds = filtered.filter(r => r.gen === 'READY').map(r => r.id);
-      const doPrint = (ids) => {
-        /* no confirmation — printing just opens the PDF; the Completeness tag is the signal (FR-4-007) */
-        setQueue(q => q.map(r => ids.includes(r.id) ? { ...r, print:'PRINTED', amended:false } : r));
-        setSelected([]);
-        setNotice({kind:'success', text:`${ids.length} report(s) generated and marked as printed.`});
-      };
-      const searchPatients = () => setPResults(PATIENTS.filter(p => !pLast.trim() || p.name.toLowerCase().includes(pLast.trim().toLowerCase())));
+  return (
+    <div>
+      <div className="preview-banner">
+        <span>⚡ Visual Preview · Report Print Queue r4 (v2.2) · Route: /ReportPrintQueue · SideNav: Reports › Report Print Queue · Not a live application</span>
+        <span>Preview controls:&nbsp;
+          <select value={scope} onChange={e => { setScope(e.target.value); setType('all'); setSelected([]); }}>
+            <option value="all">User's lab units: Clinical + Environmental + Vector</option>
+            <option value="clinical">User's lab units: Clinical only</option>
+            <option value="env">User's lab units: Environmental only</option>
+            <option value="clinicalNoExport">Clinical only, no Custom Data Export access</option>
+          </select>&nbsp;
+          <select value={role} onChange={e => setRole(e.target.value)}>
+            <option value="validator">Role: Validation</option>
+            <option value="reception">Role: Reception (no reissue)</option>
+          </select>
+        </span>
+      </div>
+      <div className="shell">
+        <nav className="sidenav">
+          <div className="sec">Reports</div>
+          <div className="item">Patient Status Report</div>
+          <div className="item active">Report Print Queue</div>
+          <div className="item">Routine</div>
+          <div className="item">Custom Data Export</div>
+          <div className="item">Turn Around Time</div>
+          <div className="item">WHONET Export</div>
+          <div className="item">Environmental</div>
+          <div className="item sub">Compliance Dashboard</div>
+          <div className="item">Vector Surveillance</div>
+          <div className="note" style={{ padding: '1rem' }}>"Environmental › Compliance Report" is merged into this page; /LaporanHasil redirects here with Type = Environmental.</div>
+        </nav>
+        <main className="main">
+          <div className="crumbs">Home <span>/</span> Reports <span>/ Report Print Queue</span></div>
+          <h1 className="title">{t('reportQueue.title', 'Report Print Queue')}</h1>
+          <p className="subtitle">{t('reportQueue.subtitle', 'Print, reprint and reissue released reports')}</p>
 
-      return (
-        <div>
-          <nav aria-label="breadcrumb" style={{fontSize:13, margin:'0 0 .5rem'}}>
-            <span style={{color:'#0f62fe'}}>Home</span> / <span style={{color:'#0f62fe'}}>Reports</span> / <span>Report Print Queue</span>
-          </nav>
-          <h3 style={{margin:'0 0 .25rem'}}>Report Print Queue</h3>
-          <p style={{color:'#525252', fontSize:13, margin:'0 0 .75rem'}}>Reports ready to print, plus reports still being generated.</p>
-          <div className="pq-guidance">
-            <strong>Validated reports land here automatically.</strong>
-            <span style={{display:'inline-flex', flexWrap:'wrap', gap:'4px 14px', alignItems:'center', marginLeft:8}}>
-              <span><span className="cds--tag cds--tag--sm cds--tag--purple">Unprinted</span> validated, not yet printed</span>
-              <span><span className="cds--tag cds--tag--sm cds--tag--green">Printed</span> PDF generated and the release recorded</span>
-              <span><span className="cds--tag cds--tag--sm cds--tag--blue">Amended</span> new results after printing — reprint needed</span>
-              <span><span className="cds--tag cds--tag--sm cds--tag--blue">Generating</span>/<span className="cds--tag cds--tag--sm cds--tag--red">Failed</span> requested report still building, or needs Retry</span>
-            </span>
+          <div className="notif info">
+            <div>
+              <strong>{t('reportQueue.guidance.lead', 'Reports land here when their first result is released.')}</strong> {t('reportQueue.guidance.body', 'Printed reports come back when more results are released or a printed result changes.')} {inScope.includes('export') && t('reportQueue.guidance.exports', 'Your own data exports show here too.')}
+              <div className="legend">
+                <span><span className="t"><Tag kind="warm-gray">Partial</Tag></span>Some results are not released yet</span>
+                <span><span className="t"><Tag kind="teal">Final</Tag></span>Every result is released</span>
+                <span><span className="t"><Tag kind="magenta">Amended</Tag></span>A printed result changed, or the report was reissued with a correction</span>
+                <span style={{ borderLeft: '1px solid #c6c6c6', paddingLeft: '1rem' }}><span className="t"><Tag kind="purple">Unprinted</Tag></span>The current content has not been printed yet</span>
+                <span><span className="t"><Tag kind="green">Printed</Tag></span>The last print matches what is released</span>
+              </div>
+            </div>
           </div>
 
-          {/* ---------------- Filter bar ---------------- */}
-          <div className="pq-filterbar">
-            <div className={'pq-filter' + (locked ? ' pq-disabled' : '')}>
-              <label>Report Type</label>
-              <select value={type} onChange={e => setType(e.target.value)}>
-                <option value="ALL">All Report Types</option>
-                <option value="PATIENT">Patient Report</option>
-                <option value="RESULT_EXPORT">Result Export</option>
-                <option value="MALARIA_CASE">Malaria Case Report</option>
+          <div className="tiles">
+            <div className="tile purple" onClick={() => { clearLookup(); setType('all'); setStates([]); setPrintF('unprinted'); }}><div className="n">{toPrint}</div><div>{t('reportQueue.tile.toPrint', 'To print')}</div></div>
+            <div className="tile amber" onClick={() => { clearLookup(); setType('all'); setStates(['amended']); setPrintF('unprinted'); }}><div className="n">{amendedN}</div><div>{t('reportQueue.tile.amendedToPrint', 'Amended to print')}</div></div>
+            {inScope.includes('export') && <div className="tile green" onClick={() => { clearLookup(); setType('export'); setStates(['READY']); setPrintF('all'); }}><div className="n">{exportsReady}</div><div>{t('reportQueue.tile.exportsReady', 'Exports ready')}</div></div>}
+          </div>
+
+          <div className="filters">
+            <div className="f">
+              <label className="cds--label">Lab No</label>
+              <div style={{ display: 'flex', gap: '.5rem', alignItems: 'center' }}>
+                <input className="mono" style={{ width: 170 }} value={labNo} placeholder="Scan or type lab number" onChange={e => setLabNo(e.target.value)} onKeyDown={e => e.key === 'Enter' && applyLookup()} />
+                {range && <input className="mono" style={{ width: 150 }} value={labTo} placeholder="To lab number" onChange={e => setLabTo(e.target.value)} onKeyDown={e => e.key === 'Enter' && applyLookup()} />}
+                <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => setRange(!range)}>{range ? 'Single' : 'Range'}</button>
+              </div>
+              <div className="helper">Scanning a barcode applies the filter instantly. Try 26-004790 or ENV-26-0071.</div>
+            </div>
+            {inScope.includes('patient') && <div className="f"><label className="cds--label">&nbsp;</label><button className="cds--btn cds--btn--ghost cds--btn--sm" disabled={isTargeted} onClick={() => setNotice('Search by patient opens the existing SearchPatientForm inline under the filter bar (unchanged from r3 FR-2-004).')}>Search by patient</button></div>}
+            {inScope.length > 1 && <div className="f"><label className="cds--label">Type</label>
+              <select disabled={isTargeted} value={type} onChange={e => { setType(e.target.value); setStates([]); setPrintF('all'); setFacility([]); setWard([]); setStandard([]); setCompF('all'); }}>
+                <option value="all">All</option>
+                {inScope.includes('patient') && <option value="patient">Patient report</option>}
+                {inScope.includes('environmental') && <option value="environmental">Environmental</option>}
+                {inScope.includes('export') && <option value="export">Data export</option>}
+              </select></div>}
+            {effType === 'export'
+              ? <StateChips label="State" disabled={isTargeted} value={states} onChange={setStates} options={Object.entries(JOB_TAG).map(([k, v]) => [k, v[1]])} />
+              : <StateChips label="State" disabled={isTargeted} value={states} onChange={setStates} options={[['partial', 'Partial'], ['final', 'Final'], ['amended', 'Amended']]} />}
+            {effType !== 'export' && <div className="f"><label className="cds--label">Print status</label>
+              <select disabled={isTargeted} value={printF} onChange={e => setPrintF(e.target.value)}>
+                <option value="all">All</option><option value="unprinted">Unprinted</option><option value="printed">Printed</option>
+              </select></div>}
+            <div className="f"><label className="cds--label">Time window</label>
+              <select disabled={isTargeted} value={win} onChange={e => setWin(e.target.value)}>
+                <option value="1">Last 24 hours</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="all">All time</option><option value="custom" disabled>Custom range</option>
               </select>
-            </div>
-            <MultiTypeahead label="Facility" placeholder="Search facilities…" options={FACILITIES} total={FACILITY_TOTAL}
-              selected={facilities} setSelected={setFacilitiesCascade} disabled={locked} />
-            <MultiTypeahead label="Ward / Dept / Unit" placeholder="Search wards…" options={wardOptions} total={wardTotal}
-              selected={wards} setSelected={setWards} disabled={locked || facilities.length === 0}
-              hint={!locked && facilities.length === 0 ? 'Select a facility first' : null} />
-            <MultiTypeahead label="Requestor" placeholder="Search requestors…" options={REQUESTORS} total={REQUESTOR_TOTAL}
-              selected={requestors} setSelected={setRequestors} disabled={locked} />
-            <div className="pq-filter" style={{minWidth:200}}>
-              <label>Lab No</label>
-              <div style={{display:'flex', gap:6, alignItems:'center'}}>
-                <input value={labNo} placeholder="Scan or type lab number" style={{flex:1}}
-                  onChange={e => setLabNo(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') applyLabNo(); }} />
-                <button className="cds--btn cds--btn--ghost cds--btn--sm" title="Range lookup" onClick={() => setRangeOpen(o => !o)}>Range</button>
+              <div className="helper">{isTargeted ? 'Ignored while looking up a specific order' : 'Applies to printed reports and finished exports; unprinted reports always show'}</div></div>
+            {effType === 'patient' && !isTargeted && <>
+              <MultiTypeahead label="Facility" options={FACILITIES} value={facility} onChange={v => { setFacility(v); setWard(ward.filter(w => v.some(f => (WARDS[f] || []).includes(w)))); }} helper="Type 2 or more characters to search" />
+              <MultiTypeahead label="Ward / Dept / Unit" options={wardOptions} value={ward} onChange={setWard} disabled={!facility.length} helper={!facility.length ? 'Select a facility first' : null} />
+              <MultiTypeahead label="Requester" options={['dr. Andi Lubis', 'dr. Fitri Nasution', 'dr. Rudi Tarigan', 'Bidan Rosmawati']} value={[]} onChange={() => {}} helper="Type 2 or more characters to search" />
+            </>}
+            {effType === 'environmental' && !isTargeted && <>
+              <MultiTypeahead label="Sampling Site" options={SITES} value={[]} onChange={() => {}} helper="Type 2 or more characters to search" />
+              <MultiTypeahead label="Standard" options={STANDARDS} value={standard} onChange={setStandard} />
+              <div className="f"><label className="cds--label">Compliance Status</label>
+                <select value={compF} onChange={e => setCompF(e.target.value)}>
+                  <option value="all">All</option><option value="COMPLIANT">Compliant</option><option value="BORDERLINE">Borderline</option><option value="NON_COMPLIANT">Non-compliant</option><option value="NOT_EVALUATED">Not evaluated</option>
+                </select></div>
+            </>}
+            <div className="f"><label className="cds--label">&nbsp;</label><button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={clearAll}>Clear filters</button></div>
+          </div>
+
+          {isTargeted && <div className="active-search">
+            <span className="cds--tag cds--tag--filter cds--tag--high-contrast"><span className="cds--tag__label">Lab No: {lookup.from}{lookup.to ? ` to ${lookup.to}` : ''}</span><button className="cds--tag__close-icon" onClick={clearLookup}>×</button></span>
+            <span className="sub2">Other filters are off while you look up a specific order</span>
+            <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={clearLookup}>Clear search</button>
+          </div>}
+
+          {notice && <div className="notif success"><div style={{ flex: 1 }}>{notice}</div><button className="linkish" onClick={() => setNotice(null)}>Dismiss</button></div>}
+
+          <div style={{ marginTop: '1rem' }}>
+            {selected.length > 0 ? (
+              <div className="batchbar">
+                <span>{selected.length} item{selected.length > 1 ? 's' : ''} selected: <span className="mono">{selected.map(id => rows.find(r => r.id === id).labNo).join(', ')}</span></span>
+                <span>
+                  <button className="cds--btn cds--btn--primary" onClick={() => printRows(selected, 'print')}>Print selected</button>
+                  <button className="cds--btn cds--btn--primary" onClick={() => printRows(selected, 'zip')}>Download selected</button>
+                  <button className="cds--btn cds--btn--primary" onClick={() => setSelected([])}>Cancel</button>
+                </span>
               </div>
-              <div className="hint">Scanning a barcode applies the filter instantly</div>
-            </div>
-            {rangeOpen && (
-              <div className="pq-filter" style={{minWidth:180}}>
-                <label>To Lab Number (optional)</label>
-                <input value={labTo} placeholder="e.g. LAB-2026-00895" onChange={e => setLabTo(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') applyLabNo(); }} />
-              </div>
+            ) : (
+              <div className="toolbar"><strong style={{ fontSize: 16 }}>{filtered.length} row{filtered.length === 1 ? '' : 's'}</strong><span className="sub2">Sorted by Released / Submitted, newest first{filtered.some(isExport) && filtered.some(r => ['QUEUED', 'GENERATING'].includes(r.job)) ? ' · export progress refreshes every 15 s' : ''}</span></div>
             )}
-            <div className={'pq-filter' + (locked ? ' pq-disabled' : '')}>
-              <label>Print Status</label>
-              <select value={status} onChange={e => setStatus(e.target.value)}>
-                <option value="ALL">All</option>
-                <option value="UNPRINTED">Unprinted</option>
-                <option value="PRINTED">Printed</option>
-              </select>
-            </div>
-            <div className={'pq-filter' + (locked ? ' pq-disabled' : '')} title={locked ? 'Ignored while searching' : ''}>
-              <label>Time Window</label>
-              <select value={timeWin} onChange={e => setTimeWin(e.target.value)}>
-                <option value="24h">Last 24 Hours</option>
-                <option value="7d">Last 7 Days</option>
-                <option value="30d">Last 30 Days</option>
-                <option value="all">All Time</option>
-              </select>
-            </div>
-            <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={clearFilters}>Clear Filters</button>
-            <button className="cds--btn cds--btn--ghost cds--btn--sm" aria-expanded={panelOpen}
-              onClick={() => setPanelOpen(o => !o)}>Search by Patient {panelOpen ? '▴' : '▾'}</button>
-          </div>
-
-          {/* ---------------- Active targeted-search strip (FR-2-005) ---------------- */}
-          {targeted && (
-            <div className="pq-searchstrip">
-              <span className="cds--tag cds--tag--blue cds--tag--filter" style={{display:'inline-flex', alignItems:'center', gap:4}}>
-                {chip}
-                <button onClick={clearTargeted} title="Remove search filter"
-                  style={{background:'transparent', border:'none', cursor:'pointer', fontSize:13, lineHeight:1}}>✕</button>
-              </span>
-              <span style={{fontSize:12, color:'#525252'}}>Filters are disabled while a targeted search is active — searching all time.</span>
-              <button className="cds--btn cds--btn--tertiary cds--btn--sm" onClick={clearTargeted}>Clear search</button>
-            </div>
-          )}
-
-          {/* ---------------- Inline patient search panel (FR-2-004, no modal) ---------------- */}
-          {panelOpen && (
-            <div className="pq-panel">
-              <h4>Search by Patient <span style={{fontWeight:400, color:'#525252', fontSize:12}}>(reuses the existing patient search — local records only)</span></h4>
-              <div className="fields">
-                <div className="pq-filter"><label>Patient Id</label><input placeholder="STNumber / Subject / National ID" /></div>
-                <div className="pq-filter"><label>Previous Lab Number</label><input /></div>
-                <div className="pq-filter"><label>Last Name</label><input value={pLast} onChange={e => setPLast(e.target.value)} onKeyDown={e => { if (e.key==='Enter') searchPatients(); }} /></div>
-                <div className="pq-filter"><label>First Name</label><input /></div>
-                <div className="pq-filter"><label>Date of Birth</label><input placeholder="DD/MM/YYYY" style={{width:120}} /></div>
-                <div className="pq-filter" style={{minWidth:100}}><label>Gender</label><select><option></option><option>M</option><option>F</option></select></div>
-                <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={searchPatients}>Search</button>
-                <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => { setPanelOpen(false); setPResults(null); }}>Close</button>
-              </div>
-              {pResults && (
-                <div style={{marginTop:'1rem'}}>
-                  {pResults.length === 0 ? <em style={{fontSize:13, color:'#525252'}}>No patients found.</em> : (
-                    <table className="cds--data-table" style={{width:'100%'}}>
-                      <thead><tr><th>Name</th><th>Patient Id</th><th>Date of Birth</th><th>Gender</th><th></th></tr></thead>
-                      <tbody>
-                        {pResults.map(p => (
-                          <tr key={p.id} style={{cursor:'pointer'}} onClick={() => { applyTargeted({kind:'patient', name:p.name}); setPResults(null); }}>
-                            <td>{p.name}</td><td>{p.pid}</td><td>{p.dob}</td><td>{p.gender}</td>
-                            <td><button className="cds--btn cds--btn--tertiary cds--btn--sm">Select</button></td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ---------------- Notifications ---------------- */}
-          {notice && (
-            <div className={'cds--inline-notification cds--inline-notification--' + notice.kind} style={{margin:'1rem 0', maxWidth:'none'}}>
-              <div className="cds--inline-notification__details" style={{padding:'0 1rem'}}>
-                <div className="cds--inline-notification__text-wrapper"><span className="cds--inline-notification__title">{notice.text}</span></div>
-              </div>
-              <button className="cds--inline-notification__close-button" onClick={() => setNotice(null)}>✕</button>
-            </div>
-          )}
-
-          {/* ---------------- Queue table ---------------- */}
-          <div className="cds--data-table-container" style={{marginTop: notice ? 0 : '1rem'}}>
-            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'.5rem 1rem', background:'#fff', borderBottom:'1px solid #e0e0e0'}}>
-              <strong style={{fontSize:14}}>Report Print Queue <span style={{color:'#525252', fontSize:12, fontWeight:400}}>({filtered.length} {filtered.length === 1 ? 'result' : 'results'})</span></strong>
-              <button className="cds--btn cds--btn--primary cds--btn--sm" disabled={!selected.length} onClick={() => doPrint(selected)}>
-                Print Selected ({selected.length})
-              </button>
-            </div>
-            <table className="cds--data-table" style={{width:'100%'}}>
-              <thead>
-                <tr>
-                  <th style={{width:36}}><input type="checkbox" checked={selected.length > 0 && selected.length === readyIds.length} onChange={e => setSelected(e.target.checked ? readyIds : [])} /></th>
-                  <th>Report Type</th><th>Subject</th><th>Facility</th><th>Ward / Dept / Unit</th><th>Requestor</th>
-                  <th>Validated / Queued At</th><th>Completeness</th><th>Status</th><th></th>
-                </tr>
-              </thead>
+            <table className="q">
+              <thead><tr>
+                <th style={{ width: 32 }}><input type="checkbox" aria-label="Select all" checked={filtered.some(r => !r.noTemplate && !isExport(r)) && filtered.filter(r => !r.noTemplate && !isExport(r)).every(r => selected.includes(r.id))} onChange={e => setSelected(e.target.checked ? filtered.filter(r => !r.noTemplate && !isExport(r)).map(r => r.id) : [])} /></th>
+                <th style={{ width: 28 }}></th>
+                {inScope.length > 1 && <th>Type</th>}
+                <th>Lab No / Name</th><th>Subject</th><th>Details</th><th>Released / Submitted ↓</th><th>State</th><th>Print status</th><th>Version</th><th>Action</th>
+              </tr></thead>
               <tbody>
-                {filtered.length === 0 && (
-                  <tr><td colSpan={10} style={{textAlign:'center', padding:'2rem', color:'#525252'}}>
-                    No reports in queue<br/><span style={{fontSize:12}}>All reports have been printed, or no results have been validated in the selected time window.</span>
-                  </td></tr>
-                )}
-                {filtered.map(row => {
-                  const [gk, gl] = genTag[row.gen];
+                {filtered.length === 0 && <tr><td colSpan={11} style={{ padding: '2rem', textAlign: 'center', color: '#525252' }}>Nothing to print. Every released report in this view has been printed. <button className="linkish" onClick={clearAll}>Clear filters</button></td></tr>}
+                {filtered.map(r => {
+                  const open = expanded === r.id;
+                  if (isExport(r)) return (
+                    <React.Fragment key={r.id}>
+                      <tr className="row">
+                        <td><input type="checkbox" disabled aria-label="Exports cannot be batch printed" /></td>
+                        <td><button className="cds--btn cds--btn--ghost cds--btn--sm" style={{ minHeight: 24, padding: '0 .25rem' }} onClick={() => setExpanded(open ? null : r.id)} aria-label="Expand">{open ? '▾' : '▸'}</button></td>
+                        {inScope.length > 1 && <td>{TYPE_LABEL[r.type]}</td>}
+                        <td><strong>{r.labNo}</strong></td>
+                        <td>{r.subject}<div className="sub2">{r.subjectSub}</div></td>
+                        <td>{r.dateRange}<div className="sub2">{r.rowsSize}</div></td>
+                        <td style={{ whiteSpace: 'nowrap' }}>{fmt(r.released)}</td>
+                        <td><Tag kind={JOB_TAG[r.job][0]}>{JOB_TAG[r.job][1]}</Tag></td>
+                        <td className="sub2">-</td><td className="sub2">-</td>
+                        <td>{JOB_ACTION[r.job] && <button className={`cds--btn cds--btn--sm ${r.job === 'READY' ? 'cds--btn--primary' : 'cds--btn--tertiary'}`} onClick={() => jobAction(r)}>{JOB_ACTION[r.job]}</button>}</td>
+                      </tr>
+                      {open && <tr className="expanded"><td colSpan={11}><div className="detail"><div style={{ gridColumn: 'span 12' }}>
+                        <h5>{r.subjectSub} · {r.dateRange}</h5>
+                        <ol style={{ margin: '0 0 .5rem 1.25rem', fontSize: 13 }}>{r.variables.map(v => <li key={v}>{v}</li>)}</ol>
+                        {r.expires && <p className="sub2">{r.job === 'EXPIRED' ? 'Expired' : 'Expires'} {fmt(r.expires)}</p>}
+                        {r.failure && <p className="err">{r.failure}</p>}
+                        <p className="note">Shipped Custom Data Export job details, rendered by the shared job-row component. Only you can see this job.</p>
+                      </div></div></td></tr>}
+                    </React.Fragment>
+                  );
+                  const pr = printOf(r); const stt = stateOf(r);
+                  const partial = r.rel < r.total;
                   return (
-                    <tr key={row.id}>
-                      <td><input type="checkbox" disabled={row.gen !== 'READY'} checked={selected.includes(row.id)}
-                        onChange={e => setSelected(s => e.target.checked ? [...s, row.id] : s.filter(x => x !== row.id))} /></td>
-                      <td style={{fontSize:13}}>{row.type === 'PATIENT' ? 'Patient Report' : row.type === 'MALARIA_CASE' ? 'Malaria Case Report' : 'Result Export'}</td>
-                      <td style={{fontSize:13, fontWeight:500}}>{row.subject}</td>
-                      <td style={{color:'#525252', fontSize:13}}>{row.facility || '—'}</td>
-                      <td style={{color:'#525252', fontSize:13}}>{row.ward || '—'}</td>
-                      <td style={{fontSize:13}}>{row.requestor || '—'}</td>
-                      <td style={{fontSize:13}}>{row.at}</td>
-                      <td>
-                        {row.rep === null ? <span style={{color:'#525252'}}>—</span> : (
-                          <span>
-                            <span className={'cds--tag cds--tag--sm ' + (row.rep === row.total ? 'cds--tag--teal' : 'cds--tag--warm-gray')}>{row.rep === row.total ? 'Final' : 'Partial'}</span>
-                            <span style={{fontSize:12, color:'#525252', marginLeft:4}}>{row.rep}/{row.total}</span>
-                          </span>
-                        )}
-                      </td>
-                      <td style={{whiteSpace:'nowrap'}}>
-                        {row.gen !== 'READY' && <span className={'cds--tag cds--tag--sm ' + gk}>{gl}</span>}
-                        {row.gen === 'READY' && <span className={'cds--tag cds--tag--sm ' + (row.print === 'PRINTED' ? 'cds--tag--green' : 'cds--tag--purple')}>{row.print === 'PRINTED' ? 'Printed' : 'Unprinted'}</span>}
-                        {row.amended && <span className="cds--tag cds--tag--sm cds--tag--blue">Amended</span>}
-                        {row.critical && <span className="cds--tag cds--tag--sm cds--tag--red">Critical Value</span>}
-                      </td>
-                      <td className="rowbtn">
-                        {row.gen === 'READY' && <button className="cds--btn cds--btn--tertiary cds--btn--sm" onClick={() => doPrint([row.id])}>Print</button>}
-                        {row.gen === 'FAILED' && <button className="cds--btn cds--btn--ghost cds--btn--sm">Retry</button>}
-                      </td>
-                    </tr>
+                    <React.Fragment key={r.id}>
+                      <tr className="row">
+                        <td><input type="checkbox" disabled={r.noTemplate} checked={selected.includes(r.id)} onChange={e => setSelected(e.target.checked ? [...selected, r.id] : selected.filter(x => x !== r.id))} aria-label={`Select ${r.labNo}`} /></td>
+                        <td><button className="cds--btn cds--btn--ghost cds--btn--sm" style={{ minHeight: 24, padding: '0 .25rem' }} onClick={() => { setExpanded(open ? null : r.id); setReissue({ id: null, text: '', touched: false }); }} aria-label="Expand">{open ? '▾' : '▸'}</button></td>
+                        {inScope.length > 1 && <td>{TYPE_LABEL[r.type]}</td>}
+                        <td className="mono" style={{ whiteSpace: 'nowrap' }}>{r.labNo}</td>
+                        <td>{r.subject}<div className="sub2">{r.subjectSub}</div></td>
+                        <td>{r.type === 'patient' ? <>{r.requester}<div className="sub2">{r.facility} · {r.ward}</div></> :
+                          r.type === 'environmental' ? <>{r.standard ? <span className="mono" style={{ fontSize: 12 }}>{r.standard}</span> : <span className="sub2">Not evaluated against a standard</span>}<div><Tag kind={COMP[r.compliance][0]}>{partial && r.compliance !== 'NOT_EVALUATED' ? 'Provisional: ' : ''}{COMP[r.compliance][1]}</Tag></div></> :
+                          <span className="sub2">Vector surveillance</span>}</td>
+                        <td style={{ whiteSpace: 'nowrap' }}>{fmt(r.released)}</td>
+                        <td><Tag kind={STATE_TAG[stt][0]}>{STATE_TAG[stt][1]}{partial ? ` ${r.rel}/${r.total}` : ''}</Tag>{r.critical && <Tag kind="red">Critical</Tag>}</td>
+                        <td><Tag kind={PRINT_TAG[pr][0]}>{PRINT_TAG[pr][1]}</Tag></td>
+                        <td>{versionCell(r)}</td>
+                        <td><button className="cds--btn cds--btn--tertiary cds--btn--sm" disabled={r.noTemplate} title={r.noTemplate ? 'Vector certificate template not installed' : ''} onClick={() => printRows([r.id], 'print')}>Print</button>
+                          {r.noTemplate && <div className="sub2" style={{ maxWidth: 120 }}>Template not installed (D1)</div>}</td>
+                      </tr>
+                      {open && <tr className="expanded"><td colSpan={11}><Detail r={r} canReissue={canReissue} reissue={reissue} setReissue={setReissue} doReissue={doReissue} /></td></tr>}
+                    </React.Fragment>
                   );
                 })}
               </tbody>
             </table>
-            <div style={{display:'flex', justifyContent:'space-between', padding:'.5rem 1rem', background:'#fff', borderTop:'1px solid #e0e0e0', fontSize:12, color:'#525252'}}>
-              <span>Items per page: 20</span><span>1–{filtered.length} of {filtered.length}</span>
-            </div>
+            <div className="pager"><span>Items per page: 20</span><span>1 to {filtered.length} of {filtered.length} items</span></div>
           </div>
+          <p className="note">Try: expand 26-004790 (Amended after a potassium correction), print 26-004812 (a completed partial report becomes v2, not amended), expand ENV-26-0091 (no standard linked), expand ENV-26-0071 (reissued with correction, /Am.1). 26-004410 was released 48 days ago and still shows under Last 7 days because it has never been printed. Try State = Amended with Print status = Unprinted, or the Exports ready tile. The four Data export rows are this user's own jobs.</p>
+        </main>
+      </div>
+    </div>
+  );
+}
 
-        </div>
-      );
-    }
+function History({ r }) {
+  if (!r.history.length) return <p className="sub2">Nothing printed yet</p>;
+  return (
+    <table className="mini">
+      <thead><tr><th>Version</th><th>Issued</th><th>By</th><th>Change</th><th>Completeness</th><th>Fingerprint</th><th></th></tr></thead>
+      <tbody>{r.history.map(h => (
+        <React.Fragment key={h.v}>
+          <tr>
+            <td>v{h.v}{h.amended && <> <Tag kind="magenta">Amended</Tag></>}{r.type !== 'patient' && h.amended && <div className="sub2 mono">/Am.{r.history.filter(x => x.amended && x.v <= h.v).length}</div>}</td>
+            <td style={{ whiteSpace: 'nowrap' }}>{fmt(h.at)}</td>
+            <td>{h.by}</td>
+            <td>{h.change}</td>
+            <td>{h.comp}</td>
+            <td className="mono" title={h.notArchived ? '' : 'SHA-256 ' + sha(r.labNo + h.v) + '…'}>{h.notArchived ? '-' : sha(r.labNo + h.v)}</td>
+            <td>{h.notArchived ? <span className="sub2">Not archived (issued before 15 Sep 2026)</span> : <button className="linkish">Open PDF</button>}</td>
+          </tr>
+          {h.reprints.map((p, i) => <tr key={i}><td></td><td colSpan={6} className="sub2">Reprinted {fmt(p.at)} by {p.by} (same file, same fingerprint)</td></tr>)}
+        </React.Fragment>))}
+        {printOf(r) !== 'printed' && r.history.length > 0 && <tr><td className="sub2">next</td><td colSpan={6} className="sub2">Next print creates v{r.history.length + 1}{r.pendingAmend ? ' (amended)' : ''}: {r.pendingSummary}</td></tr>}
+      </tbody>
+    </table>
+  );
+}
 
-    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-  </script>
+function ReissueBlock({ r, canReissue, reissue, setReissue, doReissue }) {
+  if (!r.history.length || printOf(r) !== 'printed') return <p className="sub2" style={{ marginTop: '.75rem' }}>Reissue with correction is available once the current version has been printed; an Unprinted report uses Print.</p>;
+  if (reissue.id !== r.id) return (
+    <div style={{ marginTop: '.75rem' }}>
+      <button className="cds--btn cds--btn--tertiary cds--btn--sm" disabled={!canReissue} title={canReissue ? '' : 'Only Results, Validation or Admin users can reissue a report.'} onClick={() => setReissue({ id: r.id, text: '', touched: false })}>Reissue with correction</button>
+      {!canReissue && <span className="sub2" style={{ marginLeft: '.5rem' }}>Only Results, Validation or Admin users can reissue a report.</span>}
+    </div>);
+  const invalid = reissue.touched && !reissue.text.trim();
+  return (
+    <div className="reissue" style={{ marginTop: '.75rem' }}>
+      <label className="cds--label">What was corrected</label>
+      <textarea className={invalid ? 'invalid' : ''} value={reissue.text} placeholder="e.g. Collection date was entered as 12/09; the sample was collected 11/09" onChange={e => setReissue({ ...reissue, text: e.target.value })} />
+      {invalid ? <div className="err">Enter what was corrected</div> : <div className="helper" style={{ maxWidth: 'none' }}>This prints on the report as the reason for the correction. Required for ISO 15189 7.4.1.6 and ISO/IEC 17025 7.8.8.</div>}
+      <div style={{ marginTop: '.75rem', display: 'flex', gap: '.5rem' }}>
+        <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={() => doReissue(r)}>Reissue and print</button>
+        <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => setReissue({ id: null, text: '', touched: false })}>Cancel</button>
+      </div>
+    </div>);
+}
+
+function Detail({ r, canReissue, reissue, setReissue, doReissue }) {
+  if (r.type === 'patient') return (
+    <div className="detail">
+      <div style={{ gridColumn: 'span 7' }}>
+        <h5>Tests ({r.rel} of {r.total} released)</h5>
+        <table className="mini"><thead><tr><th>Test</th><th>Result</th><th>Flag</th><th>Released</th><th>Validated by</th></tr></thead>
+          <tbody>{r.tests.map(([n, v, f, at, by]) => <tr key={n}><td>{n}</td><td style={{ fontStyle: at ? 'normal' : 'italic' }}>{v}</td><td>{f ? <Tag kind={f.length === 2 ? 'red' : 'gray'}>{f}</Tag> : ''}</td><td>{at ? fmt(at) : '-'}</td><td>{by}</td></tr>)}</tbody></table>
+      </div>
+      <div style={{ gridColumn: 'span 5' }}>
+        <h5>Order</h5>
+        <div className="kv"><div>Facility</div><div>{r.facility}</div><div>Ward / Dept / Unit</div><div>{r.ward}</div><div>Requester</div><div>{r.requester}</div><div>Collected</div><div>{fmt(r.collected)}</div><div>Received</div><div>{fmt(r.received)}</div></div>
+      </div>
+      <div style={{ gridColumn: 'span 12' }}>
+        <h5>Version history</h5><History r={r} />
+        <ReissueBlock r={r} canReissue={canReissue} reissue={reissue} setReissue={setReissue} doReissue={doReissue} />
+      </div>
+    </div>);
+  const noStd = !r.standard;
+  return (
+    <div className="detail">
+      <div style={{ gridColumn: 'span 4' }}>
+        <h5>Site Information</h5>
+        <div className="kv"><div>Site</div><div>{r.subject} ({r.subjectSub})</div><div>GPS</div><div className="mono">{r.site.gps}</div><div>Collection Date/Time</div><div>{fmt(r.site.collected)}</div><div>Collection Method</div><div>{r.site.method}</div><div>Standard</div><div>{r.standard || <em>Not evaluated against a standard</em>}</div></div>
+      </div>
+      <div style={{ gridColumn: 'span 3' }}>
+        <h5>Collection Conditions</h5>
+        <div className="kv" style={{ gridTemplateColumns: '110px 1fr' }}><div>Water Temp</div><div>{r.site.water}</div><div>Ambient Temp</div><div>{r.site.ambient}</div><div>Weather</div><div>{r.site.weather}</div><div>Preservation</div><div>{r.site.preservation}</div></div>
+      </div>
+      <div style={{ gridColumn: 'span 5' }}>
+        <h5>{noStd ? 'Results (printed without compliance evaluation)' : 'Compliance Summary'}</h5>
+        <table className="mini"><thead><tr><th>Parameter</th><th>Result</th>{!noStd && <><th>Threshold</th><th>Status</th></>}</tr></thead>
+          <tbody>{r.params.map(([p, v, th, s]) => <tr key={p}><td>{p}</td><td style={{ fontStyle: v === 'Pending' ? 'italic' : 'normal' }}>{v}</td>{!noStd && <><td>{th}</td><td>{s ? <Tag kind={COMP[s][0]}>{COMP[s][1]}</Tag> : <span className="sub2">Pending</span>}</td></>}</tr>)}</tbody></table>
+        {noStd && r.type === 'environmental' && <p className="note">The report prints these results under "Not evaluated against a standard", with no threshold, status or conclusion. Linking a standard later makes the next print a new version (not amended): "Evaluated against {'{standard}'}".</p>}
+        {!noStd && r.rel < r.total && <p className="note">Prints as a partial certificate: conclusion "Provisional: {r.total - r.rel} of {r.total} parameters pending".</p>}
+      </div>
+      {r.sigs.length > 0 && <div style={{ gridColumn: 'span 12' }}>
+        <h5>Signatures</h5>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>{r.sigs.map(([role, n, at]) => <div className="sig" key={role}><strong>{role}</strong><div>{n}</div><div className="sub2">{fmt(at)}</div></div>)}</div>
+      </div>}
+      <div style={{ gridColumn: 'span 12' }}>
+        <h5>Version history</h5><History r={r} />
+        {!r.noTemplate && <ReissueBlock r={r} canReissue={canReissue} reissue={reissue} setReissue={setReissue} doReissue={doReissue} />}
+        {r.noTemplate && <p className="note">Vector certificate template (S06d) is not installed yet, so this row cannot print. It shows so the clerk knows it is waiting.</p>}
+      </div>
+    </div>);
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
 </body>
 </html>

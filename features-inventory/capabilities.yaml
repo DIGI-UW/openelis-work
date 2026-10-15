@@ -1,0 +1,910 @@
+# OpenELIS Features Inventory — Layer 1: Capabilities
+# Source of truth for the roadmap + website features page. See README.md.
+# Renderers prefer gallery.mockup, fall back to gallery.frs (always valid).
+meta:
+  version: 1
+  generated: "2026-09-02"
+  gallery_base: "https://digi-uw.github.io/openelis-work/#"
+  frs_base: "https://github.com/DIGI-UW/openelis-work/blob/main/designs"
+  release_latest_beta: "3.2.2.0"
+  production_line: "v3.1"
+  maturity_values: [production, beta, in-development, available, planned]
+  # Program-level training-materials archive (Google Drive). Organized by cohort/country + audience,
+  # NOT per-feature; much is "Classic" (old JSP UI) and stale vs the React app. Linked at program
+  # level only — do not fabricate per-capability training_doc values (see docs-manual handoff).
+  training_folder: "https://drive.google.com/drive/folders/1FTFNxqQEg_Y0bpYpSq_xj2wLY3JtfZV6"
+
+capabilities:
+
+  # ── Core Lab Workflows ───────────────────────────────────
+  - id: order-entry
+    name: Order & sample entry
+    area: Core Lab Workflows
+    domain: [clinical, cross-cutting]
+    maturity: production
+    summary: Register patients, orders, and samples through a streamlined, decoupled workflow.
+    enhancements:
+      - Visual form builder for program-specific order entry (OGC-70, OGC-113)
+      - Pre-analytical eligibility gate and required-by date (OGC-580, OGC-625)
+      - Realignment to a unified three-workflow spec — clinical / environmental / vector (OGC-1066)
+    since: v3.1
+    jira: [OGC-356]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/sample-collection/sample-collection-redesign", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/sample-collection/sample-collection-redesign.md"}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/261423127", training_doc: null}
+    website: {include: true, section: Clinical workflows}
+
+  - id: results-entry
+    name: Results entry
+    area: Core Lab Workflows
+    domain: [clinical, cross-cutting]
+    maturity: production
+    summary: One unified worklist to enter and review results — search by Lab Unit, date, or status, with inline editing, per-analysis save, and cross-domain (clinical/environmental/vector) rendering.
+    enhancements:
+      - Multi-component results — multiple result fields per analysis (OGC-1131)
+      - Smart result suggestions based on test history
+    since: v3.1
+    jira: [OGC-811, OGC-1020, OGC-1170, OGC-1179]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/results-validation/results-entry-v4", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/results-validation/results-entry-multicomponent.md"}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/278626329", training_doc: null}
+    website: {include: true, section: Clinical workflows}
+
+  - id: result-validation
+    name: Result validation
+    area: Core Lab Workflows
+    domain: [clinical, cross-cutting]
+    maturity: production
+    summary: Review, sign, and release results with multi-level validation and a supervisor queue.
+    enhancements:
+      - Inline-first validation redesign — triage queue, review panel, guarded bulk release, reject-via-NCE + send-for-retest (OGC-817 V1–V4, OGC-1027–1030; merged to develop, awaiting release)
+      - Patient demographics (sex/age) shown during validation (OGC-291, OGC-343)
+      - Rule-based auto-validation for in-range results
+    since: v3.1
+    jira: [OGC-291, OGC-343]
+    gallery: {mockup: null, frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/results-validation/results-validation-v4-breakdown.md"}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/284196875", training_doc: null}
+    website: {include: true, section: Clinical workflows}
+
+  - id: electronic-lab-notebook
+    name: Electronic lab notebook
+    area: Core Lab Workflows
+    domain: [clinical, cross-cutting]
+    maturity: production
+    summary: Digital lab documentation with audit trails, replacing paper notebooks.
+    since: "3.2.1.x"
+    jira: [OGC-53]
+    gallery: {mockup: null, frs: null}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/991821864", training_doc: null}
+    website: {include: true, section: Clinical workflows}
+
+  - id: electronic-signatures
+    name: Electronic signatures
+    area: Core Lab Workflows
+    domain: [clinical, cross-cutting]
+    maturity: production
+    summary: 21 CFR Part 11-aligned electronic signatures on results and reports.
+    since: "3.2.1.5"
+    jira: [OGC-302]
+    gallery: {mockup: null, frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/system/electronic-signature.md"}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1242759175", training_doc: null}
+    website: {include: true, section: Clinical workflows}
+
+  - id: informed-consent
+    name: Informed consent capture
+    area: Core Lab Workflows
+    domain: [clinical]
+    maturity: production
+    summary: Capture and record patient informed consent against orders.
+    since: "3.2.1.7"
+    jira: [OGC-557, OGC-558]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/sample-collection/informed-consent", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/sample-collection/informed-consent.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Clinical workflows}
+
+  - id: patient-order-enhancements
+    name: Patient & order enhancements
+    area: Core Lab Workflows
+    domain: [clinical]
+    maturity: production
+    summary: Photo capture, National ID, ID-card scanning, and diagnosis fields on patient records.
+    since: "3.2.1.6"
+    jira: [OGC-66]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/patient/patient-id-card-scanning", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/patient/patient-id-card-scanning.md"}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1189642248", manual_status: draft, training_doc: null}
+    website: {include: true, section: Clinical workflows}
+
+  # ── Sample & Storage ─────────────────────────────────────
+  - id: sample-storage-management
+    name: Sample storage management
+    area: Sample & Storage
+    domain: [clinical, cross-cutting]
+    maturity: production
+    summary: Track samples through a configurable storage hierarchy with disposal handling.
+    since: "3.2.1.x"
+    jira: []
+    gallery: {mockup: null, frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/system/storage-disposition-fhir.md"}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1047658526", training_doc: null}
+    website: {include: true, section: Sample & storage}
+
+  - id: sample-shipment-referral
+    name: Sample shipment & referral
+    area: Sample & Storage
+    domain: [clinical, cross-cutting]
+    maturity: production
+    summary: Electronic manifests, chain of custody, and inter-lab transfer for referred samples.
+    enhancements:
+      - Reference-lab results return (OGC-796)
+    since: "3.2.1.5"
+    jira: [OGC-62, OGC-624]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/sample-collection/sample-collection-referral-addendum", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/sample-collection/sample-collection-referral-addendum.md"}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1046118450", training_doc: null}
+    website: {include: true, section: Sample & storage}
+
+  - id: partial-sample-usage
+    name: Partial sample usage & tags
+    area: Sample & Storage
+    domain: [clinical, cross-cutting]
+    maturity: planned
+    summary: Allocate portions of a sample while tracking remaining quantity; configurable sample tags.
+    since: null
+    jira: []
+    gallery: {mockup: null, frs: null}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1189543964", manual_status: draft, training_doc: null}
+    website: {include: true, section: Sample & storage}
+
+  # ── Quality & Compliance ─────────────────────────────────
+  - id: westgard-qc
+    name: Westgard QC rules & dashboard
+    area: Quality & Compliance
+    domain: [clinical, cross-cutting]
+    maturity: production
+    summary: Automated Westgard rule evaluation with a visual instrument-compliance dashboard.
+    since: "3.2.1.7"
+    jira: [OGC-41]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/quality/westgard-dashboard", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/quality/westgard-rules.md"}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1188429833", manual_status: draft, training_doc: null}
+    website: {include: true, section: Quality & compliance}
+
+  - id: eqa
+    name: EQA / proficiency testing
+    area: Quality & Compliance
+    domain: [clinical, cross-cutting]
+    maturity: production
+    summary: Manage proficiency-testing events end to end — enrollment, blind testing, submission, scoring.
+    enhancements:
+      - EQA V2 complete lifecycle MVP (OGC-608)
+    since: "3.2.1.4"
+    jira: [OGC-61, OGC-608]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/quality/eqa-enrollment", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/quality/eqa-requirements.md"}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1189773314", manual_status: draft, training_doc: null}
+    website: {include: true, section: Quality & compliance}
+
+  - id: nce-capa
+    name: Non-conforming events (NCE) & CAPA
+    area: Quality & Compliance
+    domain: [clinical, cross-cutting]
+    maturity: production
+    summary: Log non-conforming events, run CAPA tracking, and analyze trends.
+    since: "3.2.1.4"
+    jira: [OGC-313, OGC-314, OGC-315, OGC-316]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/nce/nce-dashboard", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/nce/nce-dashboard.md"}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/278888457", training_doc: null}
+    website: {include: true, section: Quality & compliance}
+
+  - id: audit-trail
+    name: System-level audit trail
+    area: Quality & Compliance
+    domain: [cross-cutting]
+    maturity: production
+    summary: Full audit trail of configuration and data changes for accreditation.
+    since: "3.2.1.5"
+    jira: []
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/system/audit-trail", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/system/audit-trail.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Quality & compliance}
+
+  - id: analyzer-manual-qc
+    name: Analyzer manual QC recording
+    area: Quality & Compliance
+    domain: [clinical, cross-cutting]
+    maturity: in-development
+    summary: Record instrument quality-control checks (pass/fail) right where staff are working.
+    since: null
+    jira: [OGC-426, OGC-428]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/quality/analyzer-manual-qc", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/quality/analyzer-manual-qc.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Quality & compliance}
+
+  - id: batch-workplan-reagent-qc
+    name: Batch workplan + reagent QC
+    area: Quality & Compliance
+    domain: [clinical, cross-cutting]
+    maturity: in-development
+    summary: Plan batch testing with reagent-lot tracking and quality checks in one place.
+    since: null
+    jira: [OGC-427]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/quality/batch-workplan-reagent-qc", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/quality/batch-workplan-reagent-qc.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Quality & compliance}
+
+  # ── Environmental & Vector Surveillance (flagship) ───────
+  - id: domain-aware-labs
+    name: Domain-aware labs (clinical / environmental / vector)
+    area: Environmental & Vector Surveillance
+    domain: [clinical, environmental, vector]
+    maturity: production
+    summary: One LIMS that handles clinical, environmental, and vector samples — each lab unit configured by domain.
+    since: "3.2.1.x"
+    jira: [OGC-527, OGC-538, OGC-361]
+    contract_labels: [Indonesia, Vector]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/admin-config/sample-type-domain-classification", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/admin-config/sample-type-domain-classification.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Environmental & vector}
+
+  - id: compliance-standards-engine
+    name: Compliance standards engine
+    area: Environmental & Vector Surveillance
+    domain: [environmental, cross-cutting]
+    maturity: production
+    summary: Built-in environmental regulations (WHO, EPA, EU, ISO 17025) that automatically check results against the right limits.
+    since: null
+    jira: [OGC-528, OGC-547, OGC-768]
+    contract_labels: [Indonesia]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/admin-config/compliance-standards-admin", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/admin-config/compliance-standards-admin.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Environmental & vector}
+
+  - id: sampling-site-registry
+    name: Sampling site registry
+    area: Environmental & Vector Surveillance
+    domain: [environmental, vector]
+    maturity: production
+    summary: Register non-patient sampling sites for environmental and vector surveillance.
+    since: "3.2.1.x"
+    jira: [OGC-531]
+    contract_labels: [Indonesia, Vector]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/sample-collection/sampling-site-registry", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/sample-collection/sampling-site-registry.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Environmental & vector}
+
+  - id: environmental-order-entry
+    name: Environmental order entry
+    area: Environmental & Vector Surveillance
+    domain: [environmental]
+    maturity: production
+    summary: Domain-aware intake for water, air, soil, and food samples with per-regulation suggested tests.
+    since: "3.2.1.x"
+    jira: [OGC-537, OGC-768]
+    contract_labels: [Indonesia]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/sample-collection/environmental-order-entry", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/sample-collection/environmental-order-entry.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Environmental & vector}
+
+  - id: vector-collection
+    name: Vector collection workflow
+    area: Environmental & Vector Surveillance
+    domain: [vector]
+    maturity: production
+    summary: Capture mosquito/tick/rodent collection lots with trap details for surveillance.
+    since: "3.2.1.x"
+    jira: [OGC-581]
+    contract_labels: [Indonesia, Vector]
+    gallery: {mockup: null, frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/vector-surveillance/vector-collection-workflow.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Environmental & vector}
+
+  - id: vector-identification
+    name: Vector testing & identification
+    area: Environmental & Vector Surveillance
+    domain: [vector]
+    maturity: production
+    summary: Identify vector species and the pathogens they carry, including pooled-sample testing.
+    since: null
+    jira: [OGC-582]
+    contract_labels: [Indonesia, Vector]
+    gallery: {mockup: null, frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/vector-surveillance/vector-testing-identification.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Environmental & vector}
+
+  - id: vector-taxonomy
+    name: Vector specimen types & taxonomy
+    area: Environmental & Vector Surveillance
+    domain: [vector]
+    maturity: production
+    summary: Reference taxonomy and specimen-type hierarchy for vector surveillance.
+    since: "3.2.1.x"
+    jira: [OGC-555]
+    contract_labels: [Indonesia, Vector]
+    gallery: {mockup: null, frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/vector-surveillance/vector-reference-data.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Environmental & vector}
+
+  - id: compliance-reports-lhu
+    name: Certificate-of-analysis reports (Laporan Hasil)
+    area: Environmental & Vector Surveillance
+    domain: [environmental, vector]
+    maturity: production
+    summary: Official certificate-of-analysis reports for environmental and vector results (ISO 17025).
+    since: null
+    jira: [OGC-552]
+    contract_labels: [Indonesia]
+    gallery: {mockup: null, frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/reports/S06-laporan-hasil-compliance-report-frs-v1.0.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Environmental & vector}
+
+  - id: vector-surveillance-reporting
+    name: Vector surveillance reporting
+    area: Environmental & Vector Surveillance
+    domain: [vector]
+    maturity: production
+    summary: Vector surveillance indicators and field-survey reporting, aligned to WHO guidelines.
+    since: "3.2.1.x"
+    jira: [OGC-585, OGC-779]
+    contract_labels: [Indonesia, Vector]
+    gallery: {mockup: null, frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/vector-surveillance/vector-surveillance-reporting.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Environmental & vector}
+
+  # ── Analyzer & Instrument Integration ────────────────────
+  - id: analyzer-framework
+    name: Analyzer integration framework
+    area: Analyzer & Instrument Integration
+    domain: [clinical, cross-cutting]
+    maturity: production
+    summary: Connect lab instruments through a simple configuration screen — no programming required.
+    enhancements:
+      - Generic analyzer profiles + GUI test/result mapping (OGC-1054)
+    since: "3.2.1.4"
+    jira: [OGC-324, OGC-325]
+    gallery: {mockup: null, frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/analyzer-integration/analyzer-profile-mapping.md"}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1186365449", training_doc: null}
+    website: {include: true, section: Analyzers & instruments}
+
+  - id: analyzer-file-import
+    name: Analyzer file import
+    area: Analyzer & Instrument Integration
+    domain: [clinical, cross-cutting]
+    maturity: production
+    summary: Import instrument results from exported files, with a preview before anything is saved.
+    since: "3.2.1.6"
+    jira: [OGC-324, OGC-344]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-file-upload", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/analyzer-integration/analyzer-file-upload.md"}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1047265314", training_doc: null}
+    website: {include: true, section: Analyzers & instruments}
+
+  - id: outbound-order-dispatch
+    name: Outbound order dispatch
+    area: Analyzer & Instrument Integration
+    domain: [clinical, cross-cutting]
+    maturity: production
+    summary: Send test orders directly to instruments — not just receive results — for full two-way integration.
+    since: "3.2.1.10"
+    jira: [OGC-773]
+    gallery: {mockup: null, frs: null}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Analyzers & instruments}
+
+  - id: instrument-library
+    name: Validated instrument library
+    area: Analyzer & Instrument Integration
+    domain: [clinical, cross-cutting]
+    maturity: production
+    summary: Growing library of validated analyzers (GeneXpert, MALDI, QuantStudio, Mindray, EpiCenter, and more).
+    since: "3.2.1.4"
+    jira: [OGC-335, OGC-323, OGC-348, OGC-416, OGC-434]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-mapping-templates", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/analyzer-integration/astm-analyzer-mapping-addendum.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Analyzers & instruments}
+
+  - id: analyzer-import-tool
+    name: Analyzer import tool
+    area: Analyzer & Instrument Integration
+    domain: [cross-cutting]
+    maturity: production
+    summary: Set up many instruments at once by importing their configurations.
+    since: "3.2.1.x"
+    jira: []
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/system/analyzer-import", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/system/analyzer-import.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: false, section: Analyzers & instruments}
+
+  # ── Reporting & Dashboards ───────────────────────────────
+  - id: management-dashboard
+    name: Management dashboard
+    area: Reporting & Dashboards
+    domain: [clinical, cross-cutting]
+    maturity: in-development
+    summary: Strategic lab-wide view with disease surveillance (TB/HIV/malaria/AMR), quality, equipment, and stock.
+    since: null
+    jira: [OGC-897]
+    contract_labels: [png-deliverable, PNG, Phase2]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/system/lab-management-dashboard", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/system/lab-management-dashboard.md"}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1189740580", manual_status: draft, training_doc: null}
+    website: {include: true, section: Reporting & dashboards}
+
+  - id: disease-surveillance-dashboard
+    name: Disease surveillance dashboard
+    area: Reporting & Dashboards
+    domain: [clinical, cross-cutting]
+    maturity: in-development
+    summary: Public-health surveillance view — weekly TB/HIV positivity and trends.
+    since: null
+    jira: [OGC-433]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/reports/disease-surveillance-dashboard", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/reports/disease-surveillance-dashboard.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Reporting & dashboards}
+
+  - id: custom-data-export
+    name: Custom data export
+    area: Reporting & Dashboards
+    domain: [cross-cutting]
+    maturity: in-development
+    summary: Build your own data exports in a few guided steps — no technical skills needed.
+    since: null
+    jira: [OGC-479]
+    contract_labels: [png-deliverable, PNG, Phase2]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/reports/custom-data-export", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/reports/custom-data-export.md"}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1189576725", manual_status: draft, training_doc: null}
+    website: {include: true, section: Reporting & dashboards}
+
+  - id: positivity-rate
+    name: Positivity rate report & widget
+    area: Reporting & Dashboards
+    domain: [clinical, cross-cutting]
+    maturity: beta
+    summary: Per-test positivity rates as a report and a reusable dashboard widget.
+    since: "3.2.1.x"
+    jira: [OGC-433]
+    contract_labels: [png-deliverable, PNG, Phase2]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/reports/positivity-rate", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/reports/positivity-rate.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Reporting & dashboards}
+
+  - id: patient-report-print-queue
+    name: Patient report print queue
+    area: Reporting & Dashboards
+    domain: [clinical]
+    maturity: beta
+    summary: Push-based print queue for validated patient reports.
+    since: "3.2.1.x"
+    jira: [OGC-431, OGC-1031]
+    contract_labels: [png-deliverable, PNG, Phase2]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/reports/report-print-queue", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/reports/report-print-queue.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Reporting & dashboards}
+
+  - id: final-pdf-report
+    name: Final PDF patient report layout
+    area: Reporting & Dashboards
+    domain: [clinical]
+    maturity: in-development
+    summary: Polished, signature-bearing PDF patient report templates across disease types.
+    since: null
+    jira: [OGC-302, OGC-932]
+    contract_labels: [png-deliverable, PNG, Phase2]
+    gallery: {mockup: null, frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/reports/patient-report-redesign.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Reporting & dashboards}
+
+  - id: report-macro-library
+    name: Report comments / macro library
+    area: Reporting & Dashboards
+    domain: [cross-cutting]
+    maturity: in-development
+    summary: Reusable typing shortcuts (.code → expanded text) for report comments.
+    since: null
+    jira: [OGC-788]
+    contract_labels: [png-deliverable, PNG, Phase2]
+    gallery: {mockup: null, frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/microbiology/m-08-macro-library.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Reporting & dashboards}
+
+  - id: tat-report
+    name: Turnaround time report & dashboard
+    area: Reporting & Dashboards
+    domain: [clinical, cross-cutting]
+    maturity: production
+    summary: Turnaround-time monitoring with summary statistics, detail, and a dashboard.
+    since: "3.2.1.5"
+    jira: [OGC-307, OGC-310]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/reports/tat-report", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/reports/tat-report.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Reporting & dashboards}
+
+  - id: facility-reagent-stock
+    name: Facility reagent stock view
+    area: Reporting & Dashboards
+    domain: [cross-cutting]
+    maturity: in-development
+    summary: See reagent stock by facility, including how many days of supply remain.
+    since: null
+    jira: [OGC-436, OGC-438]
+    contract_labels: [png-deliverable, PNG, Phase2]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/inventory/reagent-forecasting-facility", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/inventory/reagent-forecasting-facility.md"}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1189675014", manual_status: draft, training_doc: null}
+    website: {include: true, section: Reporting & dashboards}
+
+  # ── Interoperability ─────────────────────────────────────
+  - id: fhir-r4-api
+    name: FHIR R4 API
+    area: Interoperability
+    domain: [cross-cutting, platform]
+    maturity: production
+    summary: Standards-based data sharing (FHIR R4) so lab results flow automatically to EMRs, registries, and dashboards.
+    since: v3.1
+    jira: []
+    gallery: {mockup: null, frs: null}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Interoperability}
+
+  - id: hie-deployment
+    name: HIE-ready deployment
+    area: Interoperability
+    domain: [platform]
+    maturity: production
+    summary: Can be deployed as a national health information exchange hub out of the box.
+    since: v3.1
+    jira: []
+    gallery: {mockup: null, frs: null}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Interoperability}
+
+  - id: fhir-outbound-push
+    name: Automatic result sharing (FHIR)
+    area: Interoperability
+    domain: [cross-cutting, platform]
+    maturity: production
+    summary: Automatically send results to connected systems, and see at a glance when a delivery needs attention.
+    since: "3.2.1.9"
+    jira: []
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/system/fhir-outbound-push", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/system/fhir-outbound-push.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Interoperability}
+
+  - id: two-way-fhir
+    name: Two-way FHIR communication
+    area: Interoperability
+    domain: [cross-cutting, platform]
+    maturity: production
+    summary: Receive data from other systems too — full two-way exchange with the wider health system.
+    since: "3.2.1.x"
+    jira: []
+    gallery: {mockup: null, frs: null}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Interoperability}
+
+  # ── Test Catalog & Admin ─────────────────────────────────
+  - id: unified-test-editor
+    name: Unified test editor
+    area: Test Catalog & Admin
+    domain: [cross-cutting]
+    maturity: production
+    summary: A single, modern test editor — config, ranges, terminology, reagents, methods, alerts, plus completeness checks and one test spanning many sample types with per-specimen overrides.
+    enhancements:
+      - Lab Units management redesign (OGC-189)
+      - Methods management redesign (OGC-214)
+      - Multi-component results (per-test result components) (OGC-1131)
+    since: "3.2.1.11"
+    jira: [OGC-949, OGC-173, OGC-749, OGC-767, OGC-1112, OGC-189, OGC-214, OGC-1142, OGC-1145, OGC-1153, OGC-760]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/admin-config/test-catalog", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/admin-config/test-catalog/test-catalog-requirements-v2.5.md"}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/257228825", training_doc: null}
+    website: {include: true, section: Administration}
+
+  - id: range-editor
+    name: Reference range editor
+    area: Test Catalog & Admin
+    domain: [cross-cutting]
+    maturity: production
+    summary: Normal/valid/critical/reporting ranges with age & sex variation (neonate hour-level granularity).
+    enhancements:
+      - Structured range view + coverage validation (OGC-751, OGC-969-976)
+    since: "3.2.1.11"
+    jira: [OGC-758, OGC-931, OGC-749, OGC-1117, OGC-751]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/admin-config/range-editor", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/admin-config/range-editor.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: false, section: Administration}
+
+  - id: sample-type-management
+    name: Sample type management
+    area: Test Catalog & Admin
+    domain: [cross-cutting]
+    maturity: production
+    summary: A dedicated module to configure specimen types — domain, terminology, display order, storage & disposal defaults, test links, and WHONET codes for AMR exports.
+    since: "3.2.2.0"
+    jira: [OGC-296]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/admin-config/sample-type-management", frs: null}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Administration}
+
+  - id: panel-management
+    name: Panel management
+    area: Test Catalog & Admin
+    domain: [cross-cutting]
+    maturity: production
+    summary: Manage test panels in the Test Catalog shell — domain-guarded membership, derived sample types, activation rules, and multi-source terminology with LOINC for FHIR-intake routing.
+    since: "3.2.2.0"
+    jira: [OGC-224]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/admin-config/panel", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/admin-config/panel.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Administration}
+
+  - id: organizations-management
+    name: Organizations management
+    area: Test Catalog & Admin
+    domain: [cross-cutting]
+    maturity: production
+    summary: Manage referring facilities and organization hierarchy with search and bulk editing.
+    enhancements:
+      - Carbon redesign of organization management (OGC-272)
+    since: "3.2.1.x"
+    jira: [OGC-272, OGC-535]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/admin-config/organizations-management", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/admin-config/organizations-management.md"}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1188790284", manual_status: draft, training_doc: null}
+    website: {include: false, section: Administration}
+
+  - id: terminology-ocl
+    name: Standardized terminology
+    area: Test Catalog & Admin
+    domain: [cross-cutting, platform]
+    maturity: production
+    summary: Standardized test and result terminology (LOINC, SNOMED, ICD-10), kept up to date automatically.
+    since: null
+    jira: [OGC-349]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/admin-config/data-dictionary", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/admin-config/data-dictionary.md"}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/256737340", training_doc: null}
+    website: {include: true, section: Administration}
+
+  - id: barcode-labels
+    name: Barcode label management
+    area: Test Catalog & Admin
+    domain: [clinical, cross-cutting]
+    maturity: production
+    summary: Configurable barcode label quantities, plus user-managed label presets for local printers and label stock (v2).
+    since: "3.2.1.4"
+    jira: [OGC-284, OGC-285]
+    gallery: {mockup: null, frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/admin-config/barcode-labels.md"}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/256737330", training_doc: null}
+    website: {include: false, section: Administration}
+
+  - id: notifications
+    name: Test notifications & SMS gateways
+    area: Test Catalog & Admin
+    domain: [clinical, cross-cutting]
+    maturity: beta
+    summary: Patient/provider email & SMS notifications via Twilio, Africa's Talking, and TextIt.
+    since: "3.2.1.4"
+    jira: [OGC-437, OGC-435, OGC-436]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/notifications/notification-admin", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/notifications/email-notification-integration.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Administration}
+
+  - id: admin-modernization
+    name: Modernized administration
+    area: Test Catalog & Admin
+    domain: [cross-cutting, platform]
+    maturity: beta
+    summary: Modernized, consistent administration screens that are easier and faster to use.
+    since: "3.2.1.7"
+    jira: [OGC-635]
+    gallery: {mockup: null, frs: null}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Administration}
+
+  - id: rbac
+    name: Access control & permissions
+    area: Test Catalog & Admin
+    domain: [platform, cross-cutting]
+    maturity: planned
+    summary: Clearer control over who can see and do what in the system.
+    since: null
+    jira: []
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/admin-config/rbac-ui-mockup", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/rbac/rbac-revamp-prd.md"}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1187840003", training_doc: null}
+    website: {include: false, section: Administration}
+
+  # ── Pathology & Microbiology ─────────────────────────────
+  - id: amr-module
+    name: AMR module & WHONET
+    area: Pathology & Microbiology
+    domain: [clinical]
+    maturity: in-development
+    summary: Track antimicrobial resistance and share it for national and global surveillance (WHONET).
+    since: null
+    jira: [OGC-782]
+    contract_labels: [png-deliverable, PNG, Phase2]
+    gallery: {mockup: null, frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/microbiology/m-00-micro-module-parent.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Pathology & microbiology}
+
+  - id: micro-case-workbench
+    name: Microbiology case workbench
+    area: Pathology & Microbiology
+    domain: [clinical]
+    maturity: in-development
+    summary: Manage microbiology cultures and antibiotic susceptibility testing with guided interpretation.
+    since: null
+    jira: [OGC-782]
+    contract_labels: [png-deliverable, PNG, Phase2]
+    gallery: {mockup: null, frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/microbiology/m-04-case-workbench-core.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Pathology & microbiology}
+
+  - id: ihc-case-view
+    name: Immunohistochemistry (IHC) case view
+    area: Pathology & Microbiology
+    domain: [clinical]
+    maturity: production
+    summary: Immunohistochemistry case entry, scoring, and reporting.
+    enhancements:
+      - Automated Allred / Ki-67 / HER2 scoring and digital slide viewing (redesign)
+    since: null
+    jira: []
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/pathology/ihc-case-view", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/pathology/ihc-case-view.md"}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/279248897", training_doc: null}
+    website: {include: true, section: Pathology & microbiology}
+
+  - id: cytology-case-view
+    name: Cytology case view
+    area: Pathology & Microbiology
+    domain: [clinical]
+    maturity: production
+    summary: Cytology case entry and reporting, including cervical (Pap) workflows.
+    enhancements:
+      - Guided Bethesda-System workflow with HPV co-testing and ASCCP recommendations (redesign)
+    since: null
+    jira: []
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/pathology/cytology-case-view", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/pathology/cytology-case-view.md"}
+    docs: {manual_page: "https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/278560771", training_doc: null}
+    website: {include: true, section: Pathology & microbiology}
+
+  # ── Platform & AI ────────────────────────────────────────
+  - id: catalyst-ai
+    name: Catalyst AI suite
+    area: Platform & AI
+    domain: [platform]
+    maturity: planned
+    summary: Privacy-first AI assistant — natural-language reporting, form builder, and contextual help.
+    since: null
+    jira: [OGC-70, OGC-113]
+    gallery: {mockup: null, frs: null}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Platform}
+
+  - id: help-menu
+    name: In-app help system
+    area: Platform & AI
+    domain: [platform]
+    maturity: planned
+    summary: Context-aware help, guided tours, and inline documentation throughout the app.
+    since: null
+    jira: []
+    gallery: {mockup: null, frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/system/help-menu.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Platform}
+
+  - id: white-labeling
+    name: White labeling
+    area: Platform & AI
+    domain: [platform]
+    maturity: production
+    summary: Custom logos and color schemes per deployment.
+    since: "3.2.1.x"
+    jira: []
+    gallery: {mockup: null, frs: null}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Platform}
+
+  - id: react-vite-migration
+    name: Modernized user interface
+    area: Platform & AI
+    domain: [platform]
+    maturity: production
+    summary: A faster, more modern interface for everyday lab work.
+    since: "3.2.1.7"
+    jira: []
+    gallery: {mockup: null, frs: null}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: false, section: Platform}
+
+  - id: security-hardening
+    name: Strengthened data security
+    area: Platform & AI
+    domain: [platform]
+    maturity: production
+    summary: Stronger protection of lab and patient data against unauthorized access.
+    since: "3.2.1.5"
+    jira: [OGC-150]
+    gallery: {mockup: null, frs: null}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: false, section: Platform}
+
+  - id: live-logging
+    name: System monitoring & logs
+    area: Platform & AI
+    domain: [platform]
+    maturity: production
+    summary: Real-time system logs that help administrators monitor and troubleshoot.
+    since: "3.2.1.10"
+    jira: []
+    gallery: {mockup: null, frs: null}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: false, section: Platform}
+
+  - id: deployment-i18n
+    name: Deployment-configurable translations
+    area: Platform & AI
+    domain: [platform]
+    maturity: production
+    summary: A deployment can supply or override its own UI translation strings without rebuilding the frontend — localize the interface on your own timetable.
+    since: "3.2.2.0"
+    jira: []
+    gallery: {mockup: null, frs: null}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Platform}
+
+  - id: blood-bank-component-types
+    name: Blood component type configuration
+    area: Blood Bank & Transfusion
+    domain: [clinical]
+    maturity: available
+    summary: Manage the catalog of blood component types (pRBC, FFP, platelets, and more).
+    since: null
+    jira: [OGC-455]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/blood-bank/blood-bank-admin-config", frs: null}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Blood bank}
+  - id: blood-unit-inventory
+    name: Blood unit inventory & reception
+    area: Blood Bank & Transfusion
+    domain: [clinical]
+    maturity: available
+    summary: Receive and track blood units from reception through availability, with expiry monitoring.
+    since: null
+    jira: [OGC-457]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/blood-bank/blood-unit-inventory", frs: null}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Blood bank}
+  - id: patient-blood-bank-record
+    name: Patient blood bank record
+    area: Blood Bank & Transfusion
+    domain: [clinical]
+    maturity: available
+    summary: Longitudinal blood-bank history per patient — ABO/Rh typing, antibodies, and issuance log.
+    since: null
+    jira: [OGC-459]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/blood-bank/patient-blood-bank-record", frs: null}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Blood bank}
+  - id: pretransfusion-testing
+    name: Pre-transfusion testing & crossmatch
+    area: Blood Bank & Transfusion
+    domain: [clinical]
+    maturity: available
+    summary: Compatibility testing and crossmatch to select safe units for transfusion.
+    since: null
+    jira: [OGC-454]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/blood-bank/pretransfusion-testing", frs: null}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Blood bank}
+  - id: blood-issue-emergency-release
+    name: Blood issue & emergency release
+    area: Blood Bank & Transfusion
+    domain: [clinical]
+    maturity: available
+    summary: Safety-checklisted issue of approved units, with a supervisor-gated emergency release path.
+    since: null
+    jira: [OGC-461]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/blood-bank/issue-to-patient", frs: null}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Blood bank}
+  - id: reagent-forecasting-national
+    name: Reagent forecasting (national / regional)
+    area: Reporting & Dashboards
+    domain: [cross-cutting]
+    maturity: in-development
+    summary: Multi-facility reagent forecasting to plan procurement across a network.
+    since: null
+    jira: []
+    contract_labels: [png-deliverable, PNG, Phase2]
+    gallery: {mockup: "https://digi-uw.github.io/openelis-work/#/inventory/reagent-forecasting-workbench", frs: "https://github.com/DIGI-UW/openelis-work/blob/main/designs/inventory/reagent-forecasting-workbench.md"}
+    docs: {manual_page: null, training_doc: null}
+    website: {include: true, section: Reporting & dashboards}

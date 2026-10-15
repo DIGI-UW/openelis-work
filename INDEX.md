@@ -10,10 +10,12 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 
 | Feature | Mockup | Spec |
 |---------|--------|------|
+| Provider Titles | [provider-titles.html](designs/admin-config/provider-titles.html) | [provider-titles.md](designs/admin-config/provider-titles.md) |
 | Data Dictionary | [data-dictionary.jsx](designs/admin-config/data-dictionary.jsx) | [data-dictionary.md](designs/admin-config/data-dictionary.md) |
 | Lab Units Management | [lab-units.jsx](designs/admin-config/lab-units.jsx) | [lab-units.md](designs/admin-config/lab-units.md) |
 | Methods | [methods.jsx](designs/admin-config/methods.jsx) | [methods.md](designs/admin-config/methods.md) |
-| Organizations Management | [organizations-management.jsx](designs/admin-config/organizations-management.jsx) | [organizations-management.md](designs/admin-config/organizations-management.md) |
+| Locations & Organizations (OGC-1363; supersedes Organizations Management) | [locations-organizations.jsx](designs/admin-config/locations-organizations.jsx) · [preview](designs/admin-config/locations-organizations.html) | [locations-organizations.md](designs/admin-config/locations-organizations.md) · [slicing guide](designs/admin-config/locations-organizations-breakdown.md) |
+| Organizations Management [Archived] | [organizations-management.jsx](designs/admin-config/organizations-management.jsx) | [organizations-management.md](designs/admin-config/organizations-management.md) |
 | Additional Information Builder (contexts) | [additional-info-builder.jsx](designs/admin-config/additional-info-builder.jsx) · [preview](designs/admin-config/additional-info-builder.html) | [programs-management.md](designs/admin-config/programs-management.md) |
 | Require Requesting Provider (Order Entry) | [order-entry-require-provider.jsx](designs/admin-config/order-entry-require-provider.jsx) · [preview](designs/admin-config/order-entry-require-provider.html) | [order-entry-require-provider.md](designs/admin-config/order-entry-require-provider.md) |
 | Panel Management [Completed] | [panel.jsx](designs/admin-config/panel.jsx) | [panel.md](designs/admin-config/panel.md) |
@@ -25,7 +27,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Test Catalog Completion v2 [Completed] | [test-catalog-completion-v2.jsx](designs/admin-config/test-catalog-completion-v2.jsx) | [test-catalog-completion-v2.md](designs/admin-config/test-catalog-completion-v2.md) |
 | Test Catalog — QC Targets & LOD/LOQ | [preview](designs/admin-config/test-catalog-qc-targets-preview.html) | [test-catalog-qc-targets.md](designs/admin-config/test-catalog-qc-targets.md) |
 | Test Catalog [Completed] | [test-catalog.jsx](designs/admin-config/test-catalog.jsx) · [preview](designs/admin-config/test-catalog.html) | [test-catalog.md](designs/admin-config/test-catalog.md) |
-| Test Catalog — Microbiology Workflow Attribute | [preview](designs/admin-config/test-catalog-microbiology-workflow-attribute.html) | [test-catalog-microbiology-workflow-attribute.md](designs/admin-config/test-catalog-microbiology-workflow-attribute.md) |
+| Test Catalog — Microbiology Workflow Attribute (narrowed by Microbiology v2) | [preview](designs/admin-config/test-catalog-microbiology-workflow-attribute.html) | [test-catalog-microbiology-workflow-attribute.md](designs/admin-config/test-catalog-microbiology-workflow-attribute.md) |
 | RBAC Management | [rbac-ui-mockup.html](designs/rbac/rbac-ui-mockup.html) | [rbac-revamp-prd.md](designs/rbac/rbac-revamp-prd.md) |
 | Password Policy Enhancements | [password-enhancements.jsx](designs/admin-config/password-enhancements.jsx) | [password-enhancements.md](designs/admin-config/password-enhancements.md) |
 | Catalog Subscription | [catalog-subscription-carbon.jsx](designs/admin-config/catalog-subscription-carbon.jsx) \| [preview](designs/admin-config/catalog-subscription.html) | [catalog-subscription.md](designs/admin-config/catalog-subscription.md) |
@@ -48,10 +50,10 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Feature | Mockup | Spec |
 |---------|--------|------|
 | Sample Type Domain Classification [Completed] | [sample-type-domain-classification.jsx](designs/admin-config/sample-type-domain-classification.jsx) | [sample-type-domain-classification.md](designs/admin-config/sample-type-domain-classification.md) |
-| Vector Specimen Types & Taxonomy | [vector-reference-data.jsx](designs/vector-surveillance/vector-reference-data.jsx) | [vector-reference-data.md](designs/vector-surveillance/vector-reference-data.md) |
-| Vector Collection Workflow | [vector-collection-workflow.jsx](designs/vector-surveillance/vector-collection-workflow.jsx) · [preview](designs/vector-surveillance/vector-collection-workflow.html) | [vector-collection-workflow.md](designs/vector-surveillance/vector-collection-workflow.md) |
-| Vector Testing & Identification | [vector-testing-identification.jsx](designs/vector-surveillance/vector-testing-identification.jsx) · [preview](designs/vector-surveillance/vector-testing-identification.html) | [vector-testing-identification.md](designs/vector-surveillance/vector-testing-identification.md) |
-| Vector Surveillance Reporting | [vector-surveillance-reporting.jsx](designs/vector-surveillance/vector-surveillance-reporting.jsx) · [preview](designs/vector-surveillance/vector-surveillance-reporting.html) | [vector-surveillance-reporting.md](designs/vector-surveillance/vector-surveillance-reporting.md) · [FHIR considerations](designs/vector-surveillance/vector-surveillance-reporting-fhir-considerations.md) |
+| Vector Specimen Types & Taxonomy [Completed] | [vector-reference-data.jsx](designs/vector-surveillance/vector-reference-data.jsx) | [vector-reference-data.md](designs/vector-surveillance/vector-reference-data.md) |
+| Vector Collection Workflow [Completed] | [vector-collection-workflow.jsx](designs/vector-surveillance/vector-collection-workflow.jsx) · [preview](designs/vector-surveillance/vector-collection-workflow.html) | [vector-collection-workflow.md](designs/vector-surveillance/vector-collection-workflow.md) |
+| Vector Testing & Identification [Completed] | [vector-testing-identification.jsx](designs/vector-surveillance/vector-testing-identification.jsx) · [preview](designs/vector-surveillance/vector-testing-identification.html) | [vector-testing-identification.md](designs/vector-surveillance/vector-testing-identification.md) |
+| Vector Surveillance Reporting [Completed] | [vector-surveillance-reporting.jsx](designs/vector-surveillance/vector-surveillance-reporting.jsx) · [preview](designs/vector-surveillance/vector-surveillance-reporting.html) | [vector-surveillance-reporting.md](designs/vector-surveillance/vector-surveillance-reporting.md) · [FHIR considerations](designs/vector-surveillance/vector-surveillance-reporting-fhir-considerations.md) |
 
 ## Analyzer Integration
 
@@ -100,6 +102,8 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | AMR Module | [amr-module.jsx](designs/microbiology/amr-module.jsx) | [amr-module.md](designs/microbiology/amr-module.md) |
 | Case Workbench | — | [case-workbench.md](designs/microbiology/case-workbench.md) |
 | Guided Workflow Walkthrough | [amr-micro-workflow-flow.html](designs/microbiology/amr-micro-workflow-flow.html) | [amr-micro-narrative.md](designs/microbiology/amr-micro-narrative.md) |
+| Microbiology v2 Amendments (draft 9) | [amr-micro-v2-mockup.jsx](designs/microbiology/amr-micro-v2-mockup.jsx) · [preview](designs/microbiology/amr-micro-v2-preview.html) | [amr-micro-v2-amendments.md](designs/microbiology/amr-micro-v2-amendments.md) |
+| M-18 Environmental Microbiology (v0.9) | [m-18-environmental-microbiology.jsx](designs/microbiology/m-18-environmental-microbiology.jsx) · [preview](designs/microbiology/m-18-environmental-microbiology.html) | [m-18-environmental-microbiology.md](designs/microbiology/m-18-environmental-microbiology.md) |
 
 ## Non-Conforming Events (NCE)
 
@@ -153,9 +157,11 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Validation Page v3 (Demographics) | [validation-page-mockup-v3-demographics.jsx](designs/validation-page/validation-page-mockup-v3-demographics.jsx) | [validation-patient-demographics-frs-v1.md](designs/validation-page/validation-patient-demographics-frs-v1.md) |
 | Patient Demographics Mockup | [validation-patient-demographics-mockup.jsx](designs/validation-page/validation-patient-demographics-mockup.jsx) | [validation-patient-demographics-frs-v1.md](designs/validation-page/validation-patient-demographics-frs-v1.md) |
 | Patient Demographics FRS | — | [validation-patient-demographics-frs-v1.md](designs/validation-page/validation-patient-demographics-frs-v1.md) |
-| Compliance Evaluation Engine | [compliance-evaluation-engine.jsx](designs/results-validation/compliance-evaluation-engine.jsx) | [compliance-evaluation-engine.md](designs/results-validation/compliance-evaluation-engine.md) |
+| Validation Clearance Rule & Empty-State | [validation-clearance-rule.jsx](designs/results-validation/validation-clearance-rule.jsx) · [preview](designs/results-validation/validation-clearance-rule.html) | [validation-clearance-rule.md](designs/results-validation/validation-clearance-rule.md) |
+| Compliance Evaluation Engine [Completed] | [compliance-evaluation-engine.jsx](designs/results-validation/compliance-evaluation-engine.jsx) | [compliance-evaluation-engine.md](designs/results-validation/compliance-evaluation-engine.md) |
 | HIL Specimen Quality | [hil-specimen-quality.jsx](designs/results-validation/hil-specimen-quality.jsx) · [preview](designs/results-validation/hil-specimen-quality-preview.html) | [hil-specimen-quality.md](designs/results-validation/hil-specimen-quality.md) |
-| Multi-Component Result Entry v1 | [results-entry-multicomponent-v1.jsx](designs/results-validation/results-entry-multicomponent-v1.jsx) · [preview](designs/results-validation/results-entry-multicomponent-v1-preview.html) | [results-entry-multicomponent-v1.md](designs/results-validation/results-entry-multicomponent-v1.md) |
+| Multi-Component Result Entry v1 [Superseded] | [results-entry-multicomponent-v1.jsx](designs/results-validation/results-entry-multicomponent-v1.jsx) · [preview](designs/results-validation/results-entry-multicomponent-v1-preview.html) | [results-entry-multicomponent-v1.md](designs/results-validation/results-entry-multicomponent-v1.md) |
+| Runs — QC, Reagent Lot & Result Review | [runs.jsx](designs/results-validation/runs.jsx) · [preview](designs/results-validation/runs-preview.html) | [runs.md](designs/results-validation/runs.md) |
 | Results Entry — Multi-Component (integrated) | — | [results-entry-multicomponent.md](designs/results-validation/results-entry-multicomponent.md) |
 | Validation Page — Multi-Component (integrated) | — | [validation-multicomponent.md](designs/results-validation/validation-multicomponent.md) |
 | Analyzer Ingestion — Multi-Component Results | — | [analyzer-multicomponent-ingestion.md](designs/results-validation/analyzer-multicomponent-ingestion.md) |
@@ -166,11 +172,11 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 
 | Feature | Mockup | Spec |
 |---------|--------|------|
-| Laporan Hasil — Compliance Report (S-06) | [S06-laporan-hasil-compliance-report-mockup.jsx](designs/reports/S06-laporan-hasil-compliance-report-mockup.jsx) \| [preview](designs/reports/S06-laporan-hasil-compliance-report-preview.html) | [S06-laporan-hasil-compliance-report-frs-v1.0.md](designs/reports/S06-laporan-hasil-compliance-report-frs-v1.0.md) |
-| Environmental LHU (S-06c) | [S06c-environmental-lhu-mockup.jsx](designs/reports/S06c-environmental-lhu-mockup.jsx) \| [preview](designs/reports/S06c-environmental-lhu-preview.html) \| [annotated](designs/reports/S06c-environmental-lhu-preview-annotated.html) | [S06c-environmental-lhu-frs-v1.0.md](designs/reports/S06c-environmental-lhu-frs-v1.0.md) |
-| Vector LHU (S-06d) | [S06d-vector-lhu-mockup.jsx](designs/reports/S06d-vector-lhu-mockup.jsx) \| [preview](designs/reports/S06d-vector-lhu-preview.html) \| [annotated](designs/reports/S06d-vector-lhu-preview-annotated.html) | [S06d-vector-lhu-frs-v1.0.md](designs/reports/S06d-vector-lhu-frs-v1.0.md) |
+| Laporan Hasil — Compliance Report (S-06) [Completed] | [S06-laporan-hasil-compliance-report-mockup.jsx](designs/reports/S06-laporan-hasil-compliance-report-mockup.jsx) \| [preview](designs/reports/S06-laporan-hasil-compliance-report-preview.html) | [S06-laporan-hasil-compliance-report-frs-v1.0.md](designs/reports/S06-laporan-hasil-compliance-report-frs-v1.0.md) |
+| Environmental LHU (S-06c) [Completed] | [S06c-environmental-lhu-mockup.jsx](designs/reports/S06c-environmental-lhu-mockup.jsx) \| [preview](designs/reports/S06c-environmental-lhu-preview.html) \| [annotated](designs/reports/S06c-environmental-lhu-preview-annotated.html) | [S06c-environmental-lhu-frs-v1.0.md](designs/reports/S06c-environmental-lhu-frs-v1.0.md) |
+| Vector LHU (S-06d) [Completed] | [S06d-vector-lhu-mockup.jsx](designs/reports/S06d-vector-lhu-mockup.jsx) \| [preview](designs/reports/S06d-vector-lhu-preview.html) \| [annotated](designs/reports/S06d-vector-lhu-preview-annotated.html) | [S06d-vector-lhu-frs-v1.0.md](designs/reports/S06d-vector-lhu-frs-v1.0.md) |
 | Report Print Queue | [report-print-queue.jsx](designs/reports/report-print-queue.jsx) · [preview](designs/reports/report-print-queue.html) | [report-print-queue.md](designs/reports/report-print-queue.md) |
-| Patient Report Redesign | [preview](designs/reports/patient-report-redesign.html) · [patient_letter.jrxml](designs/reports/patient_letter.jrxml) | [patient-report-redesign.md](designs/reports/patient-report-redesign.md) |
+| Patient Report Redesign | [preview](designs/reports/patient-report-redesign.html) · [patient_letter.jrxml](designs/reports/patient_letter.jrxml) | [patient-report-redesign.md](designs/reports/patient-report-redesign.md) (Patient Report & Report Management FRS v2.3.3) · [breakdown](designs/reports/patient-report-redesign-breakdown.md) |
 | Positivity Rate Report | [positivity-rate.jsx](designs/reports/positivity-rate.jsx) | [positivity-rate.md](designs/reports/positivity-rate.md) |
 | Disease Surveillance Dashboard | [disease-surveillance-dashboard.jsx](designs/reports/disease-surveillance-dashboard.jsx) | [disease-surveillance-dashboard.md](designs/reports/disease-surveillance-dashboard.md) |
 | Custom Data Export | [custom-data-export.jsx](designs/reports/custom-data-export.jsx) | [custom-data-export.md](designs/reports/custom-data-export.md) |
@@ -210,6 +216,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | FHIR Publication Settings | [fhir-publication-settings.jsx](designs/system/fhir-publication-settings.jsx) | — |
 | Lab Management Dashboard | [lab-management-dashboard.html](designs/system/lab-management-dashboard.html) | [lab-management-dashboard.md](designs/system/lab-management-dashboard.md) |
 | Catalyst Lab Data Assistant | [Figma](https://www.figma.com/make/poDXKSr2IBgKbbjB1Fh9Sj/OpenELIS-Global-Template--Copy-?node-id=0-1) | — |
+| Navigation Redesign | [preview](designs/system/navigation-redesign-preview.html) · [navigation-redesign-mockup.jsx](designs/system/navigation-redesign-mockup.jsx) | [navigation-redesign.md](designs/system/navigation-redesign.md) · [inventory data](designs/system/navigation-redesign-data/) |
 | Electronic Signature | [electronic-signature.jsx](designs/system/electronic-signature.jsx) | [electronic-signature.md](designs/system/electronic-signature.md) |
 
 ## Patient
@@ -217,6 +224,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Feature | Mockup | Spec |
 |---------|--------|------|
 | Patient ID Card Scanning [Completed] | [patient-id-card-scanning.jsx](designs/patient/patient-id-card-scanning.jsx) \| [preview](designs/patient/patient-id-card-scanning.html) | [patient-id-card-scanning.md](designs/patient/patient-id-card-scanning.md) |
+| Patient Search | [patient-search.jsx](designs/patient/patient-search.jsx) \| [preview](designs/patient/patient-search.html) | [patient-search.md](designs/patient/patient-search.md) · [breakdown](designs/patient/patient-search-breakdown.md) |
 
 ## Sample Collection
 
@@ -226,10 +234,11 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Combined Collections at Order Entry (WITHDRAWN) | [preview](designs/sample-collection/combined-collections-order-entry-preview.html) | [combined-collections-order-entry.md](designs/sample-collection/combined-collections-order-entry.md) |
 | Sample Collection Redesign | [sample-collection-redesign-mockup.html](designs/sample-collection/sample-collection-redesign-mockup.html) | [sample-collection-redesign.md](designs/sample-collection/sample-collection-redesign.md) |
 | Sampling Site Registry [Completed] | [sampling-site-registry.jsx](designs/sample-collection/sampling-site-registry.jsx) | [sampling-site-registry.md](designs/sample-collection/sampling-site-registry.md) |
-| Environmental Order Entry | [environmental-order-entry.jsx](designs/sample-collection/environmental-order-entry.jsx) | [environmental-order-entry.md](designs/sample-collection/environmental-order-entry.md) |
-| Clinical Order Entry (v2) | [clinical-order-entry-v2.html](designs/sample-collection/clinical-order-entry-v2.html) | [order-entry-frs-v3-three-workflows.md](designs/sample-collection/order-entry-frs-v3-three-workflows.md) |
-| Environmental Order Entry (v2) | [environmental-order-entry-v2.html](designs/sample-collection/environmental-order-entry-v2.html) | [order-entry-frs-v3-three-workflows.md](designs/sample-collection/order-entry-frs-v3-three-workflows.md) |
-| Vector Collection Workflow (v2) | [vector-collection-workflow-v2.html](designs/vector-surveillance/vector-collection-workflow-v2.html) | [order-entry-frs-v3-three-workflows.md](designs/sample-collection/order-entry-frs-v3-three-workflows.md) |
+| Environmental Order Entry [Completed] | [environmental-order-entry.jsx](designs/sample-collection/environmental-order-entry.jsx) | [environmental-order-entry.md](designs/sample-collection/environmental-order-entry.md) |
+| Clinical Order Entry (v4) | [clinical-order-entry-v4.html](designs/sample-collection/clinical-order-entry-v4.html) | [clinical-order-entry-v4.md](designs/sample-collection/clinical-order-entry-v4.md) |
+| Clinical Order Entry (v2) [Superseded] | [clinical-order-entry-v2.html](designs/sample-collection/clinical-order-entry-v2.html) | [order-entry-three-workflows.md](designs/sample-collection/order-entry-three-workflows.md) |
+| Environmental Order Entry (v2) [Completed] | [environmental-order-entry-v2.html](designs/sample-collection/environmental-order-entry-v2.html) | [order-entry-three-workflows.md](designs/sample-collection/order-entry-three-workflows.md) |
+| Vector Collection Workflow (v2) [Completed] | [vector-collection-workflow-v2.html](designs/vector-surveillance/vector-collection-workflow-v2.html) | [order-entry-three-workflows.md](designs/sample-collection/order-entry-three-workflows.md) |
 | Order Entry — Developer Reference | [order-entry-developer-reference.md](designs/sample-collection/order-entry-developer-reference.md) | [order-entry-developer-reference.md](designs/sample-collection/order-entry-developer-reference.md) |
 | Informed Consent Capture (OGC-557) | [informed-consent.jsx](designs/sample-collection/informed-consent.jsx) | [informed-consent.md](designs/sample-collection/informed-consent.md) |
 | Pre-Analytical Eligibility Gate (S-09) | [pre-analytical-eligibility-gate.jsx](designs/sample-collection/pre-analytical-eligibility-gate.jsx) · [preview](designs/sample-collection/pre-analytical-eligibility-gate.html) | [pre-analytical-eligibility-gate.md](designs/sample-collection/pre-analytical-eligibility-gate.md) |
@@ -244,9 +253,9 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Calendar Management [Completed] | [calendar-management.jsx](designs/other/calendar-management.jsx) | — |
 | Patient ID Card Scanning [Completed] | *(moved to Patient section)* | — |
 | Unassigned Tests | — | [unassigned-tests.md](designs/other/unassigned-tests.md) |
-| Report Level Signatures | — | [report-level-signatures.md](designs/other/report-level-signatures.md) |
+| Report Level Signatures (layout points superseded by Patient Report FRS §14.1) | — | [report-level-signatures.md](designs/other/report-level-signatures.md) |
 | Change Management Strategy | — | [change-management-strategy.md](designs/other/change-management-strategy.md) |
-| Environmental & Vector Testing Roadmap | — | [environmental-vector-roadmap.md](designs/other/environmental-vector-roadmap.md) |
+| Environmental & Vector Testing Roadmap [Completed] | — | [environmental-vector-roadmap.md](designs/other/environmental-vector-roadmap.md) |
 | Style Guide v2 — Component Usage | — | [openelis-style-guide-v2-component-usage.md](designs/other/openelis-style-guide-v2-component-usage.md) |
 | Constitution Amendment — Style Guide Library | — | [constitution-amendment-style-guide-library.md](designs/other/constitution-amendment-style-guide-library.md) |
 

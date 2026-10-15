@@ -2,11 +2,11 @@
 
 ## Functional Requirements Specification
 
-**Version:** 2.5 (trimmed Barcode Settings to a pointer at existing surface)
-**Date:** 2026-05-18
+**Version:** 2.6 (corrected `site_information` key names throughout; §5.1 rewritten after the legacy page was deleted; open questions closed)
+**Date:** 2026-09-15
 **Author:** Casey Iiams-Hauser (filed via Cowork)
 **Module:** Administration → Master Lists → Label Presets · Test Catalog → Labels tab · Order Entry → Add Order step
-**Status:** Draft (awaiting design review)
+**Status:** Approved. Implemented in part. See §2.8 Implementation status.
 **Jira:** [OGC-285](https://uwdigi.atlassian.net/browse/OGC-285)
 **Depends on:** [OGC-284](https://uwdigi.atlassian.net/browse/OGC-284) (Barcode Labels v1 — Freezer + Order Entry Label Configuration)
 **Required by:** [OGC-761](https://uwdigi.atlassian.net/browse/OGC-761) (Test Catalog Management v2.5 §Labels — consumes this preset system)
@@ -168,19 +168,21 @@ i18n key prefix for this surface: `admin.labelPresets.*` (resolved via Spring `M
 | **Save** | Validates name uniqueness, dimensions, scope (`prints_per_order OR prints_per_sample`), and per-scope max ≥ default. Writes `label_preset` + `label_preset_field` rows. Updates an `updated_at` audit timestamp. |
 | **Save as new** (Duplicate) | Clones the preset; user must enter a new name before save. |
 | **Deactivate** | Sets `is_active = false`. Preset disappears from "+ Add Label Type" pickers but persists everywhere it's already linked. Historical orders are unaffected. Reactivation is one click. |
-| **Hard Delete** | Not supported. Presets that have never been referenced anywhere can be removed via a separate admin tool; otherwise deactivate. |
+| **Hard Delete** | Not supported, with no exceptions. Presets are deactivated, never destroyed, in line with the no-hard-delete rule for domain records. (v2.5 allowed removal of never-referenced presets "via a separate admin tool"; that carve-out is withdrawn as of v2.6, since no one asked for it and it reintroduces a delete path by another name.) |
 | **Edit** | Editing a preset's dimensions or content fields takes effect for all future labels printed against that preset. Historical orders re-print using the snapshot rules in §7.3. |
 
 ### 2.7 System Preset Migration
 
 At v2 release, a migration runs against every site:
 
-1. Read existing barcode keys from `site_information`. v1 (OGC-284 §5.1) uses the following canonical key names, which this migration reads:
-   - **Order** — `barcode.order.default`, `barcode.order.max`, `barcode.order.height`, `barcode.order.width`
-   - **Specimen** — `barcode.specimen.default`, `barcode.specimen.max`, `barcode.specimen.height`, `barcode.specimen.width`
-   - **Block** — `barcode.block.default`, `barcode.block.max`, `barcode.block.height`, `barcode.block.width`
-   - **Slide** — `barcode.slide.default`, `barcode.slide.max`, `barcode.slide.height`, `barcode.slide.width`
-   - **Freezer** — `barcode.freezer.default`, `barcode.freezer.max`, `barcode.freezer.height`, `barcode.freezer.width`
+1. Read existing barcode keys from `site_information`. The key names below are the real ones, taken from `ConfigurationProperties.Property` in the application source. **There is no `barcode.*` namespace in `site_information`** (corrected 15 September 2026, see the warning under this list):
+   - **Order** — `numDefaultOrderLabels`, `numMaxOrderLabels`, `heightOrderLabels`, `widthOrderLabels`
+   - **Specimen** — `numDefaultSpecimenLabels`, `numMaxSpecimenLabels`, `heightSpecimenLabels`, `widthSpecimenLabels`
+   - **Block** — `numDefaultBlockLabels`, `numMaxBlockLabels`, `heightBlockLabels`, `widthBlockLabels`
+   - **Slide** — `numDefaultSlideLabels`, `numMaxSlideLabels`, `heightSlideLabels`, `widthSlideLabels`
+   - **Freezer** — `numDefaultFreezerLabels`, `numMaxFreezerLabels`, `heightFreezerLabels`, `widthFreezerLabels`
+
+   > **Corrected 15 September 2026 (OGC-1219).** Versions 2.0 to 2.5 of this FRS listed these keys as `barcode.order.default`, `barcode.order.height` and so on, inherited from v1 FRS §5.1. Those names do not exist in OpenELIS. Changeset `030-seed-system-presets.xml` implemented the wrong names faithfully, so on every upgraded site the seed read nothing and fell through to its hardcoded fallbacks (25 x 76 mm, default 1, max 10, CODE_128), discarding each site's configured dimensions and quantities. Any implementation reading this section must use the names above. See **OGC-1219**.
 2. Create five rows in `label_preset` with `is_system = true`, named "Order Label", "Specimen Label", "Block Label", "Slide Label", "Freezer Label". Scope flags are seeded as follows:
    - **Order Label** — `prints_per_order = true`, `prints_per_sample = false`
    - **Specimen Label** — `prints_per_order = false`, `prints_per_sample = true`
@@ -189,17 +191,39 @@ At v2 release, a migration runs against every site:
    - **Freezer Label** — `prints_per_order = false`, `prints_per_sample = true`
 
    Dimensions copied from `site_information`.
-3. Create `label_preset_field` rows matching the current Barcode Configuration "Barcode Label Elements" checkboxes for each type (Lab Number always required; the optional fields per type from OGC-284 §2.3 carry over).
-4. **Default and max counts MOVE** from `site_information.barcode.{type}.default` / `barcode.{type}.max` keys into the new per-scope quantity columns. The mapping is scope-aware:
-   - **Order** — `prints_per_order = true`; `default_per_order = site_information.barcode.order.default`; `max_per_order = site_information.barcode.order.max`. The per-sample columns receive their schema defaults (`default_per_sample = 0`, `max_per_sample = 10`) but are inert because `prints_per_sample = false`.
-   - **Specimen** — `prints_per_sample = true`; `default_per_sample = site_information.barcode.specimen.default`; `max_per_sample = site_information.barcode.specimen.max`. The per-order columns receive their schema defaults but are inert.
-   - **Block** — `prints_per_sample = true`; `default_per_sample = site_information.barcode.block.default`; `max_per_sample = site_information.barcode.block.max`.
-   - **Slide** — `prints_per_sample = true`; `default_per_sample = site_information.barcode.slide.default`; `max_per_sample = site_information.barcode.slide.max`.
-   - **Freezer** — `prints_per_sample = true`; `default_per_sample = site_information.barcode.freezer.default`; `max_per_sample = site_information.barcode.freezer.max`.
+3. Create `label_preset_field` rows matching the current Barcode Configuration "Barcode Label Elements" checkboxes for each type (Lab Number always required; the optional fields per type from OGC-284 §2.3 carry over). The legacy keys are `orderLabelPatientName`, `orderLabelPatientDob`, `orderLabelPatientId`, `orderLabelSiteId`, the seven `specimenLabel*` keys, the five `slideLabel*`, the four `blockLabel*` and the five `freezerLabel*` keys.
 
-   These per-scope columns on `label_preset` become the canonical source for default and max quantities. Legacy `site_information.barcode.*` keys are retained read-only for one release cycle as the rollback mirror described below.
+   > **Not implemented.** Changeset `031-seed-system-preset-fields.xml` seeds `LAB_NUMBER` only and defers the rest to the admin UI, which was not built. Tracked as **OGC-1218**, which carries the full per-type mapping.
+4. **Default and max counts MOVE** from the legacy `num{Default,Max}{Type}Labels` keys into the new per-scope quantity columns. The mapping is scope-aware:
+   - **Order** — `prints_per_order = true`; `default_per_order = numDefaultOrderLabels`; `max_per_order = numMaxOrderLabels`. The per-sample columns receive their schema defaults (`default_per_sample = 0`, `max_per_sample = 10`) but are inert because `prints_per_sample = false`.
+   - **Specimen** — `prints_per_sample = true`; `default_per_sample = numDefaultSpecimenLabels`; `max_per_sample = numMaxSpecimenLabels`. The per-order columns receive their schema defaults but are inert.
+   - **Block** — `prints_per_sample = true`; `default_per_sample = numDefaultBlockLabels`; `max_per_sample = numMaxBlockLabels`.
+   - **Slide** — `prints_per_sample = true`; `default_per_sample = numDefaultSlideLabels`; `max_per_sample = numMaxSlideLabels`.
+   - **Freezer** — `prints_per_sample = true`; `default_per_sample = numDefaultFreezerLabels`; `max_per_sample = numMaxFreezerLabels`.
 
-**Move-vs-mirror resolution:** the legacy `site_information.barcode.*` keys are retained as **read-only mirrors for one release cycle only**. They are NOT actively dual-written by the application; the migration writes them once at cutover and the app then ignores them. The mirror exists solely to support emergency rollback to v2.0 if the v2 release stalls in production. A follow-up migration in the next release (v2.x) removes the legacy keys entirely once all callers are confirmed migrated.
+   These per-scope columns on `label_preset` become the canonical source for default and max quantities. The legacy per-type `site_information` keys are retained read-only for one release cycle as the rollback mirror described below.
+
+**Move-vs-mirror resolution:** the legacy per-type `site_information` label keys are retained as **read-only mirrors for one release cycle only**. They are NOT actively dual-written by the application; the migration writes them once at cutover and the app then ignores them. The mirror exists solely to support emergency rollback to v2.0 if the v2 release stalls in production. A follow-up migration in the next release (v2.x) removes the legacy keys entirely once all callers are confirmed migrated.
+
+---
+
+### 2.8 Implementation status (as of 15 September 2026)
+
+Verified against `DIGI-UW/OpenELIS-Global-2` @ `develop`. OGC-285 is marked Done; its M3 admin surface shipped in part.
+
+| Piece | State | Ticket |
+|---|---|---|
+| `label_preset`, `label_preset_field` schema (§7.1) | Shipped, changeset 029 | OGC-285 |
+| Preset list + editor: name, dimensions, barcode type, scope and quantities (§2.2, §2.3) | Shipped | OGC-285 |
+| Legacy Barcode Configuration page and its REST controller | Deleted, as intended | OGC-285 |
+| System preset seed (§2.7 steps 1, 2, 4) | Shipped but **reads the wrong keys**, so every site seeds from fallbacks | **OGC-1219** |
+| Content fields picker and reorderable list (§2.3, §2.4) | **Not built.** `LabelPresetEditor.jsx` carries `fields: []` with nothing rendering it | **OGC-1218** |
+| Label element migration (§2.7 step 3) | **Not built.** Changeset 031 seeds `LAB_NUMBER` only | **OGC-1218** |
+| Site-wide Barcode Settings section (§5.1) | **Not built.** `SiteWideBarcodeSettingsRestController` ships with no UI | **OGC-1217** |
+| Order Entry aggregation, two dynamic tables (§4) | Backend present; `barcodeWorkflow/LabelsSection.jsx` still on the legacy OGC-284 count model | OGC-990 |
+| Reprint from snapshot (§7.3) | Shipped | OGC-285 |
+
+None of the gaps above call for a design change. §2.3, §2.4 and §4 specify the unbuilt work completely, and the mockup implements it.
 
 ---
 
@@ -349,13 +373,32 @@ i18n key prefix for this surface: `orderEntry.labels.*`.
 
 ---
 
-## 5. Existing Site-Wide Settings (out of scope)
+## 5. Site-Wide Barcode Settings
 
-### 5.1 Preprinted Barcode Accession Number
+### 5.1 Pre-printed Barcode Accession Number
 
-The legacy Barcode Configuration page at `/MasterListsPage#barcodeConfiguration` already ships a site-wide **Use Preprinted Barcode Accession Number** toggle and an associated **Preprinted Barcode Prefix** field. These settings persist as `site_information.barcode.preprinted.use_order_entry_format` (boolean) and `site_information.barcode.preprinted.prefix` (string).
+**Rewritten 15 September 2026.** Versions 2.0 to 2.5 declared this out of scope on the grounds that "the existing Barcode Configuration page continues to host site-wide barcode settings unchanged". That page was deleted during implementation (recorded in the speckit `research.md` Divergence 3, never reflected back here), so the setting lost its only control. Tracked as **OGC-1217**. Those versions also named the keys as `barcode.preprinted.use_order_entry_format` and `barcode.preprinted.prefix`, which do not exist.
 
-**This release does NOT move, rebuild, or supersede that surface.** Label Presets is the new per-preset admin surface; the existing Barcode Configuration page continues to host site-wide barcode settings unchanged.
+**Actual persistence.** Two `site_information` keys, unchanged since v1:
+
+| Key | Type | Meaning |
+|---|---|---|
+| `prePrintUseAltAccession` | text `"true"` / `"false"` | When true, pre-printed labels draw from a separate alternate accession series rather than the order entry format and pool. |
+| `prePrintAltAccessionPrefix` | text, exactly 4 characters | The prefix for that alternate series. Inert when the toggle is false. |
+
+**Behaviour.** This is not label formatting. `AccessionNumberUtil.getActiveValidators()` reads the toggle to register `AltYearAccessionValidator` in the system's active validator set, which governs **which lab number formats OpenELIS accepts at order entry and at scan**. `PrintBarcodeController` and `BarcodeLabelMaker` read it to choose the generator and starting number. It is therefore site-wide by nature and MUST NOT be moved onto individual presets: the scan path carries no preset context, so two presets disagreeing has no resolvable meaning.
+
+**Surface.** A **Site-wide Barcode Settings** section renders above the preset list on the Label Presets page, wired to `SiteWideBarcodeSettingsRestController` (already shipped). The choice is presented positively rather than as the legacy double negative:
+
+> **Pre-printed label numbers come from**
+> - (•) The same format and number pool as order entry
+> - ( ) A separate pre-printed series, prefix: `[____]`
+
+Carbon `<RadioButtonGroup>` with two `<RadioButton>`s; the prefix `<TextInput>` (maxLength 4, required for that option) is disabled unless the second option is selected.
+
+**Naming trap for implementers.** The retired form field was `prePrintDontUseAltAccession`, the logical inverse of the stored property `prePrintUseAltAccession`. Checking the old "Preprinted Barcode Accession Number" box meant *do not* use the alternate prefix. Do not double-invert.
+
+**Interaction with content fields (§2.4).** A pre-printed label is produced before any order or patient exists, so patient-derived fields render blank on it. The preset editor should not imply otherwise for presets used in pre-printing.
 
 ---
 
@@ -373,6 +416,10 @@ The legacy Barcode Configuration page at `/MasterListsPage#barcodeConfiguration`
 | LP-6 | System SHALL prevent renaming or deactivating any `is_system = true` preset. |
 | LP-7 | System SHALL validate that `max_per_order ≥ default_per_order`, `max_per_sample ≥ default_per_sample`, and all are non-negative integers. At least one scope (`prints_per_order` or `prints_per_sample`) MUST be true. |
 | LP-8 | System SHALL persist Lab Number as a required, locked, first-position field on every preset. |
+| LP-9 | System SHALL render a Site-wide Barcode Settings section above the preset list, hosting the pre-printed accession number choice (see §5.1). |
+| LP-10 | System SHALL read and write `prePrintUseAltAccession` and `prePrintAltAccessionPrefix` through the existing `SiteWideBarcodeSettingsRestController`, introducing no new schema and no new keys. |
+| LP-11 | System SHALL NOT expose the pre-printed accession choice as a per-preset setting, since it governs accession validation laboratory-wide rather than label content. |
+| LP-12 | System SHALL enable the pre-printed series prefix input only when the separate-series option is selected, and SHALL require exactly 4 characters for that option. |
 
 ### 6.2 Test Catalog — Labels Tab
 
@@ -400,11 +447,12 @@ The legacy Barcode Configuration page at `/MasterListsPage#barcodeConfiguration`
 
 | ID | Requirement |
 |---|---|
-| MG-1 | At v2 release, system SHALL create one `label_preset` row per existing v1 system label type, populated from `site_information.barcode.*` keys. |
+| MG-1 | At v2 release, system SHALL create one `label_preset` row per existing v1 system label type, populated from the legacy per-type `site_information` keys named in §2.7 step 1 (`heightOrderLabels`, `numDefaultOrderLabels` and the rest). |
 | MG-2 | System SHALL set `is_system = true` on each migrated preset. |
 | MG-3 | Existing OGC-761 `test_label_preset_link` rows SHALL continue to function unchanged after the schema additions; new columns receive their schema defaults. |
 | MG-4 | Existing v1 orders SHALL continue to print labels against their snapshot rules (see §7.3). |
-| MG-5 | Legacy `site_information.barcode.*` keys SHALL be retained as read-only mirrors for one release cycle and removed in the subsequent maintenance migration (see §2.7). |
+| MG-5 | The legacy per-type `site_information` label keys SHALL be retained as read-only mirrors for one release cycle and removed in the subsequent maintenance migration (see §2.7). |
+| MG-6 | The migration SHALL fail loudly, not silently fall back, if it reads no legacy keys on a database that has v1 barcode configuration. Silent fallback is what produced OGC-1219. |
 
 ---
 
@@ -665,6 +713,9 @@ The `locked: true` flag mirrors the §4.4.1 most-restrictive rule: any linked te
 - [ ] **AC-1** — Admin opens Master Lists → Label Presets and sees the 5 system presets (Order, Specimen, Block, Slide, Freezer) pre-seeded.
 - [ ] **AC-2** — Admin creates a new "Cryo Vial Label" preset (25 × 25 mm, QR, fields Lab Number + Storage Location + Expiry Date) and saves successfully.
 - [ ] **AC-3** — Admin attempts to deactivate a system preset → blocked with an inline error.
+- [ ] **AC-3a** — Admin opens Label Presets and sees the Site-wide Barcode Settings section above the list, showing the site's stored pre-printed accession choice on first load with no migration step.
+- [ ] **AC-3b** — Admin switches to a separate pre-printed series, saves a 4-character prefix, and the values round-trip to `prePrintUseAltAccession` / `prePrintAltAccessionPrefix`. A 3-character prefix is rejected before save.
+- [ ] **AC-3c** — A number from a pre-printed label can be scanned at order entry and attached to a new order under the selected setting.
 - [ ] **AC-4** — Preset Name uniqueness is enforced; attempting to save a duplicate name produces a field-level error.
 - [ ] **AC-5** — Admin deactivates a custom preset → preset disappears from "+ Add Label Type" pickers but historical orders linked to it still print.
 - [ ] **AC-6** — "Save as new" requires a different name before save succeeds.
@@ -688,8 +739,9 @@ The `locked: true` flag mirrors the §4.4.1 most-restrictive rule: any linked te
 - [ ] **AC-20** — Reprint from Order View uses `order_label_request.preset_snapshot`, not the current `label_preset` config; subsequent edits to the preset do not change the rendered label.
 
 ### Migration
-- [ ] **AC-21** — Running the v2 migration creates exactly 5 system presets per site, with dimensions copied from `site_information.barcode.*` keys.
-- [ ] **AC-22** — Migration maps `site_information.barcode.order.{default,max}` into `label_preset.default_per_order` / `max_per_order` for the seeded Order Label preset; the other four (Specimen, Block, Slide, Freezer) map into `default_per_sample` / `max_per_sample`. Legacy keys mirror read-only for one release cycle; the subsequent maintenance release migration removes them.
+- [ ] **AC-21** — Running the v2 migration creates exactly 5 system presets per site, with dimensions copied from `height{Type}Labels` / `width{Type}Labels`, verified against a real v1 database rather than a synthetic fixture.
+- [ ] **AC-22** — Migration maps `numDefaultOrderLabels` / `numMaxOrderLabels` into `label_preset.default_per_order` / `max_per_order` for the seeded Order Label preset; the other four (Specimen, Block, Slide, Freezer) map their `numDefault{Type}Labels` / `numMax{Type}Labels` into `default_per_sample` / `max_per_sample`. Legacy keys mirror read-only for one release cycle; the subsequent maintenance release migration removes them.
+- [ ] **AC-22a** — On a database carrying v1 barcode configuration, no seeded preset ends up with the fallback set (25 x 76 mm, default 1, max 10) unless those were the site's actual configured values.
 - [ ] **AC-23** — Existing OGC-284 orders continue to print labels correctly after migration.
 - [ ] **AC-24** — OGC-761 `test_label_preset_link` rows persist and remain valid after the schema additions; `allow_override` populates to its schema default (`true`).
 
@@ -705,7 +757,7 @@ The `locked: true` flag mirrors the §4.4.1 most-restrictive rule: any linked te
 | Dependency | Status | Notes |
 |---|---|---|
 | OGC-284 (Barcode Labels v1) | Done — but with implementation gaps (see [OGC-284 cohesive FRS](./barcode-config.md) §10). | Provides the v1 system-preset schema; v2 migration consumes it. |
-| OGC-761 (v2.5 §Labels — 4 fixed presets) | Backlog | v2 supersedes OGC-761's picker UI but reuses its `test_label_preset_link` table. |
+| OGC-761 (v2.5 §Labels — 4 fixed presets) | Ticket in Backlog, but code appears landed on `develop` (see OGC-761 comment, 15 Sep 2026). | v2 supersedes OGC-761's picker UI but reuses its `test_label_preset_link` table. Reconcile ticket state before planning against this row. |
 | OGC-746 (v2.5 v1 — Test Editor scaffold) | Backlog | Provides the Test Editor SideNav that hosts the Labels tab. |
 | OGC-358 (new UI Label & Store step) | Backlog | Should inherit the Order Entry aggregation behavior from §4. |
 | PDF generation library | Already in production | Used to render labels per snapshot. |
@@ -713,14 +765,16 @@ The `locked: true` flag mirrors the §4.4.1 most-restrictive rule: any linked te
 
 ---
 
-## 11. Open Questions
+## 11. Resolved Questions
 
-| # | Question | Owner |
+All four questions were resolved during implementation. Closed here 15 September 2026 so the FRS stops presenting settled decisions as open.
+
+| # | Question | Resolution |
 |---|---|---|
-| Q1 | Do we need a "label-template-version" column on `order_label_request` so reprint can choose between snapshot-at-save vs current preset? Snapshot is the safer default; some sites may want "always use current". | Piotr / Casey |
-| Q2 | What's the right home for the "Allow label count override at order entry" master toggle — per-test (current proposal), per-lab, or both? | Casey + lab admins |
-| Q3 | How do we handle accessibility for the drag-handle on content fields when the user is dragging? Carbon doesn't ship a fully a11y drag-drop; do we use react-aria's useDrag or roll our own keyboard-only fallback? | Design + engineering |
-| Q4 | When v3+ reintroduces user-defined custom fields, do we ship them as `CUSTOM_FREETEXT` / `CUSTOM_FIXED` source types under the existing `label_preset_field.source_type` column, or as a separate `label_preset_custom_field` table? Affects the v2 schema shape we lock in here. | Engineering review |
+| Q1 | Snapshot-at-save vs current preset on reprint | **Snapshot only for v2.** No `label-template-version` column. "Always use current" deferred to v3+ if a site asks. |
+| Q2 | Home for the "Allow label count override at order entry" toggle | **Per-test only.** No per-lab layer in v2. Deferred to v3+ if lab-wide lockdown is requested. |
+| Q3 | Accessibility of content-field reordering | **Keyboard Arrow Up / Arrow Down plus native HTML5 drag for pointer users.** No react-aria dependency. Revisit if a WCAG 2.2 AA audit flags the drag handle. |
+| Q4 | Shape of v3+ user-defined custom fields | **Single `source_type` column** on `label_preset_field`, constrained to `'SYSTEM'` in v2. The column reserves the seat; no schema change now. |
 
 ---
 
@@ -763,3 +817,12 @@ OpenELIS Global localizes via Spring `MessageSource` keys. This FRS specifies th
 - [OGC-358 (new UI Label & Store step)](https://uwdigi.atlassian.net/browse/OGC-358)
 - [Test Catalog Management v2.5 — v1 + v2 Delivery Plan](https://uwdigi.atlassian.net/wiki/spaces/oeg/pages/1313865740/Test+Catalog+Management+v2.5+v1+v2+Delivery+Plan)
 - Mockup: `barcode-labels-v2.jsx`
+
+---
+
+## 15. Amendment history
+
+| Version | Date | Change |
+|---|---|---|
+| 2.6 | 2026-09-15 | Corrected every `site_information` key name in §2.7, §5.1, MG-1, MG-5, AC-21 and AC-22; the previous names had no counterpart in the code and produced OGC-1219. Rewrote §5.1 from "out of scope" to a specified Site-wide Barcode Settings section after the legacy page was deleted (OGC-1217). Added §2.8 implementation status. Added MG-6 and AC-22a to make silent migration fallback a failure. Closed §11 Q1 to Q4 with their resolutions. Withdrew the never-referenced-preset delete carve-out in §2.6. |
+| 2.5 | 2026-05-18 | Trimmed Barcode Settings to a pointer at the existing surface. |

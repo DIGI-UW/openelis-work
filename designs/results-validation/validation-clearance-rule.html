@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Validation Clearance Rule — OpenELIS Preview</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans',sans-serif; }
+  .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
+  .preview-content { padding:1rem 2rem 4rem; max-width:1440px; margin:0 auto; }
+  .scenario-bar { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; margin:1rem 0 1.5rem; }
+  .lane-head { display:flex; justify-content:space-between; align-items:flex-start; gap:1.5rem;
+               background:#fff; padding:1rem; border:1px solid #e0e0e0; flex-wrap:wrap; }
+  .lane-counts { display:flex; gap:2rem; }
+  .lane-counts .n { font-size:2rem; font-weight:300; line-height:1; }
+  .lane-counts .l { font-size:.75rem; color:#525252; text-transform:uppercase; letter-spacing:.32px; }
+  .why { max-width:46rem; }
+  .why-line { font-size:.875rem; color:#161616; margin:0 0 .25rem; }
+  .why-hint { font-size:.75rem; color:#525252; margin:0; }
+  .chips { display:flex; gap:.5rem; flex-wrap:wrap; margin:1rem 0; align-items:center; }
+  .chip { cursor:pointer; }
+  .sig-cell { display:flex; gap:.25rem; flex-wrap:wrap; }
+  .rowbtn { background:none; border:none; cursor:pointer; color:#0f62fe; font-size:.875rem; padding:0; }
+  .panel { background:#f4f4f4; padding:1rem; border-left:3px solid #0f62fe; }
+  .kv { display:grid; grid-template-columns:11rem 1fr; gap:.35rem 1rem; font-size:.875rem; }
+  .kv dt { color:#525252; }
+  .kv dd { margin:0; }
+  .modal-scrim { position:fixed; inset:0; background:rgba(0,0,0,.5); display:flex;
+                 align-items:center; justify-content:center; z-index:50; padding:1rem; }
+  .modal { background:#fff; max-width:44rem; width:100%; max-height:90vh; overflow:auto; }
+  .modal-head { padding:1rem; border-bottom:1px solid #e0e0e0; }
+  .modal-body { padding:1rem; }
+  .modal-foot { display:flex; justify-content:flex-end; gap:.5rem; padding:1rem; border-top:1px solid #e0e0e0; }
+  .scope-note { font-size:.75rem; color:#525252; border-left:2px solid #8d8d8d; padding-left:.75rem; margin-top:1rem; }
+  .toast { margin-bottom:1rem; }
+  table.cds--data-table td, table.cds--data-table th { font-size:.875rem; }
+  .muted { color:#6f6f6f; }
+  .note { font-size:.75rem; color:#525252; margin:.5rem 0 0; }
+  .frame-label { font-size:.75rem; text-transform:uppercase; letter-spacing:.32px; color:#525252; margin:2rem 0 .5rem; }
+</style>
+</head>
+<body class="cds--white">
+<div class="preview-banner">
+  Visual Preview &nbsp;|&nbsp; Validation clearance rule + empty-state explanation &nbsp;|&nbsp;
+  OGC-817 / OGC-1029 &nbsp;|&nbsp; Route: /ResultValidation &nbsp;|&nbsp; Not a live application
+</div>
+<div class="preview-content" id="root"></div>
+
+<script type="text/babel">
+const { useState, useMemo } = React;
+const t = (k, f) => f || k;
+
+const SIGNALS = {
+  nce:        { label: t('label.validation.signal.nce','NCE open'),        kind:'red' },
+  qcfail:     { label: t('label.validation.signal.qcfail','QC fail'),      kind:'red' },
+  modified:   { label: t('label.validation.signal.modified','Modified'),   kind:'blue' },
+  ack:        { label: t('label.validation.signal.ack','Ack pending'),     kind:'purple' },
+  nonconf:    { label: t('label.validation.signal.nonconforming','Nonconforming'), kind:'warm-gray' },
+  critical:   { label: t('label.validation.signal.critical','Critical'),   kind:'red' },
+  norange:    { label: t('label.validation.signal.norange','No reference value'), kind:'gray' },
+};
+
+// Realistic Hematology / Chemistry queue, Port Moresby General Hospital
+const HEME = [
+  { id:'PNG26-004411', pt:'Kila, Meri A.',  test:'Haemoglobin',        val:'14.0 g/dL',  range:'12.0 - 16.0', flag:'NORMAL',   sig:[], qc:null },
+  { id:'PNG26-004411', pt:'Kila, Meri A.',  test:'Red cell count',     val:'5.15 x10¹²/L', range:'4.80 - 5.50', flag:'NORMAL', sig:[], qc:null },
+  { id:'PNG26-004412', pt:'Wari, Joseph',   test:'White cell count',   val:'7.20 x10⁹/L', range:'4.00 - 11.00', flag:'NORMAL', sig:[], qc:{v:'PASS', src:'Sysmex XN-330, run 09:14'} },
+  { id:'PNG26-004413', pt:'Tau, Rebecca',   test:'Platelet count',     val:'384 x10⁹/L', range:'150 - 400',   flag:'NORMAL',   sig:[], qc:null },
+  { id:'PNG26-004414', pt:'Anis, Peter K.', test:'Haemoglobin',        val:'6.1 g/dL',   range:'13.0 - 17.0', flag:'CRITICAL', sig:['critical','ack'], qc:null },
+  { id:'PNG26-004415', pt:'Lohia, Grace',   test:'White cell count',   val:'18.40 x10⁹/L', range:'4.00 - 11.00', flag:'ABNORMAL', sig:[], qc:null },
+  { id:'PNG26-004416', pt:'Baru, Simon',    test:'Haematocrit',        val:'41.0 %',     range:'36.0 - 46.0', flag:'NORMAL',   sig:['modified'], qc:null },
+  { id:'PNG26-004417', pt:'Mea, Dorothy',   test:'Platelet count',     val:'212 x10⁹/L', range:'150 - 400',   flag:'NORMAL',   sig:['qcfail'], qc:{v:'FAIL', src:'Sysmex XN-330, L1 control out at 09:02'} },
+  { id:'PNG26-004418', pt:'Sale, Andrew',   test:'Red cell count',     val:'4.92 x10¹²/L', range:'4.50 - 5.90', flag:'NORMAL', sig:[], qc:null },
+  { id:'PNG26-004419', pt:'Nou, Elizabeth', test:'Haemoglobin',        val:'11.8 g/dL',  range:'12.0 - 16.0', flag:'ABNORMAL', sig:['nce'], qc:null },
+  { id:'PNG26-004420', pt:'Pako, Martin',   test:'Haematocrit',        val:'44.5 %',     range:'40.0 - 50.0', flag:'NORMAL',   sig:[], qc:null },
+  { id:'PNG26-004421', pt:'Gari, Susan',    test:'White cell count',   val:'9.10 x10⁹/L', range:'4.00 - 11.00', flag:'NORMAL',  sig:['nonconf'], qc:null },
+];
+
+// Serology / RDT queue where no expected-normal dictionary value has been authored
+const RDT = [
+  { id:'PNG26-004501', pt:'Hera, Michael',  test:'Malaria RDT (P. falciparum)', val:'Negative', range:'', flag:null, sig:['norange'], qc:null },
+  { id:'PNG26-004502', pt:'Vagi, Anna',     test:'Malaria RDT (P. falciparum)', val:'Negative', range:'', flag:null, sig:['norange'], qc:null },
+  { id:'PNG26-004503', pt:'Raka, John B.',  test:'HIV rapid screen',            val:'Non-reactive', range:'', flag:null, sig:['norange'], qc:null },
+  { id:'PNG26-004504', pt:'Oala, Christine',test:'Syphilis rapid screen',       val:'Non-reactive', range:'', flag:null, sig:['norange'], qc:null },
+  { id:'PNG26-004505', pt:'Bani, Thomas',   test:'HIV rapid screen',            val:'Reactive', range:'', flag:null, sig:['norange'], qc:null },
+  { id:'PNG26-004506', pt:'Wia, Margaret',  test:'Hepatitis B surface antigen', val:'Negative', range:'', flag:null, sig:['norange'], qc:null },
+];
+
+const AUTOVAL = [
+  { id:'PNG26-004390', pt:'Koi, Daniel',    test:'Glucose (fasting)', val:'5.1 mmol/L', range:'3.9 - 5.5', flag:'NORMAL', sig:[], qc:null },
+  { id:'PNG26-004391', pt:'Lae, Priscilla', test:'Sodium',            val:'139 mmol/L', range:'135 - 145', flag:'NORMAL', sig:[], qc:null },
+];
+
+const SCENARIOS = {
+  after:    { label:'After the change — Hematology',  rows:HEME, bulkOn:true },
+  before:   { label:'Before (shipped rule)',          rows:HEME, bulkOn:true, forceNoneClear:true },
+  flagged:  { label:'Empty: every row flagged',       rows:HEME.filter(r=>r.sig.length>0), bulkOn:true },
+  noref:    { label:'Empty: no reference value',      rows:RDT,  bulkOn:true },
+  bulkoff:  { label:'Bulk release switched off',      rows:HEME, bulkOn:false },
+  empty:    { label:'Empty: nothing waiting',         rows:[],   bulkOn:true },
+};
+
+function isClear(r, forceNoneClear) {
+  if (forceNoneClear) return false;                  // the shipped rule: QC must be an affirmative PASS
+  if (!r.range || r.range.trim() === '') return false;
+  if (r.flag !== 'NORMAL') return false;
+  if (r.qc && r.qc.v === 'FAIL') return false;
+  return r.sig.filter(s => s !== 'qcfail').length === 0;
+}
+
+function Tag({kind, children}) { return <span className={'cds--tag cds--tag--'+kind}>{children}</span>; }
+
+function FlagTag({flag}) {
+  if (!flag) return <span className="muted">—</span>;
+  const map = { NORMAL:'green', ABNORMAL:'warm-gray', CRITICAL:'red', INVALID:'red' };
+  const lbl = { NORMAL:'Normal', ABNORMAL:'Abnormal', CRITICAL:'Critical', INVALID:'Invalid' };
+  return <Tag kind={map[flag]}>{lbl[flag]}</Tag>;
+}
+
+function Why({rows, clearCount, bulkOn}) {
+  if (!bulkOn) {
+    return <p className="why-line">{t('label.validation.emptyState.bulkDisabled',
+      'Bulk release is switched off for this laboratory.')}</p>;
+  }
+  if (rows.length === 0) {
+    return <p className="why-line">{t('label.validation.emptyState.queueEmpty',
+      'Nothing is waiting for validation.')}</p>;
+  }
+  if (clearCount > 0) return null;
+
+  const noRef = rows.filter(r => !r.range || r.range.trim() === '').length;
+  const flaggedRows = rows.filter(r => (r.range && r.range.trim() !== ''));
+  const tally = {};
+  flaggedRows.forEach(r => {
+    let s = r.sig.filter(x => x !== 'norange');
+    if (r.flag && r.flag !== 'NORMAL' && !s.includes('critical')) s = s.concat([r.flag.toLowerCase()]);
+    s.forEach(k => { tally[k] = (tally[k]||0)+1; });
+  });
+  const named = Object.entries(tally).sort((a,b)=>b[1]-a[1]).slice(0,3)
+    .map(([k,n]) => ((SIGNALS[k] && SIGNALS[k].label) || (k.charAt(0).toUpperCase()+k.slice(1))) + ' (' + n + ')');
+
+  return (
+    <div>
+      {flaggedRows.length > 0 && (
+        <p className="why-line">
+          {'All ' + flaggedRows.length + ' results in this queue carry something to check before release.'}
+          {named.length > 0 && <span className="muted">{' Most common: ' + named.join(', ') + '.'}</span>}
+        </p>
+      )}
+      {noRef > 0 && (
+        <React.Fragment>
+          <p className="why-line">
+            {noRef + ' results are for tests with no reference value recorded in the test catalogue, so they cannot be judged as normal.'}
+          </p>
+          <p className="why-hint">
+            Record an expected normal value for these tests in the Test Catalogue to let their results clear.
+          </p>
+        </React.Fragment>
+      )}
+    </div>
+  );
+}
+
+function ConfirmModal({rows, onClose, onConfirm}) {
+  return (
+    <div className="modal-scrim" onClick={onClose}>
+      <div className="modal" onClick={e=>e.stopPropagation()}>
+        <div className="modal-head">
+          <h3 style={{margin:0,fontWeight:400}}>Release all clear ({rows.length})</h3>
+          <p className="note">Your electronic signature attests to the results listed below.</p>
+        </div>
+        <div className="modal-body">
+          <div className="cds--data-table-container">
+            <table className="cds--data-table">
+              <thead><tr><th>Lab no.</th><th>Patient</th><th>Test</th><th>Result</th><th>Range</th><th>Flag</th></tr></thead>
+              <tbody>
+                {rows.map((r,i)=>(
+                  <tr key={i}><td>{r.id}</td><td>{r.pt}</td><td>{r.test}</td>
+                  <td>{r.val}</td><td>{r.range}</td><td><FlagTag flag={r.flag}/></td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="scope-note">
+            Clearance checks the reference range, result flags, non-conformities, edits after save
+            and critical acknowledgment, and stops any result with a recorded quality-control
+            failure. It does not confirm that quality control was performed.
+          </p>
+        </div>
+        <div className="modal-foot">
+          <button className="cds--btn cds--btn--secondary" onClick={onClose}>Cancel</button>
+          <button className="cds--btn cds--btn--primary" onClick={onConfirm}>Sign and release</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [scenario, setScenario] = useState('after');
+  const [filter, setFilter] = useState('all');
+  const [expanded, setExpanded] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [includeAuto, setIncludeAuto] = useState(false);
+
+  const sc = SCENARIOS[scenario];
+  const rows = sc.rows;
+
+  const clear = useMemo(()=>rows.filter(r=>isClear(r, sc.forceNoneClear)), [rows, sc]);
+  const needs = useMemo(()=>rows.filter(r=>!isClear(r, sc.forceNoneClear)), [rows, sc]);
+
+  const counts = useMemo(()=>{
+    const c = { all:rows.length, needsReview:needs.length };
+    ['nce','qcfail','modified','ack','critical'].forEach(k=>{
+      c[k] = rows.filter(r=>r.sig.includes(k)).length;
+    });
+    c.abnormal = rows.filter(r=>r.flag==='ABNORMAL').length;
+    return c;
+  }, [rows, needs]);
+
+  let shown = filter==='all' ? rows
+            : filter==='needsReview' ? needs
+            : filter==='abnormal' ? rows.filter(r=>r.flag==='ABNORMAL')
+            : rows.filter(r=>r.sig.includes(filter));
+
+  const bulkEnabled = sc.bulkOn && clear.length > 0;
+
+  return (
+    <div>
+      <div className="scenario-bar">
+        <span className="l" style={{fontSize:'.75rem',color:'#525252',textTransform:'uppercase',letterSpacing:'.32px'}}>Preview state</span>
+        {Object.entries(SCENARIOS).map(([k,v])=>(
+          <button key={k}
+            className={'cds--btn cds--btn--sm ' + (scenario===k ? 'cds--btn--primary' : 'cds--btn--tertiary')}
+            onClick={()=>{setScenario(k); setFilter('all'); setExpanded(null); setToast(null);}}>
+            {v.label}
+          </button>
+        ))}
+      </div>
+
+      <h2 style={{fontWeight:300, margin:'0 0 .25rem'}}>Validation</h2>
+      <p className="note" style={{marginTop:0}}>Home / Validation / Routine &nbsp;·&nbsp; <code>/ResultValidation</code></p>
+
+      {toast && (
+        <div className="toast cds--inline-notification cds--inline-notification--success" style={{maxWidth:'none'}}>
+          <div className="cds--inline-notification__details">
+            <p className="cds--inline-notification__title" style={{margin:0}}>{toast}</p>
+          </div>
+        </div>
+      )}
+
+      <div className="lane-head">
+        <div className="lane-counts">
+          <div><div className="n">{clear.length}</div><div className="l">Clear</div></div>
+          <div><div className="n">{needs.length}</div><div className="l">Needs review</div></div>
+        </div>
+        <div className="why" style={{flex:'1 1 20rem'}}>
+          <Why rows={rows} clearCount={sc.bulkOn ? clear.length : 0} bulkOn={sc.bulkOn}/>
+        </div>
+        <div>
+          <button className="cds--btn cds--btn--primary" disabled={!bulkEnabled}
+                  onClick={()=>setShowModal(true)}>
+            Release all clear ({sc.bulkOn ? clear.length : 0})
+          </button>
+        </div>
+      </div>
+
+      <div className="chips">
+        {[['all','All'],['needsReview','Needs review'],['nce','NCE'],['qcfail','QC fail'],
+          ['modified','Modified'],['ack','Ack pending'],['critical','Critical'],['abnormal','Abnormal']].map(([k,l])=>(
+          <span key={k} className={'chip cds--tag ' + (filter===k?'cds--tag--blue':'cds--tag--gray')}
+                onClick={()=>setFilter(k)}>{l} ({counts[k]||0})</span>
+        ))}
+        <span style={{marginLeft:'auto',fontSize:'.875rem',display:'flex',alignItems:'center',gap:'.5rem'}}>
+          <input type="checkbox" checked={includeAuto} onChange={e=>setIncludeAuto(e.target.checked)}/>
+          Include auto-validated
+        </span>
+      </div>
+
+      <div className="cds--data-table-container">
+        <table className="cds--data-table">
+          <thead>
+            <tr>
+              <th style={{width:'2rem'}}></th>
+              <th>Lab no.</th><th>Patient</th><th>Test</th><th>Result</th>
+              <th>Reference range</th><th>Flag</th><th>Check before release</th><th>Lane</th>
+            </tr>
+          </thead>
+          <tbody>
+            {shown.length===0 && (
+              <tr><td colSpan={9} className="muted" style={{padding:'1.5rem'}}>
+                Nothing is waiting for validation.
+              </td></tr>
+            )}
+            {shown.map((r,i)=>{
+              const cl = isClear(r, sc.forceNoneClear);
+              const key = r.id+'-'+r.test;
+              return (
+                <React.Fragment key={key}>
+                  <tr>
+                    <td><button className="rowbtn" onClick={()=>setExpanded(expanded===key?null:key)}>
+                      {expanded===key?'▾':'▸'}</button></td>
+                    <td>{r.id}</td><td>{r.pt}</td><td>{r.test}</td><td>{r.val}</td>
+                    <td>{r.range ? r.range : <span className="muted">Not recorded</span>}</td>
+                    <td><FlagTag flag={r.flag}/></td>
+                    <td><div className="sig-cell">
+                      {r.sig.length===0 ? <span className="muted">—</span> :
+                        r.sig.map(s=><Tag key={s} kind={SIGNALS[s].kind}>{SIGNALS[s].label}</Tag>)}
+                    </div></td>
+                    <td>{cl ? <Tag kind="green">Clear</Tag> : <Tag kind="warm-gray">Needs review</Tag>}</td>
+                  </tr>
+                  {expanded===key && (
+                    <tr><td colSpan={9}>
+                      <div className="panel">
+                        <dl className="kv">
+                          <dt>Result</dt><dd>{r.val} &nbsp; <FlagTag flag={r.flag}/></dd>
+                          <dt>Reference range</dt>
+                          <dd>{r.range ? r.range : <span className="muted">Not recorded for this test</span>}</dd>
+                          <dt>Method</dt><dd>{r.range ? 'Automated impedance' : 'Immunochromatographic strip'}</dd>
+                          <dt>Analyzer</dt><dd>{r.range ? 'Sysmex XN-330 (HEM-01)' : 'Not instrument-based'}</dd>
+                          <dt>Entered by</dt><dd>A. Kaupa, 20 Sep 2026 09:22</dd>
+                          {r.qc && (<React.Fragment>
+                            <dt>Quality control</dt>
+                            <dd>
+                              <Tag kind={r.qc.v==='PASS'?'teal':'red'}>{r.qc.v==='PASS'?'Pass':'Fail'}</Tag>
+                              &nbsp;<span className="muted">{r.qc.src}</span>
+                            </dd>
+                          </React.Fragment>)}
+                        </dl>
+                        {!r.qc && <p className="note">
+                          No quality-control verdict exists for this analysis, so the quality-control
+                          row is not shown. Absence is not a signal.
+                        </p>}
+                        <div style={{marginTop:'1rem',display:'flex',gap:'.5rem'}}>
+                          <button className="cds--btn cds--btn--primary cds--btn--sm">Validate &amp; release</button>
+                          <button className="cds--btn cds--btn--tertiary cds--btn--sm">Retest</button>
+                          <button className="cds--btn cds--btn--danger cds--btn--sm">Reject (file NCE)</button>
+                        </div>
+                      </div>
+                    </td></tr>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {includeAuto && (
+        <React.Fragment>
+          <p className="frame-label">Auto-validated — already released, not counted in either lane</p>
+          <div className="cds--data-table-container">
+            <table className="cds--data-table">
+              <thead><tr><th>Lab no.</th><th>Patient</th><th>Test</th><th>Result</th><th>Range</th><th>Status</th></tr></thead>
+              <tbody>
+                {AUTOVAL.map((r,i)=>(
+                  <tr key={i}><td>{r.id}</td><td>{r.pt}</td><td>{r.test}</td><td>{r.val}</td><td>{r.range}</td>
+                  <td><Tag kind="green">Released automatically</Tag></td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="note">
+            Automated validation evaluates the same clearance rule as the Clear lane. These rows are
+            already released, so they are excluded from both lanes and from the Release all clear count.
+          </p>
+        </React.Fragment>
+      )}
+
+      {showModal && (
+        <ConfirmModal rows={clear} onClose={()=>setShowModal(false)}
+          onConfirm={()=>{ setShowModal(false); setToast('Released ' + clear.length + ' results.'); }}/>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

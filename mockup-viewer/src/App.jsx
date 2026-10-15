@@ -84,6 +84,18 @@ export function toSlug(name) {
 export const MOCKUP_REGISTRY = [
   // ─── Admin & Configuration ───
   {
+    name: 'Provider Titles',
+    category: 'admin-config',
+    component: null,
+    description: 'A Title (honorific/cadre) field on the Provider record, separate from first and last name, plus a small admin page under Provider Management for maintaining the list — title, abbreviation, sort order, active/inactive, and how many providers use each. Titles are configured per deployment (PNG needs HEO and RMO; other countries differ), seeded with the common honorifics. Provider search never matches on title; a shared display helper renders the abbreviation ahead of first and last name everywhere. Deactivate, never delete. From the CPHL PNG duplicate-provider cleanup.',
+    specPath: 'designs/admin-config/provider-titles.md',
+    htmlUrl: 'designs/admin-config/provider-titles.html',
+    added: '2026-09-17',
+    status: 'draft',
+    jira: ['OGC-1223'],
+    tags: ['provider', 'title', 'honorific', 'dictionary', 'admin', 'configuration', 'PNG', 'CPHL'],
+  },
+  {
     name: 'Test Catalog — Specimen Many-to-Many [Completed]',
     category: 'admin-config',
     archived: true,
@@ -142,10 +154,11 @@ export const MOCKUP_REGISTRY = [
     name: 'Report Management',
     category: 'admin-config',
     component: React.lazy(() => import('@designs/admin-config/report-management.jsx')),
-    description: 'Admin registry to choose, version, and override the report templates OpenELIS uses to render reports — see the active template per report, whether it is the shipped default or a custom override, pick a bundled variant, upload a custom template, preview, and revert to the shipped default (OGC-1111, Epic).',
+    description: 'Report Management admin page, now Part B of the consolidated Patient Report & Report Management FRS v2.4.3 (page spec moving to the Admin Redesign FRS section 13): choose, version and override the report templates OpenELIS uses, see the active template per report, shipped default or custom override, pick a bundled variant, upload, preview and revert, with V1 and V2 split (OGC-1111, Epic).',
     specPath: 'designs/admin-config/report-management.md',
     htmlUrl: 'designs/admin-config/report-management.html',
     added: '2026-07-01',
+    updated: '2026-10-02',
     status: 'draft',
     jira: ['OGC-1111'],
     tags: ['reports', 'templates', 'jasper', 'jrxml', 'admin', 'configuration'],
@@ -184,11 +197,27 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'Organizations Management',
     category: 'admin-config',
+    archived: true,
     component: React.lazy(() => import('@designs/admin-config/organizations-management.jsx')),
-    description: 'Organizations and referring facilities management',
+    description: 'Superseded by Locations & Organizations (2026-09-28), which drops the separate Region/District/Facility/Ward tables this spec assumed. Organizations and referring facilities management',
     specPath: 'designs/admin-config/organizations-management.md',
     githubIssue: 4,
+    updated: '2026-09-28',
     tags: ['organizations', 'sites', 'facilities', 'admin'],
+  },
+  {
+    name: 'Locations & Organizations',
+    category: 'admin-config',
+    component: React.lazy(() => import('@designs/admin-config/locations-organizations.jsx')),
+    description: 'Locations & Organizations FRS v0.3: one admin menu for the places a lab works with (facilities and their wards and departments, sampling sites, geographic areas) with codes, search, filters, a GUI CSV import that matches the startup loader, and deactivation instead of delete. Supersedes Organizations Management. Companion slicing guide (10 PR-sized slices).',
+    specPath: 'designs/admin-config/locations-organizations.md',
+    htmlUrl: 'designs/admin-config/locations-organizations.html',
+    added: '2026-09-28',
+    updated: '2026-09-28',
+    status: 'draft',
+    jira: ['OGC-1363'],
+    githubIssue: 344,
+    tags: ['locations', 'organizations', 'facilities', 'wards', 'sampling-sites', 'geography', 'csv-import', 'admin'],
   },
   {
     name: 'Require Requesting Provider (Order Entry)',
@@ -212,6 +241,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/admin-config/barcode-config.md',
     htmlUrl: 'designs/admin-config/barcode-config.html',
     added: '2026-04-13',
+    updated: '2026-09-15',
     status: 'draft',
     jira: ['OGC-284'],
     tags: ['barcode', 'labels', 'printing', 'admin', 'configuration', 'sample-collection'],
@@ -225,6 +255,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/admin-config/barcode-labels.md',
     htmlUrl: 'designs/admin-config/barcode-labels.html',
     added: '2026-05-18',
+    updated: '2026-09-15',
     status: 'draft',
     jira: ['OGC-285'],
     tags: ['barcode', 'labels', 'presets', 'admin', 'configuration', 'test-catalog', 'order-entry'],
@@ -372,10 +403,11 @@ export const MOCKUP_REGISTRY = [
     project: ['png'],
     category: 'admin-config',
     component: null,
-    description: 'Test Catalog Basic Info: a nullable culture_workflow_type enum (None / Bacteriology / Mycobacteriology\u2013TB; Mycology reserved), orthogonal to Domain and the AMR flag; drives micro case routing (M-03/M-04). Foldable into Test Catalog v2.5 \u00a72.1 Basic Info.',
+    description: 'Narrowed by Microbiology v2 (2026-10-01): the attribute stays, renamed Culture type and set only on generic culture tests (A-01, D-125); one Microbiology case dropdown in the test catalog (None, Bacteriology, Mycobacteriology, Mycology). Test Catalog Basic Info: a nullable culture_workflow_type enum orthogonal to Domain and the AMR flag; drives micro case routing (M-03/M-04). Foldable into Test Catalog v2.5 \u00a72.1 Basic Info.',
     specPath: 'designs/admin-config/test-catalog-microbiology-workflow-attribute.md',
     htmlUrl: 'designs/admin-config/test-catalog-microbiology-workflow-attribute.html',
     added: '2026-06-08',
+    updated: '2026-10-01',
     status: 'draft',
     jira: ['OGC-925'],
     tags: ['test-catalog', 'microbiology', 'png', 'workflow-type', 'basic-info', 'admin'],
@@ -583,7 +615,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 91,
     jira: ['OGC-173', 'OGC-447', 'OGC-527'],
-    relatedTo: ['Test Catalog [Completed]', 'Catalog Subscription', 'Vector Specimen Types & Taxonomy'],
+    relatedTo: ['Test Catalog [Completed]', 'Catalog Subscription', 'Vector Specimen Types & Taxonomy [Completed]'],
     tags: ['terminology', 'LOINC', 'FHIR', 'CodeableConcept', 'multi-coding', 'interoperability', 'vector', 'environmental', 'Indonesia'],
   },
   {
@@ -1046,10 +1078,10 @@ export const MOCKUP_REGISTRY = [
     name: 'M-00 Microbiology Module Parent',
     category: 'microbiology',
     component: null,
-    description: 'Spine spec for the M-* bundle: glossary, RBAC matrix, data model overview, phase plan, out-of-scope, v1.1 → v2 diff map. v2.1: NO_GROWTH_FINAL → NO_GROWTH_READY (releases to FINAL_REPORTED, not terminal).',
+    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Spine spec for the M-* bundle: glossary, RBAC matrix, data model overview, phase plan, out-of-scope, v1.1 → v2 diff map. v2.1: NO_GROWTH_FINAL → NO_GROWTH_READY (releases to FINAL_REPORTED, not terminal).',
     specPath: 'designs/microbiology/m-00-micro-module-parent.md',
     added: '2026-05-15',
-    updated: '2026-08-27',
+    updated: '2026-09-29',
     status: 'draft',
     jira: ['OGC-782'],
     tags: ['microbiology', 'parent-spec', 'mvp-1a'],
@@ -1069,10 +1101,11 @@ export const MOCKUP_REGISTRY = [
     name: 'M-01 AMR Reference Data (Organism Master)',
     category: 'microbiology',
     component: null,
-    description: 'Organism / Antibiotic / AST Panel / Culture Protocol masters with WHONET codes and groupings. Mockup shows Organism Master admin list.',
+    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Organism / Antibiotic / AST Panel / Culture Protocol masters with WHONET codes and groupings. Mockup shows Organism Master admin list.',
     specPath: 'designs/microbiology/m-01-amr-reference-data.md',
     htmlUrl: 'designs/microbiology/m-01-organism-master.html',
     added: '2026-05-15',
+    updated: '2026-10-01',
     status: 'draft',
     jira: ['OGC-786'],
     tags: ['microbiology', 'reference-data', 'WHONET', 'admin', 'mvp-1a'],
@@ -1081,10 +1114,11 @@ export const MOCKUP_REGISTRY = [
     name: 'M-02 Breakpoint Catalog',
     category: 'microbiology',
     component: null,
-    description: 'Versioned CLSI + EUCAST breakpoint tables; AST Runs snapshot the breakpoint version at result time so publisher updates do not retroactively change interpretations.',
+    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Versioned CLSI + EUCAST breakpoint tables; AST Runs snapshot the breakpoint version at result time so publisher updates do not retroactively change interpretations.',
     specPath: 'designs/microbiology/m-02-breakpoint-catalog.md',
     htmlUrl: 'designs/microbiology/m-02-breakpoint-catalog.html',
     added: '2026-05-15',
+    updated: '2026-10-01',
     status: 'draft',
     jira: ['OGC-787'],
     tags: ['microbiology', 'breakpoint', 'CLSI', 'EUCAST', 'versioned', 'mvp-1a'],
@@ -1093,11 +1127,11 @@ export const MOCKUP_REGISTRY = [
     name: 'M-03 Order Entry Micro Hook',
     category: 'microbiology',
     component: null,
-    description: 'Order Entry Step 1 amendment: when Program = MICROBIOLOGY, five editable micro fields appear inline (Patient Origin, Date of Admission, Number of Sets, Clinical History, Antibiotic Exposure) alongside a read-only derived Culture Protocol. Date of Admission supplies the missing input for the WHO GLASS hospital- vs community-origin classification. v2.2 makes Culture Protocol derived (override moves to the bench, M-04) and removes Critical Value Notify as a duplicate of the Test Catalog notify flag / Alerts section and TestNotificationConfig.',
+    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Order Entry Step 1 amendment: when Program = MICROBIOLOGY, five editable micro fields appear inline (Patient Origin, Date of Admission, Number of Sets, Clinical History, Antibiotic Exposure) alongside a read-only derived Culture Protocol. Date of Admission supplies the missing input for the WHO GLASS hospital- vs community-origin classification. v2.2 makes Culture Protocol derived (override moves to the bench, M-04) and removes Critical Value Notify as a duplicate of the Test Catalog notify flag / Alerts section and TestNotificationConfig.',
     specPath: 'designs/microbiology/m-03-order-entry-micro-hook.md',
     htmlUrl: 'designs/microbiology/m-03-order-entry-step1.html',
     added: '2026-05-15',
-    updated: '2026-08-05',
+    updated: '2026-09-29',
     status: 'draft',
     jira: ['OGC-789'],
     tags: ['microbiology', 'order-entry', 'mvp-1a', 'glass', 'surveillance', 'reuse'],
@@ -1140,10 +1174,11 @@ export const MOCKUP_REGISTRY = [
     name: 'M-04 Isolate Modal',
     category: 'microbiology',
     component: null,
-    description: 'Add / Edit Isolate modal — Gram stain, colony morphology, final ID, significance. Second example shows reidentification mode with versioning.',
+    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Add / Edit Isolate modal — Gram stain, colony morphology, final ID, significance. Second example shows reidentification mode with versioning.',
     specPath: 'designs/microbiology/m-04-case-workbench-core.md',
     htmlUrl: 'designs/microbiology/m-04-isolate-modal.html',
     added: '2026-05-15',
+    updated: '2026-09-29',
     status: 'draft',
     jira: ['OGC-790'],
     tags: ['microbiology', 'case-workbench', 'modal', 'mvp-1a', 'phase-1a-plus'],
@@ -1152,9 +1187,10 @@ export const MOCKUP_REGISTRY = [
     name: 'M-06 Expert Rules Engine',
     category: 'microbiology',
     component: null,
-    description: 'Configurable rules engine: MRSA inference, D-test required, ESBL screen/confirm, cascade reporting, intrinsic resistance verification. Phase 1B.',
+    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Configurable rules engine: MRSA inference, D-test required, ESBL screen/confirm, cascade reporting, intrinsic resistance verification. Phase 1B.',
     specPath: 'designs/microbiology/m-06-expert-rules-engine.md',
     added: '2026-05-15',
+    updated: '2026-10-01',
     status: 'draft',
     jira: ['OGC-793'],
     tags: ['microbiology', 'expert-rules', 'phase-1b'],
@@ -1163,10 +1199,11 @@ export const MOCKUP_REGISTRY = [
     name: 'M-07 Pending Cultures Worklist',
     category: 'microbiology',
     component: null,
-    description: 'Primary morning-rounds tech surface — Cases by stage with red-highlighted positives and green-highlighted ready-to-finalize.',
+    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Primary morning-rounds tech surface — Cases by stage with red-highlighted positives and green-highlighted ready-to-finalize.',
     specPath: 'designs/microbiology/m-07-worklists.md',
     htmlUrl: 'designs/microbiology/m-07-pending-cultures.html',
     added: '2026-05-15',
+    updated: '2026-09-29',
     status: 'draft',
     jira: ['OGC-792'],
     tags: ['microbiology', 'worklist', 'mvp-1a'],
@@ -1175,11 +1212,11 @@ export const MOCKUP_REGISTRY = [
     name: 'M-04 Case Workbench \u2014 Interactive Prototype',
     category: 'microbiology',
     component: null,
-    description: 'Clickable end-to-end case workup \u2014 start inoculation, add/identify isolates, set up + receive AST, log critical, release reports; stage, sidebar and next-step guidance update live; opens on the current step. v2.1: release gate keys on a recorded outcome (isolate workup complete / no growth / all-contaminant / TB CONTAMINATED|NTM_IDENTIFIED), NO_GROWTH_FINAL to NO_GROWTH_READY.',
+    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Clickable end-to-end case workup \u2014 start inoculation, add/identify isolates, set up + receive AST, log critical, release reports; stage, sidebar and next-step guidance update live; opens on the current step. v2.1: release gate keys on a recorded outcome (isolate workup complete / no growth / all-contaminant / TB CONTAMINATED|NTM_IDENTIFIED), NO_GROWTH_FINAL to NO_GROWTH_READY.',
     specPath: 'designs/microbiology/m-04-case-workbench-core.md',
     htmlUrl: 'designs/microbiology/m-04-case-workbench-prototype.html',
     added: '2026-06-05',
-    updated: '2026-08-27',
+    updated: '2026-09-29',
     status: 'draft',
     jira: ['OGC-790'],
     tags: ['microbiology', 'case-workbench', 'interactive', 'prototype', 'mvp-1a'],
@@ -1188,10 +1225,11 @@ export const MOCKUP_REGISTRY = [
     name: 'M-07 Worklist \u2014 Interactive Prototype',
     category: 'microbiology',
     component: null,
-    description: 'Single shared Worklist (no per-case ownership) with a culture / AST grain toggle, needs-action cards, urgency sort, and folded-in resistance strip + recent activity; rows open the case. Analyzer results arrive automatically (no manual import).',
+    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Single shared Worklist (no per-case ownership) with a culture / AST grain toggle, needs-action cards, urgency sort, and folded-in resistance strip + recent activity; rows open the case. Analyzer results arrive automatically (no manual import).',
     specPath: 'designs/microbiology/m-07-worklists.md',
     htmlUrl: 'designs/microbiology/m-07-worklists-prototype.html',
     added: '2026-06-05',
+    updated: '2026-09-29',
     status: 'draft',
     jira: ['OGC-792'],
     tags: ['microbiology', 'worklist', 'interactive', 'prototype', 'mvp-1a'],
@@ -1211,10 +1249,11 @@ export const MOCKUP_REGISTRY = [
     name: 'M-05 AST Entry \u2014 Interactive Prototype',
     category: 'microbiology',
     component: null,
-    description: 'Inline AST entry (no modals) \u2014 type MIC to auto-interpret; switch breakpoint standard to re-compute (EUCAST vs CLSI); inline override with revert + reading history; no-breakpoint guidance; QC-fail recovery. Analyzer results auto-ingest, no manual import.',
+    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Inline AST entry (no modals) \u2014 type MIC to auto-interpret; switch breakpoint standard to re-compute (EUCAST vs CLSI); inline override with revert + reading history; no-breakpoint guidance; QC-fail recovery. Analyzer results auto-ingest, no manual import.',
     specPath: 'designs/microbiology/m-05-ast-entry-and-interpretation.md',
     htmlUrl: 'designs/microbiology/m-05-ast-entry-prototype.html',
     added: '2026-06-05',
+    updated: '2026-10-01',
     status: 'draft',
     jira: ['OGC-791'],
     tags: ['microbiology', 'ast', 'interactive', 'prototype', 'mvp-1a'],
@@ -1223,10 +1262,11 @@ export const MOCKUP_REGISTRY = [
     name: 'M-08 Macro Library',
     category: 'microbiology',
     component: null,
-    description: 'Cross-cutting typing shortcuts: type .gpc, get "Gram positive cocci in clusters". 85 default macros across 8 categories. First Phase 1A+ feature.',
+    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Cross-cutting typing shortcuts: type .gpc, get "Gram positive cocci in clusters". 85 default macros across 8 categories. First Phase 1A+ feature.',
     specPath: 'designs/microbiology/m-08-macro-library.md',
     htmlUrl: 'designs/microbiology/m-08-macro-library.html',
     added: '2026-05-15',
+    updated: '2026-10-01',
     status: 'draft',
     jira: ['OGC-788'],
     tags: ['microbiology', 'macros', 'cross-cutting', 'ux-amplifier', 'phase-1a-plus'],
@@ -1245,8 +1285,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['microbiology', 'WHONET', 'surveillance', 'export', 'phase-1b'],
   },
   {
-    name: 'M-10 Hub Subscription',
+    name: 'M-10 Hub Subscription [Superseded]',
     category: 'microbiology',
+    archived: true,
     component: null,
     description: 'Unified admin for breakpoint + WHONET code + organism/antibiotic master updates from a central repository. OE pulls; never pushes. Phase 1B.',
     specPath: 'designs/microbiology/m-10-hub-subscription.md',
@@ -1261,11 +1302,11 @@ export const MOCKUP_REGISTRY = [
     name: 'M-12 Test to Reagent Linkage',
     category: 'microbiology',
     component: null,
-    description: 'General OE foundation: declare which reagent lots are required for a given test (ISO 15189 §7.3). Micro is the forcing function. Parallel pre-track to MVP-1A.',
+    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. General OE foundation: declare which reagent lots are required for a given test (ISO 15189 §7.3). Micro is the forcing function. Parallel pre-track to MVP-1A.',
     specPath: 'designs/microbiology/m-12-test-reagent-linkage.md',
     htmlUrl: 'designs/microbiology/m-12-test-reagent-linkage-prototype.html',
     added: '2026-05-15',
-    updated: '2026-06-08',
+    updated: '2026-10-01',
     status: 'draft',
     jira: ['OGC-784'],
     tags: ['microbiology', 'reagent-linkage', 'iso-15189', 'cross-cutting', 'co-ship', 'mvp-1a', 'interactive', 'prototype'],
@@ -1292,11 +1333,11 @@ export const MOCKUP_REGISTRY = [
     name: 'M-14 TB Case — Interactive Prototype',
     category: 'microbiology',
     component: null,
-    description: 'The M-04 Case Workbench shell as a TB profile: smear, MGIT/LJ culture, species ID, critical-concentration DST, molecular flags, staged interim reports. v1.1 aligns the TB bench with the no-growth amendment (NO_GROWTH_READY + release; CONTAMINATED is not a result).',
+    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. The M-04 Case Workbench shell as a TB profile: smear, MGIT/LJ culture, species ID, critical-concentration DST, molecular flags, staged interim reports. v1.1 aligns the TB bench with the no-growth amendment (NO_GROWTH_READY + release; CONTAMINATED is not a result).',
     specPath: 'designs/microbiology/m-14-mycobacteriology-tb.md',
     htmlUrl: 'designs/microbiology/m-14-tb-case-prototype.html',
     added: '2026-06-08',
-    updated: '2026-08-27',
+    updated: '2026-09-29',
     status: 'draft',
     jira: ['OGC-901'],
     tags: ['microbiology', 'mycobacteriology', 'tb', 'interactive', 'prototype', 'phase-2'],
@@ -1314,8 +1355,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['microbiology', 'antibiogram', 'reporting', 'interactive', 'prototype', 'phase-2'],
   },
   {
-    name: 'M-04 Change Workflow / Unassigned',
+    name: 'M-04 Change Workflow / Unassigned [Completed]',
     category: 'microbiology',
+    archived: true,
     component: null,
     description: 'M-04 §4.9 runtime escape hatch: re-classify an UNASSIGNED or mis-routed Case to the correct workflow_type (BACTERIOLOGY / MYCOBACTERIOLOGY_TB). 3 demo scenarios: unassigned, mis-routed-with-results, released-blocked.',
     specPath: 'designs/microbiology/m-04-case-workbench-core.md',
@@ -1329,10 +1371,11 @@ export const MOCKUP_REGISTRY = [
     name: 'M-04 Linked Cases — Shared Specimen',
     category: 'microbiology',
     component: null,
-    description: 'Demonstrates Case keyed to sample_item_id × workflow_type: bacterial + TB on one sputum = two sibling Cases sharing one SampleItem. Worklist grouped siblings → bacterial case ↔ TB case sibling chip → order-entry 2-case preview.',
+    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Demonstrates Case keyed to sample_item_id × workflow_type: bacterial + TB on one sputum = two sibling Cases sharing one SampleItem. Worklist grouped siblings → bacterial case ↔ TB case sibling chip → order-entry 2-case preview.',
     specPath: 'designs/microbiology/m-04-case-workbench-core.md',
     htmlUrl: 'designs/microbiology/m-04-linked-cases-shared-specimen-prototype.html',
     added: '2026-06-08',
+    updated: '2026-09-29',
     status: 'draft',
     jira: ['OGC-790'],
     tags: ['microbiology', 'case-workbench', 'shared-specimen', 'sibling-cases', 'interactive', 'prototype', 'phase-1a-plus'],
@@ -1365,10 +1408,11 @@ export const MOCKUP_REGISTRY = [
     name: 'M-11 Critical Notification — Inline',
     category: 'microbiology',
     component: null,
-    description: 'Inline Log/Acknowledge/Close flow over the existing OpenELIS notifications entity. Open → Acknowledged → Closed. Reuses alerts dashboard as criticals filter; no new Alerts Dashboard build.',
+    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Inline Log/Acknowledge/Close flow over the existing OpenELIS notifications entity. Open → Acknowledged → Closed. Reuses alerts dashboard as criticals filter; no new Alerts Dashboard build.',
     specPath: 'designs/microbiology/m-11-critical-result-acknowledgment.md',
     htmlUrl: 'designs/microbiology/m-11-critical-notification-prototype.html',
     added: '2026-06-08',
+    updated: '2026-10-01',
     status: 'draft',
     jira: ['OGC-785'],
     tags: ['microbiology', 'critical-ack', 'inline', 'interactive', 'prototype', 'phase-1a-plus'],
@@ -1388,9 +1432,10 @@ export const MOCKUP_REGISTRY = [
     name: 'M-14 Mycobacteriology / TB',
     category: 'microbiology',
     component: null,
-    description: 'M-04 Case Workbench extended for TB: workflow_type = MYCOBACTERIOLOGY_TB, smear microscopy, MGIT/LJ culture, species ID, WHO critical-concentration DST, molecular resistance flags (GeneXpert, Hain LPA), staged interim reports, WHONET-TB export.',
+    description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. M-04 Case Workbench extended for TB: workflow_type = MYCOBACTERIOLOGY_TB, smear microscopy, MGIT/LJ culture, species ID, WHO critical-concentration DST, molecular resistance flags (GeneXpert, Hain LPA), staged interim reports, WHONET-TB export.',
     specPath: 'designs/microbiology/m-14-mycobacteriology-tb.md',
     added: '2026-06-08',
+    updated: '2026-09-29',
     status: 'draft',
     jira: ['OGC-901'],
     tags: ['microbiology', 'mycobacteriology', 'tb', 'dst', 'whonet-tb', 'glass', 'phase-2'],
@@ -1418,6 +1463,46 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     jira: ['OGC-782'],
     tags: ['microbiology', 'narrative', 'workflow-selection', 'tb', 'antibiogram', 'glass', 'v2.1'],
+  },
+
+  {
+    name: 'M-16 Cluster Detection & Outbreak Signals',
+    category: 'microbiology',
+    component: null,
+    description: 'Native-Java scan-statistic cluster/outbreak detection across all three surveillance domains (clinical, environmental, vector). Consumes a domain-aware detection-event stream — no SaTScan binary, works air-gapped; reuses M-09 first-isolate de-duplication; a scan never crosses a domain boundary (extends D-004). Inline signal queue + Detection History; the only modal is the outbound-send confirm. Alert-volume design target ~3-6 signals/lab/year. FRS v1.0 + interactive preview. Depends on the OGC-782 microbiology module (stacked, not yet on develop).',
+    specPath: 'designs/microbiology/m-16-cluster-detection.md',
+    htmlUrl: 'designs/microbiology/m-16-cluster-detection-preview.html',
+    added: '2026-09-04',
+    updated: '2026-09-04',
+    status: 'draft',
+    tags: ['microbiology', 'surveillance', 'cluster-detection', 'outbreak', 'scan-statistic', 'glass', 'phase-2'],
+  },
+
+  {
+    name: 'Microbiology v2 Amendments',
+    category: 'microbiology',
+    component: React.lazy(() => import('@designs/microbiology/amr-micro-v2-mockup.jsx')),
+    description: 'Microbiology (AMR) v2 amendments (v2.0 draft 10.6), a delta over M-00 to M-18 reconciled with the CPHL Port Moresby microbiology and mycobacteriology workflow breakdown. Every micro test opens a case, including Xpert or smear alone; blood culture sets as one sample per bottle. Case view with Initial testing, Culture (plating templates, tracked or not tracked media, lot on the row), Growth work-up with reportable tests on a positive culture, AST/DST, Additional testing, plate, isolate and AST labels, patient history; Bench batches proposed. Every reversal of V1 is boxed as "Contradicts V1". Draft 10.6 preview plus a developer JSX mockup (@carbon/react) with shipped panels fenced (D-063). Narrows the Test Catalog microbiology workflow attribute (OGC-925) to Culture type on generic culture tests.',
+    specPath: 'designs/microbiology/amr-micro-v2-amendments.md',
+    htmlUrl: 'designs/microbiology/amr-micro-v2-preview.html',
+    added: '2026-09-28',
+    updated: '2026-10-08',
+    status: 'draft',
+    jira: ['OGC-1383', 'OGC-782'],
+    tags: ['microbiology', 'amr', 'v2', 'amendments', 'cphl', 'png', 'case-view', 'worklist', 'order-entry', 'plating-templates', 'inventory', 'labels'],
+  },
+  {
+    name: 'M-18 Environmental Microbiology',
+    category: 'microbiology',
+    component: React.lazy(() => import('@designs/microbiology/m-18-environmental-microbiology.jsx')),
+    description: 'M-18 Environmental Microbiology FRS v0.9, follows Microbiology v2 draft 9: any environmental micro test opens a Case; no Microbiology section on environmental order entry, the culture test is ordered like any test; purpose defaults to Routine monitoring on the Case; media are tracked or not tracked Microbiology medium items (search first, Add new) with plating templates. Built on what develop stores today, investigation link moved to M-16, environmental report layout via Report Management. Touches Results Entry v4, Validation v4 and Environmental Order Entry v4. Preview with the samples table and After save review, JSX mockup, /analyze report and slicing guide.',
+    specPath: 'designs/microbiology/m-18-environmental-microbiology.md',
+    htmlUrl: 'designs/microbiology/m-18-environmental-microbiology.html',
+    added: '2026-09-28',
+    updated: '2026-10-01',
+    status: 'draft',
+    jira: ['OGC-1382'],
+    tags: ['microbiology', 'environmental', 'm-18', 'sampling-sites', 'replicates', 'v2-aligned'],
   },
 
   // ─── NCE ───
@@ -1634,8 +1719,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['quality', 'QC', 'analyzer', 'manual-entry'],
   },
   {
-    name: 'Environmental QC Rules',
+    name: 'Environmental QC Rules [Completed]',
     category: 'quality',
+    archived: true,
     component: React.lazy(() => import('@designs/quality/environmental-qc-rules.jsx')),
     description: 'Environmental QC Rules (S-08) — field blank, trip blank, duplicate sample (RPD), spike recovery. Per-standard QC protocol configuration, QC sample creation at order entry, inline QC results tab, and QC warning with acknowledgment modal on validation.',
     specPath: 'designs/quality/environmental-qc-rules.md',
@@ -1739,8 +1825,9 @@ export const MOCKUP_REGISTRY = [
 
   // ─── Vector Surveillance ───
   {
-    name: 'Vector Specimen Types & Taxonomy',
+    name: 'Vector Specimen Types & Taxonomy [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/vector-surveillance/vector-reference-data.jsx')),
     description: 'Vector reference data (V-01) — species taxonomy (genus + species + subspecies), trap types, and vector sample types with pooling strategy. Establishes the foundation for vector surveillance by extending SampleType.sampleDomain with VECTOR, adding VectorSpecimenProfile for pooling configuration, and seeding ~40 species and 15 trap types used in Indonesia.',
     specPath: 'designs/vector-surveillance/vector-reference-data.md',
@@ -1752,8 +1839,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['vector', 'species', 'taxonomy', 'trap-types', 'mosquito', 'tick', 'rodent', 'reference-data', 'pooling'],
   },
   {
-    name: 'Vector Collection Workflow',
+    name: 'Vector Collection Workflow [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/vector-surveillance/vector-collection-workflow.jsx')),
     description: 'V-02 Vector Collection Workflow — extends the 4-step Sample Collection Redesign with a Vector domain toggle (Clinical | Environmental / Other | Vector). Adds CollectionLot entity with trap type, GPS coordinates (pre-filled from sampling site), pool flag, organism count, weather conditions, receipt confirmation, and S-09 eligibility gate integration at Step 4.',
     specPath: 'designs/vector-surveillance/vector-collection-workflow.md',
@@ -1764,8 +1852,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['vector', 'collection', 'workflow', 'sample-collection', 'Indonesia', 'mosquito', 'tick', 'GPS', 'pooling', 'eligibility-gate'],
   },
   {
-    name: 'Vector Testing & Identification',
+    name: 'Vector Testing & Identification [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/vector-surveillance/vector-testing-identification.jsx')),
     description: 'V-03 Vector Testing & Identification (v1.11) — species identification workbench with inline per-specimen form, bulk-apply for homogeneous lots, physiological state capture (UNFED/BLOOD_FED/HALF_GRAVID/GRAVID per Detinova classification), molecular detail (target gene, assay, GenBank accession), pool deconvolution (positive pool → LABNO.X-Y aliquots → re-test). Blood-meal analysis, Plasmodium drug-resistance genotyping, and vector insecticide-resistance now in V-03 scope via reflex rules. Auto-suggests Blood-Meal Panel when physiologicalState = BLOOD_FED. Seed Panels: Dengue, Malaria, Chikungunya, Blood-Meal ID, Plasmodium Drug Resistance, Vector Insecticide Resistance. Reflex rules VR-01–VR-06.',
     specPath: 'designs/vector-surveillance/vector-testing-identification.md',
@@ -1776,8 +1865,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['vector', 'identification', 'species', 'pathogen', 'panel', 'deconvolution', 'Indonesia', 'mosquito', 'molecular', 'PCR', 'pool', 'blood-meal', 'reflex', 'physiology'],
   },
   {
-    name: 'Vector Surveillance Reporting',
+    name: 'Vector Surveillance Reporting [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/vector-surveillance/vector-surveillance-reporting.jsx')),
     description: 'V-04 Vector Surveillance Reporting — Apache Superset dashboard embedded via guest token JWT into the Reports → Vector Surveillance page, backed by an OHS SQL-on-FHIR ETL pipeline that flattens HAPI FHIR resources into Postgres analytics views feeding 4–7 charts (trap catch trend, species distribution, MIR heatmap, pathogen positivity). NEW in v1.5 — Manual Entry Helper tab at /reports/vector-surveillance/manual-entry that accelerates manual submission to the Kemenkes Subdit Vektor SILANTOR portal: large-font numeric Tiles per metric with Copy IconButton, Aedes/Anopheles sub-tabs, Sporozoite-rate auto-gating below 95% positive resolution, and a Mark-Week-Submitted modal that writes an audit row. Admin field-map page at /admin/vector/manual-entry-fields lets deployments re-order and relabel metrics without code changes; metric list, cadence, and portal field tags are marked @TBD-Ida pending APHL Indonesia confirmation.',
     specPath: 'designs/vector-surveillance/vector-surveillance-reporting.md',
@@ -1816,6 +1906,22 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     jira: [],
     tags: ['validation', 'results', 'review', 'v4', 'bulk-release', 'nce', 'cross-domain', 'Indonesia', 'SILNAS', 'png-deliverable'],
+  },
+
+  // ─── Results & Validation — Validation Clearance Rule (empty-state fix) ───
+  {
+    name: 'Validation Clearance Rule & Empty-State Explanation',
+    project: ['png'],
+    category: 'results-validation',
+    component: React.lazy(() => import('@designs/results-validation/validation-clearance-rule.jsx')),
+    description: 'Fixes the permanently-empty Clear lane on the Validation screen. Defines the clearance predicate (a row is Clear when it carries no risk signal it actually has — a missing QC input reads as absence, not risk) and replaces the greyed-out "Release all clear (0)" button with a plain-language explanation of why a lane is empty. One predicate, two consumers: the server-side rule and its display mirror. Supersedes validation-page-v4 FR-B1. Epic OGC-817, slice OGC-1029.',
+    specPath: 'designs/results-validation/validation-clearance-rule.md',
+    htmlUrl: 'designs/results-validation/validation-clearance-rule.html',
+    added: '2026-09-20',
+    status: 'draft',
+    githubIssue: null,
+    jira: ['OGC-817', 'OGC-1029'],
+    tags: ['validation', 'results', 'review', 'clearance', 'empty-state', 'qc', 'bulk-release', 'predicate'],
   },
 
   // ─── Results & Validation — Multi-Component integrated FRSs (supersede v4) ───
@@ -1976,8 +2082,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['HIL', 'hemolysis', 'icterus', 'lipemia', 'specimen-quality', 'results', 'validation', 'analyzer', 'ASTM'],
   },
   {
-    name: 'Multi-Component Result Entry v1',
+    name: 'Multi-Component Result Entry v1 [Superseded]',
     category: 'results-validation',
+    archived: true,
     component: React.lazy(() => import('@designs/results-validation/results-entry-multicomponent-v1.jsx')),
     description: 'V1 additive multi-value capture on the existing Results Entry & Validation page (SearchResultForm.jsx). A test that defines more than one result_component renders one result-entry field PER component, each produced by the same result-cell renderer the primary result uses today (chosen by the component result_type). Single-component tests are unchanged. First use case: molecular target gene + Ct (Xpert MTB/RIF, SARS-CoV-2). Consumes the OGC-949 M1 test_result_component model; replaces the PR #3831 scalar-column approach (no new analysis/test columns, no data migration). Self-contained module intended for a future fold-in to the OGC-811/817 inline results redesign.',
     specPath: 'designs/results-validation/results-entry-multicomponent-v1.md',
@@ -1987,6 +2094,20 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: null,
     tags: ['results-entry', 'results', 'validation', 'multi-component', 'result-component', 'molecular', 'ct', 'pcr'],
+  },
+  {
+    name: 'Runs — QC, Reagent Lot & Result Review',
+    category: 'results-validation',
+    component: React.lazy(() => import('@designs/results-validation/runs.jsx')),
+    description: 'The run as the shared unit of QC, reagent-lot provenance and result review across all three ways results enter OpenELIS: analyzer messages, workplan batches, and single manual entries. Every result belongs to a run; controls, the reagent lot and a per-test QC verdict live on the run. Converges the Analyzer Results Import review onto the Results worklist as a run-filtered view (/Results?run=<id>) with a run header, defines run-aware worklist row states (waiting/held), and a per-test QC gate (a failed potassium control holds only that test’s rows). States the consumption contracts for QC persistence (OGC-1147), Batch Workplan (OGC-427), the QC dashboard, and Validation. FRS v0.4 (2026-09-22), approved for handoff — simplifies the review surface on Casey’s direction: a single paginated run table driven by the worklist’s existing filter chips (FR-E1a/E1b), each row expanding into the Results Entry panel with the analyzer value prefilled and editable (FR-E10), the Accept contract corrected against D-057, and the Validation contract routed to the clearance rule’s row QC slot (FR-G3). Supersedes-in-part Analyzer Import v2 (OGC-288), Batch Workplan reagent QC (OGC-427), and Manual/RDT QC persistence (OGC-1147) FR-C1.',
+    specPath: 'designs/results-validation/runs.md',
+    htmlUrl: 'designs/results-validation/runs-preview.html',
+    jira: ['OGC-288', 'OGC-427', 'OGC-1147', 'OGC-1178', 'OGC-811', 'OGC-1131'],
+    added: '2026-09-09',
+    updated: '2026-09-22',
+    status: 'draft',
+    githubIssue: null,
+    tags: ['runs', 'qc', 'quality-control', 'reagent-lot', 'analyzer', 'workplan', 'rdt', 'results-worklist', 'holds', 'westgard', 'accreditation'],
   },
   {
     name: 'Reagent Usage on Result Entry v1',
@@ -2015,8 +2136,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['reagent', 'lot', 'results-entry', 'method', 'usage', 'results', 'v2'],
   },
   {
-    name: 'Compliance Evaluation Engine',
+    name: 'Compliance Evaluation Engine [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/results-validation/compliance-evaluation-engine.jsx')),
     description: 'S-05 v2.0 — Regulation-scoped reference ranges: numeric threshold evaluation per compliance standard × result component. 2026-04-28 amendment: evaluates per regulation (from M:N order_compliance_standard join) and per component (for multi-component tests). Existing fallback chain preserved. Splits descriptive/categorical vocabulary to S-05a.',
     specPath: 'designs/results-validation/compliance-evaluation-engine.md',
@@ -2025,7 +2147,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 76,
     jira: ['OGC-547', 'OGC-527'],
-    relatedTo: ['Reusable Categorical Vocabulary'],
+    relatedTo: ['Reusable Categorical Vocabulary [Completed]'],
     tags: ['compliance', 'evaluation', 'environmental', 'vector', 'results', 'thresholds'],
   },
   {
@@ -2039,21 +2161,23 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
   },
   {
-    name: 'Reusable Categorical Vocabulary',
+    name: 'Reusable Categorical Vocabulary [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: null,
     description: 'S-05a — Reusable categorical result vocabulary, split from S-05 v1.0. Admin surface for defining reusable descriptive tag sets (e.g. specimen quality flags, vector physiological state, clinical morphology) that can be attached to any test result type. Domain-neutral; extends beyond env/compliance use cases.',
     specPath: 'designs/results-validation/reusable-categorical-vocabulary.md',
     added: '2026-04-27',
     status: 'draft',
-    relatedTo: ['Compliance Evaluation Engine'],
+    relatedTo: ['Compliance Evaluation Engine [Completed]'],
     jira: ['OGC-527'],
     tags: ['compliance', 'vocabulary', 'categorical', 'environmental', 'vector', 'clinical', 'results'],
   },
   // ─── Reports ───
   {
-    name: 'Environmental LHU',
+    name: 'Environmental LHU [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/vector-surveillance/environmental-lhu.jsx')),
     description: 'Environmental Laporan Hasil Uji v2.0 — printable test result report for environmental samples (air, water, soil, sediment, food). v2.0 adds ISO/IEC 17025:2017 §7.8 report-face blocks (results-apply-only disclaimer, decision rule, end-of-report marker, reproduction restriction), conditional measurement uncertainty (U) column, subcontract disclosure, sampling responsibility, method validation status annotations, and amendment workflow. Inherits S-06 letterhead, e-signature, and print config. Multi-matrix result table with compliance icons, KAN accreditation handling, and Baku Mutu regulatory reference. Real data from PT. Unggulrejo Wasono & RS Permata Depok.',
     specPath: 'designs/vector-surveillance/environmental-lhu.md',
@@ -2061,12 +2185,13 @@ export const MOCKUP_REGISTRY = [
     added: '2026-04-28',
     updated: '2026-05-26',
     status: 'draft',
-    relatedTo: ['Laporan Hasil — Compliance Report'],
+    relatedTo: ['Laporan Hasil — Compliance Report [Completed]'],
     tags: ['report', 'environmental', 'laporan-hasil', 'LHU', 'pdf', 'certificate', 'Indonesia', 'SILNAS', 'KAN'],
   },
   {
-    name: 'Vector LHU',
+    name: 'Vector LHU [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/vector-surveillance/vector-lhu.jsx')),
     description: 'Vector Laporan Hasil Uji v2.0 — printable surveillance report for BBLKM/Labkesmas. Four result-table modes: Species ID (PCR + arbovirus serotype/genotype), Surveillance Indices (MIR + MLE with 95% CIs per WHO 2021), Larval Population (HI/CI/BI + ABJ vs Kemenkes 95% target), and NEW Mode D Pupae Per Person Index (PPI) per WHO 2003 / Focks et al. 2000. Adds ISO 17025 §7.8 report-face blocks. Trap type, lure, deployment period, hierarchical geographic resolution (province → kelurahan → RT/RW). Deployment-configurable risk thresholds (PAHO 2017 + Permenkes 50/2017). Real data from BBLKM Jakarta Aedes aegypti.',
     specPath: 'designs/vector-surveillance/vector-lhu.md',
@@ -2074,12 +2199,13 @@ export const MOCKUP_REGISTRY = [
     added: '2026-04-28',
     updated: '2026-05-26',
     status: 'draft',
-    relatedTo: ['Laporan Hasil — Compliance Report'],
+    relatedTo: ['Laporan Hasil — Compliance Report [Completed]'],
     tags: ['report', 'vector-surveillance', 'laporan-hasil', 'LHU', 'pdf', 'certificate', 'Indonesia', 'SILNAS', 'KAN', 'mosquito', 'entomology'],
   },
   {
-    name: 'Collection Lot — Trap Details',
+    name: 'Collection Lot — Trap Details [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/vector-surveillance/collection-lot-trap-details.jsx')),
     description: 'V-02 Vector Collection Workflow form enhancement (OGC-777, V-05a STRETCH) — adds a "Trap Configuration" section to the existing CollectionLot edit form with four new optional fields: lure, deployment_start, deployment_end, storage_temperature_c. WHO entomological surveillance reproducibility requirements. Backward-compatible: existing CollectionLots remain valid with NULL values. LHU Mode A footnote auto-degrades when fields are null. STRETCH: partner labs do not yet capture this granularity.',
     specPath: 'designs/vector-surveillance/collection-lot-trap-details.md',
@@ -2088,22 +2214,24 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
   },
   {
-    name: 'Laporan Hasil — Compliance Report',
+    name: 'Laporan Hasil — Compliance Report [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/reports/S06-laporan-hasil-compliance-report-mockup.jsx')),
-    description: 'Laporan Hasil (S-06) — formal Sertifikat Hasil Uji (Test Results Certificate) PDF generation for validated environmental orders. Dual e-signature, batch ZIP download, shared Report Print Configuration admin page. Amended 2026-06-15 with §7a Domain Variants cross-reference to S06c (Environmental LHU) + S06d (Vector LHU) siblings.',
+    description: 'Laporan Hasil (S-06) — formal Sertifikat Hasil Uji (Test Results Certificate) PDF generation for validated environmental orders. Dual e-signature, batch ZIP download, shared Report Print Configuration admin page. Amended 2026-06-15 with §7a Domain Variants cross-reference to S06c (Environmental LHU) + S06d (Vector LHU) siblings. List page (§5.2) and batch (§5.5) superseded by Report Print Queue r4.',
     specPath: 'designs/reports/S06-laporan-hasil-compliance-report-frs-v1.0.md',
     htmlUrl: 'designs/reports/S06-laporan-hasil-compliance-report-preview.html',
     added: '2026-04-05',
     status: 'draft',
     githubIssue: 77,
     jira: ['OGC-552', 'OGC-527'],
-    relatedTo: ['Environmental LHU', 'Vector LHU'],
+    relatedTo: ['Environmental LHU [Completed]', 'Vector LHU [Completed]'],
     tags: ['compliance', 'report', 'environmental', 'vector', 'certificate', 'pdf', 'laporan-hasil'],
   },
   {
-    name: 'S06c — Environmental LHU',
+    name: 'S06c — Environmental LHU [Completed]',
     category: 'reports',
+    archived: true,
     component: React.lazy(() => import('@designs/reports/S06c-environmental-lhu-mockup.jsx')),
     description: 'S-06c — Environmental Laporan Hasil Uji (LHU) sibling spec to S06. Result table columns No. | Parameter | Hasil Uji | Baku Mutu | Satuan | Ket. (Metode dropped, in compact footnote). Water, food, ambient air, surface swabs, and physical conditions matrices. KAN per-parameter asterisk; multi-matrix bundling. Ships canonical Indonesian preview + bilingual annotated sibling.',
     specPath: 'designs/reports/S06c-environmental-lhu-frs-v1.0.md',
@@ -2114,8 +2242,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['report', 'pdf', 'lhu', 'environmental', 'kan', 'indonesia', 'compliance', 'laporan-hasil', 'bilingual'],
   },
   {
-    name: 'S06d — Vector LHU',
+    name: 'S06d — Vector LHU [Completed]',
     category: 'reports',
+    archived: true,
     component: React.lazy(() => import('@designs/reports/S06d-vector-lhu-mockup.jsx')),
     description: 'S-06d — Vector surveillance Laporan Hasil Uji (LHU) sibling spec to S06. Three flexible result-table modes: A (Species ID via PCR), B (Surveillance Indices — MIR, infection rate, density), C (Larval Population Indices — House/Container/Breteau Index, Angka Bebas Jentik). Multi-LHU number bundling. Ships canonical Indonesian preview + bilingual annotated sibling.',
     specPath: 'designs/reports/S06d-vector-lhu-frs-v1.0.md',
@@ -2126,8 +2255,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['report', 'pdf', 'lhu', 'vector', 'surveillance', 'pcr', 'larva', 'mir', 'kan', 'indonesia', 'laporan-hasil', 'bilingual'],
   },
   {
-    name: 'LH Delivery — Sent Messages Tab',
+    name: 'LH Delivery — Sent Messages Tab [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/reports/lh-delivery-sent-messages.jsx')),
     description: 'S-06b Addendum — LH Delivery Notification: Sent Messages global main-menu tab. Per-channel delivery status (Email ✓/✗, WhatsApp ✓/✗) for Laporan Hasil, clinical, and future notifications. Extends OGC-437 (TextIt SMS) + OGC-439 (Email/SMTP) triggers with LH_COMPLETED event. Resend flow, delivery log modal, and secure customer download page with 30-day token.',
     specPath: 'designs/reports/lh-delivery-sent-messages.md',
@@ -2143,11 +2273,11 @@ export const MOCKUP_REGISTRY = [
     project: ['png'],
     category: 'reports',
     component: React.lazy(() => import('@designs/reports/report-print-queue.jsx')),
-    description: 'Report-type-agnostic print queue (v1.3): auto-surfaces validated-but-unprinted reports; completeness indicators, print recording via existing report tracking. r3 filter bar redesign — Facility / Ward / Requestor are FilterableMultiSelect with server-side typeahead, Lab No is a first-class toolbar lookup, Search by Patient opens inline, and targeted searches are exclusive (suspend browse filters).',
+    description: 'Report-type-agnostic print queue (r4, FRS v2.2): rebuilt on the shipped Compliance Report page (/LaporanHasil merges into /ReportPrintQueue). Patient reports, environmental and vector certificates in one list; report state Partial / Final / Amended with a separate Print status filter; every released version archived with SHA-256 and returned on reprint; inline reissue-with-correction; Custom Data Export jobs appear as a row type. Supersedes r3 (v1.3).',
     specPath: 'designs/reports/report-print-queue.md',
     htmlUrl: 'designs/reports/report-print-queue.html',
     added: '2026-06-10',
-    updated: '2026-07-06',
+    updated: '2026-09-29',
     status: 'draft',
     jira: ['OGC-1031'],
     tags: ['reports', 'print-queue', 'PNG'],
@@ -2156,29 +2286,33 @@ export const MOCKUP_REGISTRY = [
     name: 'Patient Report Redesign',
     category: 'reports',
     component: null,
-    description: 'Full redesign of the patient result report — Carbon-aligned layout, accreditation logo, digital signature block, reference range display, result interpretation flagging. Ships two JRXML templates: patient_letter.jrxml (US Letter) and patient_a4.jrxml (A4), selected via Admin → General Configuration → Printed Reports Configuration. Companion patient_letter.jrxml implementation file co-located in designs/reports/. Covers the admin config surface, rendered output spec, and Jasper coordinate-level implementation notes.',
+    description: 'Patient Report & Report Management FRS v2.4.3: the printed patient report (Part A); Report Management (Part B) moved to the Admin Redesign FRS section 13. Labels come from the UI translation catalogue so every lab gets its own language and wording; completed date and time per test; accreditation, signatures and reference ranges; microbiology rows (notes under the culture row, tests on a positive culture, refer to previous susceptibility). OGC-932 is the V1 PNG / CPHL deliverable (breakdown slices 1 to 4b). Supersedes rounds 1 to 5 and the accredited tests notes handoff.',
     specPath: 'designs/reports/patient-report-redesign.md',
     htmlUrl: 'designs/reports/patient-report-redesign.html',
     added: '2026-04-24',
+    updated: '2026-10-02',
     status: 'draft',
+    jira: ['OGC-1111', 'OGC-932'],
     githubIssue: 102,
-    relatedTo: ['Report Print Queue', 'Test Accreditation & Report Logo Threshold'],
+    relatedTo: ['Report Print Queue', 'Test Accreditation & Report Logo Threshold', 'Report Management'],
     tags: ['reports', 'patient-report', 'print', 'accreditation', 'jasper', 'iso-15189', 'A4', 'letter', 'jrxml'],
   },
   {
     name: 'Positivity Rate Report',
     category: 'reports',
     component: React.lazy(() => import('@designs/reports/positivity-rate.jsx')),
-    description: 'Positivity rate report and dashboard widget — per-test result-code-based positivity definitions, date-range filtering, DataTable with CSV export, and reusable tile for the home dashboard',
+    description: 'Positivity rate report and dashboard widget (Carbon, inline-only positivity definition) — per-test result-code-based positivity definitions for coded tests, all-non-normal-only for numeric tests, date-range filtering, DataTable with CSV export, and a tile hosted on the Lab Management Dashboard (v1.2). Swapped in 2026-09-10 from the earlier admin-CRUD mockup, archived under designs/_archive/2026-09-10/.',
     specPath: 'designs/reports/positivity-rate.md',
     added: '2026-03-19',
+    updated: '2026-09-10',
     status: 'draft',
     githubIssue: 55,
     tags: ['reports', 'positivity', 'HIV', 'malaria', 'dashboard-widget'],
   },
   {
-    name: 'Environmental Dashboard & Trend Analysis',
+    name: 'Environmental Dashboard & Trend Analysis [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/reports/environmental-dashboard.jsx')),
     description: 'Environmental Dashboard (S-07) — site-level compliance rate trends, per-parameter drill-down, exceedance summary table, site comparison bar chart, CSV export. Monthly aggregation with 12-month default view.',
     specPath: 'designs/reports/environmental-dashboard.md',
@@ -2190,8 +2324,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['compliance', 'environmental', 'vector', 'dashboard', 'trends', 'charts'],
   },
   {
-    name: 'ENV Dashboard — Chart & PDF Export',
+    name: 'ENV Dashboard — Chart & PDF Export [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/reports/environmental-dashboard-chart-export.jsx')),
     description: 'S-07b Addendum — Chart PNG & Dashboard PDF Export. Per-chart hover download button (client-side SVG→PNG, 1200×800px @144dpi). Full-dashboard PDF export: config modal, server-side generation, cover page, one chart per page, exceedance table, footer. ROLE_ENV_EXPORT permission gates both actions. Annotated mockup shows new S-07b additions in context of the existing S-07 dashboard (gold dashed border = new, dimmed = existing).',
     specPath: 'designs/reports/environmental-dashboard-chart-export.md',
@@ -2216,7 +2351,7 @@ export const MOCKUP_REGISTRY = [
     name: 'Custom Data Export',
     category: 'reports',
     component: React.lazy(() => import('@designs/reports/custom-data-export.jsx')),
-    description: '3-step CSV report builder wizard with grain-family variable selection, filters, and sync/async routing — plus async My Report Queue and Saved Export Configurations. v1.1 (2026-07-15): grain families with color coding + legend, QC domain removed, single PII tag, overwrite-confirm for saved configs.',
+    description: 'OpenELIS CSV reporting design with new-export and saved-report entry paths, a searchable catalog with expandable category groups beside ordered CSV columns, progressive filters, review changes, queue recovery and a fictional virology CSV. v1.5 interaction candidate for review; independent of Catalyst and AI. My Report Queue (FR-6) now renders inside Report Print Queue r4 as the Data export type.',
     specPath: 'designs/reports/custom-data-export.md',
     htmlUrl: 'designs/reports/custom-data-export.html',
     added: '2026-03-25',
@@ -2293,10 +2428,11 @@ export const MOCKUP_REGISTRY = [
     name: 'Inventory Item-Type Management',
     category: 'inventory',
     component: React.lazy(() => import('@designs/inventory/inventory-item-type-management.jsx')),
-    description: 'Move the hard-coded "Type of Item" list into the Data Dictionary: managed item-type admin with add/edit/deactivate, replacing hardcoded values.',
+    description: 'Amended by Microbiology v2 (D-147: Microbiology medium item type, FR-05.1d). Move the hard-coded "Type of Item" list into the Data Dictionary: managed item-type admin with add/edit/deactivate, replacing hardcoded values.',
     specPath: 'designs/inventory/inventory-item-type-management.md',
     htmlUrl: 'designs/inventory/inventory-item-type-management.html',
     added: '2026-06-12',
+    updated: '2026-10-01',
     status: 'draft',
     tags: ['inventory','item-type','data-dictionary','admin'],
   },
@@ -2328,14 +2464,27 @@ export const MOCKUP_REGISTRY = [
     name: 'In-App Help System',
     category: 'system',
     component: React.lazy(() => import('@designs/system/help-menu.jsx')),
-    description: 'Contextual in-app help viewer for OpenELIS Global — a slide-over panel triggered from a persistent Help button in the app shell. Delivers page-aware help articles (Markdown rendered to HTML), full-text search across all articles, related-articles suggestions, feedback thumbs (helpful / not helpful), and a "request help" escape hatch to the community forum. Content managed as static Markdown files in the repo. FRS v1.0 with full data model, i18n keys, acceptance criteria, and requirements checklist.',
+    description: 'In-app help viewer for OpenELIS Global (OGC-737). The Help menu opens the user and administrator guides in their own browser tab with a side-nav table of contents, full-text search, deep links and deployment branding, in English and French. Content is authored in Confluence and bundled with each release by a build-time pipeline, so help works offline. FRS v1.2 (re-based on the Sept 2026 manual reorg; manual refresh at release cut) with requirements checklist and dev bundle. Mockup and HTML preview updated to v1.2: user and administrator guides, English and French with the English-only fallback, WIP notice, latest-online link, branding, 480 px layout.',
     specPath: 'designs/system/help-menu.md',
     htmlUrl: 'designs/system/in-app-help-preview.html',
     added: '2026-05-12',
+    updated: '2026-10-15',
     status: 'draft',
     githubIssue: 44,
-    jira: [],
-    tags: ['help', 'documentation', 'UI', 'navigation', 'contextual-help', 'search', 'slide-over', 'global'],
+    jira: ['OGC-737'],
+    tags: ['help', 'documentation', 'UI', 'navigation', 'search', 'offline', 'i18n', 'branding', 'global'],
+  },
+  {
+    name: 'Navigation Redesign',
+    category: 'system',
+    component: null,
+    description: 'Information-architecture redesign of the main side menu and the Admin sidebar (FRS v0.1, approved 2026-09-24). The main menu reads in the order of a lab\'s day under six section headings (Orders & Patients, Samples & Supplies, Testing, Quality, Reports, Administration) with Home and Alerts pinned; nothing deeper than three levels, one entry per destination (220 rows to 119, 7 duplicates to 0), dead rows retired under a three-tier rule and every removed URL redirected. The hard-coded Admin sidebar regroups into five buckets (Config, Organization, Resources, Automation, Compliance). No page is redesigned. Builds on the section/icon capability from #4315 (OGC-479). Interactive HTML preview, handoff JSX (target MENU and ADMIN trees + icon registry) and the row-by-row inventory data.',
+    specPath: 'designs/system/navigation-redesign.md',
+    htmlUrl: 'designs/system/navigation-redesign-preview.html',
+    added: '2026-09-26',
+    status: 'draft',
+    jira: ['OGC-1241'],
+    tags: ['navigation', 'menu', 'side-nav', 'admin', 'information-architecture', 'menu-configuration', 'redesign', 'system'],
   },
   {
     name: 'Analyzer Results Import (v2 redesign)',
@@ -2481,8 +2630,9 @@ export const MOCKUP_REGISTRY = [
   },
 
   {
-    name: 'Environmental Order Entry',
+    name: 'Environmental Order Entry [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/sample-collection/environmental-order-entry.jsx')),
     description: 'S-03 v2.0 — 3-step wizard (Branch & Setup / Label & Store / QA-QC + Intake) at Reception for domain-assigned labs. Regulation-driven vs ad-hoc branch selector, sample manifest quantity table + CSV upload, per-sample NCE, QC quick-add. 2026-04-28 amendment: multi-regulation M:N — Compliance Standard is now a MultiSelect; suggested tests union across selected standards; order_compliance_standard join table replaces single complianceStandardId column.',
     specPath: 'designs/sample-collection/environmental-order-entry.md',
@@ -2494,8 +2644,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['environmental', 'order-entry', 'vector', 'compliance', 'sample-collection'],
   },
   {
-    name: 'ENV Order — Sampling Uncertainty Field',
+    name: 'ENV Order — Sampling Uncertainty Field [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/sample-collection/sampling-uncertainty.jsx')),
     description: 'S-03b Addendum — Sampling Uncertainty field added to the Collection Conditions section (S-03 §5.3). ISO 17025 §7.6 field/sampling uncertainty: NumberInput value + unit type Select (%, mg/L, μg/L, CFU/100mL, Other). Mandatory by default, configurable optional per program. Carries forward to Step 2 via ENV-3-002. QA completeness check extended. Laporan Hasil reporting payload extended.',
     specPath: 'designs/sample-collection/sampling-uncertainty.md',
@@ -2506,11 +2657,12 @@ export const MOCKUP_REGISTRY = [
     tags: ['environmental', 'order-entry', 'vector', 'compliance', 'sample-collection', 'ISO-17025', 'uncertainty', 'Indonesia', 'SILNAS'],
   },
   {
-    name: 'Clinical Order Entry (v2)',
+    name: 'Clinical Order Entry (v2) [Superseded]',
     category: 'vector-surveillance',
+    archived: true,
     component: null,
     description: 'v2 clinical order-entry wizard (Enter Order \u2192 Collect \u2192 Label & Store \u2192 QA Review) realigned to the three-workflow spec. Adds the self-describing "Assign to" sample\u2194test menu at Collect, Ward/Unit/Department facility sub-unit, requester with Phone/Fax/Email + admin-gated add-new + edit-lock on found records, test search by name or code, blank-by-default quantity, de-gated print/storage, and the Sample Acceptance Checklist (S-09 / OGC-580) on QA Review.',
-    specPath: 'designs/sample-collection/order-entry-frs-v3-three-workflows.md',
+    specPath: 'designs/sample-collection/order-entry-three-workflows.md',
     htmlUrl: 'designs/sample-collection/clinical-order-entry-v2.html',
     added: '2026-06-25',
     status: 'draft',
@@ -2518,11 +2670,26 @@ export const MOCKUP_REGISTRY = [
     tags: ['clinical', 'order-entry', 'sample-collection', 'collect', 'qa', 'requester'],
   },
   {
-    name: 'Environmental Order Entry (v2)',
+    name: 'Clinical Order Entry (v4)',
     category: 'vector-surveillance',
     component: null,
+    description: 'Clinical Order Entry v4 (FRS v0.20: order-entry clean-up, possible matches before create, Handling group, fewer low-value fields; FR-B12a follows Microbiology v2 draft 10, D-178): Add Order reworked into two steps, Enter Order (in paper-form order: order, patient, requester, request details, tests) and Prepare Samples, plus an optional Sample check. Every save is one all-or-nothing transaction. Container Types and Body Sites join the test catalog so each test declares its expected tubes, and swabs carry a coded site. Shared ordered-tests table, samples table and order summary strip show which tube each test is on. Search-first patient, facility and provider creation; lab time zone for collection and receipt times; working label buttons. Two-phase plan (MVP on current screens, Phase 2 new model). Supersedes the 2026-09-10 Enter Order preview (archived) and OGC-1066. Companion slicing guide, acceptance test scripts, research brief and environmental/vector alignment note.',
+    specPath: 'designs/sample-collection/clinical-order-entry-v4.md',
+    htmlUrl: 'designs/sample-collection/clinical-order-entry-v4.html',
+    added: '2026-09-10',
+    updated: '2026-10-03',
+    status: 'draft',
+    jira: ['OGC-1266', 'OGC-1146', 'OGC-1066'],
+    githubIssue: 311,
+    tags: ['clinical', 'order-entry', 'sample-collection', 'save-model', 'lab-number', 'containers', 'body-sites', 'test-catalog', 'labels', 'search-first', 'time-zone'],
+  },
+  {
+    name: 'Environmental Order Entry (v2) [Completed]',
+    category: 'vector-surveillance',
+    archived: true,
+    component: null,
     description: 'v2 environmental order-entry. Requester = Requesting Organization + Requestor contact, both searched & stored like the clinical provider, with full Phone/Fax/Email, admin-gated add-new, and edit-lock on records pulled from search. Collection method optional; CSV bulk intake retained (Env/Vector only).',
-    specPath: 'designs/sample-collection/order-entry-frs-v3-three-workflows.md',
+    specPath: 'designs/sample-collection/order-entry-three-workflows.md',
     htmlUrl: 'designs/sample-collection/environmental-order-entry-v2.html',
     added: '2026-06-25',
     status: 'draft',
@@ -2530,11 +2697,12 @@ export const MOCKUP_REGISTRY = [
     tags: ['environmental', 'order-entry', 'requester', 'organization', 'CSV', 'sample-collection'],
   },
   {
-    name: 'Vector Collection Workflow (v2)',
+    name: 'Vector Collection Workflow (v2) [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: null,
     description: 'v2 vector collection workflow. Requester relabeled to the shared Requesting Organization + Requestor element (identical to Environmental), with full Phone/Fax/Email, admin-gated add-new, and edit-lock on found records.',
-    specPath: 'designs/sample-collection/order-entry-frs-v3-three-workflows.md',
+    specPath: 'designs/sample-collection/order-entry-three-workflows.md',
     htmlUrl: 'designs/vector-surveillance/vector-collection-workflow-v2.html',
     added: '2026-06-25',
     status: 'draft',
@@ -2553,8 +2721,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['order-entry', 'developer-reference', 'spec', 'sample-collection'],
   },
   {
-    name: 'Referral-Out Notification',
+    name: 'Referral-Out Notification [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/notifications/referral-out-notification.jsx')),
     description: 'X-01 Addendum — Configurable REFERRAL_OUT notification trigger added to existing Refer Out module. Extends OGC-437/OGC-439 dispatch pipeline with one new event type, Combined Triggers Page row (default OFF), Combined Templates Page editor with merge fields, and Sent Messages tab "Referral Out" type. Three scenes: triggers config, template editor with live preview, sent messages table.',
     specPath: 'designs/notifications/referral-out-notification.md',
@@ -2565,8 +2734,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['notifications', 'referral', 'email', 'whatsapp', 'vector', 'environmental', 'admin-config', 'OGC-437', 'OGC-439'],
   },
   {
-    name: 'Subcontract Management',
+    name: 'Subcontract Management [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: React.lazy(() => import('@designs/notifications/subcontract-management.jsx')),
     description: 'S-03c Addendum to S-03 + V-02 — Structured subcontract tracking for ENV/Vector Refer Out referrals. Subcontract Metadata panel (handoff datetime, expected return, agreement ref, chain-of-custody contact). Five-state status workflow (DISPATCHED → RECEIVED → RESULTS_RETURNED → CLOSED). Subcontract Register page with overdue highlighting, status filters, and Advance Status modal. Audit log per transition. ISO 17025 §6.6 / §7.7 compliance. Superseded by S-14 Inter-Lab Transfer (generic to all order types).',
     specPath: 'designs/notifications/subcontract-management.md',
@@ -2588,7 +2758,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 89,
     jira: ['OGC-593', 'OGC-537', 'OGC-527'],
-    relatedTo: ['Required By Field', 'Environmental Order Entry'],
+    relatedTo: ['Required By Field', 'Environmental Order Entry [Completed]'],
     tags: ['order-entry', 'SOP', 'deadline', 'holding-time', 'environmental', 'vector', 'worklist', 'Indonesia', 'SILNAS', 'Bogor', 'ISO-17025'],
   },
   {
@@ -2625,7 +2795,7 @@ export const MOCKUP_REGISTRY = [
     htmlUrl: 'designs/sample-collection/inter-lab-transfer.html',
     added: '2026-04-27',
     status: 'draft',
-    relatedTo: ['Subcontract Management', 'Reference Lab Results'],
+    relatedTo: ['Subcontract Management [Completed]', 'Reference Lab Results'],
     jira: ['OGC-527'],
     tags: ['referral', 'inter-lab', 'subcontract', 'environmental', 'vector', 'clinical', 'chain-of-custody', 'ISO-17025'],
   },
@@ -2668,7 +2838,7 @@ export const MOCKUP_REGISTRY = [
     status: 'draft',
     githubIssue: 92,
     jira: ['OGC-354', 'OGC-527'],
-    relatedTo: ['Sample Collection Redesign', 'Referral-Out Notification'],
+    relatedTo: ['Sample Collection Redesign', 'Referral-Out Notification [Completed]'],
     tags: ['sample-collection', 'referral', 'refer-out', 'order-status', 'clinical', 'environmental', 'vector'],
   },
   {
@@ -2795,8 +2965,9 @@ export const MOCKUP_REGISTRY = [
 
   // ─── Reference / Planning ───
   {
-    name: 'Environmental & Vector Testing Roadmap',
+    name: 'Environmental & Vector Testing Roadmap [Completed]',
     category: 'vector-surveillance',
+    archived: true,
     component: null,
     description: 'Architecture roadmap for the Environmental & Vector Testing Module (OGC-527 epic). Covers 3-layer build order: S-01–S-02 foundational infrastructure, S-03–S-04 integration, S-05–S-08 analytics/reporting, V-01–V-04 vector surveillance. Dependency graph, recommended implementation phases, and current spec completion status.',
     specPath: 'designs/other/environmental-vector-roadmap.md',
@@ -2819,6 +2990,30 @@ export const MOCKUP_REGISTRY = [
     githubIssue: 82,
     jira: ['OGC-66'],
     tags: ['patient', 'document-management', 'FHIR', 'scanning', 'registration'],
+  },
+  {
+    name: 'Patient Search',
+    category: 'patient',
+    component: React.lazy(() => import('@designs/patient/patient-search.jsx')),
+    description: 'Redesign of the shared patient search panel used by eight screens. One smart search box expanded server-side over the configured patient identifiers, lab number and last name, Enter to submit, configuration-driven helper text, and a collapsed demographics refinement. Route-synced Search for Patient / New Patient switcher on Patient Management and clinical Add Order only. Fixed-height results rows with placeholder-first photos, configured identifier columns, a Shared ID warning tag, and merged patients hidden behind a toggle. Client registry results load progressively beneath local results and fold into local rows by FHIR UUID; external sources are admin-configured, never user-bypassable.',
+    specPath: 'designs/patient/patient-search.md',
+    htmlUrl: 'designs/patient/patient-search.html',
+    added: '2026-09-09',
+    status: 'draft',
+    githubIssue: 305,
+    jira: ['OGC-1197', 'OGC-354'],
+    tags: ['patient', 'reception', 'search', 'client-registry', 'FHIR', 'accessibility', 'PNG'],
+  },
+  {
+    name: 'Optional Patient Sex and Age at Order Entry',
+    category: 'patient',
+    component: null,
+    description: 'FRS v0.2: lets a lab make patient sex and age optional at order entry (Order Entry Configuration toggles), renames the "Gender" label to "Sex", and defines how reference ranges behave when sex or age is missing; results whose normals are age-banded or sex-differentiated land in Needs review with a Range not applied chip (FR-16a). Spec only; no mockup.',
+    specPath: 'designs/patient/optional-sex-age.md',
+    added: '2026-09-28',
+    status: 'draft',
+    jira: ['OGC-1362'],
+    tags: ['patient', 'order-entry', 'sex', 'age', 'reference-ranges', 'validation', 'configuration'],
   },
 
   // ─── Figma-only entries (no JSX mockup) ───
@@ -2872,6 +3067,23 @@ export const GITHUB_REPO = 'DIGI-UW/openelis-work';
 export const GITHUB_ISSUES_URL = `https://github.com/${GITHUB_REPO}/issues`;
 export const JIRA_BASE = 'https://uwdigi.atlassian.net/browse/';
 export const DEFAULT_ADDED = '2026-03-03'; // Initial gallery import date
+
+/** Entries added or updated within this many days get a New / Updated badge. */
+export const NEW_WINDOW_DAYS = 30;
+
+/** Most recent activity date for an entry (later of added / updated). */
+export function lastActivity(m) {
+  const a = m.added || DEFAULT_ADDED;
+  return m.updated && m.updated > a ? m.updated : a;
+}
+
+/** 'new' if added within the window, 'updated' if updated within it, else null. */
+export function freshness(m, now = new Date()) {
+  const cutoff = new Date(now.getTime() - NEW_WINDOW_DAYS * 86400000).toISOString().slice(0, 10);
+  if ((m.added || DEFAULT_ADDED) >= cutoff) return 'new';
+  if (m.updated && m.updated >= cutoff) return 'updated';
+  return null;
+}
 
 export const categories = [
   'all',
@@ -3027,12 +3239,12 @@ export const JOURNEYS = [
     steps: [
       { name: 'Compliance Standards Administration [Completed]', blurb: 'Where the lab defines the regulatory standards it tests against — each with its analytes, units, and the limit a result must fall within. Everything downstream (order routing, pass/fail evaluation, the certificate) keys off what is configured here, so this is the natural starting point.' },
       { name: 'Sampling Site Registry [Completed]', blurb: 'Environmental samples come from places, not patients. This registers the non-patient sampling sites — rivers, wells, treatment plants, facility rooms — so each sample can be tied to a known location and its history instead of a person.' },
-      { name: 'Environmental Order Entry (v2)', blurb: 'The intake screen for a non-patient sample: choose the site, the applicable standard, and the tests to run. It is the environmental analogue of patient order entry, adapted for site-based, regulation-scoped sampling.' },
+      { name: 'Environmental Order Entry (v2) [Completed]', blurb: 'The intake screen for a non-patient sample: choose the site, the applicable standard, and the tests to run. It is the environmental analogue of patient order entry, adapted for site-based, regulation-scoped sampling.' },
       { name: 'Results Entry — Expanded Uncertainty (U) Capture', blurb: 'Techs enter the measured values and, for accredited tests, the expanded measurement uncertainty (U) required by ISO/IEC 17025 §7.8. Capturing U here lets it flow straight onto the final certificate.' },
-      { name: 'Environmental QC Rules', blurb: 'Before results are trusted, QC is evaluated against the configured rules. Violations are flagged so the run can be reviewed or repeated rather than reported blindly.' },
-      { name: 'Compliance Evaluation Engine', blurb: 'The engine compares each result to its standard’s limit and assigns a compliant / non-compliant verdict. This determination is what the report ultimately certifies.' },
-      { name: 'Environmental Dashboard & Trend Analysis', blurb: 'A monitoring surface across sites and over time — positivity, exceedances, and trends — so a program can spot problems that a single sample would never reveal.' },
-      { name: 'Laporan Hasil — Compliance Report', blurb: 'The formal output: the Sertifikat Hasil Uji (certificate of analysis) reporting each result against its limit, with uncertainty and the compliance verdict, ready to issue.' },
+      { name: 'Environmental QC Rules [Completed]', blurb: 'Before results are trusted, QC is evaluated against the configured rules. Violations are flagged so the run can be reviewed or repeated rather than reported blindly.' },
+      { name: 'Compliance Evaluation Engine [Completed]', blurb: 'The engine compares each result to its standard’s limit and assigns a compliant / non-compliant verdict. This determination is what the report ultimately certifies.' },
+      { name: 'Environmental Dashboard & Trend Analysis [Completed]', blurb: 'A monitoring surface across sites and over time — positivity, exceedances, and trends — so a program can spot problems that a single sample would never reveal.' },
+      { name: 'Laporan Hasil — Compliance Report [Completed]', blurb: 'The formal output: the Sertifikat Hasil Uji (certificate of analysis) reporting each result against its limit, with uncertainty and the compliance verdict, ready to issue.' },
     ],
   },
   {
@@ -3041,11 +3253,11 @@ export const JOURNEYS = [
     title: 'Vector Surveillance',
     blurb: 'Mosquito / vector specimens from field collection through identification to surveillance reporting.',
     steps: [
-      { name: 'Vector Specimen Types & Taxonomy', blurb: 'The reference data the whole module rests on: the vector species and the specimen taxonomy (genus/species, life stage). Identification and reporting later draw from this controlled vocabulary, so it is configured first.' },
-      { name: 'Vector Collection Workflow (v2)', blurb: 'Records a field collection event — trap, location, date, conditions — and the specimens it yielded. This is where a batch of field-caught vectors enters the system as trackable items rather than loose field notes.' },
-      { name: 'Vector Testing & Identification', blurb: 'The workbench where collected specimens are identified to species and run through vector tests (e.g. pathogen detection). Results attach back to the collection event so they stay tied to where and when they were caught.' },
-      { name: 'Vector Surveillance Reporting', blurb: 'Aggregates identifications and test results into surveillance indicators — abundance, infection rates, distribution — the numbers a vector-control program actually acts on.' },
-      { name: 'Vector LHU', blurb: 'The vector results report (Laporan Hasil Uji) that packages the findings for the requesting program or public-health authority.' },
+      { name: 'Vector Specimen Types & Taxonomy [Completed]', blurb: 'The reference data the whole module rests on: the vector species and the specimen taxonomy (genus/species, life stage). Identification and reporting later draw from this controlled vocabulary, so it is configured first.' },
+      { name: 'Vector Collection Workflow (v2) [Completed]', blurb: 'Records a field collection event — trap, location, date, conditions — and the specimens it yielded. This is where a batch of field-caught vectors enters the system as trackable items rather than loose field notes.' },
+      { name: 'Vector Testing & Identification [Completed]', blurb: 'The workbench where collected specimens are identified to species and run through vector tests (e.g. pathogen detection). Results attach back to the collection event so they stay tied to where and when they were caught.' },
+      { name: 'Vector Surveillance Reporting [Completed]', blurb: 'Aggregates identifications and test results into surveillance indicators — abundance, infection rates, distribution — the numbers a vector-control program actually acts on.' },
+      { name: 'Vector LHU [Completed]', blurb: 'The vector results report (Laporan Hasil Uji) that packages the findings for the requesting program or public-health authority.' },
     ],
   },
   {
@@ -3188,6 +3400,35 @@ const PERMALINK_ALIASES = {
   'microbiology/m-05-ast-entry-interpretation': 'microbiology/m-05-ast-entry-interactive-prototype',
   'microbiology/m-07-ast-worklist': 'microbiology/m-07-worklist-interactive-prototype',
   'microbiology/m-11-critical-result-acknowledgment': 'microbiology/m-11-critical-notification-inline',
+  // Archived 2026-09-22 — shipped / superseded entries retired with a status marker.
+  'microbiology/m-04-change-workflow-unassigned': 'microbiology/m-04-change-workflow-unassigned-completed',
+  'microbiology/m-10-hub-subscription': 'microbiology/m-10-hub-subscription-superseded',
+  'results-validation/multi-component-result-entry-v1': 'results-validation/multi-component-result-entry-v1-superseded',
+  // Archived 2026-10-09 — environmental & vector surveillance work delivered.
+  'quality/environmental-qc-rules': 'quality/environmental-qc-rules-completed',
+  'vector-surveillance/vector-specimen-types-taxonomy': 'vector-surveillance/vector-specimen-types-taxonomy-completed',
+  'vector-surveillance/vector-collection-workflow': 'vector-surveillance/vector-collection-workflow-completed',
+  'vector-surveillance/vector-testing-identification': 'vector-surveillance/vector-testing-identification-completed',
+  'vector-surveillance/vector-surveillance-reporting': 'vector-surveillance/vector-surveillance-reporting-completed',
+  'vector-surveillance/compliance-evaluation-engine': 'vector-surveillance/compliance-evaluation-engine-completed',
+  'vector-surveillance/reusable-categorical-vocabulary': 'vector-surveillance/reusable-categorical-vocabulary-completed',
+  'vector-surveillance/environmental-lhu': 'vector-surveillance/environmental-lhu-completed',
+  'vector-surveillance/vector-lhu': 'vector-surveillance/vector-lhu-completed',
+  'vector-surveillance/collection-lot-trap-details': 'vector-surveillance/collection-lot-trap-details-completed',
+  'vector-surveillance/laporan-hasil-compliance-report': 'vector-surveillance/laporan-hasil-compliance-report-completed',
+  'reports/s06c-environmental-lhu': 'reports/s06c-environmental-lhu-completed',
+  'reports/s06d-vector-lhu': 'reports/s06d-vector-lhu-completed',
+  'vector-surveillance/lh-delivery-sent-messages-tab': 'vector-surveillance/lh-delivery-sent-messages-tab-completed',
+  'vector-surveillance/environmental-dashboard-trend-analysis': 'vector-surveillance/environmental-dashboard-trend-analysis-completed',
+  'vector-surveillance/env-dashboard-chart-pdf-export': 'vector-surveillance/env-dashboard-chart-pdf-export-completed',
+  'vector-surveillance/environmental-order-entry': 'vector-surveillance/environmental-order-entry-completed',
+  'vector-surveillance/env-order-sampling-uncertainty-field': 'vector-surveillance/env-order-sampling-uncertainty-field-completed',
+  'vector-surveillance/clinical-order-entry-v2': 'vector-surveillance/clinical-order-entry-v2-superseded',
+  'vector-surveillance/environmental-order-entry-v2': 'vector-surveillance/environmental-order-entry-v2-completed',
+  'vector-surveillance/vector-collection-workflow-v2': 'vector-surveillance/vector-collection-workflow-v2-completed',
+  'vector-surveillance/referral-out-notification': 'vector-surveillance/referral-out-notification-completed',
+  'vector-surveillance/subcontract-management': 'vector-surveillance/subcontract-management-completed',
+  'vector-surveillance/environmental-vector-testing-roadmap': 'vector-surveillance/environmental-vector-testing-roadmap-completed',
 };
 
 /** Find a mockup by its hash path (e.g. "pathology/cytology-case-view") */
@@ -3201,6 +3442,14 @@ export function findMockupByHash(hash) {
   return MOCKUP_REGISTRY.find(
     (m) => m.category === cat && toSlug(m.name) === slug
   ) || null;
+}
+
+/** Look up by category + slug, following PERMALINK_ALIASES so archived/renamed entries keep resolving. */
+function findByCatSlug(cat, slug) {
+  const key = PERMALINK_ALIASES[`${cat}/${slug}`] || `${cat}/${slug}`;
+  const [c, ...rest] = key.split('/');
+  const sl = rest.join('/');
+  return MOCKUP_REGISTRY.find((m) => m.category === c && toSlug(m.name) === sl) || null;
 }
 
 /**
@@ -3217,13 +3466,13 @@ export function parseRoute(hash) {
   if (parts[0] === 'preview' && parts.length >= 3) {
     const cat = parts[1];
     const slug = parts.slice(2).join('/');
-    const mockup = MOCKUP_REGISTRY.find(m => m.category === cat && toSlug(m.name) === slug) || null;
+    const mockup = findByCatSlug(cat, slug);
     return { mode: 'preview', mockup };
   }
   if (parts[0] === 'spec' && parts.length >= 3) {
     const cat = parts[1];
     const slug = parts.slice(2).join('/');
-    const mockup = MOCKUP_REGISTRY.find(m => m.category === cat && toSlug(m.name) === slug) || null;
+    const mockup = findByCatSlug(cat, slug);
     return { mode: 'spec', mockup };
   }
   if (parts[0] === 'project' && parts[1]) {
@@ -3232,7 +3481,7 @@ export function parseRoute(hash) {
     if (parts.length >= 4) {
       const cat = parts[2];
       const slug = parts.slice(3).join('/');
-      mockup = MOCKUP_REGISTRY.find(m => m.category === cat && toSlug(m.name) === slug) || null;
+      mockup = findByCatSlug(cat, slug);
     }
     return { mode: 'project', project: projectKey, mockup };
   }
@@ -3904,6 +4153,7 @@ function GalleryApp() {
   const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'draft', 'review', 'approved'
   const [activeProject, setActiveProject] = useState('all'); // 'all' or a project key
   const [showArchived, setShowArchived] = useState(false);
+  const [sortOrder, setSortOrder] = useState('newest'); // 'newest' or 'registry'
   const [glossaryOpen, setGlossaryOpen] = useState(false);
   const [localStatuses, setLocalStatuses] = useState(() => {
     // Load persisted status overrides from localStorage
@@ -4006,6 +4256,10 @@ function GalleryApp() {
       (m.tags && m.tags.some((tag) => tag.toLowerCase().includes(q)));
     return matchesArchived && matchesProject && matchesCategory && matchesStatus && matchesTag && matchesSearch;
   });
+  if (sortOrder === 'newest') {
+    // Stable sort: ties keep registry order.
+    filtered.sort((a, b) => lastActivity(b).localeCompare(lastActivity(a)));
+  }
 
   const archivedCount = MOCKUP_REGISTRY.filter((m) => m.archived).length;
   const activeCount = MOCKUP_REGISTRY.length - archivedCount;
@@ -4155,6 +4409,15 @@ function GalleryApp() {
         >
           {showArchived ? '✓ ' : ''}Archived{archivedCount ? ` (${archivedCount})` : ''}
         </button>
+        <select
+          value={sortOrder}
+          onChange={(e) => { setSortOrder(e.target.value); setHome(false); }}
+          style={{ ...styles.statusSelect, background: t.searchBg, borderColor: t.borderInput, color: t.text }}
+          aria-label="Sort order"
+        >
+          <option value="newest">Newest first</option>
+          <option value="registry">Grouped (registry order)</option>
+        </select>
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setHome(false); }}
@@ -4421,10 +4684,18 @@ function GalleryApp() {
                     {mockup.githubIssue && <span style={{ ...styles.specBadge, background: darkMode ? '#00264a' : '#e1f5fe', color: darkMode ? '#78a9ff' : '#0277bd' }}>💬</span>}
                   </div>
                 </div>
+                {(() => { const f = !mockup.archived && freshness(mockup); return f ? (
+                  <span
+                    style={{ ...styles.newBadge, background: f === 'new' ? '#24a148' : (darkMode ? '#00264a' : '#e1f5fe'), color: f === 'new' ? '#fff' : (darkMode ? '#78a9ff' : '#0277bd') }}
+                    title={f === 'new' ? `Added in the last ${NEW_WINDOW_DAYS} days` : `Updated in the last ${NEW_WINDOW_DAYS} days`}
+                  >
+                    {f === 'new' ? 'New' : 'Updated'}
+                  </span>
+                ) : null; })()}
                 <h3 style={{ ...styles.cardTitle, color: t.text }}>{mockup.name}</h3>
                 <p style={{ ...styles.cardDesc, color: t.textSecondary }}>{mockup.description}</p>
                 <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 6 }}>
-                  <span style={{ ...styles.cardDate, margin: 0 }}>{formatDate(mockup.added || DEFAULT_ADDED)}</span>
+                  <span style={{ ...styles.cardDate, margin: 0 }}>{freshness(mockup) === 'updated' ? `Updated ${formatDate(mockup.updated)}` : formatDate(mockup.added || DEFAULT_ADDED)}</span>
                   {(() => { const effSt = getEffectiveStatus(mockup); const st = statusConfig[effSt]; return (
                     <span style={{ ...styles.statusBadge, background: darkMode ? st.darkBg : st.bg, color: st.color, borderColor: st.color + '44', fontSize: 10, padding: '1px 6px' }}>
                       {st.icon} {st.label}
@@ -4531,6 +4802,7 @@ const styles = {
   jiraBadge: { display: 'inline-block', background: '#e8f5e9', color: '#1b5e20', padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600, textDecoration: 'none', border: '1px solid #c8e6c9', cursor: 'pointer' },
   typeBadge: { padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600 },
   cardDate: { display: 'block', marginTop: 6, fontSize: 11, color: '#a8a8a8' },
+  newBadge: { display: 'inline-block', fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 10, letterSpacing: 0.3, marginBottom: 4 },
   dateTag: { display: 'inline-block', marginLeft: 12, fontSize: 12, color: '#a8a8a8', fontStyle: 'italic' },
   relatedRow: { display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap' },
   relatedLink: { color: '#0f62fe', fontSize: 13, textDecoration: 'none', padding: '2px 10px', background: '#edf5ff', borderRadius: 12, fontWeight: 500 },

@@ -1,0 +1,259 @@
+{
+  "generatedAt": "2026-10-10T08:39:45Z",
+  "reportAt": "2026-10-10T08:39:03.093Z",
+  "sections": 71,
+  "contracts": 71,
+  "ok": 3,
+  "review": 50,
+  "errors": 11,
+  "stale": [
+    "add-patient",
+    "admin-compliance-standards",
+    "admin-sample-type-management",
+    "admin-vector-reference-data",
+    "aliquot",
+    "analyzer-file-import",
+    "analyzer-framework",
+    "analyzer-mapping-qc",
+    "analyzer-setup",
+    "application-properties",
+    "barcode-labels",
+    "calculated-value-tests",
+    "calendar-management",
+    "catalog-import-csv",
+    "dictionary-menu",
+    "electronic-lab-notebook",
+    "electronic-signatures",
+    "environmental-order-results",
+    "environmental-surveillance",
+    "eqa-participant",
+    "eqa-provider",
+    "general-configurations",
+    "lab-number-management",
+    "lab-unit-add",
+    "lab-units-editor",
+    "label-store-shared",
+    "laporan-hasil-report",
+    "logging-configuration",
+    "menu-configuration",
+    "nce-capa",
+    "nce-report",
+    "order-entry",
+    "order-search",
+    "organization-management",
+    "organization-management-330",
+    "organizations-management",
+    "panel-editor",
+    "patient-management",
+    "patient-merge",
+    "patient-order-enhancements",
+    "programs-v2",
+    "provider-management",
+    "qa-review-shared",
+    "qc-control-lot",
+    "qc-overview",
+    "reference-lab-results",
+    "reflex-testing",
+    "register-new-patient",
+    "result-reporting-configuration",
+    "result-validation",
+    "results-entry",
+    "results-entry-legacy",
+    "running-reports",
+    "sample-acceptance-checklist",
+    "sample-shipment-referral",
+    "sample-storage",
+    "sample-storage-management",
+    "sample-type-editor",
+    "search-index-management",
+    "site-information",
+    "test-catalog-editor",
+    "test-catalogue-add-test",
+    "test-notification-configuration",
+    "user-management",
+    "validation",
+    "vector-surveillance",
+    "vector-surveillance-report"
+  ],
+  "capturedOld": 39,
+  "unchecked": [],
+  "instances": {
+    "testing.openelis-global.org": {
+      "contracts": 71,
+      "checked": 71,
+      "ok": 3,
+      "review": 50,
+      "drift": 7,
+      "error": 11,
+      "version": "3.3.0",
+      "checkedAt": "2026-10-10T08:39:03.086Z"
+    }
+  },
+  "drift": [
+    {
+      "id": "analyzer-mapping-qc",
+      "base": "testing.openelis-global.org",
+      "missing": [
+        "/qa/qc/dashboard :: Overall QC Pass Rate"
+      ],
+      "page": "1648590851"
+    },
+    {
+      "id": "eqa-provider",
+      "base": "testing.openelis-global.org",
+      "missing": [
+        "/qa/eqa/management :: System Settings",
+        "/qa/eqa/management :: Scheme Name",
+        "/qa/eqa/management :: Scheme type",
+        "/qa/eqa/participants :: Select Program",
+        "/qa/eqa/provider/follow-ups :: Notified",
+        "/qa/eqa/provider/follow-ups :: Response",
+        "/qa/eqa/provider/schemes/8/performance :: Pass rate (last 4)",
+        "/qa/eqa/provider/schemes/8/performance :: Most recent",
+        "/qa/eqa/provider/schemes/8/performance :: Open follow-ups",
+        "/qa/eqa/in-house :: Unblind date (submission deadline)"
+      ],
+      "page": "1669562408"
+    },
+    {
+      "id": "general-configurations",
+      "base": "testing.openelis-global.org",
+      "missing": [
+        "/MasterListsPage/ResultConfigurationMenu :: resultsEntryUnifiedRoute"
+      ],
+      "page": "1649082375"
+    },
+    {
+      "id": "qa-review-shared",
+      "base": "testing.openelis-global.org",
+      "missing": [
+        "/order/clinical/qa?labNumber={{ORDER_IN_PROGRESS}} :: Submit"
+      ],
+      "page": null
+    },
+    {
+      "id": "qc-overview",
+      "base": "testing.openelis-global.org",
+      "missing": [
+        "/qa/qc/dashboard :: Overall QC Pass Rate"
+      ],
+      "page": "1680048163"
+    },
+    {
+      "id": "register-new-patient",
+      "base": "testing.openelis-global.org",
+      "missing": [
+        "/PatientManagement :: Gender"
+      ],
+      "page": null
+    },
+    {
+      "id": "vector-surveillance",
+      "base": "testing.openelis-global.org",
+      "missing": [
+        "/order/vector/enter :: Tests & Panels",
+        "/vector/identification :: Species Distribution",
+        "/vector/identification :: Identify",
+        "/vector/identification :: Split"
+      ],
+      "page": "1420230657"
+    }
+  ],
+  "errorRoutes": [
+    {
+      "id": "admin-sample-type-management",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/MasterListsPage/SampleTypeManagement :: redirected to /MasterListsPage/SampleTypeEditor"
+      ],
+      "page": "1420853278"
+    },
+    {
+      "id": "admin-vector-reference-data",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/MasterListsPage/vectorSurveillanceSetup/sampling-sites :: redirected to /MasterListsPage/locations/sites"
+      ],
+      "page": "1420460034"
+    },
+    {
+      "id": "clinical-order-enter",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/order/clinical :: redirected to /order/clinical/collect"
+      ],
+      "page": "1648787462"
+    },
+    {
+      "id": "electronic-signatures",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/ResultValidation?type=&test= :: redirected to /validation",
+        "/AccessionValidation :: redirected to /validation"
+      ],
+      "page": "1242759175"
+    },
+    {
+      "id": "environmental-surveillance",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/LogbookResults?type= :: redirected to /Results",
+        "/ResultValidation?type=&test= :: redirected to /validation"
+      ],
+      "page": "1420099592"
+    },
+    {
+      "id": "label-store-shared",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/order/clinical/label?labNumber={{ORDER_IN_PROGRESS}} :: redirected to /order/clinical/collect"
+      ],
+      "page": null
+    },
+    {
+      "id": "organization-management",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/MasterListsPage/organizationManagement :: redirected to /MasterListsPage/locations",
+        "/MasterListsPage/organizationEdit?ID=0 :: redirected to /MasterListsPage/locations"
+      ],
+      "page": "1437892659"
+    },
+    {
+      "id": "result-validation",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/ResultValidation?type=&test= :: redirected to /validation",
+        "/AccessionValidation :: redirected to /validation",
+        "/ResultValidationByTestDate :: redirected to /validation"
+      ],
+      "page": null
+    },
+    {
+      "id": "results-entry-legacy",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/LogbookResults?type= :: redirected to /Results"
+      ],
+      "page": null
+    },
+    {
+      "id": "sample-shipment-referral",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/SampleShipment :: redirected to /SampleShipment/boxes",
+        "/ReferredOutTests :: redirected to /api/OpenELIS-Global/ReferredOutTests"
+      ],
+      "page": null
+    },
+    {
+      "id": "validation",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/ResultValidation?type=&test= :: redirected to /validation"
+      ],
+      "page": null
+    }
+  ],
+  "summary": "71 of 71 contracts checked: 3 ok, 50 review, 7 drift, 11 route errors."
+}
