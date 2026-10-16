@@ -97,7 +97,7 @@
   breakdown: designs/admin-config/locations-organizations-breakdown.md
   category: admin-config
   description: >
-    Locations & Organizations FRS v0.4: one admin menu for facilities, wards and departments,
+    Locations & Organizations FRS v0.6: one admin menu for facilities, wards and departments,
     sampling sites and geographic areas, with codes, search, filters, GUI CSV import matching
     the startup loader, and deactivation instead of delete. Supersedes organizations-management.
   links:
@@ -1573,7 +1573,7 @@
   html: designs/reports/report-print-queue.html
   category: reports
   description: >
-    Report-type-agnostic print queue (r4, FRS v2.3, 2026-10-15): rebuilt on the shipped
+    Report-type-agnostic print queue (r4, FRS v2.5, 2026-10-15): rebuilt on the shipped
     Compliance Report page — /LaporanHasil merges into /ReportPrintQueue. Three report types in
     one list (patient, environmental, vector certificates); report state Partial / Final /
     Amended with a separate Print status filter; every released version archived with SHA-256
@@ -1597,7 +1597,7 @@
   path: designs/reports/patient-report-redesign.md
   category: results-validation
   description: >
-    Patient Report & Report Management FRS v2.5: the patient report (Part A). Report Management
+    Patient Report & Report Management FRS v2.7: the patient report (Part A). Report Management
     (Part B) moved to the Admin Redesign FRS section 13. Labels from the UI translation
     catalogue, completed date and time per test, microbiology rows. OGC-932 is the V1 PNG / CPHL
     deliverable.
@@ -2113,12 +2113,14 @@
   preview: designs/notifications/result-delivery.html
   category: notifications
   description: >
-    Result Delivery FRS v0.1 (Epic OGC-1506): one model for delivering results to patients,
+    Result Delivery FRS v0.3 (Epic OGC-1506): one model for delivering results to patients,
     clinics and environmental/vector clients - secure download links, email and SMS, masked
     copies, delivery password, nominated privileges, and a Sent Messages view. Supersedes in
     part the Email/SMTP, TextIt SMS and LH certificate-delivery designs. Companion critique
-    doc (designs/notifications/result-delivery-critique.md) carries the decisions. No JSX
-    mockup or breakdown yet (built at /breakdown after review).
+    doc (designs/notifications/result-delivery-critique.md) and /analyze report
+    (designs/notifications/result-delivery-analyze.md) carry the decisions. Ships in two
+    releases (masked copy and WhatsApp through TextIt in Release 2). No JSX mockup or
+    breakdown yet (built at /breakdown after review).
   links:
     jira: ["OGC-1506", "OGC-439", "OGC-437", "OGC-587"]
     gallery: https://digi-uw.github.io/openelis-work/#/notifications/result-delivery

@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Result Delivery: OpenELIS Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif; color: #161616; }
+    .preview-banner { background: #0f62fe; color: #fff; padding: 6px 1rem; font-size: 12px; font-family: monospace; }
+    .shell { display: flex; min-height: calc(100vh - 28px); }
+    .switcher { width: 250px; background: #fff; border-right: 1px solid #e0e0e0; padding: 1rem 0; flex-shrink: 0; }
+    .switcher h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .32px; color: #525252; margin: 1rem 1rem .5rem; }
+    .switcher button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: .5rem 1rem; font-size: 14px; cursor: pointer; color: #161616; border-left: 3px solid transparent; }
+    .switcher button.active { background: #e8e8e8; border-left-color: #0f62fe; font-weight: 600; }
+    .switcher button:disabled { color: #8d8d8d; cursor: default; font-size: 13px; }
+    .main { flex: 1; padding: 1.5rem 2rem; max-width: 1200px; min-width: 0; }
+    .crumb { font-size: 12px; color: #525252; margin-bottom: .25rem; }
+    .crumb a { color: #0f62fe; text-decoration: none; }
+    h1.page { font-size: 28px; font-weight: 400; margin: .25rem 0 .25rem; }
+    .desc { color: #525252; font-size: 14px; margin: 0 0 1.25rem; max-width: 760px; }
+    .route { font-family: monospace; font-size: 12px; color: #6f6f6f; margin-bottom: 1rem; }
+    .toolbar { display: flex; gap: .75rem; align-items: flex-end; background: #fff; padding: .5rem .75rem; border-bottom: 1px solid #e0e0e0; flex-wrap: wrap; }
+    .toolbar input, .toolbar select { height: 32px; border: 0; border-bottom: 1px solid #8d8d8d; background: #f4f4f4; padding: 0 .5rem; font-size: 14px; }
+    .tf label { display: block; font-size: 12px; color: #525252; margin-bottom: 2px; }
+    .batchbar { background: #0f62fe; color: #fff; display: flex; align-items: center; gap: 1rem; padding: .5rem 1rem; }
+    .batchbar button { background: transparent; color: #fff; border: 0; font-size: 14px; cursor: pointer; padding: .25rem .5rem; }
+    .batchbar button:hover { background: #0353e9; }
+    table.cds--data-table { width: 100%; background: #fff; }
+    table.cds--data-table td, table.cds--data-table th { vertical-align: top; padding-left: 10px; padding-right: 10px; }
+    table.subtable { background: #fff; margin-bottom: .5rem; }
+    tr.evrow td { padding-top: 0; border-top: 0; }
+    .hist-ev { font-size: 12px; color: #525252; padding: 1px 0; }
+    .expand { background: #f4f4f4; padding: 1rem 1.25rem; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 2rem; }
+    .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem 1.5rem; }
+    .field label, .flabel { display: block; font-size: 12px; color: #525252; margin-bottom: .25rem; }
+    .field input, .field select, .field textarea { width: 100%; box-sizing: border-box; height: 40px; border: 0; border-bottom: 1px solid #8d8d8d; background: #fff; padding: 0 .75rem; font-size: 14px; }
+    .field input:disabled, .field select:disabled { color: #8d8d8d; border-bottom-color: #c6c6c6; background: #f4f4f4; }
+    .field textarea { height: 96px; padding: .5rem .75rem; font-family: inherit; }
+    .field.invalid input { outline: 2px solid #da1e28; outline-offset: -2px; }
+    .helper { font-size: 12px; color: #6f6f6f; margin-top: .25rem; }
+    .invalidtext { font-size: 12px; color: #da1e28; margin-top: .25rem; }
+    .oktext { font-size: 12px; color: #198038; margin-top: .25rem; }
+    .secret { display: flex; gap: .25rem; align-items: center; flex-wrap: wrap; }
+    .secret code { background: #fff; padding: .5rem .75rem; font-size: 15px; letter-spacing: 1px; min-width: 150px; border-bottom: 1px solid #8d8d8d; }
+    .btnrow { display: flex; gap: .5rem; margin-top: 1rem; flex-wrap: wrap; }
+    .mono { font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
+    .muted { color: #6f6f6f; font-size: 12px; }
+    .modal-back { position: fixed; inset: 0; background: rgba(22,22,22,.5); display: flex; align-items: center; justify-content: center; z-index: 10; }
+    .modal { background: #fff; width: 980px; max-height: 90vh; overflow: auto; }
+    .modal.modal--sm { width: 560px; }
+    .modal.modal--md { width: 760px; }
+    .modal header { padding: 1rem 1rem .5rem; }
+    .modal header h3 { margin: 0; font-size: 20px; font-weight: 400; }
+    .modal .body { padding: 0 1rem 1rem; font-size: 14px; }
+    .modal footer { display: flex; justify-content: flex-end; border-top: 1px solid #e0e0e0; position: sticky; bottom: 0; background: #fff; }
+    .mbtn { flex: 0 0 50%; height: 56px; border: 0; font-size: 14px; text-align: left; padding: 0 1rem; cursor: pointer; color: #fff; }
+    .mbtn--secondary { background: #393939; } .mbtn--primary { background: #0f62fe; } .mbtn--danger { background: #da1e28; }
+    .group { border: 1px solid #e0e0e0; margin-bottom: .75rem; }
+    .group h5 { margin: 0; padding: .5rem .75rem; background: #f4f4f4; font-size: 14px; }
+    .reciprow { display: grid; grid-template-columns: 24px 1.3fr 1.7fr 1.2fr 1.6fr; gap: .5rem; align-items: center; padding: .5rem .75rem; border-top: 1px solid #e0e0e0; font-size: 14px; }
+    .reciprow select { height: 32px; border: 0; border-bottom: 1px solid #8d8d8d; background: #f4f4f4; font-size: 14px; }
+    .tile { background: #fff; padding: 1rem; margin-bottom: 1rem; }
+    .section-title { font-size: 16px; font-weight: 600; margin: 0 0 .75rem; }
+    .h-sm { font-size: 14px; font-weight: 600; margin: .75rem 0 .5rem; }
+    .chip { display: inline-flex; align-items: center; gap: 4px; background: #e0e0e0; padding: 2px 4px 2px 8px; border-radius: 12px; font-size: 12px; margin: 0 4px 4px 0; }
+    .chip button { border: 0; background: none; cursor: pointer; font-size: 12px; padding: 0 4px; }
+    .mf { display: inline-block; border: 1px solid #8d8d8d; padding: 2px 8px; font-size: 12px; margin: 0 4px 4px 0; cursor: pointer; background: #fff; font-family: monospace; }
+    .previewbox { background: #fff; border: 1px dashed #8d8d8d; padding: .75rem; font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .notice { padding: .75rem 1rem; font-size: 14px; margin: .5rem 0; border-left: 3px solid; }
+    .notice--info { background: #edf5ff; border-color: #0f62fe; }
+    .notice--success { background: #defbe6; border-color: #24a148; }
+    .notice--warning { background: #fcf4d6; border-color: #f1c21b; }
+    .notice--error { background: #fff1f1; border-color: #da1e28; }
+    .pnote { border: 1px dashed #a8a8a8; background: #fafafa; color: #525252; font-size: 12px; padding: .5rem .75rem; margin: .75rem 0; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+    .pnote label { display: inline-flex; gap: .35rem; align-items: center; cursor: pointer; }
+    .linkbtn { background: none; border: 0; padding: 0; color: #0f62fe; cursor: pointer; font: inherit; text-decoration: underline; text-underline-offset: 2px; }
+    .linkbtn:disabled { color: #8d8d8d; cursor: default; text-decoration: none; }
+    .expbtn { background: none; border: 0; cursor: pointer; width: 28px; height: 28px; font-size: 14px; color: #161616; }
+    .expbtn:focus-visible, .linkbtn:focus-visible { outline: 2px solid #0f62fe; outline-offset: 1px; }
+    .switch { display: inline-flex; gap: .5rem; align-items: center; font-size: 14px; cursor: pointer; position: relative; }
+    .switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    .switch .track { width: 32px; height: 16px; border-radius: 8px; background: #8d8d8d; position: relative; flex-shrink: 0; }
+    .switch .track::after { content: ''; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #fff; transition: left .1s; }
+    .switch input:checked + .track { background: #24a148; }
+    .switch input:checked + .track::after { left: 18px; }
+    .switch input:focus-visible + .track { outline: 2px solid #0f62fe; outline-offset: 2px; }
+    .switch.is-disabled { opacity: .5; cursor: not-allowed; }
+    .indicator { font-size: 12px; color: #525252; margin-top: 4px; display: flex; align-items: center; }
+    .pend { font-size: 13px; margin: .25rem 0; display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+    .skel { height: 14px; background: linear-gradient(90deg, #e0e0e0, #f4f4f4, #e0e0e0); margin: .6rem 0; }
+    .cfgwrap { display: flex; gap: 1.5rem; align-items: flex-start; }
+    .areas { width: 210px; flex-shrink: 0; background: #fff; padding: .5rem 0; }
+    .areas h6 { margin: .25rem 1rem .5rem; font-size: 12px; color: #525252; font-weight: 600; }
+    .areas button { display: flex; justify-content: space-between; width: 100%; border: 0; background: none; padding: .35rem 1rem; font-size: 13px; text-align: left; cursor: pointer; color: #161616; }
+    .areas button.on { background: #e8e8e8; font-weight: 600; box-shadow: inset 3px 0 0 #0f62fe; }
+    .seg { display: inline-flex; border: 1px solid #8d8d8d; }
+    .seg button { border: 0; background: #fff; padding: 0 .75rem; height: 32px; font-size: 13px; cursor: pointer; }
+    .seg button.on { background: #393939; color: #fff; }
+    .block { background: #fff; margin-bottom: 1rem; border: 1px solid #e0e0e0; }
+    .block-h { display: flex; align-items: center; justify-content: space-between; padding: .5rem 1rem; border-bottom: 1px solid #e0e0e0; }
+    .block-h b { font-size: 15px; }
+    .setrow { display: grid; grid-template-columns: 1.2fr 1fr; gap: 1rem; padding: .75rem 1rem; border-top: 1px solid #f0f0f0; font-size: 14px; align-items: start; }
+    .setrow:first-of-type { border-top: 0; }
+    .setrow .lbl { font-weight: 600; }
+    .linkrow { display: flex; gap: 1.25rem; padding: .75rem 1rem; background: #fff; margin-bottom: 1rem; border: 1px solid #e0e0e0; font-size: 14px; align-items: center; flex-wrap: wrap; }
+    .tt { position: relative; display: inline-block; }
+    .tt-btn { border: 0; background: none; cursor: pointer; padding: 0 2px; color: #525252; }
+    .tt-pop { position: absolute; z-index: 5; right: 0; top: 22px; width: 240px; background: #393939; color: #fff; font-size: 12px; padding: .5rem .75rem; }
+    .cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .pubpage { background: #fff; border: 1px solid #e0e0e0; padding: 1.25rem; font-size: 14px; }
+    .pubpage .url { font-family: monospace; font-size: 11px; color: #6f6f6f; margin-bottom: .75rem; overflow-wrap: anywhere; }
+    .cds--tag { white-space: nowrap; }
+    table.cds--data-table td.mono, td.nowrap { white-space: nowrap; }
+    td.det { min-width: 165px; }
+    td.acts .cds--btn { display: flex; }
+    td.stat { min-width: 150px; }
+    .cds--btn { white-space: nowrap; }
+    td .cds--btn--ghost.cds--btn--sm { min-height: 28px; padding: 0 8px; }
+    .r2 { font-size: 11px; min-height: 18px; padding: 0 6px; margin: 0 2px; vertical-align: middle; }
+    .r2line { margin-top: 2px; font-size: 12px; }
+    .cds--tag.tag-amber { background: #fddc69; color: #3d2e00; }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">Visual Preview: Result Delivery v0.3 (Release 1 by default; Release 2 items tagged) &nbsp;|&nbsp; OpenELIS Design Mockup &nbsp;|&nbsp; Not a live application &nbsp;|&nbsp; Routes: /ReportPrintQueue, /SentMessages, /MasterListsPage/notificationTriggerConfig/(channels|templates|lists|triggers), /MasterListsPage/configuration?area=notifications</div>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+
+    // Sample lab values shared by every screen (lab contact = additional site information line)
+    const LAB = 'CPHL';
+    const CONTACT = 'CPHL results desk, 325 6800';
+    const PUB = 'https://results.cphl.health.gov.pg';
+    const NOTE = {
+      protected: 'The attached PDFs are protected with your delivery password. If you do not have it, contact the lab.',
+      masked: 'The attached reports are masked copies: patient names and national ID numbers are removed. Contact the lab for the full reports.',
+      asIssued: 'The attached certificates are sent as issued.',
+    };
+    const HOWTO = 'Open the attachment with a PDF reader app and type the delivery password. Some email previews cannot open protected files.';
+    const NOTICE_SMS = 'CPHL: Mary, your results are ready. Please contact your clinician or the lab (CPHL results desk, 325 6800).';
+    const plural = (n, one, other) => (n === 1 ? one : other).split('#').join(String(n));
+
+    // ---------- Shared bits ----------
+    const Tag = ({ kind, children }) => <span className={`cds--tag cds--tag--${kind}`}>{children}</span>;
+    const Btn = ({ kind = 'primary', size = 'sm', children, onClick, disabled, label }) => (
+      <button type="button" className={`cds--btn cds--btn--${kind} cds--btn--${size}`} onClick={onClick} disabled={disabled} aria-label={label}>{children}</button>
+    );
+    const LinkBtn = ({ children, onClick, label, disabled }) => <button type="button" className="linkbtn" onClick={onClick} aria-label={label} disabled={disabled}>{children}</button>;
+    const Crumb = ({ items }) => (
+      <div className="crumb">{items.map((c, i) => <span key={i}>{i > 0 && ' / '}{i < items.length - 1 ? <a href="#">{c}</a> : c}</span>)}</div>
+    );
+    const Header = ({ crumb, title, desc, route }) => (
+      <div><Crumb items={crumb} /><h1 className="page">{title}</h1>{desc && <p className="desc">{desc}</p>}<div className="route">{route}</div></div>
+    );
+    const Notice = ({ kind = 'info', children }) => <div className={`notice notice--${kind}`} role={kind === 'error' ? 'alert' : 'status'}>{children}</div>;
+    const ExpBtn = ({ open, onClick, label }) => <button type="button" className="expbtn" aria-expanded={open} aria-label={label} onClick={onClick}>{open ? '▾' : '▸'}</button>;
+    const Switch = ({ checked, onChange, label, disabled }) => (
+      <label className={`switch${disabled ? ' is-disabled' : ''}`}><input type="checkbox" checked={checked} disabled={disabled} onChange={e => onChange && onChange(e.target.checked)} /><span className="track" aria-hidden="true"></span><span>{label}</span></label>
+    );
+    const InfoIcon = () => (
+      <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" style={{ marginRight: 4, flexShrink: 0 }}><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" strokeWidth="1.3" /><rect x="7.35" y="7" width="1.3" height="5" fill="currentColor" /><rect x="7.35" y="4" width="1.3" height="1.5" fill="currentColor" /></svg>
+    );
+    function Toggletip({ text, label }) {
+      const [o, setO] = useState(false);
+      return <span className="tt"><button type="button" className="tt-btn" aria-label={label} aria-expanded={o} onClick={() => setO(!o)}><InfoIcon /></button>{o && <span className="tt-pop" role="status">{text}</span>}</span>;
+    }
+    const Modal = ({ label, title, size = 'sm', children, onClose, primary, onPrimary, danger }) => (
+      <div className="modal-back"><div className={`modal${size === 'lg' ? '' : size === 'md' ? ' modal--md' : ' modal--sm'}`} role="dialog" aria-modal="true" aria-label={title}>
+        <header>{label && <div className="muted">{label}</div>}<h3>{title}</h3></header>
+        <div className="body">{children}</div>
+        <footer><button type="button" className="mbtn mbtn--secondary" onClick={onClose}>Cancel</button><button type="button" className={`mbtn ${danger ? 'mbtn--danger' : 'mbtn--primary'}`} onClick={onPrimary}>{primary}</button></footer>
+      </div></div>
+    );
+    const PNote = ({ children }) => <div className="pnote"><b>Preview only</b>{children}</div>;
+    // Preview marker for items that ship in Release 2 (masked copy, WhatsApp)
+    const R2 = () => <span className="cds--tag cds--tag--gray r2">Release 2</span>;
+
+    const stateTag = (s) => s.k === 'Final' ? <Tag kind="teal">Final</Tag> : s.k === 'Partial' ? <Tag kind="warm-gray">{`Partial ${s.r}`}</Tag> : <Tag kind="magenta">Amended</Tag>;
+    const printTag = (p) => p === 'Printed' ? <Tag kind="green">Printed</Tag> : <Tag kind="purple">Unprinted</Tag>;
+    const sentCell = (x) => ({
+      sent: <Tag kind="green">{`Sent ${x.v} ${x.t}`}</Tag>,
+      queued: <Tag kind="purple">{`Queued: sends ${x.t}`}</Tag>,
+      failed: <Tag kind="red">Failed</Tag>,
+      skipped: <Tag kind="gray">Skipped</Tag>,
+      none: <span>Not sent</span>,
+    }[x.k]);
+    const statusTag = (s) => ({ Sent: <Tag kind="green">Sent</Tag>, Delivered: <Tag kind="green">Delivered</Tag>, Failed: <Tag kind="red">Failed</Tag>, Queued: <Tag kind="purple">Queued</Tag>, Skipped: <Tag kind="gray">Skipped</Tag> }[s]);
+
+    // ---------- 1. Report Print Queue with Send ----------
+    const queueRows = [
+      { id: 1, type: 'Patient report', lab: 'CPHL-26-004188', subj: 'John Tau', code: 'PT-77120', req: 'Dr S. Gene', fac: 'Port Moresby General Hospital / Ward 4B', ext: 'PMGH-88213', state: { k: 'Final' }, print: 'Printed', sent: { k: 'sent', v: 'v2', t: '14:32' }, ver: 'v2',
+        hist: [
+          { v: 'v2', issued: '15/10/26 14:32', by: 'Automatic', change: 'Added: Creatinine, Urea', comp: '6/6', fp: '9f2c71ab03e4', ev: ['Sent 15/10/26 14:32 to Port Moresby General Hospital, protected, by Automatic', 'Sent 15/10/26 14:32 to Ward 4B, protected, by Automatic', 'Printed 15/10/26 14:38 by J. Kaupa'] },
+          { v: 'v1', issued: '15/10/26 10:30', by: 'M. Aiwa', change: 'First issue', comp: '4/6', fp: '3b81d0c6f2a9', ev: ['Sent 15/10/26 10:41 to Port Moresby General Hospital, protected, by Automatic', 'Sent 15/10/26 10:41 to Ward 4B, protected, by Automatic'] },
+        ] },
+      { id: 2, type: 'Patient report', lab: 'CPHL-26-004191', subj: 'Ruth Aipa', code: 'PT-77134', req: 'Dr R. Kila', fac: 'Port Moresby General Hospital / Emergency', ext: 'PMGH-88219', state: { k: 'Partial', r: '4/6' }, print: 'Unprinted', sent: { k: 'queued', t: '14:52' }, ver: null,
+        hist: [], pending: [{ to: 'Port Moresby General Hospital', fmt: 'protected', at: '14:52' }] },
+      { id: 3, type: 'Patient report', lab: 'CPHL-26-004195', subj: 'Grace Wama', code: 'PT-77141', req: 'Dr M. Loko', fac: 'Port Moresby General Hospital / Maternity', ext: 'PMGH-88230', state: { k: 'Amended' }, print: 'Printed', sent: { k: 'queued', t: '14:50' }, ver: 'v3',
+        hist: [
+          { v: 'v3', am: true, issued: '15/10/26 14:40', by: 'J. Kaupa', change: 'Changed: Potassium 6.8 to 4.1 mmol/L', comp: '5/5', fp: 'c40e9a17b25d', ev: ['dr.loko@gmail.com: Not reachable: typed for one send'] },
+          { v: 'v2', issued: '15/10/26 11:52', by: 'Automatic', change: 'Added: Bilirubin, ALT', comp: '5/5', fp: '71d3fe0a9c48', ev: ['Sent 15/10/26 11:52 to Port Moresby General Hospital, protected, by Automatic', 'Sent 15/10/26 11:52 to Dr M. Loko, protected, by Automatic', 'Sent 15/10/26 12:05 to dr.loko@gmail.com, protected, by J. Kaupa'] },
+          { v: 'v1', issued: '15/10/26 09:05', by: 'Automatic', change: 'First issue', comp: '3/5', fp: '0be6527d14fa', ev: ['Sent 15/10/26 09:05 to Port Moresby General Hospital, protected, by Automatic', 'Sent 15/10/26 09:05 to Dr M. Loko, protected, by Automatic'] },
+        ],
+        pending: [{ to: 'Port Moresby General Hospital', fmt: 'protected', at: '14:50' }, { to: 'Dr M. Loko', fmt: 'protected', at: '14:50' }] },
+      { id: 4, type: 'Patient report', lab: 'CPHL-26-004203', subj: 'Samuel Nema', code: 'PT-77160', req: 'Sr T. Bomai', fac: '9 Mile Urban Clinic', ext: '9M-2210', state: { k: 'Final' }, print: 'Unprinted', sent: { k: 'none' }, ver: null, hist: [] },
+      { id: 5, type: 'Patient report', lab: 'CPHL-26-004207', subj: 'Paul Bina', code: 'PT-77172', req: 'Sr T. Bomai', fac: '9 Mile Urban Clinic', ext: '9M-2214', state: { k: 'Final' }, print: 'Printed', sent: { k: 'none' }, ver: 'v1', noticeSkipped: true,
+        hist: [{ v: 'v1', issued: '15/10/26 13:30', by: 'M. Aiwa', change: 'First issue', comp: '3/3', fp: 'e8a1c05f3b77', ev: [] }] },
+      { id: 6, type: 'Environmental', lab: 'CPHL-26-E00412', subj: 'Sabama Water Intake', code: 'WS-014', req: 'V. Gare', fac: 'Eda Ranu Water Utility', ext: 'ER-Q4-118', state: { k: 'Final' }, print: 'Printed', sent: { k: 'none' }, ver: 'v1',
+        hist: [{ v: 'v1', issued: '15/10/26 12:15', by: 'S. Arua', change: 'First issue', comp: '8/8', fp: '5c9d20e4a1b3', ev: ['Reprinted 15/10/26 12:50 by S. Arua'] }] },
+      { id: 7, type: 'Patient report', lab: 'CPHL-26-004211', subj: 'Joseph Kerema', code: 'PT-77180', req: 'Dr P. Wari', fac: 'Gerehu General Hospital', ext: 'GGH-5521', state: { k: 'Final' }, print: 'Printed', sent: { k: 'skipped' }, ver: 'v1',
+        hist: [{ v: 'v1', issued: '15/10/26 14:10', by: 'J. Kaupa', change: 'First issue', comp: '2/2', fp: 'a07f3e91d6c2', ev: [] }] },
+    ];
+
+    function VersionHistory({ r, onSend }) {
+      return (
+        <div>
+          {r.pending && (
+            <div style={{ marginBottom: '1rem' }}>
+              <div className="h-sm">Sent</div>
+              {r.pending.map((p, i) => <div key={i} className="pend"><Tag kind="purple">{`Queued: sends ${p.at}`}</Tag><span>{p.to}, {p.fmt}, by Automatic</span></div>)}
+            </div>
+          )}
+          <div className="h-sm">Version history</div>
+          {r.hist.length === 0 ? <p className="muted" style={{ fontSize: 14 }}>Nothing issued yet</p> : (
+            <table className="cds--data-table cds--data-table--xs subtable">
+              <thead><tr><th>Version</th><th>Issued</th><th>By</th><th>Change</th><th>Completeness</th><th>Fingerprint</th><th></th></tr></thead>
+              <tbody>{r.hist.map(h => (
+                <React.Fragment key={h.v}>
+                  <tr><td><b>{h.v}</b> {h.am && <Tag kind="magenta">Amended</Tag>}</td><td>{h.issued}</td><td>{h.by}</td><td>{h.change}</td><td>{h.comp}</td><td className="mono">{h.fp}</td><td><LinkBtn label={`Open PDF ${h.v}, ${r.lab}`}>Open PDF</LinkBtn></td></tr>
+                  {h.ev.length > 0 && <tr className="evrow"><td></td><td colSpan={6}>{h.ev.map((e, i) => <div key={i} className="hist-ev">{e}</div>)}</td></tr>}
+                </React.Fragment>
+              ))}</tbody>
+            </table>
+          )}
+          <div className="btnrow"><Btn kind="tertiary" label={`Print, ${r.lab}`}>Print</Btn><Btn kind="tertiary" onClick={onSend} label={`Send reports, ${r.lab}`}>Send</Btn>{r.hist.length > 0 && <Btn kind="ghost">Reissue with correction</Btn>}</div>
+        </div>
+      );
+    }
+
+    const directory = [
+      { id: 'aku', type: 'provider', name: 'Dr T. Aku', where: 'Port Moresby General Hospital', addr: 't.aku@pmgh.health.gov.pg' },
+      { id: 'ncdpha', type: 'org', name: 'NCD Provincial Health Authority', where: 'Port Moresby', addr: 'reports@ncdpha.gov.pg' },
+    ];
+    const isEmail = (s) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s);
+    const isPhone = (s) => /^\+?[0-9][0-9 ]{6,}$/.test(s);
+    const NOPW = 'No delivery password. Set one in Locations & Organizations.';
+
+    function SendDialog({ onClose, onSent }) {
+      const [tick, setTick] = useState({ pmgh: true, ward: true, kila: false, eda: true });
+      const [show, setShow] = useState(false);
+      const [copied, setCopied] = useState(false);
+      const [typed, setTyped] = useState('');
+      const [typed9, setTyped9] = useState('');
+      const [err, setErr] = useState('');
+      const [added, setAdded] = useState([]);
+      const [dirOpen, setDirOpen] = useState(false);
+      const [dirQ, setDirQ] = useState('');
+      const [picked, setPicked] = useState([]);
+      const [older, setOlder] = useState(false);
+      const t = (k) => setTick({ ...tick, [k]: !tick[k] });
+      const recipients = Object.values(tick).filter(Boolean).length + added.length + picked.length;
+      // Count only reports queued to at least one recipient (Release 1: Gerehu has no report email and 9 Mile has no delivery password, so their reports are not counted or issued)
+      const covered = ((tick.pmgh || added.length || picked.length) ? 3 : (tick.ward ? 1 : 0) + (tick.kila ? 1 : 0)) + (tick.eda ? 1 : 0);
+      const add = () => {
+        const v = typed.trim();
+        if (!v) return;
+        if (v.includes('@') ? !isEmail(v) : !isPhone(v)) { setErr(v.includes('@') || /[a-z]/i.test(v) ? 'Enter an email address like name@example.org.' : 'Enter a phone number with its country code, or set the default SMS country code in Configuration.'); return; }
+        setErr(''); setAdded([...added, v]); setTyped('');
+      };
+      const matches = directory.filter(d => !picked.find(p => p.id === d.id) && (dirQ.length < 2 || d.name.toLowerCase().includes(dirQ.toLowerCase()) || d.where.toLowerCase().includes(dirQ.toLowerCase())));
+      const Row = ({ k, name, kind, sub, addr, format, pw, disabled, checked, onChange }) => (
+        <div className="reciprow"><input type="checkbox" checked={checked !== undefined ? checked : !!tick[k]} onChange={onChange || (() => t(k))} disabled={disabled} aria-label={`Send to ${name}`} />
+          <span>{kind}{sub && sub.map((s, i) => <div key={i} className="muted">{s}</div>)}</span><span className="mono" style={{ overflowWrap: 'anywhere' }}>{addr}</span><span>{format}</span><span>{pw}</span></div>
+      );
+      const Skip = ({ text }) => <span><span className="muted">{text}</span> <Tag kind="gray">Will be skipped</Tag></span>;
+      return (
+        <div className="modal-back"><div className="modal" role="dialog" aria-modal="true" aria-label="Send reports">
+          <header><div className="muted">Report Print Queue</div><h3>Send reports</h3></header>
+          <div className="body">
+            <p style={{ marginTop: 0 }}>Each recipient gets one email with all its reports attached. Full reports are always sent password protected.</p>
+            <div className="group">
+              <h5>Port Moresby General Hospital &nbsp;<span className="muted">3 reports: CPHL-26-004188 v2, CPHL-26-004191 v1 (partial), CPHL-26-004195 v3 (amended)</span></h5>
+              <div className="reciprow" style={{ fontWeight: 600, fontSize: 12, color: '#525252' }}><span></span><span>Recipient</span><span>Address</span><span>Format</span><span>Password</span></div>
+              <Row k="pmgh" name="Port Moresby General Hospital" kind="Facility" addr="results@pmgh.health.gov.pg"
+                format={<div>Protected full report<div className="r2line"><R2 /> <span className="muted">Masked copy</span></div></div>}
+                pw={<div><div>Password set</div><div className="secret"><code>{show ? 'K7M-PQ4-RTW-9XF' : '•••-•••-•••-•••'}</code>
+                  <Btn kind="ghost" onClick={() => setShow(!show)} label={`${show ? 'Hide' : 'Show'} delivery password, Port Moresby General Hospital`}>{show ? 'Hide' : 'Show'}</Btn>
+                  <Btn kind="ghost" onClick={() => setCopied(true)} label="Copy delivery password, Port Moresby General Hospital">Copy</Btn></div>
+                  {copied && <div className="oktext">Copied. Recorded in History.</div>}</div>} />
+              <Row k="ward" name="Ward 4B" kind="Ward / Dept" sub={['Ward 4B', '1 report: CPHL-26-004188 v2']} addr="ward4b@pmgh.health.gov.pg" format="Protected full report" pw={<span className="muted">Facility password</span>} />
+              <Row k="kila" name="Dr R. Kila" kind="Clinician: Dr R. Kila" sub={['1 report: CPHL-26-004191 v1 (partial)']} addr="r.kila@pmgh.health.gov.pg" format="Protected full report" pw={<span className="muted">Facility password</span>} />
+              {picked.map(p => <Row key={p.id} name={p.name} kind={p.type === 'provider' ? `Clinician: ${p.name}` : 'Facility'} sub={p.type === 'org' ? [p.name] : null} addr={p.addr} checked={true} onChange={() => setPicked(picked.filter(x => x.id !== p.id))} format="Protected full report" pw={<span className="muted">{p.type === 'provider' ? 'Facility password' : 'Password set'}</span>} />)}
+              {added.map(a => <Row key={a} name={a} kind="Added for this send" addr={a} checked={true} onChange={() => setAdded(added.filter(x => x !== a))} format="Protected full report" pw={<span className="muted">Facility password</span>} />)}
+              <div style={{ padding: '.5rem .75rem', borderTop: '1px solid #e0e0e0', display: 'flex', gap: '.5rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                <div className={`field${err ? ' invalid' : ''}`} style={{ flex: 1, minWidth: 260 }}><label htmlFor="typed">Add an address for this send</label><input id="typed" value={typed} onChange={e => setTyped(e.target.value)} placeholder="name@example.org or a phone number with country code" />{err && <div className="invalidtext">{err}</div>}</div>
+                <Btn kind="tertiary" onClick={add}>Add</Btn>
+                <Btn kind="ghost" onClick={() => setDirOpen(!dirOpen)}>Choose from the directory</Btn>
+              </div>
+              {dirOpen && (
+                <div style={{ padding: '0 .75rem .75rem' }}>
+                  <div className="field"><label htmlFor="dirq">Search organizations and providers</label><input id="dirq" value={dirQ} onChange={e => setDirQ(e.target.value)} /></div>
+                  {matches.length === 0 ? <div className="helper">{`No organization or provider matches "${dirQ}".`}</div> : (
+                    <div style={{ background: '#fff', border: '1px solid #e0e0e0' }}>{matches.map(d => (
+                      <button key={d.id} type="button" onClick={() => { setPicked([...picked, d]); setDirOpen(false); setDirQ(''); }} style={{ display: 'block', width: '100%', textAlign: 'left', border: 0, borderBottom: '1px solid #f0f0f0', background: '#fff', padding: '.5rem .75rem', cursor: 'pointer', fontSize: 14 }}>
+                        {d.name} <span className="muted">{d.where} &nbsp;<span className="mono">{d.addr}</span></span>
+                      </button>
+                    ))}</div>
+                  )}
+                </div>
+              )}
+              {added.map(a => <div key={a} style={{ padding: '0 .75rem' }}><Notice kind="warning">{`${plural(3, 'Send # report to ' + a + ', protected with the facility\'s delivery password?', 'Send # reports to ' + a + ', protected with the facility\'s delivery password?')} This address is not in the directory and will not be saved.`}</Notice></div>)}
+              {older && <div style={{ padding: '0 .75rem .5rem' }}><Notice kind="warning">A newer version was already sent on 15/10/26. Send this older version? &nbsp;<Btn kind="tertiary">Send older version</Btn></Notice></div>}
+            </div>
+            <div className="group">
+              <h5>9 Mile Urban Clinic &nbsp;<span className="muted">2 reports: CPHL-26-004203 v1, CPHL-26-004207 v1</span></h5>
+              <Row name="9 Mile Urban Clinic" kind="Facility" checked={false} disabled addr="9mile.clinic@gmail.com"
+                format={<div>Protected full report<div className="r2line"><R2 /> <span className="muted">Masked copy</span></div></div>}
+                pw={<div><Skip text="No delivery password" /><div className="r2line"><R2 /> <span className="muted">No password: masked copy</span></div></div>} />
+              <div style={{ padding: '.5rem .75rem', borderTop: '1px solid #e0e0e0', display: 'flex', gap: '.5rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                <div className="field" style={{ flex: 1, minWidth: 260 }}><label htmlFor="typed9">Add an address for this send</label><input id="typed9" value={typed9} onChange={e => setTyped9(e.target.value)} placeholder="name@example.org or a phone number with country code" /><div className="helper" style={{ color: '#8e6a00' }}>This order's facility has no delivery password, so this report cannot be sent to a typed address yet.</div></div>
+                <Btn kind="tertiary" disabled>Add</Btn>
+              </div>
+            </div>
+            <div className="group">
+              <h5>Eda Ranu Water Utility &nbsp;<span className="muted">1 certificate: CPHL-26-E00412 v1</span></h5>
+              <Row k="eda" name="V. Gare" kind="Client: V. Gare" addr="v.gare@edaranu.com.pg" format="Certificate as issued" pw={<span className="muted">No password: sent as issued</span>} />
+            </div>
+            <div className="group">
+              <h5>Gerehu General Hospital &nbsp;<span className="muted">1 report: CPHL-26-004211 v1</span></h5>
+              <Row name="Gerehu General Hospital" kind="Facility" checked={false} disabled addr={<span className="muted" style={{ fontFamily: 'inherit' }}>No report email</span>} format="-" pw={<Tag kind="gray">Will be skipped</Tag>} />
+            </div>
+            <PNote><label><input type="checkbox" checked={older} onChange={() => setOlder(!older)} /> Show the older-version prompt (FR-C15)</label><span><R2 /> marks what Release 2 adds (masked copy).</span></PNote>
+          </div>
+          <footer>
+            <button type="button" className="mbtn mbtn--secondary" onClick={onClose}>Cancel</button>
+            <button type="button" className="mbtn mbtn--primary" onClick={() => onSent({ reports: covered, recipients, skipped: ['no email for Gerehu General Hospital', 'no delivery password for 9 Mile Urban Clinic'] })}>{`Send ${plural(covered, '# report', '# reports')} to ${plural(recipients, '# recipient', '# recipients')}`}</button>
+          </footer>
+        </div></div>
+      );
+    }
+
+    function PrintQueue({ go }) {
+      const [sel, setSel] = useState(queueRows.map(r => r.id));
+      const [open, setOpen] = useState(false);
+      const [done, setDone] = useState(null);
+      const [exp, setExp] = useState(1);
+      const [sentF, setSentF] = useState('all');
+      const toggle = (id) => setSel(sel.includes(id) ? sel.filter(x => x !== id) : [...sel, id]);
+      const rows = queueRows.filter(r => sentF === 'all' || r.sent.k === sentF);
+      return (
+        <div>
+          <Header crumb={['Home', 'Reports', 'Report Print Queue']} title="Report Print Queue" desc="Print, reprint and reissue released reports" route="/ReportPrintQueue (new route from OGC-1031; Send is an action, not a route)" />
+          {done && <Notice kind="success">{`${plural(done.reports, '# report queued', '# reports queued')} to ${plural(done.recipients, '# recipient', '# recipients')}. ${plural(done.skipped.length, '# recipient skipped:', '# recipients skipped:')} ${done.skipped.join(', ')}.`} &nbsp;<LinkBtn onClick={() => go('sent')}>View in Sent Messages</LinkBtn></Notice>}
+          {sel.length > 0 && <div className="batchbar"><span>{sel.length} items selected</span><span style={{ flex: 1 }}></span><button type="button">Print selected</button><button type="button">Download selected</button><button type="button" onClick={() => setOpen(true)}>Send</button><button type="button" onClick={() => setSel([])}>Cancel</button></div>}
+          <div className="toolbar">
+            <div className="tf"><input aria-label="Lab number" placeholder="Scan or type lab number" style={{ width: 220 }} /></div>
+            <div className="tf"><label htmlFor="f-state">State</label><select id="f-state"><option>All</option><option>Partial</option><option>Final</option><option>Amended</option></select></div>
+            <div className="tf"><label htmlFor="f-print">Print status</label><select id="f-print"><option>All</option><option>Unprinted</option><option>Printed</option></select></div>
+            <div className="tf"><label htmlFor="f-sent">Sent</label><select id="f-sent" value={sentF} onChange={e => setSentF(e.target.value)}><option value="all">All</option><option value="sent">Sent</option><option value="queued">Queued</option><option value="failed">Failed</option><option value="skipped">Skipped</option><option value="none">Not sent</option></select></div>
+            <div className="tf"><label htmlFor="f-win">Time window</label><select id="f-win"><option>Last 7 days</option><option>Last 24 hours</option><option>Last 30 days</option><option>All time</option><option>Custom range</option></select></div>
+          </div>
+          <table className="cds--data-table cds--data-table--sm">
+            <thead><tr><th></th><th></th><th>Type</th><th>Lab No / Name</th><th>Subject</th><th>Details</th><th>State</th><th>Print status</th><th>Sent</th><th>Version</th><th></th></tr></thead>
+            <tbody>
+              {rows.map(r => (
+                <React.Fragment key={r.id}>
+                  <tr>
+                    <td><input type="checkbox" checked={sel.includes(r.id)} onChange={() => toggle(r.id)} aria-label={`Select ${r.lab}`} /></td>
+                    <td><ExpBtn open={exp === r.id} onClick={() => setExp(exp === r.id ? null : r.id)} label={`Show version history, ${r.lab}`} /></td>
+                    <td>{r.type}</td><td className="mono">{r.lab}</td><td>{r.subj}<div className="muted" style={{ whiteSpace: 'nowrap' }}>{r.code}</div></td>
+                    <td className="det">{r.req}<div className="muted">{r.fac}</div><div className="muted mono">{r.ext}</div></td><td>{stateTag(r.state)}</td><td>{printTag(r.print)}</td>
+                    <td>{sentCell(r.sent)}{r.noticeSkipped && <div className="indicator"><InfoIcon /><LinkBtn onClick={() => go('sent')}>Patient notice not sent: no contact</LinkBtn></div>}</td>
+                    <td>{r.ver || <span className="muted">Not issued</span>}</td>
+                    <td className="acts"><Btn kind="ghost" label={`Print, ${r.lab}`}>Print</Btn><Btn kind="ghost" onClick={() => setOpen(true)} label={`Send reports, ${r.lab}`}>Send</Btn></td>
+                  </tr>
+                  {exp === r.id && <tr><td colSpan={11}><div className="expand"><VersionHistory r={r} onSend={() => setOpen(true)} /></div></td></tr>}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+          {open && <SendDialog onClose={() => setOpen(false)} onSent={(d) => { setOpen(false); setDone(d); }} />}
+        </div>
+      );
+    }
+
+    // ---------- 2. Sent Messages ----------
+    const P = { report: 'Report', alert: 'Alert', patient_notice: 'Patient notice', trigger: 'Trigger event', test: 'Test' };
+    const ok = (t, gid) => ({ t, ok: true, gid });
+    const bad = (t, e) => ({ t, ok: false, e });
+    const dlv = (t) => ({ t, delivered: true });
+    const MAILFULL = 'The server refused the message: 552 Mailbox full';
+    const UNREACH = 'Could not reach api.textit.in on port 443.';
+    // 24-hour retry schedule (FR-A8): 1, 5, 15, 30, 60 minutes, then every hour until 24 hours after queueing
+    const retrySchedule = (startH, startM) => {
+      const out = []; let m = startH * 60 + startM; const end = m + 24 * 60;
+      const fmt = (x) => `${String(Math.floor(x / 60) % 24).padStart(2, '0')}:${String(x % 60).padStart(2, '0')}`;
+      out.push(fmt(m)); [1, 5, 15, 30, 60].forEach(d => { m += d; out.push(fmt(m)); });
+      while (m + 60 <= end) { m += 60; out.push(fmt(m)); }
+      return out;
+    };
+    const EDA_TRIES = retrySchedule(12, 40).map(t => bad(t, MAILFULL));
+    const sentRows = [
+      { id: 'q1', t: '15/10/26 14:42', p: 'report', lab: ['CPHL-26-004191', 'CPHL-26-004199'], to: 'Port Moresby General Hospital', addr: 're••••@pmgh.health.gov.pg', ch: 'Email', c: '2 reports', s: 'Queued', why: 'Sends at 14:52, after the hold', a: 0, by: 'Automatic',
+        mail: { subj: 'CPHL results: Partial and final, 2 reports', lines: ['CPHL-26-004191 (your order PMGH-88219): Partial, 4 of 6 results, version 1', 'CPHL-26-004199 (your order PMGH-88241): Final, version 1'], note: 'protected' }, tries: [] },
+      { id: 'w14', t: '15/10/26 14:40', p: 'test', lab: [], to: 'S. Arua', addr: '+675 7•••• 410', ch: 'SMS', c: 'Test message', s: 'Failed', why: UNREACH, a: 1, by: 'S. Arua', tries: [bad('14:40', UNREACH)], final: 1 },
+      { id: 'q2', t: '15/10/26 14:40', p: 'report', lab: ['CPHL-26-004195'], to: 'Port Moresby General Hospital', addr: 're••••@pmgh.health.gov.pg', ch: 'Email', c: 'Protected, v3', s: 'Queued', why: 'Sends at 14:50, after the hold', a: 0, by: 'Automatic',
+        mail: { subj: 'CPHL results: Amended, 1 report', lines: ['CPHL-26-004195 (your order PMGH-88230): Amended, version 3'], note: 'protected' }, files: ['CPHL-26-004195-v3.pdf'], fmt: 'Protected full report', ver: 'v3', pwDate: '02/09/26', hash: ['c40e9a17b25d\u2026'], tries: [] },
+      { id: 'q3', t: '15/10/26 14:40', p: 'report', lab: ['CPHL-26-004195'], to: 'Dr M. Loko', addr: 'm.••••@pmgh.health.gov.pg', ch: 'Email', c: 'Protected, v3', s: 'Queued', why: 'Sends at 14:50, after the hold', a: 0, by: 'Automatic',
+        mail: { subj: 'CPHL results: Amended, 1 report', lines: ['CPHL-26-004195 (your order PMGH-88230): Amended, version 3'], note: 'protected' }, files: ['CPHL-26-004195-v3.pdf'], fmt: 'Protected full report', ver: 'v3', pwDate: '02/09/26', hash: ['c40e9a17b25d\u2026'], tries: [] },
+      { id: 'n16', t: '15/10/26 14:38', p: 'patient_notice', lab: ['CPHL-26-004182'], to: 'Patient', addr: '+675 7•••• 731', ch: 'SMS', c: 'No result', s: 'Queued', why: 'Next attempt at 14:59', a: 3, by: 'Automatic',
+        sms: 'CPHL: Lucy, your results are ready. Please contact your clinician or the lab (CPHL results desk, 325 6800).', tries: [bad('14:38', UNREACH), bad('14:39', UNREACH), bad('14:44', UNREACH)], next: '14:59' },
+      { id: 's4', t: '15/10/26 14:32', p: 'report', lab: ['CPHL-26-004186', 'CPHL-26-004188', 'CPHL-26-004190'], to: 'Port Moresby General Hospital', addr: 're••••@pmgh.health.gov.pg', ch: 'Email', c: '3 reports', s: 'Sent', a: 1, by: 'Automatic',
+        mail: { subj: 'CPHL results: Final, 3 reports', lines: ['CPHL-26-004186 (your order PMGH-88209): Final, version 1', 'CPHL-26-004188 (your order PMGH-88213): Final, version 2', 'CPHL-26-004190 (your order PMGH-88217): Final, version 1'], note: 'protected' },
+        files: ['CPHL-26-004186-v1.pdf', 'CPHL-26-004188-v2.pdf', 'CPHL-26-004190-v1.pdf'], fmt: 'Protected full report', ver: 'v1, v2, v1', pwDate: '02/09/26',
+        hash: ['4e07b2d9a61c…', '9f2c71ab03e4…', '1b8d43f0c7e2…'], sentHash: ['a93c11e7d4f0…', '6d2e9b0c58a7…', 'f04a7c2e91bd…'], tries: [ok('14:32', '<20261015143201.4F2A@smtp.health.gov.pg>')] },
+      { id: 's5', t: '15/10/26 14:32', p: 'report', lab: ['CPHL-26-004188'], to: 'Ward 4B, Port Moresby General Hospital', addr: 'wa••••@pmgh.health.gov.pg', ch: 'Email', c: 'Protected, v2', s: 'Sent', a: 1, by: 'Automatic',
+        mail: { subj: 'CPHL results: Final, 1 report', lines: ['CPHL-26-004188 (your order PMGH-88213): Final, version 2'], note: 'protected' }, files: ['CPHL-26-004188-v2.pdf'], fmt: 'Protected full report', ver: 'v2', pwDate: '02/09/26', hash: ['9f2c71ab03e4…'], sentHash: ['3c5f80a1e6d2…'], tries: [ok('14:32', '<20261015143202.4F2B@smtp.health.gov.pg>')] },
+      { id: 'k6', t: '15/10/26 14:12', p: 'report', lab: ['CPHL-26-004211'], to: 'Gerehu General Hospital', addr: null, ch: 'Email', c: 'Protected, v1', s: 'Skipped', why: 'No email address', a: 0, by: 'J. Kaupa', name: 'Gerehu General Hospital',
+        fmt: 'Protected full report', ver: 'v1', tries: [] },
+      { id: 'g7', group: true, t: '15/10/26 14:05', p: 'alert', lab: ['CPHL-26-004211'], to: '6 recipients', list: 'Provincial Health Office: Cholera', ch: 'Email, SMS', c: 'Rule: Cholera RDT positive', by: 'Automatic',
+        members: [
+          { who: 'Dr L. Hasu', kind: 'Provincial Health Office: Cholera', ch: 'Email', addr: 'l.••••@ncdpha.gov.pg', s: 'Sent', a: 1, rc: 'Receipt confirmed 14:19 by Dr L. Hasu' },
+          { who: 'Dr L. Hasu', kind: 'Provincial Health Office: Cholera', ch: 'SMS', addr: '+675 7•••• 345', s: 'Delivered', a: 1, rc: 'Receipt not confirmed' },
+          { who: 'S. Moide', kind: 'Provincial Health Office: Cholera', ch: 'SMS', addr: '+675 7•••• 921', s: 'Delivered', a: 1, rc: 'Receipt not confirmed' },
+          { who: 'NDoH Surveillance desk', kind: 'Provincial Health Office: Cholera', ch: 'Email', addr: 'su••••@health.gov.pg', s: 'Sent', a: 1, rc: 'Receipt not confirmed' },
+          { who: 'Gerehu General Hospital', kind: 'Facility', ch: 'Email', addr: '-', s: 'Skipped', why: 'No email address', a: 0 },
+          { who: 'Gerehu General Hospital', kind: 'Facility', ch: 'SMS', addr: '+675 7•••• 230', s: 'Delivered', a: 1, rc: 'Receipt not confirmed' },
+          { who: 'Dr P. Wari', kind: 'Clinician: Dr P. Wari', ch: 'Email', addr: 'p.••••@ggh.health.gov.pg', s: 'Sent', a: 2, rc: 'Receipt not confirmed' },
+          { who: 'Patient', kind: 'Instruction (Cholera RDT positive)', ch: 'SMS', addr: '+675 7•••• 557', s: 'Delivered', a: 1 },
+        ] },
+      { id: 'n8', t: '15/10/26 13:50', p: 'patient_notice', lab: ['CPHL-26-004176'], to: 'Patient', addr: '+675 7•••• 412', ch: 'SMS', c: 'No result', s: 'Delivered', a: 1, by: 'Automatic', sms: NOTICE_SMS, tries: [ok('13:50', 'SM8b41c2e0d7f94a1c'), dlv('13:51')] },
+      { id: 'k9', t: '15/10/26 13:30', p: 'patient_notice', lab: ['CPHL-26-004207'], to: 'Patient', addr: null, ch: 'SMS', c: 'No result', s: 'Skipped', why: 'Patient has no email or phone number', a: 0, by: 'Automatic', name: 'Paul Bina', tries: [] },
+      { id: 'r11', t: '15/10/26 11:58', p: 'patient_notice', lab: ['CPHL-26-004150'], to: 'Patient', addr: '+675 7•••• 088', ch: 'SMS', c: 'Result included (SARS-CoV-2 RDT)', s: 'Delivered', a: 1, by: 'Automatic',
+        sms: 'CPHL: Daniel, your SARS-CoV-2 RDT result is Negative. Please contact your clinician or the lab (CPHL results desk, 325 6800).', tries: [ok('11:58', 'SM2f09d7a61c3e5b88'), dlv('11:59')] },
+      { id: 't12', t: '15/10/26 11:20', p: 'trigger', lab: ['CPHL-26-004102'], to: 'Lae Provincial Laboratory', addr: 'la••••@lpl.health.gov.pg', ch: 'Email', c: 'Referral Out', s: 'Sent', a: 1, by: 'Automatic',
+        mail: { subj: 'Sample referred out: CPHL-26-004102', body: 'Sample CPHL-26-004102 has been referred to Lae Provincial Laboratory for test Mycobacterium tuberculosis culture. Referral id: 87.' }, tries: [ok('11:20', '<20261015112004.7C11@smtp.health.gov.pg>')] },
+      { id: 'b13', t: '15/10/26 10:05', p: 'report', lab: ['CPHL-26-004120', 'CPHL-26-004133'], to: '9 Mile Urban Clinic', addr: '9m••••@gmail.com', ch: 'Email', c: '2 reports', s: 'Skipped', why: NOPW, a: 0, by: 'J. Kaupa', name: '9 Mile Urban Clinic', noPw: true,
+        fmt: 'Protected full report', tries: [] },
+      { id: 'e15', t: '15/10/26 09:15', p: 'test', lab: [], to: 'S. Arua', addr: 's.••••@cphl.health.gov.pg', ch: 'Email', c: 'Test message', s: 'Sent', a: 1, by: 'S. Arua', tries: [ok('09:15', '<20261015091530.1A07@smtp.health.gov.pg>')] },
+      { id: 'f10', t: '14/10/26 12:40', p: 'report', lab: ['CPHL-26-E00398'], to: 'Client: V. Gare', addr: 'v.••••@edaranu.com.pg', ch: 'Email', c: 'Certificate, v1', s: 'Failed', why: MAILFULL, a: EDA_TRIES.length, by: 'M. Aiwa',
+        mail: { subj: 'CPHL results: Final, 1 certificate', lines: ['CPHL-26-E00398: Certificate, version 1'], note: 'asIssued' }, files: ['LH-CPHL-26-E00398-v1.pdf'], fmt: 'Certificate as issued', ver: 'v1', hash: ['2d7b0c94e1f6…'], sentHash: ['2d7b0c94e1f6…'],
+        tries: EDA_TRIES, final: EDA_TRIES.length },
+    ];
+    const reportBody = (m) => m.body || [`${LAB} sends you the following reports:`, '', ...m.lines, '', ...(NOTE[m.note] ? [NOTE[m.note]] : []), ...(m.note === 'protected' ? [HOWTO] : []), `Questions: ${CONTACT}`].join('\n');
+
+    function Attempts({ r }) {
+      if (!r.tries || r.tries.length === 0) return null;
+      return (
+        <div>
+          <div className="h-sm">Attempts</div>
+          <div style={{ fontSize: 13, maxHeight: 230, overflow: 'auto' }}>
+            {r.tries.map((x, i) => <div key={i}>{x.delivered ? `${x.t} Delivered (reported by TextIt)` : x.ok ? `${x.t} Sent` : `${x.t} Failed: ${x.e}`}{x.gid && <div className="muted mono">{`Gateway message ID: ${x.gid}`}</div>}</div>)}
+            {r.next && <div style={{ marginTop: 4 }}>{`Next attempt at ${r.next}`}</div>}
+            {r.final && <div style={{ marginTop: 4 }}>{plural(r.final, 'Marked Failed after # attempt.', 'Marked Failed after # attempts.')}</div>}
+          </div>
+        </div>
+      );
+    }
+
+    function SentDetail({ r, go }) {
+      const [msg, setMsg] = useState(null);
+      const canResend = ['Sent', 'Delivered', 'Failed', 'Skipped'].includes(r.s);
+      const resend = () => setMsg(r.noPw ? { k: 'error', t: NOPW } : r.s === 'Skipped' ? { k: 'error', t: `${r.name} still has no address for this channel. Add it, then resend.` } : { k: 'success', t: 'Resend queued. It appears as a new row linked to this one.' });
+      const content = r.mail ? (
+        <div><div className="h-sm" style={{ marginTop: 0 }}>Subject</div><div className="previewbox">{r.mail.subj}</div><div className="h-sm">Body</div><div className="previewbox">{reportBody(r.mail)}</div></div>
+      ) : r.sms ? (<div><div className="h-sm" style={{ marginTop: 0 }}>Message</div><div className="previewbox">{r.sms}</div></div>) : null;
+      const what = r.fmt ? (
+        <div><div className="h-sm" style={{ marginTop: 0 }}>{r.s === 'Skipped' ? 'What would have been sent' : 'What was sent'}</div>
+          <table className="cds--data-table cds--data-table--xs subtable"><tbody>
+            {r.files && <tr><td>Attachment</td><td className="mono">{r.files.map(f => <div key={f}>{f}</div>)}</td></tr>}
+            <tr><td>Format</td><td>{r.fmt}</td></tr>
+            {r.ver && <tr><td>Version</td><td>{r.ver}</td></tr>}
+            {r.pwDate && <tr><td>Password set on</td><td>{r.pwDate}</td></tr>}
+            {r.hash && <tr><td>Archive SHA-256</td><td className="mono">{r.hash.map((h, i) => <div key={i}>{h}</div>)}</td></tr>}
+            {r.sentHash && <tr><td>Sent file SHA-256</td><td className="mono">{r.sentHash.map((h, i) => <div key={i}>{h}</div>)}</td></tr>}
+          </tbody></table></div>
+      ) : null;
+      return (
+        <div className="expand">
+          {r.s === 'Queued' && <Notice kind="info">{r.why}</Notice>}
+          {r.s === 'Skipped' && <Notice kind="warning">{r.why}</Notice>}
+          {r.s === 'Failed' && <Notice kind="error">{r.why}</Notice>}
+          {(content || what || (r.tries && r.tries.length > 0)) && (
+            <div className="grid2" style={{ marginTop: '.5rem' }}>
+              <div>{content || what || <Attempts r={r} />}</div>
+              <div>{content && what}{(content || what) && <Attempts r={r} />}</div>
+            </div>
+          )}
+          {msg && <Notice kind={msg.k}>{msg.t}</Notice>}
+          <div className="btnrow">
+            {canResend && <Btn kind="primary" onClick={resend} label={`Resend, ${r.lab[0] || r.to}`}>Resend</Btn>}
+            {r.ver && <Btn kind="tertiary" onClick={() => go('queue')}>Open version in print queue</Btn>}
+            {r.lab.length > 0 && <Btn kind="ghost">Open order</Btn>}
+          </div>
+        </div>
+      );
+    }
+
+    function AlertGroup({ r }) {
+      return (
+        <div className="expand">
+          <div className="h-sm" style={{ marginTop: 0 }}>Recipients and receipt confirmations</div>
+          <table className="cds--data-table cds--data-table--xs subtable">
+            <thead><tr><th>Recipient</th><th>Channel</th><th>Address</th><th>Status</th><th>Attempts</th></tr></thead>
+            <tbody>{r.members.map((m, i) => (
+              <tr key={i}><td>{m.who}<div className="muted">{m.kind}</div>{m.rc && <div className="muted">{m.rc}</div>}</td><td>{m.ch}</td><td className="mono">{m.addr}</td><td>{statusTag(m.s)}{m.why && <div className="muted">{m.why}</div>}</td><td>{m.a}</td></tr>
+            ))}</tbody>
+          </table>
+          <Notice kind="success">Receipt confirmed within the rule's 60 minutes limit. No escalation raised.</Notice>
+          <div className="h-sm">Message</div>
+          <div className="grid3">
+            <div><div className="muted" style={{ marginBottom: 4 }}>Distribution list that may receive patient identifiers</div><div className="previewbox">{`CPHL ALERT: Cholera RDT Positive. Joseph Kerema, Male 34 years, Hohola, phone +675 7341 2557. Lab no CPHL-26-004211, Gerehu General Hospital. I have received this alert: ${PUB}/a/7Hq2`}</div></div>
+            <div><div className="muted" style={{ marginBottom: 4 }}>The order's facility</div><div className="previewbox">{`CPHL ALERT for Gerehu General Hospital: Cholera RDT Positive. Lab no CPHL-26-004211, your order GGH-5521. Questions: CPHL results desk, 325 6800. I have received this alert: ${PUB}/a/9Kd4`}</div></div>
+            <div><div className="muted" style={{ marginBottom: 4 }}>The patient: instruction only</div><div className="previewbox">CPHL to Joseph: Please go to the nearest health centre today and drink only boiled or treated water. Questions: CPHL results desk, 325 6800</div></div>
+          </div>
+          <div className="btnrow"><Btn kind="ghost">Open order</Btn></div>
+        </div>
+      );
+    }
+
+    function SentMessages({ go }) {
+      const [exp, setExp] = useState('g7');
+      const [prod, setProd] = useState('all');
+      const [stat, setStat] = useState('all');
+      const [chan, setChan] = useState('all');
+      const [view, setView] = useState('data');
+      const rows = sentRows.filter(r => (prod === 'all' || r.p === prod)
+        && (stat === 'all' || (r.group ? r.members.some(m => m.s.toLowerCase() === stat) : r.s.toLowerCase() === stat))
+        && (chan === 'all' || r.ch.toLowerCase().includes(chan)));
+      const q = [prod !== 'all' && `product=${prod}`, stat !== 'all' && `status=${stat}`, chan !== 'all' && `channel=${chan}`].filter(Boolean).join('&');
+      const clear = () => { setProd('all'); setStat('all'); setChan('all'); };
+      const count = (s) => sentRows.find(r => r.id === 'g7').members.filter(m => s === 'Sent' ? (m.s === 'Sent' || m.s === 'Delivered') : m.s === s).length;
+      return (
+        <div>
+          <Header crumb={['Home', 'Reports', 'Sent Messages']} title="Sent Messages" desc="Every report, alert, patient notice and trigger event OpenELIS has sent or tried to send, with what was sent and to whom." route={`/SentMessages${q ? '?' + q : ''}`} />
+          <div className="toolbar" style={{ alignItems: 'flex-start' }}>
+            <div className="tf" style={{ paddingTop: 18 }}><input aria-label="Search" placeholder="Lab number or recipient" style={{ width: 220 }} /></div>
+            <div className="tf"><label htmlFor="s-prod">Product</label><select id="s-prod" value={prod} onChange={e => setProd(e.target.value)}><option value="all">All products</option>{Object.entries(P).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></div>
+            <div className="tf"><label htmlFor="s-stat">Status</label><select id="s-stat" value={stat} onChange={e => setStat(e.target.value)}><option value="all">All Statuses</option><option value="queued">Queued</option><option value="sent">Sent</option><option value="delivered">Delivered</option><option value="failed">Failed</option><option value="skipped">Skipped</option></select><div className="helper" style={{ maxWidth: 230 }}>Sent means the mail server accepted it. Bounces are not tracked.</div></div>
+            <div className="tf"><label htmlFor="s-chan">Channel</label><select id="s-chan" value={chan} onChange={e => setChan(e.target.value)}><option value="all">All channels</option><option value="email">Email</option><option value="sms">SMS</option></select></div>
+            <div className="tf"><label htmlFor="s-per">Period</label><select id="s-per"><option>Last 7 days</option><option>Today</option><option>Last 30 days</option><option>Custom range</option></select></div>
+          </div>
+          {view === 'loading' && <div className="tile">{[0, 1, 2, 3, 4].map(i => <div key={i} className="skel" style={{ width: `${90 - i * 7}%` }}></div>)}</div>}
+          {view === 'error' && <Notice kind="error">Sent Messages could not be loaded. &nbsp;<Btn kind="tertiary" onClick={() => setView('data')}>Retry</Btn></Notice>}
+          {view === 'empty' && <div className="tile" style={{ textAlign: 'center', padding: '2rem' }}>Nothing sent in this period.</div>}
+          {view === 'data' && rows.length === 0 && <div className="tile" style={{ textAlign: 'center', padding: '2rem' }}>No messages match these filters.<div className="btnrow" style={{ justifyContent: 'center' }}><Btn kind="tertiary" onClick={clear}>Clear filters</Btn></div></div>}
+          {view === 'data' && rows.length > 0 && (
+            <table className="cds--data-table cds--data-table--sm">
+              <thead><tr><th></th><th>Time</th><th>Product</th><th>Lab No</th><th>Recipient</th><th>Channel</th><th>Content</th><th>Status</th><th>Attempts</th><th>Sent by</th></tr></thead>
+              <tbody>{rows.map(r => (
+                <React.Fragment key={r.id}>
+                  <tr>
+                    <td><ExpBtn open={exp === r.id} onClick={() => setExp(exp === r.id ? null : r.id)} label={`Show details, ${r.lab[0] || '-'}, ${r.to}`} /></td>
+                    <td className="nowrap">{r.t}</td><td>{P[r.p]}</td><td className="mono">{r.lab.length ? r.lab.map(l => <div key={l}>{l}</div>) : '-'}</td>
+                    <td>{r.to}{r.group ? <div className="muted">{r.list}</div> : <div className="muted mono">{r.addr || '-'}</div>}</td>
+                    <td>{r.ch}</td><td>{r.c}</td>
+                    <td className="stat">{r.group ? <span style={{ fontSize: 13 }}>{`Delivered: ${count('Delivered')}, Sent: ${count('Sent')}, Failed: ${count('Failed')}, Skipped: ${count('Skipped')}, Queued: ${count('Queued')}`}</span> : <span>{statusTag(r.s)}{r.why && <div className="muted">{r.why}</div>}</span>}</td>
+                    <td>{r.group ? '' : r.a}</td><td>{r.by}</td>
+                  </tr>
+                  {exp === r.id && <tr><td colSpan={10}>{r.group ? <AlertGroup r={r} /> : <SentDetail r={r} go={go} />}</td></tr>}
+                </React.Fragment>
+              ))}</tbody>
+            </table>
+          )}
+          <PNote>Page state:{[['data', 'With data'], ['loading', 'Loading'], ['empty', 'Empty'], ['error', 'Load error']].map(([k, l]) => <label key={k}><input type="radio" name="sm-view" checked={view === k} onChange={() => setView(k)} /> {l}</label>)}</PNote>
+        </div>
+      );
+    }
+
+    // ---------- 3. Channels ----------
+    function Secret({ label, id }) {
+      const [rep, setRep] = useState(false);
+      return (
+        <div className="field"><label htmlFor={id}>{label}</label>
+          {rep ? <div className="secret"><input id={id} type="password" style={{ flex: 1 }} autoFocus /><Btn kind="ghost" onClick={() => setRep(false)}>Cancel</Btn></div>
+            : <div className="secret"><code id={id}>Set</code><Btn kind="ghost" onClick={() => setRep(true)} label={`Replace ${label}`}>Replace</Btn></div>}
+        </div>
+      );
+    }
+    function Channels() {
+      const [exp, setExp] = useState('SMS');
+      const [gw, setGw] = useState('textit');
+      const [mailT, setMailT] = useState(false);
+      const [smsT, setSmsT] = useState(false);
+      const smsConn = { textit: 'TextIt, channel 4f1c…a2', twilio: 'Twilio, from +675 7100 2000', bmp: 'BMP, bulksms.digicelpng.com', smpp: 'SMPP, smpp.bmobile.com.pg:2775' }[gw];
+      const T = (k) => setExp(exp === k ? null : k);
+      return (
+        <div>
+          <Header crumb={['Home', 'Admin Management', 'Notifications', 'Channels']} title="Channels" desc="How OpenELIS sends messages. Set each channel up once; reports, alerts, patient notices and trigger events all use them." route="/MasterListsPage/notificationTriggerConfig/channels (new sub-route)" />
+          <table className="cds--data-table cds--data-table--sm">
+            <thead><tr><th>Channel</th><th>Connection</th><th>Status</th><th>Last successful send</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>Email</td><td>smtp.health.gov.pg:587, STARTTLS</td><td><Tag kind="green">Ready</Tag></td><td>15/10/26 14:32</td><td><Btn kind="ghost" onClick={() => T('Email')} label="Edit Email">Edit</Btn></td></tr>
+              {exp === 'Email' && <tr><td colSpan={5}><div className="expand">
+                <div className="grid3">
+                  <div className="field"><label htmlFor="c-host">SMTP host</label><input id="c-host" defaultValue="smtp.health.gov.pg" /></div>
+                  <div className="field"><label htmlFor="c-port">Port</label><input id="c-port" defaultValue="587" /></div>
+                  <div className="field"><label htmlFor="c-sec">Security</label><select id="c-sec"><option>STARTTLS</option><option>SSL/TLS</option><option>None</option></select></div>
+                  <div className="field"><label htmlFor="c-user">Username</label><input id="c-user" defaultValue="cphl-results" /></div>
+                  <Secret label="Password" id="c-pw" />
+                  <div className="field"><label htmlFor="c-reply">Reply-to address</label><input id="c-reply" defaultValue="results@cphl.health.gov.pg" /></div>
+                  <div className="field"><label htmlFor="c-from">Sender address</label><input id="c-from" defaultValue="no-reply@cphl.health.gov.pg" /></div>
+                  <div className="field"><label htmlFor="c-name">Sender name</label><input id="c-name" defaultValue="CPHL Results" /></div>
+                  <div className="field"><label htmlFor="c-test">Send test email to</label><input id="c-test" defaultValue="s.arua@cphl.health.gov.pg" />{mailT && <div className="oktext">Test message sent to s.arua@cphl.health.gov.pg.</div>}</div>
+                </div>
+                <div className="btnrow"><Btn kind="primary">Save</Btn><Btn kind="tertiary" onClick={() => setMailT(true)}>Send test</Btn><Btn kind="ghost" onClick={() => setExp(null)}>Cancel</Btn></div>
+              </div></td></tr>}
+              <tr><td>SMS</td><td>{smsConn}</td><td><Tag kind="red">Failing</Tag><div className="muted" style={{ maxWidth: 320 }}>{`Last attempt failed 15/10/26 14:44: ${UNREACH}`}</div></td><td>15/10/26 14:05</td><td><Btn kind="ghost" onClick={() => T('SMS')} label="Edit SMS">Edit</Btn></td></tr>
+              {exp === 'SMS' && <tr><td colSpan={5}><div className="expand"><div className="grid3">
+                <div className="field"><label htmlFor="s-gw">Gateway</label><select id="s-gw" value={gw} onChange={e => setGw(e.target.value)}><option value="textit">TextIt</option><option value="twilio">Twilio</option><option value="bmp">BMP</option><option value="smpp">SMPP</option></select></div>
+                {gw === 'textit' && <React.Fragment>
+                  <div className="field"><label htmlFor="s-api">API address</label><input id="s-api" defaultValue="https://api.textit.in/api/v2/" /></div>
+                  <Secret label="Token" id="s-tok" />
+                  <div className="field"><label htmlFor="s-uuid">Channel UUID</label><input id="s-uuid" defaultValue="4f1c8d2e-9b7a-4c1e-a3f0-2b6d1e9c07a2" /></div>
+                </React.Fragment>}
+                {gw === 'twilio' && <div className="field"><label htmlFor="s-from">Sender number</label><input id="s-from" defaultValue="+675 7100 2000" /></div>}
+                {(gw === 'bmp' || gw === 'smpp') && <React.Fragment>
+                  <div className="field"><label htmlFor="s-uri">URI</label><input id="s-uri" defaultValue={gw === 'bmp' ? 'https://bulksms.digicelpng.com/api' : 'smpp.bmobile.com.pg:2775'} /></div>
+                  <div className="field"><label htmlFor="s-u">Username</label><input id="s-u" defaultValue="cphl" /></div>
+                  <Secret label="Password" id="s-p" />
+                </React.Fragment>}
+                <div className="field"><label htmlFor="s-test">Send test SMS to</label><input id="s-test" defaultValue="7230 4410" /><div className="helper">Numbers without a country code use the default SMS country code in Configuration (+675).</div>{smsT && <div className="invalidtext">{UNREACH}</div>}</div>
+              </div><div className="btnrow"><Btn kind="primary">Save</Btn><Btn kind="tertiary" onClick={() => setSmsT(true)}>Send test</Btn><Btn kind="ghost" onClick={() => setExp(null)}>Cancel</Btn></div></div></td></tr>}
+              <tr><td>WhatsApp <R2 /></td><td><span className="muted">Not set up</span></td><td><Tag kind="gray">Not set up</Tag></td><td>Never</td><td><Btn kind="ghost" onClick={() => T('WA')} label="Set up WhatsApp">Set up</Btn></td></tr>
+              {exp === 'WA' && <tr><td colSpan={5}><div className="expand"><div className="grid2">
+                <div className="field"><label htmlFor="w-api">API address</label><input id="w-api" defaultValue="https://api.textit.in/api/v2/" /></div>
+                <div className="field"><label htmlFor="w-tok">Access token</label><input id="w-tok" type="password" /></div>
+                <div className="field"><label htmlFor="w-uuid">WhatsApp channel UUID</label><input id="w-uuid" defaultValue="7a2e5c10-3d4b-4f8a-b6c1-90e2d7a4c3c9" /></div>
+                <div className="field"><label htmlFor="w-test">Send test message to</label><input id="w-test" defaultValue="+675 7230 4410" /></div>
+              </div><div className="btnrow"><Btn kind="primary">Save</Btn><Btn kind="tertiary">Send test</Btn><Btn kind="ghost" onClick={() => setExp(null)}>Cancel</Btn></div></div></td></tr>}
+            </tbody>
+          </table>
+          <PNote><span><R2 /> WhatsApp goes through TextIt's WhatsApp channel in Release 2. In Release 1 the SMS row is the second channel. SMS shows Failing because its last three attempts failed in a row.</span></PNote>
+        </div>
+      );
+    }
+
+    // ---------- 4. Templates ----------
+    const F = {
+      report: ['lab_name', 'lab_number', 'order_number', 'facility', 'ward', 'report_state', 'report_count', 'report_list', 'protection_note', 'secure_link', 'report_access', 'lab_contact'],
+      alert: ['lab_name', 'rule_name', 'lab_number', 'order_number', 'facility', 'ward', 'test_name', 'result', 'flag', 'collection_date', 'age', 'sex', 'ack_link', 'lab_contact'],
+      ids: ['patient_name', 'patient_id', 'patient_phone', 'patient_village'],
+      notice: ['patient_first_name', 'lab_name', 'lab_contact'],
+      instr: ['patient_first_name', 'lab_name', 'lab_contact', 'instruction'],
+      referral: ['orderId', 'sampleAccessionNumber', 'referralId', 'labName', 'referredTests', 'testName', 'referralDate', 'expectedReturn', 'sendingLabName', 'sendingLabPhone'],
+      subcontract: ['sampleAccessionNumber', 'referralId', 'labName', 'agreementReference', 'handoffDatetime', 'expectedReturnDate', 'cocContactName'],
+    };
+    const ALL_FIELDS = [...new Set([...F.report, ...F.alert, ...F.ids, ...F.notice, 'instruction', 'test_name', 'result'])];
+    const fieldsFor = (type, rec) => type === 'report' ? F.report : type === 'notice' ? F.notice : type === 'result' ? [...F.notice, 'test_name', 'result']
+      : type === 'referral' ? F.referral : type === 'subcontract' ? F.subcontract
+      : rec === 'listIdentifiers' ? [...F.alert, ...F.ids] : rec === 'patientResult' ? [...F.instr, 'test_name', 'result'] : rec === 'patientInstruction' ? F.instr : F.alert;
+    const TPL = {
+      'report.email': ['{lab_name} results: {report_state}, {report_count}', '{lab_name} sends you the following reports:\n\n{report_list}\n\n{protection_note}\n{secure_link}\nQuestions: {lab_contact}'],
+      'report.text': [null, '{lab_name}: {report_count} ready for {facility}, {report_state}. {report_access} Questions: {lab_contact}'],
+      'alert.list.email': ['{lab_name} ALERT: {test_name} {result}, {lab_number}', '{lab_name} reports a validated result that matches the alert rule "{rule_name}".\n\nTest: {test_name}\nResult: {result} {flag}\nLab number: {lab_number}\nFacility order number: {order_number}\nFacility: {facility} {ward}\nCollected: {collection_date}\nPatient: {sex}, {age}\n\nTo identify the patient, contact the facility with the lab number and order number.\n{ack_link}\nQuestions: {lab_contact}'],
+      'alert.list.text': [null, '{lab_name} ALERT: {test_name} {result}. Lab no {lab_number}, order {order_number}, {facility}. Collected {collection_date}, {sex} {age}. Questions: {lab_contact}. {ack_link}'],
+      'alert.listIdentifiers.email': ['{lab_name} ALERT: {test_name} {result}, {lab_number}', '{lab_name} reports a validated result that matches the alert rule "{rule_name}". This message contains patient identifiers: keep it confidential.\n\nPatient: {patient_name}, ID {patient_id}, {sex}, {age}\nPhone: {patient_phone}\nVillage: {patient_village}\nTest: {test_name}\nResult: {result} {flag}\nLab number: {lab_number}\nFacility: {facility} {ward}, order {order_number}\nCollected: {collection_date}\n\n{ack_link}\nQuestions: {lab_contact}'],
+      'alert.listIdentifiers.text': [null, '{lab_name} ALERT: {test_name} {result}. {patient_name}, {sex} {age}, {patient_village}, phone {patient_phone}. Lab no {lab_number}, {facility}. {ack_link}'],
+      'alert.facility.email': ['{lab_name} alert for {facility}: {test_name} {result}, {lab_number}', 'A result for a patient from {facility} matches an alert rule at {lab_name}.\n\nTest: {test_name}\nResult: {result} {flag}\nLab number: {lab_number}\nYour order number: {order_number}\nWard: {ward}\nCollected: {collection_date}\n\nThe report follows by your usual delivery.\n{ack_link}\nQuestions: {lab_contact}'],
+      'alert.facility.text': [null, '{lab_name} ALERT for {facility}: {test_name} {result}. Lab no {lab_number}, your order {order_number}. Questions: {lab_contact}. {ack_link}'],
+      'alert.clinician.email': ['{lab_name} alert for your patient: {test_name} {result}, {lab_number}', 'A result for a patient you ordered tests for matches an alert rule at {lab_name}.\n\nTest: {test_name}\nResult: {result} {flag}\nLab number: {lab_number}\nOrder number: {order_number}\nFacility: {facility} {ward}\nCollected: {collection_date}\n\n{ack_link}\nQuestions: {lab_contact}'],
+      'alert.clinician.text': [null, '{lab_name} ALERT for your patient: {test_name} {result}. Lab no {lab_number}, order {order_number}, {facility}. Questions: {lab_contact}. {ack_link}'],
+      'alert.patientResult.email': ['{lab_name}: your {test_name} result', 'Dear {patient_first_name},\n\nYour {test_name} result from {lab_name} is {result}.\n\n{instruction}\n\nQuestions: {lab_contact}'],
+      'alert.patientResult.text': [null, '{lab_name}: {patient_first_name}, your {test_name} result is {result}. {instruction}'],
+      'alert.patientInstruction.email': ['{lab_name}: a message for you', 'Dear {patient_first_name},\n\n{instruction}\n\nQuestions: {lab_contact}'],
+      'alert.patientInstruction.text': [null, '{lab_name} to {patient_first_name}: {instruction} Questions: {lab_contact}'],
+      'notice.email': ['{lab_name}: your results are ready', 'Dear {patient_first_name},\n\nYour results from {lab_name} are ready. Please contact your clinician or the lab: {lab_contact}.\n\nThis message does not contain any results.'],
+      'notice.text': [null, '{lab_name}: {patient_first_name}, your results are ready. Please contact your clinician or the lab ({lab_contact}).'],
+      'result.email': ['{lab_name}: your {test_name} result', 'Dear {patient_first_name},\n\nYour {test_name} result from {lab_name} is {result}.\n\nPlease contact your clinician or the lab: {lab_contact}.'],
+      'result.text': [null, '{lab_name}: {patient_first_name}, your {test_name} result is {result}. Please contact your clinician or the lab ({lab_contact}).'],
+      'referral.email': ['Sample referred out: [sampleAccessionNumber]', 'Sample [sampleAccessionNumber] has been referred to [labName] for test [testName]. Referral id: [referralId].'],
+      'subcontract.email': ['Sample dispatched: [agreementReference]', 'Sample [sampleAccessionNumber] (referral [referralId]) has been dispatched to [labName]. Handoff at [handoffDatetime]. Expected return: [expectedReturnDate]. CoC contact: [cocContactName].'],
+    };
+    const EX = {
+      lab_name: 'CPHL', lab_number: 'CPHL-26-004211', order_number: 'GGH-5521', facility: 'Gerehu General Hospital', ward: '', report_state: 'Amended', report_count: '3 reports',
+      report_list: 'CPHL-26-004188 (your order PMGH-88213): Final, version 2\nCPHL-26-004191 (your order PMGH-88219): Partial, 4 of 6 results, version 1\nCPHL-26-004195 (your order PMGH-88230): Amended, version 3',
+      protection_note: NOTE.protected, secure_link: '', report_access: 'Sent to your report email.', lab_contact: CONTACT, rule_name: 'Cholera RDT positive', test_name: 'Cholera RDT', result: 'Positive', flag: '',
+      collection_date: '15/10/26 08:10', age: '34 years', sex: 'Male', ack_link: `I have received this alert: ${PUB}/a/7Hq2`, patient_name: 'Joseph Kerema', patient_id: 'PT-77180', patient_phone: '+675 7341 2557', patient_village: 'Hohola',
+      patient_first_name: 'Mary', instruction: 'Please stay at home for 7 days and call 1800 200 for advice.',
+      sampleAccessionNumber: 'CPHL-26-004102', referralId: '87', labName: 'Lae Provincial Laboratory', testName: 'Mycobacterium tuberculosis culture', agreementReference: 'AGR-2026-017', handoffDatetime: '15/10/26 09:30', expectedReturnDate: '29/10/26', cocContactName: 'K. Wesley',
+    };
+    const exFor = (type, rec) => {
+      if (type === 'report') return { ...EX, facility: 'Port Moresby General Hospital', lab_number: 'CPHL-26-004188', order_number: 'PMGH-88213' };
+      if (type === 'result' || rec === 'patientResult') return { ...EX, test_name: 'SARS-CoV-2 RDT', result: type === 'result' ? 'Negative' : 'Positive' };
+      return EX;
+    };
+    const renderTpl = (tpl, vals) => tpl.split('\n').map(line => {
+      const fs = line.match(/[{[][A-Za-z_]+[}\]]/g);
+      if (fs && fs.every(f => !vals[f.slice(1, -1)])) return null;
+      return line.replace(/[{[]([A-Za-z_]+)[}\]]/g, (m, k) => (vals[k] !== undefined ? vals[k] : m)).replace(/ +$/, '');
+    }).filter(l => l !== null).join('\n');
+
+    // Release 2: a WhatsApp slot names the template approved in TextIt and the values sent with it (FR-A18)
+    function WhatsAppSlot({ type, rec }) {
+      const smsKey = type === 'alert' ? `alert.${rec}.text` : `${type}.text`;
+      const sms = (TPL[smsKey] || [null, ''])[1];
+      const values = [...new Set(sms.match(/\{[a-z_]+\}/g) || [])].join(', ');
+      const name = `cphl_${type}${type === 'alert' ? '_' + rec.toLowerCase() : ''}_v1`;
+      return (
+        <div>
+          <Notice kind="info"><R2 /> WhatsApp messages started by the lab must use a template approved by Meta, and each one costs money. Register and approve the template in TextIt, then enter its name here. OpenELIS sends the template name and these values; text edited on this page is never sent over WhatsApp.</Notice>
+          <div className="grid2" style={{ marginTop: '.75rem' }}>
+            <div className="field"><label htmlFor="wa-name">Approved WhatsApp template name</label><input id="wa-name" defaultValue={name} /></div>
+            <div className="field"><label htmlFor="wa-vals">Values sent, in order</label><input id="wa-vals" defaultValue={values} /></div>
+          </div>
+          <div className="btnrow"><Btn kind="primary">Save</Btn></div>
+        </div>
+      );
+    }
+
+    function Templates() {
+      const [type, setType] = useState('notice');
+      const [rec, setRec] = useState('list');
+      const [chan, setChan] = useState('text');
+      const [lang, setLang] = useState('en');
+      const [inactive, setInactive] = useState(false);
+      const [edits, setEdits] = useState({});
+      const [err, setErr] = useState(null);
+      const [restore, setRestore] = useState(false);
+      const trig = type === 'referral' || type === 'subcontract';
+      const ch = trig ? 'email' : chan;
+      const tch = ch === 'whatsapp' ? 'text' : ch;
+      const key = type === 'alert' ? `alert.${rec}.${tch}` : `${type}.${tch}`;
+      const def = TPL[key];
+      const cur = edits[key] || { subj: def[0], body: def[1] };
+      const set = (k, v) => { setErr(null); setEdits({ ...edits, [key]: { ...cur, [k]: v } }); };
+      const fields = fieldsFor(type, rec);
+      const vals = exFor(type, rec);
+      const prevS = cur.subj ? renderTpl(cur.subj, vals) : null;
+      const prevB = renderTpl(cur.body, vals);
+      const brace = (f) => trig ? `[${f}]` : `{${f}}`;
+      const save = () => {
+        const used = ((cur.subj || '') + cur.body).match(/\{[A-Za-z_]+\}/g) || [];
+        const bad = used.find(u => !fields.includes(u.slice(1, -1)));
+        if (!cur.body.trim()) setErr('The message cannot be empty.');
+        else if (bad && ALL_FIELDS.includes(bad.slice(1, -1))) setErr(`${bad} cannot be used in this message: it is not safe for this recipient. Remove it to save.`);
+        else if (bad) setErr(`${bad} is not a merge field. Remove it or pick a field from Insert field.`);
+        else setErr('saved');
+      };
+      const parts = prevB.length <= 160 ? 1 : Math.ceil(prevB.length / 153);
+      return (
+        <div>
+          <Header crumb={['Home', 'Admin Management', 'Notifications', 'Templates']} title="Templates" desc="The words OpenELIS sends. Each message type offers only the fields that are safe for it: report messages never carry a patient's name or national ID." route="/MasterListsPage/notificationTriggerConfig/templates (new sub-route; a tab today)" />
+          <div className="toolbar">
+            <div className="tf"><label htmlFor="t-type">Message type</label><select id="t-type" value={type} onChange={e => { setType(e.target.value); setErr(null); }}><option value="report">Report delivery</option><option value="alert">Priority alert</option><option value="notice">Patient ready notice</option><option value="result">Patient result</option><option value="referral">Referral Out</option><option value="subcontract">Subcontract Dispatched</option></select></div>
+            {type === 'alert' && <div className="tf"><label htmlFor="t-rec">Recipient</label><select id="t-rec" value={rec} onChange={e => { setRec(e.target.value); setErr(null); }}><option value="list">Distribution list or fixed address</option><option value="listIdentifiers">Distribution list that may receive patient identifiers</option><option value="facility">The order's facility</option><option value="clinician">The ordering clinician</option><option value="patientResult">The patient: instruction with result</option><option value="patientInstruction">The patient: instruction only</option></select></div>}
+            <div className="tf"><label htmlFor="t-chan">Channel</label><select id="t-chan" value={ch} disabled={trig} onChange={e => { setChan(e.target.value); setErr(null); }}><option value="email">Email</option><option value="text">SMS</option><option value="whatsapp">WhatsApp</option></select><div className="r2line"><R2 /> <span className="muted">WhatsApp</span></div></div>
+            <div className="tf"><label htmlFor="t-lang">Language</label><select id="t-lang" value={lang} onChange={e => setLang(e.target.value)}><option value="en">English</option><option value="fr">Fran&ccedil;ais</option><option value="tpi">Tok Pisin</option></select></div>
+            <span style={{ flex: 1 }}></span>
+            <Switch checked={inactive} onChange={setInactive} label="Show inactive" />
+          </div>
+          {inactive && (
+            <table className="cds--data-table cds--data-table--xs" style={{ marginTop: '.5rem' }}>
+              <thead><tr><th>Name</th><th>Language</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>Malaria RDT: patient SMS (from Test Notifications)</td><td>English</td><td><Tag kind="gray">Inactive</Tag></td></tr>
+                <tr><td>Malaria RDT: patient email (from Test Notifications)</td><td>English</td><td><Tag kind="gray">Inactive</Tag></td></tr>
+                <tr><td>HIV viral load: provider email (from Test Notifications)</td><td>English</td><td><Tag kind="gray">Inactive</Tag></td></tr>
+              </tbody>
+            </table>
+          )}
+          <div className="tile" style={{ marginTop: '1rem' }}>
+            {lang === 'tpi' && <Notice kind="info">No Tok Pisin text yet. Messages in Tok Pisin use the English text until you save one.</Notice>}
+            {type === 'notice' && <Notice kind="info">The notice is the same for every order apart from the first name. It never names a test or a result.</Notice>}
+            {type === 'alert' && (rec === 'patientResult' || rec === 'patientInstruction') && <Notice kind="info">The result and test name are included only for tests whose Patient messages setting is "Result by default", or when the order asked for the result. Otherwise the "instruction only" text is used.</Notice>}
+            {type === 'alert' && rec === 'listIdentifiers' && <Notice kind="info">1 alert rule uses its own text instead of this one.</Notice>}
+            {ch === 'whatsapp' ? <WhatsAppSlot type={type} rec={rec} /> : <React.Fragment>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><div className="muted">Insert field</div><Switch checked={true} label="Active" /></div>
+            <div style={{ marginTop: '.25rem' }}>{fields.map(f => <button type="button" key={f} className="mf" aria-label={`Insert ${brace(f)}`} onClick={() => set('body', cur.body + brace(f))}>{brace(f)}</button>)}</div>
+            <div className="grid2" style={{ marginTop: '1rem' }}>
+              <div>
+                {cur.subj !== null && cur.subj !== undefined && <div className="field"><label htmlFor="t-subj">Subject</label><input id="t-subj" value={cur.subj} onChange={e => set('subj', e.target.value)} /></div>}
+                <div className="field" style={{ marginTop: '.75rem' }}><label htmlFor="t-body">{cur.subj ? 'Body' : 'Message'}</label><textarea id="t-body" value={cur.body} onChange={e => set('body', e.target.value)} style={{ height: 200 }} /></div>
+                {ch === 'text' && <div className="helper">{`${prevB.length} of 160 characters, ${plural(parts, '# SMS', '# SMS messages')}`}</div>}
+                {err && err !== 'saved' && <div className="invalidtext">{err}</div>}
+              </div>
+              <div><div className="flabel">Preview</div><div className="helper" style={{ marginTop: 0, marginBottom: '.5rem' }}>Shown with example values.</div>{prevS && <div className="previewbox" style={{ marginBottom: '.5rem' }}><b>{prevS}</b></div>}<div className="previewbox">{prevB}</div></div>
+            </div>
+            {err === 'saved' && <Notice kind="success">Template saved.</Notice>}
+            <div className="btnrow"><Btn kind="primary" onClick={save}>Save</Btn><Btn kind="ghost" onClick={() => setRestore(true)}>Restore default</Btn></div>
+            </React.Fragment>}
+          </div>
+          {restore && <Modal title="Restore default" danger primary="Restore default" onClose={() => setRestore(false)} onPrimary={() => { const n = { ...edits }; delete n[key]; setEdits(n); setRestore(false); setErr(null); }}>Replace this template with the shipped default? Your changes to it will be lost.</Modal>}
+        </div>
+      );
+    }
+
+    // ---------- 5. Distribution lists ----------
+    const initLists = [
+      { id: 1, n: 'Provincial Health Office: Cholera', d: 'NCD and Central province cholera response', idf: true, used: ['Cholera RDT positive', 'Vibrio cholerae isolated'], active: true, members: [
+        { n: 'Dr L. Hasu, Provincial Health Officer', e: 'l.hasu@ncdpha.gov.pg', p: '+675 7120 3345', a: true },
+        { n: 'S. Moide, Disease Control Officer', e: '', p: '+675 7344 0921', a: true },
+        { n: 'NDoH Surveillance desk', e: 'surveillance@health.gov.pg', p: '', a: true },
+        { n: 'J. Pomat, former Disease Control Officer', e: 'j.pomat@ncdpha.gov.pg', p: '+675 7290 1123', a: false } ] },
+      { id: 2, n: 'NDoH Surveillance: Viral haemorrhagic fever', d: 'National duty officers, 24 hours', idf: true, used: ['Ebola PCR detected', 'Marburg PCR detected'], active: true, members: [
+        { n: 'Dr A. Kuman, National Surveillance Officer', e: 'a.kuman@health.gov.pg', p: '+675 7011 4420', a: true },
+        { n: 'Dr B. Sapak, Deputy Surveillance Officer', e: 'b.sapak@health.gov.pg', p: '+675 7011 4431', a: true },
+        { n: 'NDoH duty phone (24 hours)', e: '', p: '+675 7200 0911', a: true },
+        { n: 'NCD Provincial Health Authority, IDSR focal point', e: 'idsr@ncdpha.gov.pg', p: '+675 7355 0190', a: true } ] },
+      { id: 3, n: 'NCD Malaria programme', d: 'Weekly programme contacts', idf: false, used: ['Malaria RDT positive (pregnant women)'], active: true, members: [
+        { n: 'M. Tamarua, Malaria Programme Officer', e: 'm.tamarua@ncdpha.gov.pg', p: '+675 7355 2210', a: true },
+        { n: 'NCD malaria programme mailbox', e: 'malaria@ncdpha.gov.pg', p: '', a: true } ] },
+      { id: 4, n: 'COVID-19 response team (2022)', d: 'Emergency operations centre contacts', idf: true, used: [], active: false, members: [
+        { n: 'EOC duty officer', e: 'eoc@health.gov.pg', p: '+675 7011 9000', a: true },
+        { n: 'Dr K. Pokasui, Incident Manager', e: 'k.pokasui@health.gov.pg', p: '', a: false } ] },
+    ];
+    function ListEditor({ l, onChange, onClose }) {
+      const [showIn, setShowIn] = useState(false);
+      const [saved, setSaved] = useState(false);
+      const [confirm, setConfirm] = useState(false);
+      const [adding, setAdding] = useState(false);
+      const setMember = (i, a) => onChange({ ...l, members: l.members.map((m, j) => j === i ? { ...m, a } : m) });
+      return (
+        <div className="expand">
+          <div className="grid3">
+            <div className="field"><label htmlFor={`ln-${l.id}`}>Name</label><input id={`ln-${l.id}`} defaultValue={l.n} /></div>
+            <div className="field"><label htmlFor={`ld-${l.id}`}>Description</label><input id={`ld-${l.id}`} defaultValue={l.d} /></div>
+            <div className="field"><label htmlFor={`li-${l.id}`}>May receive patient identifiers</label><select id={`li-${l.id}`} defaultValue={l.idf ? 'y' : 'n'}><option value="y">Yes</option><option value="n">No</option></select><div className="helper">Yes lets alert messages to this list include the patient's name, ID, phone and village for contact tracing. Use it only for lists of authorised health officials.</div></div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '1rem 0 .5rem' }}><div className="section-title" style={{ margin: 0 }}>Members</div><Switch checked={showIn} onChange={setShowIn} label="Show inactive members" /></div>
+          <table className="cds--data-table cds--data-table--xs subtable">
+            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              {l.members.map((m, i) => (!m.a && !showIn) ? null : (
+                <tr key={i}><td>{m.n}</td><td className="mono">{m.e || <span className="muted">-</span>}</td><td className="mono">{m.p || <span className="muted">-</span>}</td><td>{m.a ? <Tag kind="green">Active</Tag> : <Tag kind="gray">Inactive</Tag>}</td>
+                  <td>{m.a ? <Btn kind="ghost" onClick={() => setMember(i, false)} label={`Deactivate ${m.n}`}>Deactivate</Btn> : <Btn kind="ghost" onClick={() => setMember(i, true)} label={`Reactivate ${m.n}`}>Reactivate</Btn>}</td></tr>
+              ))}
+              {adding && <tr><td><div className="field"><input aria-label="Name" defaultValue="R. Vagi, Surveillance Officer" /></div></td><td><div className="field invalid"><input aria-label="Email" /></div><div className="invalidtext">Enter an email address or a phone number.</div></td><td><div className="field invalid"><input aria-label="Phone" /></div></td><td></td><td></td></tr>}
+            </tbody>
+          </table>
+          {saved && <Notice kind="success">List saved.</Notice>}
+          <div className="btnrow"><Btn kind="tertiary" onClick={() => setAdding(true)}>Add member</Btn><Btn kind="primary" onClick={() => setSaved(true)}>Save</Btn><Btn kind="ghost" onClick={onClose}>Cancel</Btn><span style={{ flex: 1 }}></span>
+            {l.active ? <Btn kind="danger--ghost" onClick={() => setConfirm(true)}>Deactivate list</Btn> : <Btn kind="ghost" onClick={() => onChange({ ...l, active: true })}>Reactivate list</Btn>}</div>
+          {confirm && <Modal title="Deactivate list" danger primary="Deactivate list" onClose={() => setConfirm(false)} onPrimary={() => { setConfirm(false); onChange({ ...l, active: false }); }}>
+            {`${plural(l.used.length, '# alert rule uses this list.', '# alert rules use this list.')} A deactivated list receives no alerts. Deactivate it?`}</Modal>}
+        </div>
+      );
+    }
+    function Lists() {
+      const [lists, setLists] = useState(initLists);
+      const [exp, setExp] = useState(1);
+      const [status, setStatus] = useState('active');
+      const [q, setQ] = useState('');
+      const rows = lists.filter(l => (status === 'all' || (status === 'active') === l.active) && (!q || l.n.toLowerCase().includes(q.toLowerCase())));
+      return (
+        <div>
+          <Header crumb={['Home', 'Admin Management', 'Notifications', 'Distribution Lists']} title="Distribution Lists" desc="Named groups of people who receive priority result alerts. Alert rules on a test pick a list, so a change of duty officer is one edit here." route="/MasterListsPage/notificationTriggerConfig/lists (new sub-route)" />
+          <div className="toolbar">
+            <div className="tf"><input aria-label="Search lists" placeholder="Search lists" value={q} onChange={e => setQ(e.target.value)} style={{ width: 240 }} /></div>
+            <div className="tf"><label htmlFor="l-st">Status</label><select id="l-st" value={status} onChange={e => setStatus(e.target.value)}><option value="active">Active</option><option value="inactive">Inactive</option><option value="all">All</option></select></div>
+            <span style={{ flex: 1 }}></span><Btn kind="primary">Add list</Btn>
+          </div>
+          {rows.length === 0 ? <div className="tile" style={{ textAlign: 'center' }}>{q ? `No lists match "${q}".` : 'No distribution lists yet. Add a list for each group of officials who must hear about priority results.'}</div> : (
+            <table className="cds--data-table cds--data-table--sm">
+              <thead><tr><th></th><th>Name</th><th>Members</th><th>May receive patient identifiers</th><th>Used by rules</th><th>Status</th></tr></thead>
+              <tbody>{rows.map(l => (
+                <React.Fragment key={l.id}>
+                  <tr><td><ExpBtn open={exp === l.id} onClick={() => setExp(exp === l.id ? null : l.id)} label={`Edit ${l.n}`} /></td>
+                    <td><b>{l.n}</b><div className="muted">{l.d}</div></td><td>{plural(l.members.filter(m => m.a).length, '# member', '# members')}</td><td>{l.idf ? 'Yes' : 'No'}</td>
+                    <td>{l.used.length ? l.used.join('; ') : <span className="muted">Not used by any rule</span>}</td><td>{l.active ? <Tag kind="green">Active</Tag> : <Tag kind="gray">Inactive</Tag>}</td></tr>
+                  {exp === l.id && <tr><td colSpan={6}><ListEditor l={l} onChange={n => setLists(lists.map(x => x.id === n.id ? n : x))} onClose={() => setExp(null)} /></td></tr>}
+                </React.Fragment>
+              ))}</tbody>
+            </table>
+          )}
+        </div>
+      );
+    }
+
+    // ---------- 6. Configuration, Notifications area ----------
+    const SetRow = ({ label, desc, value, def, children }) => (
+      <div className="setrow"><div><div className="lbl">{label}</div><div className="muted">{desc}</div></div><div>{children || <span>{value}</span>}{def && <div className="muted">{def}</div>}</div></div>
+    );
+    function Configuration({ go }) {
+      const [addr, setAddr] = useState(PUB);
+      const [links, setLinks] = useState('off');
+      const [open, setOpen] = useState('secure');
+      const [testTo, setTestTo] = useState('+675 7230 4410');
+      const [tested, setTested] = useState(false);
+      const areas = ['Lab identity', 'Language & display', 'Patients', 'Orders & samples', 'Results & validation', 'Workplans', 'Labels & barcodes', 'Notifications', 'Integrations & exchange', 'Storage & devices', 'Security & access', 'Menus & help', 'System & server'];
+      const BlockH = ({ id, title }) => <div className="block-h"><b>{title}</b>{open !== id && <Btn kind="ghost" onClick={() => setOpen(id)} label={`Edit ${title}`}>Edit</Btn>}</div>;
+      const SaveRow = () => <div className="btnrow" style={{ padding: '0 1rem 1rem', marginTop: 0 }}><Btn kind="primary" onClick={() => setOpen(null)}>Save</Btn><Btn kind="ghost" onClick={() => setOpen(null)}>Cancel</Btn></div>;
+      return (
+        <div>
+          <Header crumb={['Home', 'Admin Management', 'Configuration']} title="Configuration" desc="Every laboratory setting in one place. Search, or narrow the list by area." route="/MasterListsPage/configuration?area=notifications" />
+          <div className="toolbar" style={{ marginBottom: '1rem' }}>
+            <input aria-label="Search" placeholder="Search by name, description or key" style={{ width: 320 }} />
+            <div className="seg" role="group" aria-label="Lifecycle"><button type="button">Routine</button><button type="button">Setup</button><button type="button" className="on">All</button></div>
+          </div>
+          <div className="cfgwrap">
+            <nav className="areas" aria-label="Areas"><h6>Areas</h6><button type="button">All areas</button>{areas.map(a => <button key={a} type="button" className={a === 'Notifications' ? 'on' : ''}><span>{a}</span>{a === 'Notifications' && <span>8 of 8</span>}</button>)}</nav>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 400, margin: '0 0 .75rem' }}>Notifications <span className="muted" style={{ fontSize: 14 }}>8 of 8</span></h2>
+              <div className="linkrow"><LinkBtn onClick={() => go('channels')}>Channels</LinkBtn><LinkBtn onClick={() => go('templates')}>Templates</LinkBtn><LinkBtn onClick={() => go('lists')}>Distribution Lists</LinkBtn><LinkBtn disabled>Triggers</LinkBtn></div>
+              <div className="block"><BlockH id="auto" title="Automatic sending" />
+                {open === 'auto' ? <div>
+                  <SetRow label="Wait before sending a new version (minutes)" desc="Results validated together go out as one version."><div className="field"><input aria-label="Wait before sending a new version (minutes)" type="number" defaultValue="10" /></div></SetRow>
+                  <SetRow label="Send partial reports automatically" desc="Facilities with automatic delivery get each partial report as results are released. A facility can override this."><Switch checked={true} label="On" /></SetRow>
+                  <SaveRow /></div> : <div>
+                  <SetRow label="Wait before sending a new version (minutes)" desc="Results validated together go out as one version." value="10" />
+                  <SetRow label="Send partial reports automatically" desc="Facilities with automatic delivery get each partial report as results are released. A facility can override this." value="On" /></div>}
+              </div>
+              <div className="block"><BlockH id="send" title="Sending and retries" />
+                {open === 'send' ? <div>
+                  <SetRow label="Retry after (minutes)" desc="A failed message is tried again after each of these delays, then every hour, until the time limit below."><div className="field"><input aria-label="Retry after (minutes)" defaultValue="1, 5, 15, 30, 60" /></div></SetRow>
+                  <SetRow label="Stop retrying after (hours)" desc="A message that still has not gone this many hours after it was queued is marked Failed. Until then it stays Queued."><div className="field"><input aria-label="Stop retrying after (hours)" type="number" defaultValue="24" /></div></SetRow>
+                  <SetRow label="Default SMS country code" desc="Added to phone numbers typed without a country code, for example +675."><div className="field"><input aria-label="Default SMS country code" defaultValue="+675" /></div></SetRow>
+                  <SaveRow /></div> : <div>
+                  <SetRow label="Retry after (minutes)" desc="A failed message is tried again after each of these delays, then every hour, until the time limit below." value="1, 5, 15, 30, 60" />
+                  <SetRow label="Stop retrying after (hours)" desc="A message that still has not gone this many hours after it was queued is marked Failed. Until then it stays Queued." value="24" />
+                  <SetRow label="Default SMS country code" desc="Added to phone numbers typed without a country code, for example +675." value="+675" /></div>}
+              </div>
+              <div className="block"><BlockH id="secure" title="Secure links" />
+                {open === 'secure' ? <div>
+                  <SetRow label="Public server address" desc="The address people outside the lab use to reach this server over the internet. Needed for secure links, alert receipt confirmations and escalation. Leave it empty if the server cannot be reached from outside: alerts then go without a confirmation link and reports go as attachments only."><div className="field"><input aria-label="Public server address" value={addr} onChange={e => setAddr(e.target.value)} /></div></SetRow>
+                  <SetRow label="Secure links" desc="Report messages carry a link that opens the same file the email attaches."><div className="field"><select aria-label="Secure links" value={addr ? links : 'off'} disabled={!addr} onChange={e => setLinks(e.target.value)}><option value="off">Off</option><option value="both">Link as well as the attachment</option><option value="linkOnly">Link instead of the attachment</option></select>{!addr && <div className="helper">Set the public server address to use secure links.</div>}</div></SetRow>
+                  <SetRow label="Link lifetime (days)" desc="After this many days a link shows a page asking the reader to contact the lab."><div className="field"><input aria-label="Link lifetime (days)" type="number" defaultValue="30" disabled={!addr} /></div></SetRow>
+                  <SaveRow /></div> : <div>
+                  <SetRow label="Public server address" desc="The address people outside the lab use to reach this server over the internet. Needed for secure links, alert receipt confirmations and escalation. Leave it empty if the server cannot be reached from outside: alerts then go without a confirmation link and reports go as attachments only." value={addr || '-'} />
+                  <SetRow label="Secure links" desc="Report messages carry a link that opens the same file the email attaches." value={{ off: 'Off', both: 'Link as well as the attachment', linkOnly: 'Link instead of the attachment' }[addr ? links : 'off']} />
+                  <SetRow label="Link lifetime (days)" desc="After this many days a link shows a page asking the reader to contact the lab." value="30" /></div>}
+              </div>
+              <div className="block">
+                <SetRow label="Lab contact used in messages" desc="From the additional site information line in Report Management. Patient notices and masked copies tell the reader to contact the lab with it."><div>{CONTACT}</div><LinkBtn>Edit in Report Management</LinkBtn></SetRow>
+                <SetRow label="Sender address" desc="org.openelisglobal.mail.from"><div className="mono">no-reply@cphl.health.gov.pg</div><LinkBtn onClick={() => go('channels')}>Set in Channels</LinkBtn></SetRow>
+                <SetRow label="org.openelisglobal.mail.bcc" desc=""><Tag kind="gray">Retired</Tag><div className="muted" style={{ marginTop: 4 }}>Retired. OpenELIS no longer sends blind copies, so reports cannot reach an address that no recipient list shows.</div></SetRow>
+              </div>
+              <div className="block"><div className="grid2" style={{ padding: '1rem' }}>
+                <div><div className="field"><label htmlFor="cfg-test">Send a test message to</label><input id="cfg-test" value={testTo} onChange={e => { setTestTo(e.target.value); setTested(false); }} /><div className="helper">Type an email address or a phone number. The test uses the matching channel.</div>{tested && <div className="oktext">{`Test sent to ${testTo}. Its result shows in Sent Messages.`}</div>}</div>
+                  <div className="btnrow"><Btn kind="tertiary" onClick={() => setTested(true)}>Send a test</Btn></div></div>
+                <div><div className="flabel">Patient notice preview</div><div className="previewbox">{NOTICE_SMS}</div></div>
+              </div></div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ---------- 7. Organization: Result delivery ----------
+    const MASK = '•••-•••-•••-•••';
+    function DeliverySection({ org }) {
+      const [pw, setPw] = useState(org.pw);
+      const [setBy, setSetBy] = useState(org.setBy);
+      const [show, setShow] = useState(false);
+      const [copied, setCopied] = useState(false);
+      const [confirm, setConfirm] = useState(false);
+      const [emails, setEmails] = useState(org.emails);
+      const [auto, setAuto] = useState(org.auto ? 'on' : 'off');
+      const gen = (n) => { setPw(n); setSetBy('15/10/26 by S. Arua'); setShow(true); };
+      return (
+        <div className="expand">
+          <div className="section-title">Result delivery</div>
+          <div className="grid2">
+            <div className="field"><label>Report email addresses</label><div>{emails.map(e => <span key={e} className="chip">{e}<button type="button" aria-label={`Remove ${e}`} onClick={() => setEmails(emails.filter(x => x !== e))}>{'✕'}</button></span>)}</div><input aria-label="Report email addresses" placeholder="Add an address" /></div>
+            <div className="field"><label htmlFor={`num-${org.id}`}>Report SMS or WhatsApp number</label><input id={`num-${org.id}`} defaultValue={org.num} /><div className="helper">Used to say reports are ready. Reports are attached only to email.</div></div>
+            <div className="field"><label htmlFor={`auto-${org.id}`}>Send reports automatically</label><select id={`auto-${org.id}`} value={auto} onChange={e => setAuto(e.target.value)}><option value="on">On: send each version when it is issued</option><option value="off">Off: send from the print queue only</option></select>{auto === 'on' && !pw && <Notice kind="warning">Patient reports will not be sent until a delivery password is set.</Notice>}</div>
+            <div className="field"><label htmlFor={`part-${org.id}`}>Include partial reports</label><select id={`part-${org.id}`}><option>Lab default (Yes)</option><option>Yes</option><option>No</option></select></div>
+            <div className="field"><label htmlFor={`lang-${org.id}`}>Language</label><select id={`lang-${org.id}`}><option>English</option><option>Tok Pisin</option><option>Fran&ccedil;ais</option></select><div className="helper">Messages to this organization use this language.</div></div>
+            <div className="field"><label>Delivery password</label>
+              {pw ? <div>
+                <div className="secret"><code aria-live="polite">{show ? pw : MASK}</code>
+                  <Btn kind="ghost" onClick={() => setShow(!show)} label={`${show ? 'Hide' : 'Show'} delivery password, ${org.name}`}>{show ? 'Hide' : 'Show'}</Btn>
+                  <Btn kind="ghost" onClick={() => setCopied(true)} label={`Copy delivery password, ${org.name}`}>Copy</Btn>
+                  <Btn kind="ghost" onClick={() => setConfirm(true)}>Change</Btn></div>
+                <div className="helper">{`Password set ${setBy}. Give it to the facility by phone or in person. Every Show and Copy is recorded in History.`}</div>
+                {copied && <div className="oktext">Copied. Recorded in History.</div>}
+              </div> : <div>
+                <div style={{ fontSize: 14, margin: '.25rem 0 .25rem' }}>No password set. Patient reports are not sent to this organization until a password is set; certificates are sent as issued.</div>
+                <div className="r2line" style={{ marginBottom: '.5rem' }}><R2 /> <span className="muted">No password set. Patient reports to this organization are sent as masked copies; certificates are sent as issued.</span></div>
+                <Btn kind="tertiary" onClick={() => gen('H4R-WQ8-ZTN-3KP')}>Generate</Btn>
+              </div>}
+            </div>
+          </div>
+          {org.wards && <div>
+            <div className="section-title" style={{ marginTop: '1rem', marginBottom: '.25rem' }}>Wards / Depts</div>
+            <div className="helper" style={{ marginBottom: '.5rem' }}>Reports for this ward go to these addresses and to the facility's.</div>
+            <table className="cds--data-table cds--data-table--xs subtable">
+              <thead><tr><th>Name</th><th>Service type</th><th>Report email</th><th>Status</th></tr></thead>
+              <tbody>{org.wards.map(w => <tr key={w[0]}><td>{w[0]}</td><td>{w[1]}</td><td className={w[2] ? 'mono' : 'muted'}>{w[2] || 'Facility addresses only'}</td><td><Tag kind="green">Active</Tag></td></tr>)}</tbody>
+            </table>
+          </div>}
+          <div className="btnrow"><Btn kind="primary">Save</Btn><Btn kind="ghost">Cancel</Btn><Btn kind="ghost">History</Btn></div>
+          {confirm && <Modal title="Change the delivery password?" danger primary="Generate new password" onClose={() => setConfirm(false)} onPrimary={() => { setConfirm(false); gen('W3H-CN8-ZPK-4RY'); }}>Reports already sent stay locked with the old password, so the facility will need both for a while.</Modal>}
+        </div>
+      );
+    }
+    const orgs = [
+      { id: 'pmgh', name: 'Port Moresby General Hospital', type: 'Referring clinic', code: 'NCD-PMGH', loc: 'NCD / Moresby South', tag: ['green', 'Automatic, protected'], ready: 'ready', emails: ['results@pmgh.health.gov.pg'], num: '+675 7230 1188', auto: true, pw: 'K7M-PQ4-RTW-9XF', setBy: '02/09/26 by S. Arua',
+        wards: [['Ward 4B', 'Inpatient', 'ward4b@pmgh.health.gov.pg'], ['Emergency', 'Emergency', ''], ['Maternity', 'Maternity', '']] },
+      { id: 'nine', name: '9 Mile Urban Clinic', type: 'Referring clinic', code: 'NCD-9MUC', loc: 'NCD / Moresby North-East', tag: ['cool-gray', 'Manual, no password'], ready: 'noPassword', emails: ['9mile.clinic@gmail.com'], num: '', auto: false, pw: null, setBy: null },
+      { id: 'kkhc', name: 'Kila Kila Health Centre', type: 'Referring clinic', code: 'NCD-KKHC', loc: 'NCD / Moresby South', tag: ['gray tag-amber', 'Automatic, no password'], ready: 'noPassword', emails: ['kilakila.hc@gmail.com'], num: '+675 7344 5120', auto: true, pw: null, setBy: null },
+      { id: 'ggh', name: 'Gerehu General Hospital', type: 'Referring clinic', code: 'NCD-GGH', loc: 'NCD / Moresby North-West', tag: ['gray', 'No report email'], ready: 'noEmail' },
+      { id: 'lpl', name: 'Lae Provincial Laboratory', type: 'Referral laboratory', code: 'MOR-LPL', loc: 'Morobe / Lae Urban', tag: ['blue', 'Manual, protected'], ready: 'ready' },
+      { id: 'edr', name: 'Eda Ranu Water Utility', type: 'Environmental client', code: 'ENV-EDR', loc: 'NCD', tag: ['gray', 'No report email'], ready: 'noEmail' },
+    ];
+    function Facility() {
+      const [exp, setExp] = useState('pmgh');
+      const [dlv, setDlv] = useState('all');
+      const shown = orgs.filter(o => dlv === 'all' || o.ready === dlv);
+      const readyN = orgs.filter(o => o.ready === 'ready').length;
+      return (
+        <div>
+          <Header crumb={['Home', 'Admin Management', 'Locations & Organizations', 'Organizations']} title="Organizations" desc="Organizations are the health facilities and laboratories your lab works with: the hospitals, clinics and health centres that send you patient samples, and the laboratories you refer samples to. Wards and departments inside an organization are listed under it. Organizations appear in order entry as the requesting site and in referrals as the destination lab." route={`/MasterListsPage/locations (existing)${dlv !== 'all' ? '?delivery=' + dlv : ''}`} />
+          <div className="toolbar">
+            <div className="tf"><label htmlFor="o-dlv">Delivery</label><select id="o-dlv" value={dlv} onChange={e => setDlv(e.target.value)}><option value="all">All</option><option value="ready">Ready</option><option value="noEmail">No report email</option><option value="noPassword">No password</option></select></div>
+            <span style={{ flex: 1 }}></span>
+            <div style={{ fontSize: 14, paddingBottom: 6 }}>{plural(readyN, '# facility can receive reports by email', '# facilities can receive reports by email')}</div>
+          </div>
+          <table className="cds--data-table cds--data-table--sm">
+            <thead><tr><th></th><th>Name</th><th>Type</th><th>Code</th><th>Location</th><th>Delivery</th><th>Active</th></tr></thead>
+            <tbody>{shown.map(o => (
+              <React.Fragment key={o.id}>
+                <tr><td>{o.emails !== undefined && <ExpBtn open={exp === o.id} onClick={() => setExp(exp === o.id ? null : o.id)} label={`Open ${o.name}`} />}</td><td><b>{o.name}</b></td><td>{o.type}</td><td className="mono">{o.code}</td><td>{o.loc}</td><td><Tag kind={o.tag[0]}>{o.tag[1]}</Tag></td><td><Switch checked={true} label="" /></td></tr>
+                {exp === o.id && <tr><td colSpan={7}><DeliverySection org={o} /></td></tr>}
+              </React.Fragment>
+            ))}</tbody>
+          </table>
+        </div>
+      );
+    }
+
+    // ---------- 8. Test Catalog alert rule ----------
+    function RuleModal({ onClose, noAddr }) {
+      const [patient, setPatient] = useState(true);
+      const [confirmR, setConfirmR] = useState(true);
+      const [esc, setEsc] = useState(true);
+      const [override, setOverride] = useState(false);
+      const [lists, setLists] = useState(['Provincial Health Office: Cholera']);
+      const [lq, setLq] = useState('');
+      const options = ['NDoH Surveillance: Viral haemorrhagic fever', 'NCD Malaria programme', 'Provincial Health Office: Cholera'].filter(x => !lists.includes(x) && lq.length > 0 && x.toLowerCase().includes(lq.toLowerCase()));
+      return (
+        <Modal size="md" label="Cholera RDT" title="Edit Alert Rule" primary="Save" onClose={onClose} onPrimary={onClose}>
+          <div className="grid2">
+            <div className="field"><label htmlFor="r-name">Rule Name</label><input id="r-name" defaultValue="Cholera RDT positive" /></div>
+            <div className="grid2" style={{ gap: '1rem' }}>
+              <div className="field"><label htmlFor="r-trig">Alert when result is:</label><select id="r-trig" defaultValue="sv"><option>All Results</option><option>Abnormal</option><option>Critical</option><option value="sv">Specific Value</option></select></div>
+              <div className="field"><label htmlFor="r-val">Specific value</label><select id="r-val"><option>Positive</option><option>Negative</option><option>Invalid</option></select></div>
+            </div>
+          </div>
+          <div className="section-title" style={{ marginTop: '1rem' }}>Recipients</div>
+          <div className="grid2">
+            <div className="field"><label htmlFor="r-lists">Distribution lists</label><div>{lists.map(x => <span key={x} className="chip">{x}<button type="button" aria-label={`Remove ${x}`} onClick={() => setLists(lists.filter(y => y !== x))}>{'✕'}</button></span>)}</div>
+              <input id="r-lists" placeholder="Search lists" value={lq} onChange={e => setLq(e.target.value)} />
+              {options.length > 0 && <div style={{ border: '1px solid #e0e0e0', background: '#fff' }}>{options.map(o => <button key={o} type="button" style={{ display: 'block', width: '100%', textAlign: 'left', border: 0, background: '#fff', padding: '.4rem .75rem', cursor: 'pointer' }} onClick={() => { setLists([...lists, o]); setLq(''); }}>{o}</button>)}</div>}</div>
+            <div style={{ fontSize: 14, display: 'grid', gap: '.35rem' }}>
+              <label><input type="checkbox" defaultChecked /> Referring Facility</label>
+              <label><input type="checkbox" defaultChecked /> Ordering Physician</label>
+              <label><input type="checkbox" checked={patient} onChange={() => setPatient(!patient)} /> Patient</label>
+              <div className="grid2" style={{ gap: '.5rem' }}><div className="field"><label htmlFor="r-ce">Custom email</label><input id="r-ce" /></div><div className="field"><label htmlFor="r-cp">Custom phone</label><input id="r-cp" /></div></div>
+            </div>
+          </div>
+          {patient && <div className="field" style={{ marginTop: '.75rem' }}><label htmlFor="r-ins">Instruction to the patient</label><textarea id="r-ins" style={{ height: 60 }} defaultValue="Please go to the nearest health centre today and drink only boiled or treated water." /><div className="helper">For example: Please stay at home for 7 days and call 1800 200 for advice. The result is added only for tests set to "Result by default" or when the order asked for it.</div></div>}
+          {lists.includes('Provincial Health Office: Cholera') && <Notice kind="info">Provincial Health Office: Cholera may receive patient identifiers, so its messages include the patient's name and village. The facility and clinician messages carry the lab number and their own order number instead.</Notice>}
+          <div className="grid2" style={{ marginTop: '.75rem' }}>
+            <div><div className="flabel">Notification channels</div><div style={{ display: 'flex', gap: '1rem', fontSize: 14 }}><label><input type="checkbox" defaultChecked /> Email</label><label><input type="checkbox" defaultChecked /> SMS</label><label><input type="checkbox" disabled /> WhatsApp <R2 /></label></div></div>
+            <div><label style={{ fontSize: 14 }}><input type="checkbox" /> Require acknowledgment</label></div>
+          </div>
+          <div style={{ marginTop: '1rem' }}>
+            <Switch checked={confirmR && !noAddr} disabled={noAddr} onChange={setConfirmR} label="Ask recipients to confirm receipt" />
+            <div className="helper">{noAddr ? 'Set the public server address in Configuration to ask for confirmation.' : 'Each message carries a link "I have received this alert". This is separate from critical result acknowledgment.'}</div>
+          </div>
+          {confirmR && !noAddr && <div className="grid2" style={{ marginTop: '.75rem', alignItems: 'end' }}>
+            <div><Switch checked={esc} onChange={setEsc} label="If nobody confirms, alert lab staff" /><div className="helper">Users who can view alerts get an in-app alert naming the recipient to phone.</div></div>
+            <div className="field"><label htmlFor="r-min">After (minutes)</label><input id="r-min" type="number" defaultValue="60" disabled={!esc} /></div>
+          </div>}
+          <div style={{ marginTop: '1rem' }}>
+            <Switch checked={override} onChange={setOverride} label="Use different text for this rule" />
+            <div className="helper">Replaces the Templates text for the recipients you pick, for this rule only.</div>
+          </div>
+          {override && <div className="grid2" style={{ marginTop: '.5rem' }}>
+            <div className="field"><label htmlFor="o-rec">Recipient</label><select id="o-rec"><option>Distribution list that may receive patient identifiers</option><option>The order's facility</option><option>The ordering clinician</option><option>The patient: instruction only</option></select></div>
+            <div className="field"><label htmlFor="o-ch">Channel</label><select id="o-ch"><option>SMS</option><option>Email</option></select></div>
+            <div className="field" style={{ gridColumn: '1 / span 2' }}><label htmlFor="o-msg">Message</label><textarea id="o-msg" style={{ height: 70 }} defaultValue={'{lab_name} CHOLERA ALERT: {patient_name}, {sex} {age}, {patient_village}, phone {patient_phone}. Lab no {lab_number}, {facility}. Start the case investigation today. {ack_link}'} /></div>
+          </div>}
+        </Modal>
+      );
+    }
+    function AlertRule() {
+      const [showInactive, setShowInactive] = useState(false);
+      const [edit, setEdit] = useState(false);
+      const [noAddr, setNoAddr] = useState(false);
+      const [rules, setRules] = useState([
+        { id: 1, n: 'Cholera RDT positive', trig: 'Specific Value: Positive', rec: 'Provincial Health Office: Cholera; Referring Facility; Ordering Physician; Patient', ch: 'Email, SMS', cr: 'Yes, escalate after 60 minutes', on: true },
+        { id: 2, n: 'Cholera RDT positive (2023 outbreak)', trig: 'Specific Value: Positive', rec: 'Custom email', ch: 'Email', cr: 'No', on: false },
+      ]);
+      const flip = (id) => setRules(rules.map(r => r.id === id ? { ...r, on: !r.on } : r));
+      return (
+        <div>
+          <Header crumb={['Home', 'Admin Management', 'Test Catalog', 'Cholera RDT']} title="Cholera RDT" route="/MasterListsPage/TestCatalogEditor (existing), test Alerts section" />
+          <div className="tile"><div className="grid2">
+            <div className="field"><label htmlFor="pm">Patient messages</label><select id="pm" defaultValue="b"><option value="a">Ready notice only</option><option value="b">Result when the order asks for it</option><option value="c">Result by default</option></select><div className="helper">Controls whether messages to patients about this test may include the result.</div></div>
+          </div></div>
+          <div className="section-title">Alerts</div>
+          <p className="desc" style={{ marginBottom: '.5rem' }}>Alerts go out only after the result is validated.</p>
+          <div className="toolbar"><Switch checked={showInactive} onChange={setShowInactive} label="Show inactive rules" /><span style={{ flex: 1 }}></span><Btn kind="primary">Add Rule</Btn></div>
+          <table className="cds--data-table cds--data-table--sm">
+            <thead><tr><th>Name</th><th>Trigger</th><th>Recipients</th><th>Channels</th><th>Confirm receipt</th><th>Active</th><th></th></tr></thead>
+            <tbody>{rules.filter(r => r.on || showInactive).map(r => (
+              <tr key={r.id}><td><b>{r.n}</b></td><td>{r.trig}</td><td>{r.rec}</td><td>{r.ch}</td><td>{r.cr}</td><td>{r.on ? <Tag kind="green">Active</Tag> : <Tag kind="gray">Inactive</Tag>}</td>
+                <td style={{ whiteSpace: 'nowrap' }}><Btn kind="ghost" onClick={() => setEdit(true)} label={`Edit ${r.n}`}>Edit</Btn><Btn kind="ghost" onClick={() => flip(r.id)} label={`${r.on ? 'Turn off' : 'Turn on'} ${r.n}`}>{r.on ? 'Turn off rule' : 'Turn on rule'}</Btn></td></tr>
+            ))}</tbody>
+          </table>
+          {edit && <RuleModal noAddr={noAddr} onClose={() => setEdit(false)} />}
+          <PNote><label><input type="checkbox" checked={noAddr} onChange={() => setNoAddr(!noAddr)} /> Lab with no public server address (most labs)</label></PNote>
+        </div>
+      );
+    }
+
+    // ---------- 9. Order entry ----------
+    const oeTests = [
+      { id: 'covid', name: 'SARS-CoV-2 RDT', set: 'byDefault', label: 'Result by default' },
+      { id: 'fbc', name: 'Full blood count', set: 'onRequest', label: 'Result when the order asks for it' },
+      { id: 'hiv', name: 'HIV 1/2 rapid test', set: 'noticeOnly', label: 'Ready notice only' },
+    ];
+    function OrderEntry() {
+      const [sms, setSms] = useState({ covid: true, fbc: false, hiv: false });
+      const [email, setEmail] = useState({ covid: false, fbc: false, hiv: false });
+      const [inc, setInc] = useState({ covid: true, fbc: false, hiv: false });
+      const [clin, setClin] = useState(true);
+      const [noRight, setNoRight] = useState(false);
+      const [noContact, setNoContact] = useState(false);
+      const [hist, setHist] = useState([]);
+      const log = (text) => setHist(h => [...h, `15/10/26 09:${String(12 + h.length).padStart(2, '0')}, M. Aiwa: ${text}`]);
+      const flip = (map, setMap, t, what) => { const v = !map[t.id]; setMap({ ...map, [t.id]: v }); log(what(v)); };
+      const ticked = oeTests.filter(t => sms[t.id] || email[t.id]);
+      const withResult = ticked.filter(t => inc[t.id] && t.set !== 'noticeOnly');
+      const needNotice = ticked.some(t => !(inc[t.id] && t.set !== 'noticeOnly'));
+      return (
+        <div>
+          <Header crumb={['Home', 'Orders & Patients', 'Add Order']} title="Add Order" route="/SamplePatientEntry (existing), Result reporting block" />
+          <div className="tile">
+            <div className="grid3" style={{ marginBottom: '1rem', fontSize: 14 }}>
+              <div><div className="muted">Patient</div>Mary Kaupa, F, 29 y<div className="mono muted">{noContact ? '-' : '+675 7•••• 412'}</div></div>
+              <div><div className="muted">Requesting facility</div>Port Moresby General Hospital / Emergency<div className="muted">Dr R. Kila, PMGH-88247</div></div>
+            </div>
+            <div className="section-title" style={{ fontSize: 14, letterSpacing: '.32px' }}>RESULT REPORTING</div>
+            <Notice kind="info">Port Moresby General Hospital receives reports automatically by email.</Notice>
+            <div className="grid3" style={{ margin: '.75rem 0 1rem' }}>
+              <div className="field"><label htmlFor="oe-fe">Facility email for this order</label><input id="oe-fe" defaultValue="emergency.pmgh@gmail.com" /><div className="helper">Used for this order only. Change the facility's addresses in Locations &amp; Organizations.</div></div>
+              <div className="field"><label htmlFor="oe-fp">Facility phone for this order</label><input id="oe-fp" /><div className="helper">Used for this order only. Change the facility's addresses in Locations &amp; Organizations.</div></div>
+              <div style={{ fontSize: 14, paddingTop: '1.4rem' }}><label><input type="checkbox" checked={clin} onChange={() => setClin(!clin)} /> Send reports to the ordering clinician</label><div className="muted" style={{ marginLeft: 22 }}>Dr R. Kila, r.kila@pmgh.health.gov.pg</div></div>
+            </div>
+            <table className="cds--data-table cds--data-table--sm">
+              <thead><tr><th></th><th></th><th colSpan={2} style={{ fontWeight: 400, fontSize: 12, background: '#e8e8e8' }}>Patient agreed to receive messages from the lab</th><th></th></tr>
+                <tr><th>Test</th><th>Patient messages (test setting)</th><th>Patient SMS</th><th>Patient email</th><th>Include the result</th></tr></thead>
+              <tbody>{oeTests.map(t => {
+                const boxTicked = sms[t.id] || email[t.id];
+                const notAllowed = t.set === 'noticeOnly';
+                return (
+                  <tr key={t.id}><td>{t.name}</td><td>{t.label}</td>
+                    <td><input type="checkbox" checked={sms[t.id]} onChange={() => flip(sms, setSms, t, v => `Patient messages ${v ? 'ticked' : 'unticked'}: SMS, ${t.name}`)} aria-label={`Patient SMS, ${t.name}`} /></td>
+                    <td><input type="checkbox" checked={email[t.id]} onChange={() => flip(email, setEmail, t, v => `Patient messages ${v ? 'ticked' : 'unticked'}: Email, ${t.name}`)} aria-label={`Patient email, ${t.name}`} /></td>
+                    <td style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <input type="checkbox" checked={!notAllowed && inc[t.id]} disabled={notAllowed || noRight || !boxTicked} onChange={() => flip(inc, setInc, t, v => `Include the result ${v ? 'ticked' : 'unticked'}: ${t.name}`)} aria-label={`Include the result, ${t.name}`} />
+                      {notAllowed && <span className="muted">Not allowed</span>}
+                      {notAllowed && <Toggletip label={`Why, ${t.name}`} text="This lab does not send this test's results to patients by message." />}
+                      {!notAllowed && noRight && <Toggletip label={`Why, ${t.name}`} text="Only users allowed to send results to patients can change this." />}
+                    </td></tr>
+                );
+              })}</tbody>
+            </table>
+            {noContact && ticked.length > 0 && <Notice kind="warning">The patient has no phone number or email. Add one in the patient record to send notices.</Notice>}
+            {ticked.length > 0 && !noContact && <Notice kind="info">
+              {withResult.length > 0 && <div>{plural(withResult.length, 'The patient gets # message with a result when that result is validated.', 'The patient gets # messages with results, each when its result is validated.')}</div>}
+              {needNotice ? <div>The patient gets one "results ready" notice when every result on the order is released. The notice never names a test.</div> : <div>Every ticked test sends its own result, so no separate ready notice is sent.</div>}
+            </Notice>}
+            <PNote>
+              <label><input type="checkbox" checked={noRight} onChange={() => setNoRight(!noRight)} /> User without order:notify_result</label>
+              <label><input type="checkbox" checked={noContact} onChange={() => setNoContact(!noContact)} /> Patient with no phone or email</label>
+            </PNote>
+            <div className="pnote" style={{ display: 'block' }}><b>Preview only: order history entries written by the ticks above (with user and time)</b>
+              {hist.length === 0 ? <div className="muted">Tick or untick a patient box or "Include the result" to see the entry.</div> : hist.map((h, i) => <div key={i} className="mono" style={{ fontSize: 12 }}>{h}</div>)}</div>
+          </div>
+        </div>
+      );
+    }
+
+    // ---------- 10. Public link pages and escalation ----------
+    function PublicPages() {
+      return (
+        <div>
+          <Header crumb={['Public pages']} title="Public link pages and in-app alerts" route={`${PUB}/a/{token} and ${PUB}/r/{token} (public, no login)`} />
+          <div className="cards3">
+            <div className="pubpage"><div className="url">{`${PUB}/a/7Hq2`}</div><h3 style={{ fontWeight: 400, marginTop: 0 }}>Confirm receipt</h3><Notice kind="success">Thank you. Your confirmation was recorded.</Notice></div>
+            <div className="pubpage"><div className="url">{`${PUB}/a/7Hq2 (opened again)`}</div><h3 style={{ fontWeight: 400, marginTop: 0 }}>Confirm receipt</h3><p>This alert was already confirmed on 15/10/26 at 14:19.</p></div>
+            <div className="pubpage"><div className="url">{`${PUB}/r/Qm81Zx`}</div><h3 style={{ fontWeight: 400, marginTop: 0 }}>Report from CPHL</h3><p>This link has expired. Contact CPHL for the report: CPHL results desk, 325 6800.</p></div>
+            <div className="pubpage"><div className="url">{`${PUB}/r/K2p9Lw`}</div><h3 style={{ fontWeight: 400, marginTop: 0 }}>Report from CPHL</h3><p>The PDF opens with your delivery password.</p><Btn kind="primary">Download</Btn></div>
+            <div className="pubpage"><div className="url">{`${PUB}/r/xx00`}</div><h3 style={{ fontWeight: 400, marginTop: 0 }}>Report from CPHL</h3><p>This link is not valid. Contact CPHL: CPHL results desk, 325 6800.</p></div>
+            <div className="pubpage"><div className="url">In-app alert (Alerts page), users with alert:view</div><Notice kind="warning">Receipt not confirmed: Cholera RDT Positive, CPHL-26-004230, Provincial Health Office: Cholera. Phone them.</Notice></div>
+            <div className="pubpage"><div className="url">In-app alert, users with result:validate in the lab unit</div><Notice kind="warning">Priority result waiting for validation: Cholera RDT CPHL-26-004236</Notice><div style={{ fontSize: 13 }}>Validation page row: CPHL-26-004236, Cholera RDT, Positive <Tag kind="red">Priority alert</Tag></div></div>
+          </div>
+        </div>
+      );
+    }
+
+    const screens = [
+      { g: 'Reports (main menu)', items: [['queue', 'Report Print Queue: Send', PrintQueue], ['sent', 'Sent Messages', SentMessages]] },
+      { g: 'Admin › Notifications', items: [['channels', 'Channels', Channels], ['templates', 'Templates', Templates], ['lists', 'Distribution Lists', Lists], ['triggers', 'Triggers (existing page, not drawn)', null]] },
+      { g: 'Admin › Config', items: [['config', 'Configuration: Notifications area', Configuration]] },
+      { g: 'Elsewhere', items: [['facility', 'Organization: Result delivery', Facility], ['alert', 'Test Catalog: Alert rule', AlertRule], ['order', 'Order entry: patient notices', OrderEntry], ['public', 'Public link pages', PublicPages]] },
+    ];
+    function App() {
+      const [cur, setCur] = useState('queue');
+      const Screen = screens.flatMap(s => s.items).find(i => i[0] === cur)[2];
+      return (
+        <div className="shell">
+          <nav className="switcher" aria-label="Preview screens">
+            {screens.map(s => <div key={s.g}><h4>{s.g}</h4>{s.items.map(([k, label, C]) => <button type="button" key={k} disabled={!C} className={cur === k ? 'active' : ''} onClick={() => setCur(k)}>{label}</button>)}</div>)}
+          </nav>
+          <main className="main"><Screen key={cur} go={setCur} /></main>
+        </div>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
