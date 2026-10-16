@@ -175,6 +175,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'Lab Units Management',
     category: 'admin-config',
+    archived: true,
     component: React.lazy(() => import('@designs/admin-config/lab-units.jsx')),
     description: 'Lab Units Management (OGC-189) — v2.0, rebased on the real TEST_SECTION data model and aligned to the Test Catalog Management shell as a peer of Tests / Panels / Sample Types. Terminology is "Lab Unit" (never "test section"); no code field (no column exists); Description is required (NOT NULL). Domain is a declared dependency — unbuilt on develop despite OGC-361 (no test_section migration exists), so the single Clinical/Environmental/Vector domain requires a migration (backfill existing rows to Clinical, OGC-936 pattern).',
     specPath: 'designs/admin-config/lab-units.md',
@@ -222,6 +223,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'Require Requesting Provider (Order Entry)',
     category: 'admin-config',
+    archived: true,
     component: React.lazy(() => import('@designs/admin-config/order-entry-require-provider.jsx')),
     description: 'Optional Order Entry Configuration property (requireProviderEntry) that makes the requesting provider optional and the referring facility (Site Name) required instead; default keeps provider required. Includes a mandatory downstream null-safety data audit (9 consumers).',
     specPath: 'designs/admin-config/order-entry-require-provider.md',
@@ -402,6 +404,7 @@ export const MOCKUP_REGISTRY = [
     name: 'Test Catalog — Microbiology Workflow Attribute',
     project: ['png'],
     category: 'admin-config',
+    archived: true,
     component: null,
     description: 'Narrowed by Microbiology v2 (2026-10-01): the attribute stays, renamed Culture type and set only on generic culture tests (A-01, D-125); one Microbiology case dropdown in the test catalog (None, Bacteriology, Mycobacteriology, Mycology). Test Catalog Basic Info: a nullable culture_workflow_type enum orthogonal to Domain and the AMR flag; drives micro case routing (M-03/M-04). Foldable into Test Catalog v2.5 \u00a72.1 Basic Info.',
     specPath: 'designs/admin-config/test-catalog-microbiology-workflow-attribute.md',
@@ -1077,6 +1080,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'M-00 Microbiology Module Parent',
     category: 'microbiology',
+    archived: true,
     component: null,
     description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Spine spec for the M-* bundle: glossary, RBAC matrix, data model overview, phase plan, out-of-scope, v1.1 → v2 diff map. v2.1: NO_GROWTH_FINAL → NO_GROWTH_READY (releases to FINAL_REPORTED, not terminal).',
     specPath: 'designs/microbiology/m-00-micro-module-parent.md',
@@ -1126,6 +1130,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'M-03 Order Entry Micro Hook',
     category: 'microbiology',
+    archived: true,
     component: null,
     description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Order Entry Step 1 amendment: when Program = MICROBIOLOGY, five editable micro fields appear inline (Patient Origin, Date of Admission, Number of Sets, Clinical History, Antibiotic Exposure) alongside a read-only derived Culture Protocol. Date of Admission supplies the missing input for the WHO GLASS hospital- vs community-origin classification. v2.2 makes Culture Protocol derived (override moves to the bench, M-04) and removes Critical Value Notify as a duplicate of the Test Catalog notify flag / Alerts section and TestNotificationConfig.',
     specPath: 'designs/microbiology/m-03-order-entry-micro-hook.md',
@@ -1173,6 +1178,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'M-04 Isolate Modal',
     category: 'microbiology',
+    archived: true,
     component: null,
     description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Add / Edit Isolate modal — Gram stain, colony morphology, final ID, significance. Second example shows reidentification mode with versioning.',
     specPath: 'designs/microbiology/m-04-case-workbench-core.md',
@@ -1198,6 +1204,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'M-07 Pending Cultures Worklist',
     category: 'microbiology',
+    archived: true,
     component: null,
     description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Primary morning-rounds tech surface — Cases by stage with red-highlighted positives and green-highlighted ready-to-finalize.',
     specPath: 'designs/microbiology/m-07-worklists.md',
@@ -1211,6 +1218,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'M-04 Case Workbench \u2014 Interactive Prototype',
     category: 'microbiology',
+    archived: true,
     component: null,
     description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Clickable end-to-end case workup \u2014 start inoculation, add/identify isolates, set up + receive AST, log critical, release reports; stage, sidebar and next-step guidance update live; opens on the current step. v2.1: release gate keys on a recorded outcome (isolate workup complete / no growth / all-contaminant / TB CONTAMINATED|NTM_IDENTIFIED), NO_GROWTH_FINAL to NO_GROWTH_READY.',
     specPath: 'designs/microbiology/m-04-case-workbench-core.md',
@@ -1224,6 +1232,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'M-07 Worklist \u2014 Interactive Prototype',
     category: 'microbiology',
+    archived: true,
     component: null,
     description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Single shared Worklist (no per-case ownership) with a culture / AST grain toggle, needs-action cards, urgency sort, and folded-in resistance strip + recent activity; rows open the case. Analyzer results arrive automatically (no manual import).',
     specPath: 'designs/microbiology/m-07-worklists.md',
@@ -1237,6 +1246,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'Microbiology \u2014 Epic Dependency Graph',
     category: 'microbiology',
+    archived: true,
     component: null,
     description: 'Build-order dependency graph across the 14 micro epics (OGC-782\u2013795): foundations \u2192 catalog \u2192 case hub \u2192 operational \u2192 surveillance/hub. Planning aid.',
     htmlUrl: 'designs/microbiology/amr-micro-dependency-graph.svg',
@@ -1248,6 +1258,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'M-05 AST Entry \u2014 Interactive Prototype',
     category: 'microbiology',
+    archived: true,
     component: null,
     description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Inline AST entry (no modals) \u2014 type MIC to auto-interpret; switch breakpoint standard to re-compute (EUCAST vs CLSI); inline override with revert + reading history; no-breakpoint guidance; QC-fail recovery. Analyzer results auto-ingest, no manual import.',
     specPath: 'designs/microbiology/m-05-ast-entry-and-interpretation.md',
@@ -1317,6 +1328,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'Microbiology — Guided Workflow Walkthrough',
     category: 'microbiology',
+    archived: true,
     component: null,
     description: 'Guided step-through that sequences the split micro prototypes into one flow — per step a description + the embedded mockup + Prev/Next, with a Bacterial/TB branch toggle. Covers admin/config setup → order & routing → bacterial or TB work-up → reporting.',
     specPath: 'designs/microbiology/amr-micro-narrative.md',
@@ -1332,6 +1344,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'M-14 TB Case — Interactive Prototype',
     category: 'microbiology',
+    archived: true,
     component: null,
     description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. The M-04 Case Workbench shell as a TB profile: smear, MGIT/LJ culture, species ID, critical-concentration DST, molecular flags, staged interim reports. v1.1 aligns the TB bench with the no-growth amendment (NO_GROWTH_READY + release; CONTAMINATED is not a result).',
     specPath: 'designs/microbiology/m-14-mycobacteriology-tb.md',
@@ -1370,6 +1383,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'M-04 Linked Cases — Shared Specimen',
     category: 'microbiology',
+    archived: true,
     component: null,
     description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Demonstrates Case keyed to sample_item_id × workflow_type: bacterial + TB on one sputum = two sibling Cases sharing one SampleItem. Worklist grouped siblings → bacterial case ↔ TB case sibling chip → order-entry 2-case preview.',
     specPath: 'designs/microbiology/m-04-case-workbench-core.md',
@@ -1407,6 +1421,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'M-11 Critical Notification — Inline',
     category: 'microbiology',
+    archived: true,
     component: null,
     description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. Inline Log/Acknowledge/Close flow over the existing OpenELIS notifications entity. Open → Acknowledged → Closed. Reuses alerts dashboard as criticals filter; no new Alerts Dashboard build.',
     specPath: 'designs/microbiology/m-11-critical-result-acknowledgment.md',
@@ -1431,6 +1446,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'M-14 Mycobacteriology / TB',
     category: 'microbiology',
+    archived: true,
     component: null,
     description: 'Amended by Microbiology v2 (2026-09-28): see Microbiology v2 Amendments for the reversals. M-04 Case Workbench extended for TB: workflow_type = MYCOBACTERIOLOGY_TB, smear microscopy, MGIT/LJ culture, species ID, WHO critical-concentration DST, molecular resistance flags (GeneXpert, Hain LPA), staged interim reports, WHONET-TB export.',
     specPath: 'designs/microbiology/m-14-mycobacteriology-tb.md',
@@ -1455,6 +1471,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'Microbiology AMR Narrative — v2.1',
     category: 'microbiology',
+    archived: true,
     component: null,
     description: 'v2.1 narrative: folds in four post-v2.0 decisions — Case keying is SampleItem × workflow_type (not 1:1 with Sample); WHONET (M-09) extends the existing export; M-11 critical notification reuses the notifications dashboard + TestNotificationService; Expert Review (M-06) and critical log-and-acknowledge (M-11) are inline panels, not modals. Cross-module context doc for the full M-00–M-15 bundle.',
     specPath: 'designs/microbiology/amr-micro-narrative.md',
@@ -1929,6 +1946,7 @@ export const MOCKUP_REGISTRY = [
     name: 'Results Entry — Multi-Component (integrated)',
     project: ['png'],
     category: 'results-validation',
+    archived: true,
     component: null,
     description: 'New full Results Entry FRS that carries forward all v4 scope and natively integrates multi-component result entry — a test defining more than one result_component shows one result field per component, reusing the existing result-cell renderer; single-component tests are unchanged. First use case: molecular target gene + Ct (Xpert MTB/RIF, SARS-CoV-2). Rev 2026-07-15 adds §O Concurrency & multi-user behavior — per-result save scoping, optimistic stale-save rejection, and ephemeral session-bound "in review by" presence (no locking) — prompted by a Lab Unit whole-page-save overwrite incident. Supersedes the Results Entry v4 FRS. Companion: Validation Page — Multi-Component (integrated) and the v1 additive module.',
     specPath: 'designs/results-validation/results-entry-multicomponent.md',
@@ -1943,6 +1961,7 @@ export const MOCKUP_REGISTRY = [
     name: 'Validation Page — Multi-Component (integrated)',
     project: ['png'],
     category: 'results-validation',
+    archived: true,
     component: null,
     description: 'New full Validation Page FRS that carries forward all v4 scope and adds read-only multi-component display — for a test with more than one result_component the review panel shows every component (value, label, unit, range, flag) in order so the validator reviews the whole result before releasing. Supersedes the Validation Page v4 FRS. Companion: Results Entry — Multi-Component (integrated).',
     specPath: 'designs/results-validation/validation-multicomponent.md',
@@ -1956,6 +1975,7 @@ export const MOCKUP_REGISTRY = [
     name: 'Analyzer Ingestion — Multi-Component Results',
     project: ['png'],
     category: 'results-validation',
+    archived: true,
     component: null,
     description: 'FRS for analyzer ingestion of multi-component results — extends the analyzer import + mapping so a reported target/channel resolves to a (test, component) pair, not only a test. A multiplex molecular run (GeneXpert per-probe values, BioRad CFX Opus per-fluor Cq rows) populates a multi-component test\'s components automatically, matched on a stable component code; unmapped targets surface as visible exceptions; deployments that map channels to separate tests keep working unchanged. Reuses the OGC-1124 RESULT.component_id storage and the existing multi-result import path. Companion: Results Entry / Validation Page — Multi-Component (integrated).',
     specPath: 'designs/results-validation/analyzer-multicomponent-ingestion.md',
@@ -2502,6 +2522,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'Analyzer Results Import (v2 redesign)',
     category: 'system',
+    archived: true,
     component: React.lazy(() => import('@designs/system/analyzer-import-redesign-v2.jsx')),
     description: 'OGC-288 redesign of the Analyzer Results Import review page. QC-first review with per-analysis accept/reject and the QC-fail action set (Retest / Report NCE / Reject / Accept despite QC failure), select-all + normal selection, a run-settings sidebar, and the G1-G13 bench-experience refinements. Multi-component-aware: per-target Ct/Cq values grouped by analysis, with unmapped targets surfaced as visible exceptions. Access moved to the results permission. Supersedes the wireframe-era Analyzer Import entry, carrying its QC-first / run-settings / sidebar mechanics forward in FRS form.',
     specPath: 'designs/system/analyzer-import-redesign-v2.md',
@@ -2725,6 +2746,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'Order Entry \u2014 Developer Reference',
     category: 'vector-surveillance',
+    archived: true,
     component: null,
     description: 'Single source of truth for the order-entry realignment (epic OGC-1066): north-star model, per-stage behavior, current\u2192required defect table with live evidence, anti-drift guardrails, and the story map (OGC-1067\u20131073). Anchor doc for Reagan + coding agents.',
     specPath: 'designs/sample-collection/order-entry-developer-reference.md',
