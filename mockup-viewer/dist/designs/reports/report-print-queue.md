@@ -1,12 +1,12 @@
 # Report Print Queue
-## Functional Requirements Specification, v2.2 (r4)
+## Functional Requirements Specification, v2.5 (r4)
 
-**Version:** 2.2 (r4: rebuilt on the shipped Compliance Report page; approved for handoff 2026-09-29; v2.2 adds data export jobs and the Partial / Final / Amended report state)
-**Date:** 2026-09-29
+**Version:** 2.5 (r4: rebuilt on the shipped Compliance Report page; approved for handoff 2026-09-29; v2.2 adds data export jobs and the Partial / Final / Amended report state; v2.3 adds Send, sends in the version history, archived masked copies and nominated privileges, from the Result Delivery FRS; v2.4 aligns with Result Delivery v0.2: versions are created at issue, meaning print, Send or automatic delivery (FR-4.3, D-236), Amended means an issued (printed or sent) result changed (FR-4.4, BR-3), automatic issue by Result Delivery (FR-6.14), the issue history records print and send events (§6.2), Skipped in the Sent column and filter, the "Patient notice not sent: no contact" row indicator (FR-1.9), this page's own `reportQueue.action.send` key; v2.5 aligns with Result Delivery v0.3: the masked copy and its archive are Release 2 of Result Delivery (FR-8.4, AC-31), the Send dialog's formats in Release 1 are Protected full report or Certificate as issued and recipients with no delivery password are skipped (FR-6.13), automatic delivery sends one email per recipient per hold window (FR-6.14), and an Amended version's history lists addresses typed for one send as not reachable (FR-5.4), AC-38 to AC-40)
+**Date:** 2026-10-16
 **Status:** Approved for handoff
 **Jira:** Epic [OGC-1031](https://uwdigi.atlassian.net/browse/OGC-1031) (to be re-scoped; its 12 child stories were sliced against r3)
 **Builds on (shipped):** OGC-552 Compliance Report page `/LaporanHasil` (Done); OGC-776 LHU amendment workflow (code on `develop`, ticket still Backlog: confirm deployment before calling it shipped); Custom Data Export and its My Report Queue job runner (`/reports/custom-data-export`, OGC-479 / OGC-481, `ReportingJobService`)
-**Coordinates with:** OGC-1111 patient report redesign (`patient-report-and-report-management-frs.md` v2.2); S06c environmental and S06d vector certificate templates; navigation redesign (`navigation-redesign-frs.md`); OGC-1070 lab-unit domain filtering
+**Coordinates with:** Result Delivery FRS v0.3 (`result-delivery/result-delivery-frs.md`: sending reports by email and SMS from this page (WhatsApp in its Release 2), and automatic delivery through this page's pipeline); OGC-1111 patient report redesign (`patient-report-and-report-management-frs.md` v2.7); S06c environmental and S06d vector certificate templates; navigation redesign (`navigation-redesign-frs.md`); OGC-1070 lab-unit domain filtering
 **Supersedes:** r3 (`report-print-queue-frs-r3.md`, 2026-07-06) and the list page of S06 (§5.2, §5.5 of `S06-laporan-hasil-compliance-report-frs-v1.0.md`)
 
 > **What r4 changes.** r3 designed a new page and a new queue table for patient reports.
@@ -20,7 +20,7 @@
 > 1. **One Amended state.** An amended report is an amended report, whatever caused it. The
 >    cause is recorded and shown as context, never as a separate status or filter.
 > 2. **Completing a partial report is a new version, not an amendment.** Amended applies only
->    when something already printed has changed or been removed.
+>    when something already issued (printed or sent, v2.4) has changed or been removed.
 > 3. **Every released version's PDF is archived** with its SHA-256 hash, for all report types.
 > 4. **One list with typed rows.** Report type is a column; type-specific detail lives in the
 >    row expansion; type-specific filters appear when one type is chosen.
@@ -120,9 +120,10 @@ being built and once they are ready to download. A clerk who only handles patien
 never sees certificates, and nobody sees anyone else's exports. Each report shows as Partial,
 Final or Amended, and the clerk can filter on any of them. They scan a lab number or filter by ward or sampling site, tick the rows, and
 print them as one PDF. When more results are released on an order that was already printed,
-it comes back as Unprinted with a new version number. When a printed result is corrected, it
-comes back as Amended, and the new report says which report it replaces and what changed.
-Every version that leaves the lab is kept exactly as it was printed, with a fingerprint
+it comes back as Unprinted with a new version number. When a result that was already printed or
+sent is corrected, it comes back as Amended, and the new report says which report it replaces and
+what changed. Every version that leaves the lab, on paper or by email, is kept exactly as it was
+issued, with a fingerprint
 (SHA-256 hash) that proves it has not been altered, and anyone with access can open it from
 the order's version history. Nothing that still needs printing ages out of the list.
 
@@ -192,7 +193,7 @@ developer's call.
 | Active standards list | `GET /rest/compliance/standards/active` | Standard filter options |
 | Certificate PDF renderer | `buildOriginalPdfBytes`, `buildAmendmentPdfBytes` | Environmental certificate rendering (moved out of the controller, §3.3) |
 | Immutable PDF archive with SHA-256, one row per (order, version), write-once guard | `ComplianceReportArchiveService.archiveIfAbsent`, `compliance_report_archive` | The archive for every type (FR-8) |
-| "Render once into a buffer, stream it and archive the same bytes" | `exportPdf` | Every print (FR-6.2) |
+| "Render once into a buffer, stream it and archive the same bytes" | `exportPdf` | Every issue: print, Send and automatic delivery (FR-6.2, FR-6.13, FR-6.14) |
 | Amendment suffix `/Am.N` on the lab number | `LhuAmendmentService.certificateNumberWithAmendmentSuffix` | Certificate identity on amended certificates (FR-4.6) |
 | Access rule for reissue: Results, Validation or Admin | class-level `@PreAuthorize` on `ComplianceReportRestController` | Reissue with correction (§8) |
 | Patient-report print tracking | `ReportTrackingService.addReports`, `document_track` | Existing issue history for patient reports (§3.2) |
@@ -243,7 +244,7 @@ developer's call.
 - **As a reporting clerk,** I want to filter by ward or sampling site, tick a batch and print
   it as one PDF, so that I can clear a ward's reports in one action.
 - **As a reporting clerk,** I want an order to come back when more results are released or a
-  printed result is corrected, so that the doctor or client always has the current report.
+  printed or sent result is corrected, so that the doctor or client always has the current report.
 - **As a validator,** I want to reissue a released report with a stated correction when the
   error is not in a result (a wrong collection date, a wrong site), so that the corrected
   report is traceable to the one it replaces.
@@ -281,7 +282,8 @@ An order never appears twice.
 | Released / Submitted | Latest release time of any result on the order | Same | Submitted at | yes (default) |
 | State | Report state Tag (FR-4.1), plus Critical Tag when any released result is critical | Report state Tag | Job state Tag (FR-11.2) | yes |
 | Print status | Print status Tag (FR-4.2) | Same | "–" | yes |
-| Version | Current version (`v2`), "Not printed" when never printed | Same; certificates add the `/Am.N` number | "–" | no |
+| Sent | The current content's send state: "Sent v{n} {time}" (`green`), "Queued: sends {time}" (`purple`, including while automatic delivery waits out the hold), "Not sent" (text), "Failed" (`red`) when the last send of the current version failed, or "Skipped" (`gray`) when every send of the current content was skipped (no version is created by a fully skipped send, FR-6.13) (for example no report address; the reason is in Sent Messages). Under it, the patient notice indicator when it applies (FR-1.9) | Same | "–" | no |
+| Version | Current version (`v2`), "Not issued" when no version exists yet (never printed or sent) | Same; certificates add the `/Am.N` number | "–" | no |
 | Action | One-click Print button (D-078) | Same | The job's one action: Download, Cancel, Retry or Re-run (FR-11.3) | no |
 
 **FR-1.5** The Type column is hidden when the user can see only one row type (§8). Data export
@@ -298,6 +300,12 @@ standard linked. On a Partial certificate the Tag reads "Provisional" before the
 
 **FR-1.8** Pagination uses the Carbon `Pagination` component, 10, 20, 50 or 100 rows per page,
 default 20, with the total count shown.
+
+**FR-1.9 Patient notice indicator.** When the order asked for a patient notice (Result Delivery
+FR-F1) and the latest notice for the order was Skipped because the patient has no email or phone
+on file, the row shows "Patient notice not sent: no contact" under the Sent value, as text with an
+information icon (never color alone). For users with `delivery:view` it links to the Skipped row in
+Sent Messages (Result Delivery FR-F5). Patient report rows only.
 
 ### 5.2 Which orders appear
 
@@ -358,6 +366,8 @@ chips with their labels. When Type is Data export, the options are the job state
 least one report state is selected, data export rows are left out, because they have no report
 state.
 
+**FR-3.7b Sent**: All (default), Not sent, Sent, Failed, Skipped. Hidden when Type is Data export. "Not sent" lists rows whose current content has not been sent to any recipient. "Skipped" lists rows whose Sent value is Skipped (FR-1.4).
+
 **FR-3.7a Print status**: All (default), Unprinted, Printed. Hidden when Type is Data export;
 when Type is All and it is not All, data export rows are left out. The two filters combine:
 State = Amended with Print status = Unprinted is "amended reports still to send".
@@ -385,29 +395,36 @@ and its **print status** (whether its current content has been printed).
 |---|---|---|
 | Partial | `warm-gray` | At least one counted analysis is not released yet; shows `released/total` ("Partial 3/7") (r3 FR-1-007) |
 | Final | `teal` | Every counted analysis is released |
-| Amended | `magenta` | A printed result has changed or been removed (FR-4.4), or the report was reissued with a correction (FR-7). Amended wins over Partial and Final and stays once reached, including after the amended version is printed. When not every result is released the Tag reads "Amended 5/7" |
+| Amended | `magenta` | A result that was issued (printed or sent) has changed or been removed (FR-4.4), or the report was reissued with a correction (FR-7). Amended wins over Partial and Final and stays once reached, including after the amended version is printed or sent. When not every result is released the Tag reads "Amended 5/7" |
 
 **FR-4.2 Print status** is one of:
 
 | Print status | Tag kind | Meaning |
 |---|---|---|
-| Unprinted | `purple` | The current released content has not been printed in its current form: never printed, more results released since the last print, or a printed result changed |
+| Unprinted | `purple` | The current released content has not been printed in its current form: never printed, more results released since the last print, or a result changed since the last print |
 | Printed | `green` | The last print matches the current released content |
+
+Print status is about paper only. Sending does not change it; the Sent column (FR-1.4) and the
+Sent filter (FR-3.7b) show sends.
 
 Examples: a Partial report printed at 09:00 whose last results are released at 14:30 is
 **Final, Unprinted**; once printed it is **Final, Printed**. A printed report whose potassium
 is corrected is **Amended, Unprinted**; once the amended version is printed it is **Amended,
-Printed**.
+Printed**. A report sent automatically and never printed whose potassium is corrected is also
+**Amended**: the result had been issued by the send.
 
-**FR-4.3 Versions.** Each time a report is printed with content that differs from the last
-printed version, a new version is created: version 1 for the first print, then +1. A print
-whose content matches the last printed version is a **reprint**: it creates no version and
-returns that version's archived PDF (FR-6.3).
+**FR-4.3 Versions are created at issue.** A report is **issued** when it is printed (FR-6.2),
+sent from this page (FR-6.13) or sent by automatic delivery (FR-6.14), whichever comes first for
+that content. An issue whose content differs from the latest version (or when there is no version
+yet) creates a new version: version 1 for the first issue, then +1. An issue whose content matches
+the latest version creates no version and uses that version's archived PDF: a reprint (FR-6.3) or a
+resend. Every issue, print or send, is an event in the version's issue history (§6.2).
 
 **FR-4.4 Amended versions.** A new version is **amended** when, compared with the previous
-version, a result that was printed has changed value, flag or unit, or has been removed, or
-when it was made by Reissue with correction (FR-7). A new version that only adds results
-(completing a partial report) is **not** amended.
+version, a result that was issued (printed or sent) has changed value, flag or unit, or has been
+removed, or when it was made by Reissue with correction (FR-7). A new version that only adds
+results (completing a partial report) is **not** amended, whether it is created by a print or a
+send.
 
 **FR-4.5 Change summary.** Every version after the first records a change summary:
 - System-written for result changes: the changed results with old and new values ("Potassium
@@ -418,8 +435,10 @@ The summary shows in the version history (FR-5.4). On an amended version it prin
 corrected-report banner (OGC-1111 FR-A14 for patient reports; the amendment notice block for
 certificates).
 
-**FR-4.6 Printed identity.** Patient reports print "Version {n}" in the corrected banner
-(OGC-1111 FR-A15). Certificates keep the shipped identity: lab number, with `/Am.{n}` appended
+**FR-4.6 Printed identity.** Patient reports print "Version {n} · Issued {date time}" in the page
+footer of every report, corrected or not (OGC-1111 FR-A15a), and "Version {n}" in the corrected
+banner (OGC-1111 FR-A15); the issue time is the version's first issue, print or send. Certificates
+keep the shipped identity: lab number, with `/Am.{n}` appended
 where n counts amended versions only, and "Supersedes" naming the previous amended identity.
 Both numbers come from the same version history.
 
@@ -436,29 +455,36 @@ then the version history (FR-5.4) and the Reissue with correction control (FR-7)
 information, collection conditions, compliance summary per parameter, analyst and manager
 signatures), then the version history and Reissue with correction.
 
-**FR-5.4 Version history table:** Version, Issued (date and time), By, Change (summary or
-"First issue"), Completeness at issue, Fingerprint (first 12 characters of the SHA-256, full
-value on hover), and an **Open PDF** link that opens the archived file in a new tab. Reprints
-are listed under their version as "Reprinted {date} by {user}" in a compact line. Versions
-issued before archiving began show "Not archived (issued before {install date})" instead of a
-link.
+**FR-5.4 Version history table:** Version, Issued (date and time of the version's first issue,
+print or send), By (the user, or "Automatic" for a version created by automatic delivery), Change
+(summary or "First issue"), Completeness at issue, Fingerprint (first 12 characters of the SHA-256,
+full value on hover), and an **Open PDF** link that opens the archived file in a new tab. Under each
+version, its issue history lists every later print and send event in time order, one compact line
+each. Sends: one line per recipient, "Sent {time} to {recipient}, {protected | as issued | masked},
+by {user | Automatic}" (masked only from Release 2 of Result Delivery), with a link to its Sent
+Messages row for users with `delivery:view` (Result Delivery FR-C12). Under an Amended version's
+automatic send, each address that received an earlier version as an address typed for one send is
+listed as "{address}: Not reachable: typed for one send", because typed addresses are not saved
+and get no correction (Result Delivery FR-C4). Prints: "Reprinted {date} by {user}" when the version had been printed before, or "Printed
+{date} by {user}" for the first print of a version that had only been sent. Versions issued before
+archiving began show "Not archived (issued before {install date})" instead of a link.
 
-**FR-5.5** The expansion shows "Nothing printed yet" in place of the history table for a row
-that has never been printed.
+**FR-5.5** The expansion shows "Nothing issued yet" in place of the history table for a row
+that has never been printed or sent.
 
 ### 5.6 Printing
 
 **FR-6.1** The Print button on a row prints that order's report. It is disabled only for an
 order with nothing released (reached by Lab No lookup), with the reason as its tooltip.
 
-**FR-6.2** When the current content differs from the last printed version (or there is none),
-Print renders the report once, creates the new version (FR-4.3, FR-4.4), archives the rendered
-bytes with their SHA-256 (FR-8), records the issue, and opens the same bytes in a new browser
-tab.
+**FR-6.2** When the current content differs from the latest version (or there is none), Print
+renders the report once, creates the new version (FR-4.3, FR-4.4), archives the rendered bytes
+with their SHA-256 (FR-8), records a print event, and opens the same bytes in a new browser tab.
 
-**FR-6.3** When the current content matches the last printed version, Print returns that
-version's archived PDF unchanged and records a reprint. For versions issued before archiving
-began, it renders the report as today and records the reprint.
+**FR-6.3** When the current content matches the latest version, whether that version was printed
+or only sent, Print returns that version's archived PDF unchanged and records a print event on it
+(a reprint, FR-5.4). It never creates a second version of the same content. For versions issued
+before archiving began, it renders the report as today and records the reprint.
 
 **FR-6.4 Print selected.** With rows selected, a Carbon batch toolbar offers Print selected.
 It produces **one combined PDF** (each order's report in turn, each numbered from page 1 of its
@@ -497,13 +523,48 @@ it has no threshold column, no compliance status column and no compliance conclu
 evaluations, so today such an order would print with no results at all.
 
 **FR-6.12 Standard linked after printing.** Linking a standard to an order already printed as
-"Not evaluated" creates a new version on the next print. It is **not** amended (results are
+"Not evaluated" creates a new version on the next issue (print or send). It is **not** amended (results are
 unchanged and an evaluation is added); its change summary is "Evaluated against {standard}".
 Changing or removing a standard after a certificate was printed with it is an amended version.
 
+**FR-6.13 Send.** Beside Print, each row's actions and the batch toolbar offer **Send**, for users
+with `report:send`. It opens the Result Delivery Send dialog (Result Delivery FR-C5 to FR-C8,
+FR-J4): recipients grouped by facility or client, and an address typed for one send. In Release 1
+of Result Delivery the formats are Protected full report for patient reports and Protected or
+Certificate as issued for certificates; a patient-report recipient with no delivery password (or a
+clinician or typed address whose order's facility has none) is shown as "No delivery password",
+Will be skipped, and is not sent (Result Delivery FR-C6, FR-C8, D-245). The Masked copy format
+arrives with Release 2 of Result Delivery. Send is available on every row with at least one released result
+(BR-2), the same rows Print is. Send needs a released, archived version: when the current content
+has no version yet, Send creates it through the same pipeline as Print (FR-6.2, FR-4.3) without
+opening a PDF, so what is sent is always an archived version. Each recipient's send is recorded as
+a send event on that version (§6.2). **A send issues a report only when at least one message is
+queued for it:** if every recipient of a report is skipped (for example no report email and no
+other recipient ticked), no version is created, nothing is archived, no issue event is recorded,
+and the row's Sent column shows "Skipped" (FR-1.4) while Version stays "Not issued" when no
+earlier version exists (Result Delivery FR-C5, AC-59). Send respects the 100-order batch limit
+(FR-6.7). The row action and the batch toolbar button are both labelled "Send"
+(`reportQueue.action.send`), matching the Result Delivery Send button.
+
+**FR-6.14 Automatic issue by Result Delivery.** When Result Delivery sends a report automatically
+(Result Delivery FR-C2 automatic delivery, FR-C4 amended versions to earlier recipients), it issues
+the report through this pipeline once the hold has passed (the lab-wide hold in Configuration's
+Notifications area, default 10 minutes; results released during the hold go into the same
+version). The hold runs per recipient: every report version due to one recipient when its hold
+ends goes in one email, split at 10 MB of attachments or 20 reports, and an Amended version starts
+its own hold (Result Delivery FR-C2, D-246). When the current content differs from the latest version (or there is none), the pipeline
+renders the report once, creates the version (FR-4.3, FR-4.4), and archives it with its SHA-256
+(FR-8) without opening a PDF; when the content matches the latest version, it uses that version and
+creates none. It then records one send event per recipient with By "Automatic" (FR-5.4). A version
+created this way is listed in the version history with By "Automatic", and later prints of the same
+content reuse it (FR-6.3). Automatic issue does not change print status (FR-4.2). As with Send
+(FR-6.13), automatic delivery issues the report only when at least one message is queued: when
+every recipient is skipped, no version is created and the row's Sent column shows "Skipped".
+
 ### 5.7 Reissue with correction
 
-**FR-7.1** A printed row's expansion shows a **Reissue with correction** tertiary button for
+**FR-7.1** An issued row's expansion (the current content was printed or sent) shows a
+**Reissue with correction** tertiary button for
 users allowed to use it (§8). For others it is disabled with the tooltip "Only Results,
 Validation or Admin users can reissue a report."
 
@@ -516,22 +577,39 @@ and print, and Cancel.
 state ("Enter what was corrected") and sends nothing.
 
 **FR-7.4** Reissue creates a new amended version with the reason as its change summary,
-archives it, records the issue, and opens the PDF, whether or not any result changed.
+archives it, records a print event, and opens the PDF, whether or not any result changed.
+Recipients who were sent an earlier version receive the amended version automatically (Result
+Delivery FR-C4, through FR-6.14).
 
-**FR-7.5** Reissue is offered only on rows whose print status is Printed. A row that is
-Unprinted, in any state, uses Print.
+**FR-7.5** Reissue is offered only on rows whose current content matches an issued version
+(printed or sent). A row whose current content has not been issued yet, in any state, uses Print
+or Send.
 
 ### 5.8 Archive
 
 **FR-8.1** Every new version's PDF is stored as rendered, with its SHA-256 hash, the version
-number, who issued it and when. Stored versions are never overwritten or deleted (D-002).
+number, who issued it (a user, or Automatic) and when. Stored versions are never overwritten or
+deleted (D-002).
 
 **FR-8.2** Open PDF (FR-5.4) returns the stored bytes unchanged. The page shows the hash so a
 reviewer can check a file they were given against it.
 
 **FR-8.3** If storing the archive fails, the print still reaches the user, the failure is
 logged, and the version is flagged "Archive failed" in its history with a Retry archive action
-for Admin users. (The shipped code logs and continues; r4 makes the gap visible.)
+for Admin users. (The shipped code logs and continues; r4 makes the gap visible.) A send is
+different: nothing is sent until the version is archived (Result Delivery FR-C1), so when archiving
+fails during Send (FR-6.13) or automatic issue (FR-6.14), the sends stay Queued and retry with the
+archive, and the version is flagged the same way.
+
+**FR-8.4 Masked copies and protected copies.** *Release 2 of Result Delivery:* a masked copy
+rendered for delivery (OGC-1111 FR-A61) is archived with its own SHA-256, linked to the version it
+was rendered from, and is never overwritten. In Release 1 no masked copy is rendered or archived. A
+protected copy is the version's archived bytes encrypted for one recipient (AES-256, Result Delivery
+FR-C9); it is not archived again, and the send records that it was encrypted, the recipient's
+password date (never the password) and the SHA-256 of the encrypted file actually sent, beside the
+version's archive hash (Result Delivery FR-A11).
+A resend of a protected copy encrypts the archived version again with the recipient's current
+delivery password and records that password's set date (Result Delivery FR-A12).
 
 ### 5.9 Tiles
 
@@ -551,8 +629,8 @@ definition as the queue, and links to `/ReportPrintQueue?type=patient`.
 ### 5.10 Page states and guidance
 
 **FR-10.1** Under the page title, a non-dismissible info `InlineNotification`: "Reports land
-here when their first result is released. Printed reports come back when more results are
-released or a printed result changes. Your own data exports show here too." followed by a
+here when their first result is released. Printed or sent reports come back when more results are
+released or a result that went out changes. Your own data exports show here too." followed by a
 legend of the three report states and the two print statuses (each Tag beside one line of
 meaning).
 
@@ -632,18 +710,23 @@ reports a day adds roughly 35 to 90 GB a year.
 
 ### 6.2 Issue history (widened, one for all report types)
 
-For each order and report type, the history holds one entry per **print event**, grouped by
-**version**. The data elements:
+For each order and report type, the history holds one entry per **issue event**, print or send,
+grouped by **version**. A version is created by the first issue of its content (FR-4.3). The data
+elements:
 
 - Report type; order.
 - Version number; whether the version is amended; amended count (for `/Am.N`).
 - Change summary (system- or user-written, FR-4.5); for a user-written one, that it was a
   reissue with correction.
-- What was printed, per analysis: the analysis, and the value, flag and unit printed. This is
-  what FR-4.4 compares against to tell "added" from "changed or removed", and what makes
+- What was issued, per analysis: the analysis, and the value, flag and unit in the version. This
+  is what FR-4.4 compares against to tell "added" from "changed or removed", and what makes
   Status computable without re-rendering.
 - Completeness at issue (`released/total`).
-- Issued by, issued at; for reprints, the version reprinted.
+- Per issue event: kind (print or send), issued by (a user, or Automatic), issued at. For a send:
+  recipient, format (protected, as issued, or masked from Release 2 of Result Delivery), the
+  recipient's password set date for a protected copy, the SHA-256 of the file actually sent, the
+  masked-copy archive reference (FR-8.4, Release 2), and the link to the Result Delivery outbox row. Print
+  status reads only print events; the Sent column reads only send events.
 - Archive: the PDF bytes and SHA-256 per version, or "issued before archiving began" for
   migrated history.
 
@@ -669,10 +752,11 @@ signature, as the shipped `hasBeenReleased` checks today.
 least one released result can be printed.
 
 **BR-3** Print status and report state are computed from the current released content and the
-printed versions (§6.2). Print status: no printed version, or current content differs from the
-last printed version → Unprinted; otherwise Printed. Report state: any printed result changed or
-removed since it was printed, or any version reissued with a correction → Amended (and it stays
-Amended); otherwise every counted analysis released → Final; otherwise Partial.
+issued versions (§6.2). Print status: no printed version, or current content differs from the
+last printed version → Unprinted; otherwise Printed (send events do not count). Report state: any
+issued result (printed or sent) changed or removed since it was issued, or any version reissued
+with a correction → Amended (and it stays Amended); otherwise every counted analysis released →
+Final; otherwise Partial.
 
 **BR-4 No standard.** An environmental or vector order with no linked standard is an ordinary
 queue row. Its report states "Not evaluated against a standard" and carries no compliance
@@ -691,7 +775,8 @@ issue record do not appear as Unprinted.
 back another's version, archive or issue record.
 
 **BR-9** A user sees only rows whose report type is in their scope (§8), including in tile
-counts, lookups and batch actions, and only their own data export jobs.
+counts, lookups and batch actions, and only their own data export jobs. Result Delivery's Sent
+Messages applies the same scope to report and alert rows.
 
 ---
 
@@ -706,13 +791,30 @@ counts, lookups and batch actions, and only their own data export jobs.
   certificates; Vector sees vector certificates; a user with several sees each. Admin sees all.
 - **Print, reprint, batch print, download, open archived PDF:** anyone with page access, for
   rows they can see.
+- **Send:** anyone with page access (decided 2026-10-15: they can already download the PDF and
+  email it), through `report:send`.
 - **Reissue with correction:** users with the Results, Validation or Admin role (the rule the
   shipped `ComplianceReportRestController` already enforces). For others the control is
   disabled with its reason (FR-7.1).
 - **Retry archive** (FR-8.3): Admin.
 - **Data export rows:** shown to users who can use Custom Data Export today, and only their own
   jobs (FR-11.1). Download, Cancel, Retry and Re-run follow the shipped Custom Data Export rules.
-- No new permission keys (D-006).
+
+### 8.1 Nominated privileges
+
+| Capability | Privilege | Group | Default grant on upgrade |
+|---|---|---|---|
+| Open the queue; print, reprint, batch print, download, open archived PDF | `report:run` (existing) | Reports | Roles that can open Patient Status Report or Compliance Report today |
+| Send reports from the queue, including to a typed address | **NEW** `report:send` (owned by Result Delivery) | Reports | Roles with `report:run` |
+| Reissue with correction | **NEW** `report:reissue` | Reports | Roles with `result:validate` or `result:modify` |
+| Retry archive | `report:configure` (existing) | Reports | As today |
+| See and act on own data export jobs | `report:export` (existing) | Reports | As today |
+| See certificate rows (row scope) | Lab-unit domain (OGC-1070), not a privilege | | |
+
+NEW codes: `report:reissue` (and `report:send`, defined in Result Delivery). Until PR #3443
+merges, the Reports module grant stands in for `report:run` and `report:send`, and the Results,
+Validation or Admin role check stands in for `report:reissue`. This supersedes "No new permission
+keys (D-006)" for this page.
 
 ---
 
@@ -734,11 +836,11 @@ code that used them (Constitution VII key hygiene). `lhu.amendment.reason.*` are
 | `reportQueue.title` | Report Print Queue | NEW |
 | `reportQueue.subtitle` | Print, reprint and reissue released reports | NEW |
 | `reportQueue.guidance.lead` | Reports land here when their first result is released. | NEW |
-| `reportQueue.guidance.body` | Printed reports come back when more results are released or a printed result changes. | NEW |
+| `reportQueue.guidance.body` | Printed or sent reports come back when more results are released or a result that went out changes. | NEW |
 | `reportQueue.guidance.exports` | Your own data exports show here too. | NEW |
 | `reportQueue.legend.partial` | Some results are not released yet | NEW |
 | `reportQueue.legend.final` | Every result is released | NEW |
-| `reportQueue.legend.amended` | A printed result changed, or the report was reissued with a correction | NEW |
+| `reportQueue.legend.amended` | A result that was printed or sent changed, or the report was reissued with a correction | NEW |
 | `reportQueue.legend.unprinted` | The current content has not been printed yet | NEW |
 | `reportQueue.legend.printed` | The last print matches what is released | NEW |
 | `reportQueue.tile.toPrint` | To print | NEW |
@@ -772,12 +874,29 @@ code that used them (Constitution VII key hygiene). `lhu.amendment.reason.*` are
 | `reportQueue.col.printStatus` | Print status | NEW |
 | `reportQueue.col.version` | Version | NEW |
 | `common.action` | Action | REUSE |
-| `reportQueue.version.none` | Not printed | NEW |
+| `reportQueue.version.none` | Not issued | NEW |
 | `reportQueue.version.value` | v{n} | NEW |
 | `common.critical` | Critical | REUSE |
 | `reportQueue.action.print` | Print | NEW |
 | `reportQueue.action.printSelected` | Print selected | NEW |
 | `reportQueue.action.downloadSelected` | Download selected | NEW |
+| `reportQueue.action.send` | Send | NEW (row action and batch toolbar; replaces the v2.3 reuse of a Result Delivery key and `reportQueue.action.sendSelected`) |
+| `reportQueue.col.sent` | Sent | NEW |
+| `reportQueue.sent.value` | Sent v{n} {time} | NEW |
+| `reportQueue.sent.queued` | Queued: sends {time} | NEW |
+| `reportQueue.sent.none` | Not sent | NEW |
+| `reportQueue.sent.failed` | Failed | NEW |
+| `reportQueue.sent.skipped` | Skipped | NEW |
+| `reportQueue.sent.sentName` | Sent | NEW (filter option) |
+| `reportQueue.filter.sent` | Sent | NEW |
+| `reportQueue.notice.noContact` | Patient notice not sent: no contact | NEW (row indicator, FR-1.9) |
+| `reportQueue.history.sent` | Sent {time} to {recipient}, {format}, by {user} | NEW |
+| `reportQueue.history.format.protected` | protected | NEW (`{format}` value) |
+| `reportQueue.history.format.asIssued` | as issued | NEW (`{format}` value, certificates sent as issued) |
+| `reportQueue.history.format.masked` | masked | NEW (`{format}` value; Release 2 of Result Delivery) |
+| `reportQueue.history.notReachableTyped` | {address}: Not reachable: typed for one send | NEW (history line under an Amended send, FR-5.4, Result Delivery FR-C4) |
+| `reportQueue.history.automatic` | Automatic | NEW (By value and `{user}` value for automatic delivery) |
+| `reportQueue.history.printed` | Printed {date} by {user} | NEW (first print of a version that had only been sent) |
 | `reportQueue.batch.tooMany` | Select 100 or fewer orders to print or download at once | NEW |
 | `reportQueue.batch.progress` | Preparing {done} of {total} | NEW |
 | `reportQueue.print.disabled.nothingReleased` | Nothing released yet on this order | NEW |
@@ -838,7 +957,7 @@ code that used them (Constitution VII key hygiene). `lhu.amendment.reason.*` are
 | `reportQueue.history.notArchived` | Not archived (issued before {date}) | NEW |
 | `reportQueue.history.archiveFailed` | Archive failed | NEW |
 | `reportQueue.history.retryArchive` | Retry archive | NEW |
-| `reportQueue.history.none` | Nothing printed yet | NEW |
+| `reportQueue.history.none` | Nothing issued yet | NEW |
 | `reportQueue.change.added` | Added: {tests} | NEW |
 | `reportQueue.change.removed` | Removed: {tests} | NEW |
 | `reportQueue.change.changed` | {test} {old} → {new} | NEW |
@@ -859,7 +978,10 @@ code that used them (Constitution VII key hygiene). `lhu.amendment.reason.*` are
 **Note on `reporting.*` keys.** The export row Tag, action and details are moved out of
 `ReportingView.jsx` into one shared job-row component that both Custom Data Export and this page
 render, and the `reporting.*` keys travel with that component. The queue page never references
-another feature's keys directly (Constitution VII, no cross-feature key references).
+another feature's keys directly (Constitution VII, no cross-feature key references). The same
+applies to Result Delivery: the Send label, the Sent column and the patient notice indicator use
+this page's own `reportQueue.*` keys; the Send dialog it opens is Result Delivery's and carries
+Result Delivery's keys.
 
 Printed-report strings (the corrected banner, "Version {n}", "Provisional", and the printed
 "Not evaluated against a standard") belong to the
@@ -874,12 +996,13 @@ report templates and are keyed in OGC-1111 (`report.patient.*`) and S06c / S06d.
 | D1 | S06d vector certificate renderer | Not built | Vector rows (listed but Print disabled "Vector certificate template not installed" until it exists; Type option hidden until then) |
 | D2 | Environmental renderer changes: partial wording ("Pending", "Provisional" conclusion), and a no-standard mode that prints results from the order's analyses rather than from compliance evaluations | Renderer change (S06c; S06d the same) | FR-6.10, FR-6.11 |
 | D3 | Issue history with versions, per-analysis printed values and per-version change summary | New data (§6.2) | FR-4, FR-5.4, FR-6, FR-7 |
-| D4 | Patient report corrected banner reading the change summary and version from D3 | OGC-1111 FR-A14, FR-A15 (FR-A15 moves from its V2 to its V1) | FR-4.5, FR-4.6 |
+| D4 | Patient report corrected banner reading the change summary and version from D3, and the version on every report | OGC-1111 FR-A14, FR-A15, FR-A15a, FR-A40, FR-A41 (all V1 in OGC-1111 v2.6) | FR-4.5, FR-4.6 |
 | D5 | Row filtering by lab-unit domain | OGC-1070 (menu filtering exists; row-level reuse to verify) | §8, BR-9 |
 | D6 | OGC-776 amendment code deployed to the target release | Confirm (ticket shows Backlog, code on `develop`) | §3.1 |
 | D7 | Server sizing guidance updated for archive growth | Docs | NFR-3 |
 | D8 | Add Order typeahead endpoints restricted to child wards of chosen facilities | Endpoint extension if missing (r3 §7) | FR-3.5 |
 | D9 | Export job row (Tag, one action, details) extracted from `ReportingView.jsx` into a shared component rendered by both Custom Data Export and this page | Refactor of shipped code | §5.11, §9 note |
+| D10 | Result Delivery v0.3: the Send dialog, the outbox and its send states (Queued, Sent, Failed, Skipped), automatic delivery after the hold (batched per recipient), patient notices, Sent Messages. Its Release 1 sends protected full reports and certificates; the masked copy is its Release 2 | Sibling spec (`result-delivery/result-delivery-frs.md`) | FR-1.4 Sent, FR-1.9, FR-3.7b, FR-5.4, FR-6.13, FR-6.14, FR-8.4 |
 
 ---
 
@@ -890,7 +1013,8 @@ report templates and are keyed in OGC-1111 (`report.patient.*`) and S06c / S06d.
 - Other long-running report types that do not run on the export job runner today; they can join
   as further row types once they do.
 - Seeing another user's exports, including for Admin (Custom Data Export BR-016).
-- Sending reports electronically (email, FHIR DiagnosticReport push, portal).
+- Delivery rules, channels, recipients and templates for sending reports (Result Delivery FRS). This page hosts Send, shows sends, and provides the pipeline that issues versions for automatic delivery (FR-6.14).
+- A patient portal.
 - A certificate numbering scheme (`LHU-YYYY-NNNN`). Certificates keep the lab number with
   `/Am.N`.
 - Printing a preview of an order with nothing released.
@@ -904,7 +1028,7 @@ report templates and are keyed in OGC-1111 (`report.patient.*`) and S06c / S06d.
 1. Opening `/ReportPrintQueue` shows the list without pressing anything; the first page of the
    default view meets NFR-1 on the fixture data set.
 2. Validating the first result of a clinical order makes it appear as Partial 1/n, Unprinted,
-   version "Not printed".
+   version "Not issued".
 3. Printing it creates v1, opens the PDF, stores the PDF with a 64-character SHA-256, and the
    row shows Printed, v1.
 4. Releasing the remaining results on that order returns it as Final, Unprinted (not Amended);
@@ -965,6 +1089,18 @@ report templates and are keyed in OGC-1111 (`report.patient.*`) and S06c / S06d.
     export rows cannot be selected for batch print.
 28. Opening the old My Report Queue panel link, or the builder's "View My Report Queue" link after
     an asynchronous submit, lands on `/ReportPrintQueue?type=export`.
+29. Pressing Send on 7 selected rows opens the Result Delivery Send dialog; after sending, each row's Sent column shows "Sent v{n}" or "Queued", and each version history lists the sends with recipient and format.
+30. Send on a Final, Unprinted row with no version creates and archives the version first, without opening a PDF, and sends that version.
+31. A masked copy sent from the queue appears in the archive with its own SHA-256, linked to its version. (Release 2 of Result Delivery)
+32. For a facility with automatic delivery on, validating the first results of an order creates, once the hold has passed, v1 with a 64-character SHA-256 in the archive without opening a PDF; the version history shows v1 By "Automatic" with one "Sent ... by Automatic" line per recipient; the row shows "Sent v1" and stays Unprinted. Printing the row then returns v1's archived bytes (same SHA-256), adds a "Printed {date} by {user}" line under v1, creates no v2, and the row shows Printed.
+33. On an order whose v1 was only sent (never printed), changing a result in v1 returns the row as Amended; the next issue (print or automatic send) creates v2, amended, with the change summary, and the patient report prints the corrected banner. Releasing a result that was not in v1 instead creates a v2 that is not amended.
+34. When every send of the current version is Skipped, the Sent column shows "Skipped" as a `gray` Tag with text, and Sent = Skipped lists the row.
+35. An order whose patient notice was ticked at order entry, for a patient with no email or phone, shows "Patient notice not sent: no contact" under the Sent value; for a user with `delivery:view` it links to the Skipped row in Sent Messages.
+36. Reissue with correction is offered on a row whose current content was only sent (never printed); the amended version it creates is sent automatically to the recipients of the earlier version.
+37. The row action and the batch toolbar both read "Send" from `reportQueue.action.send`; no `delivery.*` key is referenced by this page.
+38. In Release 1 of Result Delivery, Send on rows for a facility with no delivery password shows that facility as "No delivery password", Will be skipped; after sending, those rows show "Skipped" in the Sent column, their Version stays "Not issued" when no earlier version exists, and no masked copy is rendered or archived. A certificate row for a client with no password is sent as issued and its history line reads "Sent ... as issued".
+39. After v1 of an order was sent to its facility and to an address typed for one send, correcting a result sends the Amended v2 automatically to the facility only, and v2's history lists "{address}: Not reachable: typed for one send" for the typed address.
+40. For a facility with automatic delivery on, results validated on three of its orders within one hold go out as one email carrying all three versions: each row shows "Sent v{n}" with the same time, and each version history shows one "Sent ... by Automatic" line for that facility.
 
 ---
 
@@ -972,7 +1108,8 @@ report templates and are keyed in OGC-1111 (`report.patient.*`) and S06c / S06d.
 
 | Spec | What changes there |
 |---|---|
-| OGC-1111 patient report FRS v2.2 | FR-A14 reads the replaced version and change summary from this spec's issue history instead of `document_track` plus the result note (FR-A40). FR-A15 and FR-A41 (version number) move from V2 to V1 because the queue needs them. FR-B7's "reprints use the image current at reprint time" no longer holds for reprints of an archived version (BR-5). N12 is now satisfied by this spec |
+| OGC-1111 patient report FRS v2.7 | FR-A14 reads the replaced version and change summary from this spec's issue history and its Amended rule (FR-4.4) instead of `document_track` plus the result note (FR-A40; done in v2.6). FR-A15, FR-A15a and FR-A41 (version number, and "Version {n} · Issued {date time}" on every report) are V1 because the queue needs them (FR-4.6). FR-A61 masked mode renders the masked copies archived here (FR-8.4), from Release 2 of Result Delivery (RD-2). FR-B7's "reprints use the image current at reprint time" no longer holds for reprints of an archived version (BR-5). N12 is now satisfied by this spec |
+| Result Delivery FRS v0.3 | Release 1 sends protected full reports and certificates (protected or as issued) and skips recipients with no delivery password; the masked copy and its archive are Release 2 (FR-6.13, FR-8.4). Automatic delivery sends one email per recipient per hold window (FR-6.14); an Amended version's history lists typed addresses as not reachable (FR-5.4). Sends versions issued by this pipeline: Send (FR-6.13) and automatic delivery (FR-6.14) create versions at issue (Result Delivery D-236); send events in the issue history (§6.2, Result Delivery FR-C12); Sent column and filter with Skipped (FR-1.4, FR-3.7b); "Patient notice not sent: no contact" row indicator (FR-1.9, Result Delivery FR-F5); masked copies archived and protected resends re-encrypted (FR-8.4); Send available wherever Print is (Result Delivery FR-C5); Sent Messages follows BR-9 scope |
 | S06 FRS (`S06-laporan-hasil-compliance-report-frs-v1.0.md`) | §5.2 and §5.5 (list page, batch) superseded by this spec; its permission keys (§4) were never built and stay unbuilt (D-006) |
 | S06c / S06d | Partial certificate wording (D2); vector renderer (D1) |
 | OGC-776 tasks | Its per-sample amendment columns become a cache; the per-version reason lives in the issue history |
@@ -1000,7 +1137,7 @@ report templates and are keyed in OGC-1111 (`report.patient.*`) and S06c / S06d.
 | ID | Decision |
 |---|---|
 | D-139 | One Amended state for every report type; what caused the amendment is recorded as its change summary, never a separate status or filter |
-| D-140 | Completing a partial report creates a new version, not an amended one; Amended applies only when printed content changed or was removed |
+| D-140 | Completing a partial report creates a new version, not an amended one; Amended applies only when issued (printed or sent) content changed or was removed. Amended 2026-10-15 by Result Delivery D-236: versions are created at issue (print, Send or automatic delivery), and every issue is an event in the version's issue history |
 | D-141 | Every released version of every per-order report is archived as rendered with its SHA-256 and never overwritten; reprints return the archived bytes |
 | D-142 | Per-order reports share one queue page with typed rows (`/ReportPrintQueue`); `/LaporanHasil` is merged into it |
 | D-143 | Certificates join the queue on their first released result and may print as partial with a provisional conclusion, like patient reports |

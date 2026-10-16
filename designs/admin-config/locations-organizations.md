@@ -1,13 +1,13 @@
 # Locations & Organizations: Functional Requirements Specification
 
-**Version:** 0.4 (adds the Result delivery section and nominated privileges, from the Result Delivery FRS)
-**Date:** 2026-10-15
+**Version:** 0.6 (aligns with Result Delivery v0.3, whose Release 1 sends no masked copy: the "no password" text says patient reports are not sent until a password is set, certificates as issued (FR-N1 to FR-N3); turning on automatic delivery with no password shows a warning (FR-N8); the "Automatic, no password" Tag is amber (FR-N3); a Delivery filter and a readiness count on the Organizations list (FR-N9); the password's scope stated (FR-N2); AC-35 to AC-38. v0.5 aligned the Result delivery section with Result Delivery v0.2: its own `admin.locations.delivery.*` keys; `delivery:view_password` renamed from `delivery_password:view`; Generate and Change also need `organization:manage`; password hyphens are display only; Delivery tags name the password state ("Automatic, no password", "Manual, no password"); the Result delivery keys and texts match the Result Delivery preview; ward report addresses are added to the facility's; report email seeded from the general email on upgrade, FR-N6, FR-N7, AC-29 to AC-34. v0.4 added the Result delivery section and nominated privileges, from the Result Delivery FRS)
+**Date:** 2026-10-16
 **Author:** Casey, Director of Product (drafted with Claude)
 **Status:** Draft, awaiting review
 **Supersedes:** `designs/admin-config/organizations-management.md` (Region/District/Facility/Ward spec, which assumed separate tables that do not exist)
 **Related:** Result Delivery FRS (`result-delivery/result-delivery-frs.md`, owns the Result delivery section's behaviour), S-02 Sampling Site Registry (OGC-531, under OGC-527), Catalog CSV import (OGC-1194, PR #4329), Address hierarchy configuration loader, Environmental and Vector Order Entry v4
 **Jira:** [OGC-1363](https://uwdigi.atlassian.net/browse/OGC-1363)
-**Decisions:** D-106 to D-112 (decision log)
+**Decisions:** D-106 to D-112 (decision log); Result Delivery D-240 (ward report addresses add to the facility's), D-243 (delivery passwords are the exception to Admin Redesign AS-31), D-245 (Release 1 sends patient reports only to recipients with a delivery password) and D-248 (the delivery password is a deliberately shareable facility secret)
 **Preview:** `locations-organizations-preview.html`
 
 ---
@@ -70,7 +70,7 @@ Items considered and deliberately left for later are listed under **Deferred** a
 | Geographic Areas | `/MasterListsPage/locations/areas` |
 | Import / Export | `/MasterListsPage/locations/import` |
 
-- **Deep links:** list filters are encoded in the query string (`?type=<typeId>,<typeId>&status=active|inactive|all&q=<text>&page=<n>`). An expanded record is `?id=<organizationId>`. Pasting a URL restores the same view.
+- **Deep links:** list filters are encoded in the query string (`?type=<typeId>,<typeId>&status=active|inactive|all&delivery=all|ready|noEmail|noPassword&q=<text>&page=<n>`; `delivery` on Organizations only, FR-N9). An expanded record is `?id=<organizationId>`. Pasting a URL restores the same view.
 - **Redirects:**
 
 | Old route | New route |
@@ -112,7 +112,7 @@ Items considered and deliberately left for later are listed under **Deferred** a
 | FR-B1 | Each list view shows a server-paged DataTable, 25 rows by default, with page sizes 25, 50 and 100. | Replaces client-side paging over one server page. |
 | FR-B2 | Columns: **Name**, **Code** (the reporting code, section I), **Type** (tags, one per organization type, with the facility category underneath in small text), **Location**, **Wards / Depts** (Organizations view only: count of active wards / depts), **In use** (count of orders referencing the record), **Active** (toggle) and **Actions** (Edit). **Location** shows the full area path top-down in one consistent form (`Southern Region / National Capital District / Moresby South`) with the most specific area in bold and its level as a small label ("District"). Sorting by Location sorts by that full path, so records group by region, then province, then district, whatever depth each record was placed at. Sampling Sites view swaps Wards / Depts for **Site type**. Referral labs whose review is overdue show a red **Review overdue** tag next to the name (section J). | Active state is always text plus colour ("Active" / "Inactive" beside the toggle), never colour alone, and never "Y"/"N". |
 | FR-B3 | **Search** matches, case-insensitively, anywhere in name, reporting code, any other identifier value (section I), short name, or a former name (from history, section K). It is debounced (300 ms) and resets to page 1. An exact identifier match is listed first; a match on a former name or a non-reporting identifier says so under the row ("Formerly Nine Mile Clinic", "DHIS2 ID Rp1k2mPqH3x"). | |
-| FR-B4 | **Type filter**: a filterable MultiSelect of organization types available in the current view. Selected types show as removable tags with their names, never as a bare count. Multiple types are OR-combined, and combined with Location, Category, Ownership, Status and Search by AND. On Organizations, **Category** and **Ownership** filters (MultiSelect, section C) and a **Review overdue** quick filter (referral labs, section J) sit beside it. | Not shown on Geographic Areas, which uses the tree (FR-B7). |
+| FR-B4 | **Type filter**: a filterable MultiSelect of organization types available in the current view. Selected types show as removable tags with their names, never as a bare count. Multiple types are OR-combined, and combined with Location, Category, Ownership, Status and Search by AND. On Organizations, **Category** and **Ownership** filters (MultiSelect, section C), a **Delivery** filter (FR-N9) and a **Review overdue** quick filter (referral labs, section J) sit beside it. | Not shown on Geographic Areas, which uses the tree (FR-B7). |
 | FR-B4a | **Location filter** (Organizations and Sampling Sites): a ComboBox over geographic areas, searchable by name or code, each option showing its path and level. Choosing an area shows every record placed in that area **or anywhere beneath it** (choosing Morobe Province includes records placed at Lae district and at Lae Urban LLG). The chosen area shows as a removable tag with its path. | One filter works whatever depth records were placed at. |
 | FR-B5 | **Status filter**: Active (default), Inactive, All. Deactivated records are hidden by default (D-002). | |
 | FR-B6 | The **Organizations** page lists facilities, laboratories and other organizations as rows. Wards are never top-level rows: they appear only in their organization's expanded row (section D), and the Type filter does not offer the `dept` type. Search also matches ward names and codes and returns the parent organization, auto-expanded, with the matching ward highlighted. | Wards always belong to an organization. |
@@ -135,7 +135,7 @@ Items considered and deliberately left for later are listed under **Deferred** a
 
 | ID | Requirement | Notes |
 |---|---|---|
-| FR-D1 | An organization's expanded row lists its wards / depts as inline rows: Name, Code, **Service type**, Contact name, Phone, Email, **Report email** (blank means the organization's report addresses are used, shown as "Uses facility addresses"), GPS, In use, Active toggle, Edit. Inactive wards / depts are hidden unless the list's Status filter includes Inactive. **Service type** (required for new wards / depts, select): Inpatient, Outpatient, Intensive care, Emergency, Maternity, Laboratory, Other. It maps to the WHONET / GLASS location-type codes that antimicrobial resistance surveillance exports need (mapping owned by M-09 WHONET Export). | Service type lets AMR reports split inpatient from outpatient isolates without a separate mapping step. |
+| FR-D1 | An organization's expanded row lists its wards / depts as inline rows: Name, Code, **Service type**, Contact name, Phone, Email, **Report email** (one or more addresses **added** to the organization's report addresses for this ward / dept's orders, so both receive the reports, FR-N6; blank means only the organization's addresses receive them, shown as "Facility addresses only"), GPS, In use, Active toggle, Edit. Inactive wards / depts are hidden unless the list's Status filter includes Inactive. **Service type** (required for new wards / depts, select): Inpatient, Outpatient, Intensive care, Emergency, Maternity, Laboratory, Other. It maps to the WHONET / GLASS location-type codes that antimicrobial resistance surveillance exports need (mapping owned by M-09 WHONET Export). | Service type lets AMR reports split inpatient from outpatient isolates without a separate mapping step. |
 | FR-D2 | **Add ward / dept** inserts a new inline row (Name and Service type required; Code, Contact name, Phone, Email, GPS optional). The ward / dept is saved with type `dept` and this organization as parent, and is active. Several can be added before saving. | Replaces creating a ward as a standalone organization. |
 | FR-D2a | **GPS: own, else inherited.** A ward / dept has optional GPS latitude and longitude of its own (for example a clinic on a separate campus). When they are blank it uses its parent organization's coordinates, shown in the ward row as grey "inherited" values ("-9.4705, 147.1597 inherited from Port Moresby General Hospital"). Clearing a ward's own GPS returns it to inheriting. Moving a ward that inherits gives it the new parent's coordinates; a ward with its own GPS keeps it. Address is always the parent's. Contact name, phone and email are the ward's own, blank until set (no copy from the parent). | Maps and M-16 cluster detection read the ward's own GPS if set, else the parent's. |
 | FR-D3 | A ward / dept row shows an Active toggle and Edit. In edit mode it can be renamed, recoded, given contact details and its own GPS, or **moved** to another organization (Move opens an organization ComboBox). Moving keeps the ward / dept's identity and its order history. | |
@@ -246,7 +246,7 @@ One file can hold facilities, wards and sampling sites together. Columns are add
 | `serviceType` | Wards / depts: yes for new rows | Inpatient, Outpatient, Intensive care, Emergency, Maternity, Laboratory, Other |
 | `siteType`, `subtype`, `environmentalZone`, `description` | No | Sampling sites (`description` allowed for any kind) |
 | `approvalStatus`, `accreditationBody`, `accreditationNumber`, `accreditationExpiry`, `lastReviewDate`, `nextReviewDue` | No | Referral laboratories (section J); dates as `YYYY-MM-DD` |
-| `reportEmail`, `reportPhone`, `autoDelivery` | No | Result delivery (section N): report addresses separated by `;`, report number, `Y` / `N`. Wards / depts accept `reportEmail` only. The delivery password is never in a file. |
+| `reportEmail`, `reportPhone`, `autoDelivery` | No | Result delivery (section N): report addresses separated by `;`, report number, `Y` / `N`. Wards / depts accept `reportEmail` only (added to the organization's, FR-N6). The delivery password is never in a file. |
 
 For ward / dept rows (`type` = `dept`), `contactName`, `phone`, `email`, `gpsLatitude` and `gpsLongitude` apply to the ward; blank GPS means the ward inherits its parent's. Address columns are ignored with a warning, because a ward always uses its parent's address. Exports leave inherited GPS and address blank for wards.
 
@@ -266,11 +266,15 @@ How this organization receives its reports and messages. Behaviour (when reports
 
 | ID | Requirement | Notes |
 |---|---|---|
-| FR-N1 | Organizations (not geographic areas or sampling sites) have a **Result delivery** form section: Report email addresses (one or more), Report SMS or WhatsApp number, Send reports automatically (On, Off), Include partial reports (Lab default, Yes, No), Language, Delivery password. | Result Delivery FR-B1 |
-| FR-N2 | **Delivery password**: masked, with **Show**, **Copy**, **Generate** and **Change**, for users with `delivery_password:view`; others see "Password set {date}" only. Generate makes a 12-character password with no look-alike characters, grouped in threes. Change asks for confirmation and warns that reports already sent stay locked with the old password. Show hides again after 30 seconds or when the row closes. | Result Delivery FR-B3 to FR-B5 |
-| FR-N3 | The list's **Delivery** column (Organizations view) shows "Automatic, protected", "Manual, protected", "Manual, masked" or "No report email" as a Tag with text. | |
+| FR-N1 | Organizations (not geographic areas or sampling sites) have a **Result delivery** form section: Report email addresses (one or more; separate from the organization's general Email, FR-N7), Report SMS or WhatsApp number, Send reports automatically (On, Off), Include partial reports (Lab default, Yes, No), Language, Delivery password. There is no report format setting: an organization with a delivery password receives protected full reports (and protected certificates). One without receives certificates as issued, and no patient reports until a password is set (Result Delivery Release 1, D-245); from Result Delivery Release 2 it receives masked copies of patient reports instead. | Result Delivery FR-B1, FR-C8, FR-C16 |
+| FR-N2 | **Delivery password**: masked. **Show** and **Copy** are offered to users with `delivery:view_password`; **Generate** and **Change** are offered only to users who hold both `delivery:view_password` and `organization:manage`, and the server refuses them otherwise. Users without `delivery:view_password` see "Password set {date}" only, or, when none is set, "No password set. Patient reports are not sent to this organization until a password is set; certificates are sent as issued." (from Result Delivery Release 2: "No password set. Patient reports to this organization are sent as masked copies; certificates are sent as issued."). Generate makes a 12-character password with no look-alike characters (0/O, 1/l/I). It is displayed in groups of three with hyphens (`K7M-PQ4-RTW-9XF`) so it can be read out over the phone; the hyphens are display only and are not part of the password, and Copy copies the 12 characters without them. Change asks for confirmation and warns that reports already sent stay locked with the old password. Show hides again after 30 seconds or when the row closes. Sending the password to the browser for Show and Copy is the recorded exception to Admin Redesign AS-31 (Result Delivery D-243). **What it protects:** the password is a secret shared by the facility. It protects reports sent to a wrong or old address and casual forwarding outside the facility, not against people inside the facility or the lab. It is deliberately easy to give out again, so Show and Copy are not restricted further; Change is for when it has leaked outside the facility (Result Delivery D-248). | Result Delivery FR-B3 to FR-B5 |
+| FR-N3 | The list's **Delivery** column (Organizations view) shows "Automatic, protected", "Automatic, no password", "Manual, protected", "Manual, no password" or "No report email" as a Tag with text ("No report email" in `gray`; "Automatic, no password" in amber, the warning colour used for **Accreditation expired**, FR-J2). The second word is the password state, not a format, so the tag is right for every kind of organization: with no password, patient reports are not sent until a password is set (masked copies from Result Delivery Release 2) and certificates go as issued. "Automatic, no password" is an organization with automatic delivery on, a report email and no password: it is a warning because the lab expects its reports to go out and they do not. | Result Delivery FR-B10, FR-C8, FR-C16 |
 | FR-N4 | Order entry never changes these addresses; an address typed for the referring site at order entry applies to that order only. | Result Delivery FR-B8 |
 | FR-N5 | Report addresses import and export as columns (section M); the delivery password never imports or exports. | |
+| FR-N6 | **Wards / depts.** A ward / dept has Report email only (FR-D1). Its addresses are **added** to its organization's report addresses: a report for an order from the ward goes to both. A ward / dept has no report SMS or WhatsApp number and no delivery password of its own; protected reports to its addresses use the organization's delivery password, and it follows the organization's automatic delivery, partial reports and language settings. | Result Delivery D-240 |
+| FR-N7 | **Report email on upgrade.** On upgrade, each organization's report email list is seeded from its general Email (`Organization.email`) when one is set, so facilities whose email is already on file start receiving reports without anyone typing it again (patient reports once a delivery password is set, FR-N1). Afterwards the general Email (Contact section) and the report addresses are separate fields: changing one does not change the other. | Result Delivery FR-B1 |
+| FR-N8 | **Automatic delivery without a password.** Turning **Send reports automatically** on for an organization with no delivery password shows an inline warning under the field: "Patient reports will not be sent until a delivery password is set." The setting still saves (certificates are sent as issued), and the warning stays while the organization has automatic delivery on and no password. | Result Delivery D-245 |
+| FR-N9 | **Directory readiness.** The Organizations list has a **Delivery** filter: All (default), Ready (a report email and a delivery password), No report email, No password (a report email and no password). It combines with the other filters by AND (FR-B4) and is kept in the URL (`delivery=`). Above the list, a count reads "{n} facilities can receive reports by email": the number of active organizations matching the other filters that are Ready. So a lab can see how much of its directory is ready before turning on automatic delivery. | Result Delivery FR-B10, Dependencies (directory cleanup is a rollout task) |
 
 ---
 
@@ -286,7 +290,9 @@ How this organization receives its reports and messages. Behaviour (when reports
 
 **In use** (derived, not stored): number of orders whose referring organization, referring department, or sampling site is this record, split into open (not finalised) and total.
 
-**New information** (all declared in Dependencies): identifiers (label, value, reporting-code flag); category and ownership lists and their values on organizations; ward / dept service type; referral-lab approval, accreditation and review fields; record history entries.
+**Delivery readiness** (derived, not stored): Ready, No report email or No password, from the organization's report addresses and whether a delivery password is set (FR-N9); the Delivery column and the readiness count read it.
+
+**New information** (all declared in Dependencies): identifiers (label, value, reporting-code flag); category and ownership lists and their values on organizations; ward / dept service type; referral-lab approval, accreditation and review fields; result delivery fields on organizations and report email on wards / depts; record history entries.
 
 Uniqueness: identifier value unique within its label and kind. Name is not unique (warning only).
 
@@ -296,7 +302,7 @@ Uniqueness: identifier value unique within its label and kind. Name is not uniqu
 
 - **Who can use it:** users with the existing **Admin** role, as today for Organization Management and Sampling Sites. Users without Admin do not see the menu, and its routes redirect to the admin home.
 - **Who can do what:** Admin can view, add, edit, deactivate, reactivate, import (both modes), resolve decisions, view history and export. There is no read-only variant in this release.
-- **Delivery password:** users who can edit the record, and Report Print Queue users (from the Send dialog), can show and copy it; every Show and Copy is in History.
+- **Delivery password:** users with `delivery:view_password` can show and copy it, here and in the Report Print Queue's Send dialog (so a clerk on the phone with a facility can read it out); Generate and Change also need `organization:manage`. Every Show and Copy is in History.
 
 ### Nominated privileges
 
@@ -305,16 +311,17 @@ Uniqueness: identifier value unique within its label and kind. Name is not uniqu
 | See the menu and records | `organization:view` (existing) | Test catalog and reference data | Roles with Admin today |
 | Add, edit, deactivate, reactivate, move, identifiers, referral-lab fields, result delivery settings | `organization:manage` (existing) | Test catalog and reference data | Roles with Admin today |
 | Import (both modes), resolve decisions | **NEW** `organization:import` | Test catalog and reference data | Roles with `organization:manage` |
-| Show or copy a delivery password | **NEW** `delivery_password:view` (owned by Result Delivery) | Reports | Roles with `organization:manage`, `sample_requester:manage` or `report:run` |
+| Show or copy a delivery password | **NEW** `delivery:view_password` (owned by Result Delivery; renamed from `delivery_password:view`) | Reports | Roles with `organization:manage`, `sample_requester:manage` or `report:run` (this includes EQA Coordinator, which holds `report:run`; accepted) |
+| Generate or change a delivery password | `delivery:view_password` **and** `organization:manage` (existing) | Reports; Test catalog and reference data | As the two rows above |
 | View history | `organization:view` (existing) | Test catalog and reference data | As above |
 
-NEW codes: `organization:import` (Replace can deactivate many records at once, so a lab may want to keep it narrower than editing). Until PR #3443 merges, the Admin role stands in for all of these.
+NEW codes: `organization:import` (Replace can deactivate many records at once, so a lab may want to keep it narrower than editing), and `delivery:view_password`, defined by Result Delivery (category `delivery`, which Users and Roles Appendix A maps to the Reports group). Until PR #3443 merges, the Admin role stands in for all of these.
 
 ---
 
 ## Localization
 
-Keys follow `[category].[feature].[identifier]` under the `locations` feature namespace. Existing `organization.*` and `vector.admin.samplingSite.*` field labels are reused where the meaning is identical (listed as "reuse").
+Keys follow `[category].[feature].[identifier]` under the `locations` feature namespace. Existing `organization.*` and `vector.admin.samplingSite.*` field labels are reused where the meaning is identical (listed as "reuse"). The Result delivery section, the Delivery column and its tags, and the ward / dept report email use this page's own keys under `admin.locations.delivery.*` (the admin-page pattern of Admin Redesign AS-36). They never reference Result Delivery's keys (Constitution VII forbids cross-feature key references): Result Delivery owns the behaviour, this page owns its words.
 
 | Key | English fallback | Context |
 |---|---|---|
@@ -468,13 +475,55 @@ Keys follow `[category].[feature].[identifier]` under the `locations` feature na
 | `label.locations.history.title` | History of {name} | History panel |
 | `label.locations.history.formerly` | Formerly {name} | Search result note, order display |
 | `label.locations.form.jump` | Jump to | Form section links |
-| `label.locations.section.delivery` | Result delivery | Form section (keys for its fields are `delivery.facility.*` and `delivery.password.*`, owned by Result Delivery) |
-| `label.locations.column.delivery` | Delivery | Column (Organizations) |
-| `label.locations.delivery.autoProtected` | Automatic, protected | Delivery tag |
-| `label.locations.delivery.manualProtected` | Manual, protected | Delivery tag |
-| `label.locations.delivery.manualMasked` | Manual, masked | Delivery tag |
-| `label.locations.delivery.noEmail` | No report email | Delivery tag |
-| `label.locations.ward.usesFacility` | Uses facility addresses | Ward report email placeholder |
+| `admin.locations.delivery.section` | Result delivery | Form section |
+| `admin.locations.delivery.emails` | Report email addresses | Field |
+| `admin.locations.delivery.emails.placeholder` | Add an address | Placeholder |
+| `admin.locations.delivery.number` | Report SMS or WhatsApp number | Field |
+| `admin.locations.delivery.number.helper` | Used to say reports are ready. Reports are attached only to email. | Helper |
+| `admin.locations.delivery.auto` | Send reports automatically | Field |
+| `admin.locations.delivery.auto.on` | On: send each version when it is issued | Option |
+| `admin.locations.delivery.auto.off` | Off: send from the print queue only | Option |
+| `admin.locations.delivery.auto.noPasswordWarning` | Patient reports will not be sent until a delivery password is set. | Inline warning (FR-N8) |
+| `admin.locations.delivery.partials` | Include partial reports | Field |
+| `admin.locations.delivery.partials.labDefault` | Lab default ({value, select, yes {Yes} other {No}}) | Option |
+| `admin.locations.delivery.partials.yes` | Yes | Option |
+| `admin.locations.delivery.partials.no` | No | Option |
+| `admin.locations.delivery.language` | Language | Field |
+| `admin.locations.delivery.language.helper` | Messages to this organization use this language. | Helper |
+| `admin.locations.delivery.password` | Delivery password | Field |
+| `admin.locations.delivery.password.show` | Show | Button |
+| `admin.locations.delivery.password.hide` | Hide | Button |
+| `admin.locations.delivery.password.copy` | Copy | Button |
+| `admin.locations.delivery.password.generate` | Generate | Button |
+| `admin.locations.delivery.password.change` | Change | Button |
+| `admin.locations.delivery.password.showFor` | Show delivery password, {name} | Accessible name |
+| `admin.locations.delivery.password.copyFor` | Copy delivery password, {name} | Accessible name |
+| `admin.locations.delivery.password.setBy` | Password set {date} by {user}. Give it to the facility by phone or in person. Every Show and Copy is recorded in History. | Helper |
+| `admin.locations.delivery.password.setOnly` | Password set {date} | State (no view privilege) |
+| `admin.locations.delivery.password.notSet` | No password set. Patient reports are not sent to this organization until a password is set; certificates are sent as issued. | State (Result Delivery Release 1) |
+| `admin.locations.delivery.password.notSetMasked` | No password set. Patient reports to this organization are sent as masked copies; certificates are sent as issued. | State (Result Delivery Release 2) |
+| `admin.locations.delivery.password.copied` | Copied. Recorded in History. | Inline confirmation |
+| `admin.locations.delivery.password.changeConfirm.title` | Change the delivery password? | Danger Modal title |
+| `admin.locations.delivery.password.changeConfirm.body` | Reports already sent stay locked with the old password, so the facility will need both for a while. | Danger Modal body |
+| `admin.locations.delivery.password.changeConfirm.button` | Generate new password | Danger Modal button |
+| `admin.locations.delivery.column` | Delivery | Organizations list column |
+| `admin.locations.delivery.tag.autoProtected` | Automatic, protected | Tag |
+| `admin.locations.delivery.tag.autoNoPassword` | Automatic, no password | Tag (amber, a warning) |
+| `admin.locations.delivery.tag.manualProtected` | Manual, protected | Tag |
+| `admin.locations.delivery.tag.manualNoPassword` | Manual, no password | Tag |
+| `admin.locations.delivery.tag.noEmail` | No report email | Tag (gray) |
+| `admin.locations.delivery.filter` | Delivery | Filter label (Organizations, FR-N9) |
+| `common.all` | All | Filter option (reuse) |
+| `admin.locations.delivery.filter.ready` | Ready | Filter option: a report email and a delivery password |
+| `admin.locations.delivery.filter.noEmail` | No report email | Filter option |
+| `admin.locations.delivery.filter.noPassword` | No password | Filter option: a report email and no password |
+| `admin.locations.delivery.readyCount` | {count, plural, one {# facility can receive reports by email} other {# facilities can receive reports by email}} | Count above the Organizations list (FR-N9) |
+| `admin.locations.delivery.ward.emails` | Report email | Wards / Depts column |
+| `admin.locations.delivery.ward.facilityOnly` | Facility addresses only | Wards / Depts cell |
+| `admin.locations.delivery.ward.helper` | Reports for this ward go to these addresses and to the facility's. | Helper |
+| `admin.locations.delivery.history.passwordShown` | Delivery password shown | History action |
+| `admin.locations.delivery.history.passwordCopied` | Delivery password copied | History action |
+| `admin.locations.delivery.history.passwordChanged` | Delivery password changed | History action |
 
 ---
 
@@ -497,7 +546,8 @@ New data and capabilities, declared per design-addendum MUST A:
 13. **Ward / dept service type** attribute with a WHONET / GLASS mapping (coordinate with M-01 department `whonet_code` and M-09).
 14. **Referral-lab fields:** approval status, accreditation body / number / expiry, last review, next review due, review notes.
 15. **History** covering every change listed in FR-K1, including import runs and registry syncs (reuse the existing audit history where possible).
-16. **Result delivery fields** on Organization (report addresses, report number, automatic delivery, partials, language, delivery password with reversible encryption and its set date) and **Report email** on wards / depts, per the Result Delivery FRS.
+16. **Result delivery fields** on Organization (report addresses, report number, automatic delivery, partials, language, delivery password with reversible encryption and its set date) and **Report email** on wards / depts (added to the organization's, FR-N6), per the Result Delivery FRS. An upgrade step seeds each organization's report addresses from `Organization.email` (FR-N7).
+17. **Delivery filter and readiness count** (FR-N9): server-side filtering of organizations by delivery readiness, and a count of Ready active organizations under the other filters. Setting report emails and passwords for each facility before automatic delivery is turned on is a rollout task for each lab, not a build task (Result Delivery Dependencies).
 
 ## Coordination (overlaps)
 
@@ -540,8 +590,18 @@ New data and capabilities, declared per design-addendum MUST A:
 24. The Geographic Areas tree can be expanded, collapsed and navigated with the keyboard alone, and a screen reader announces each row's level and expanded state.
 25. Clicking a row outside its Edit button does not expand it; the expanded form keeps Save / Cancel visible while scrolling.
 26. An organization's Result delivery section saves two report addresses and automatic delivery; the list's Delivery column shows "Automatic, protected" once a delivery password is set.
-27. Show reveals the delivery password, hides it after 30 seconds, and the record's History lists the Show with user and time and without the password; a user without `delivery_password:view` sees only "Password set {date}".
+27. Show reveals the delivery password, hides it after 30 seconds, and the record's History lists the Show with user and time and without the password; a user without `delivery:view_password` sees only "Password set {date}".
 28. Exporting organizations includes `reportEmail`, `reportPhone` and `autoDelivery` and never the delivery password.
+29. An organization with automatic delivery on, a report email and no delivery password shows "Automatic, no password" in the Delivery column, as an amber Tag; setting a password changes it to "Automatic, protected". The form offers no report format setting.
+30. A user with `delivery:view_password` but not `organization:manage` sees Show and Copy but not Generate or Change, and a direct request to generate or change the password is refused; a user with both sees all four.
+31. Generate shows a password as four groups of three separated by hyphens (for example `K7M-PQ4-RTW-9XF`) with no 0, O, 1, l or I; Copy places the 12 characters without hyphens on the clipboard, and a protected report sent afterwards opens with those 12 characters.
+32. A ward / dept with a report email shows no report number or delivery password fields; for an order from that ward, Result Delivery resolves both the ward's and the organization's report addresses as recipients, and protected copies to the ward's address use the organization's password.
+33. After upgrade, an organization whose general Email was `lab@pmgh.gov.pg` has `lab@pmgh.gov.pg` as its report email; changing the general Email afterwards leaves the report email unchanged, and the reverse.
+34. Every string in the Result delivery section, the Delivery column and the ward report email comes from an `admin.locations.delivery.*` key; no `delivery.*` key owned by Result Delivery is referenced.
+35. An organization with no delivery password shows "No password set. Patient reports are not sent to this organization until a password is set; certificates are sent as issued."
+36. Turning on Send reports automatically for an organization with no delivery password shows "Patient reports will not be sent until a delivery password is set." under the field and still saves; setting a password removes the warning.
+37. With 12 active facilities, of which 7 have a report email and a password, 3 a report email and no password, and 2 no report email, the count above the list reads "7 facilities can receive reports by email"; Delivery = Ready lists the 7, No password the 3, No report email the 2, and `?delivery=noPassword` opens the list with that filter applied.
+38. The Delivery filter combines with Type and Location: Type = Health centre and Delivery = No password lists only health centres with a report email and no password, and the count reflects the Type filter.
 
 ---
 

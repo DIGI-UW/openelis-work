@@ -34,13 +34,13 @@ name** — e.g. Application Properties → `commonproperties`, Site Information 
 | Provider Management | `providerMenu` |
 | ~~Barcode Configuration~~ | ~~`barcodeConfiguration`~~; **redirects to `labelPresets`** (router, 2026-10-01); cite Label Presets |
 | List Plugins | `PluginFile`; ⚠ not found in the router strings 2026-10-01 (UNVERIFIED); confirm before citing |
-| Organization Management | `organizationManagement` |
+| Organization Management | `organizationManagement` (redirects to `locations` since OGC-1363) |
 | Result Reporting Configuration | `resultReportingConfiguration` |
 | User Management | `userManagement` |
 | Batch Test Reassignment | `batchTestReassignment` |
 | Test Management | `testManagementConfigMenu` — ⚠ corrected 2026-08-01 (bare `testManagement` is not a route) |
 | Application Properties | `commonproperties` |
-| Test Notification Configuration | `testNotificationConfigMenu` |
+| Test Notification Configuration | `testNotificationConfigMenu` (retiring: redirects to `notificationTriggerConfig/templates` after Result Delivery's migration) |
 | Dictionary Menu | `DictionaryMenu` |
 | Notify User | `NotifyUser` |
 | Search Index Management | `SearchIndexManagement` |
@@ -103,7 +103,7 @@ new work.
 - **Results:** `/AccessionResults`, `/ResultsByPatient`, `/ResultsByOrder`
 - **Validation:** `/ResultValidation`, `/ResultValidationByTestDate`, `/AccessionValidation`, `/AccessionValidationRange`, `/validation`
 - **Workplan:** `/WorkplanByTest`, `/WorkplanByPanel`, `/WorkplanByPriority`, **`/WorkPlanByTestSection`** (⚠ only this one has a capital `P` — a real inconsistency in the app)
-- **Reports:** `/Report`, `/RoutineReport`, `/RoutineReports`, `/StudyReport`, `/StudyReports`, `/TATReport`; generation via JSP `/api/OpenELIS-Global/ReportPrint`
+- **Reports:** `/Report`, `/Report?type=patient`, `/RoutineReport`, `/RoutineReports`, `/StudyReport`, `/StudyReports`, `/TATReport`; generation via JSP `/api/OpenELIS-Global/ReportPrint`; `/ReportPrintQueue` (Report Print Queue, spec only, OGC-1031; `/LaporanHasil` redirects to it); `/SentMessages` (Reports › Sent Messages after Report Print Queue, spec only, Result Delivery; filters `?product=report|alert|patient_notice|trigger|test`, `?status=queued|sent|failed|skipped`, `?labNo=`)
 - **Referrals:** `/SampleShipment`, `/SampleShipment/:tab`, `/SampleShipment/{receive,create-box,reports,settings}`, `/SampleShipment/box/:boxId`, `/ReferredOutTests`
 - **Analyzers:** `/analyzers`, `/analyzers/new`, `/analyzers/types`, `/analyzers/types/:profileId/mapping` (new), ~~`/analyzers/errors`~~ (retired 2026-09-24), `/analyzers/custom-field-types`, `/analyzers/:id/{edit,mappings,qc-rules}`, `/analyzers/qc/{db,rule-config,control-lots,control-lots/new,control-lots/:id,charts/:analyzerId,instruments/:instrumentId}`
 - **EQA:** now **`/qa/eqa/*`** (see `current-state-gotchas.md` 2026-10-01 table); the old `/EQAManagement`, `/EQADistribution`, `/EQAMyPrograms`, `/EQAOrders`, `/EQAParticipants`, `/EQAResults` are redirects
@@ -150,3 +150,26 @@ moved EQA to `/qa/eqa/*`, and flagged `AnalyzerTestName` and `PluginFile` as not
 not asserted removed). Nested routes built at runtime (for example the per-analyzer
 `/analyzers/:id/...` pages) don't appear as literal strings, so their absence from the bundle scan
 proves nothing.
+
+### Added 2026-10-15 (from `develop` and current specs)
+
+> Rows marked **spec only** are declared by an FRS and are **not on `develop` yet**; don't
+> treat them as verified until they ship. Built rows were checked on `develop`, not on the
+> live instance.
+
+| Admin page | editorKey (route) |
+|---|---|
+| External Connections | `externalConnections` (edit page `externalConnectionEdit`); built. SMTP, BMP, SMPP and WhatsApp types move to Notifications › Channels (Result Delivery) |
+| Locations & Organizations › Organizations | `locations`; built (OGC-1363) |
+| Locations & Organizations › Sampling Sites | `locations/sites`; built (OGC-1363) |
+| Locations & Organizations › Geographic Areas | `locations/areas`; built (OGC-1363) |
+| Locations & Organizations › Import / Export | `locations/import`; built (OGC-1363) |
+| Notification Triggers | `notificationTriggerConfig`; built as one route with tabs (Triggers, Templates, Sent Messages), reachable only from a dashboard tile. Becomes the Notifications group and redirects to `notificationTriggerConfig/triggers` |
+| Notifications › Channels | `notificationTriggerConfig/channels`; **spec only** (Result Delivery) |
+| Notifications › Templates | `notificationTriggerConfig/templates`; **spec only** as a sub-route (a tab today) |
+| Notifications › Distribution Lists | `notificationTriggerConfig/lists`; **spec only** (Result Delivery) |
+| Notifications › Triggers | `notificationTriggerConfig/triggers`; **spec only** as a sub-route (a tab today) |
+| Notification Triggers › Sent Messages tab | `notificationTriggerConfig/sent`; **spec only** redirect to `/SentMessages?product=trigger` |
+| Configuration | `configuration`; **spec only** (Admin Redesign §11). Notifications area: `configuration?area=notifications` |
+
+Breadcrumbs for the Notifications pages: `Home / Admin Management / Notifications / <page>`.

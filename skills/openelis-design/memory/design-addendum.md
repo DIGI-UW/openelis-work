@@ -113,7 +113,13 @@ Stage 2 (Design Brief) and `/analyze` Pass C.
 - **Inline rows for in-context additions.** Additions in an expanded panel slot in as a new
   inline row alongside existing rows (e.g. Methods, Storage); never wrap them in an
   `Accordion`. `Accordion` is for optional/advanced config only.
-- **Binary admin + per-module role bundles.** OpenELIS has no per-action permission keys.
+- **Every feature nominates its privileges (D-235, supersedes D-006).** Access is
+  privilege-based (PR #3443). Each FRS names the `category:action` codes it needs from the
+  #3443 catalogue, or nominates new ones in that form, with the display group (Users and
+  Roles Appendix A) and the default grant by held privilege. Nominated codes are the rule,
+  not a finding: `/analyze` Pass J no longer treats a per-action code as auto-CRITICAL. It
+  checks that each code is in `category:action` form, is nominated in the FRS, and has an
+  Appendix A display group.
   Attach features to an existing role bundle (Reception / Analyst / Validator / Provider /
   Admin / Test Catalog Manager / EQA Provider). Don't invent granular keys like
   `results.validate` — that's an auto-CRITICAL in `/analyze` Pass J.
