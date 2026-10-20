@@ -1,12 +1,14 @@
 # Report Management: specification moved
 
-The Report Management admin page is now specified in **Part B** of the consolidated
-**Patient Report & Report Management FRS (v2.3.3)**:
-[`designs/reports/patient-report-redesign.md`](../reports/patient-report-redesign.md).
+The Report Management admin page is now specified in **§13** of the consolidated
+**Admin Redesign FRS (v1.1)**:
+[`designs/admin-config/admin-redesign.md`](admin-redesign.md).
 
-That FRS covers the patient report (Part A) and the Report Management page (Part B), each split
-into V1 and V2. Epic **OGC-1111**; **OGC-932** is the V1 PNG / CPHL deliverable
-(breakdown: [`designs/reports/patient-report-redesign-breakdown.md`](../reports/patient-report-redesign-breakdown.md)).
+One admin FRS now owns every admin page. §13 holds the full Report Management spec — it moved
+here from Part B of the Patient Report & Report Management FRS as of that FRS's v2.4.2 (2026-10-02);
+the patient report itself (the printed PDF, Part A) stays in
+[`designs/reports/patient-report-redesign.md`](../reports/patient-report-redesign.md).
+Report Management is delivered under Epic **OGC-1111**; **OGC-932** is the V1 PNG / CPHL deliverable.
 
 - Mockup: [`report-management.jsx`](report-management.jsx)
 - Preview: [`report-management.html`](report-management.html)
