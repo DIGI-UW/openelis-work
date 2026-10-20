@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-10T08:39:45Z",
+  "generatedAt": "2026-10-20T20:21:07Z",
   "repo": "DIGI-UW/OpenELIS-Global-2",
   "branchesWatched": [
     "develop",
@@ -7,9 +7,9 @@
   ],
   "windows": {
     "develop": {
-      "base": "5c1c33dc",
-      "head": "ea875070",
-      "commitCount": 242,
+      "base": "028baf62",
+      "head": "8e139901",
+      "commitCount": 250,
       "windowDays": 30
     },
     "demo-silnas": {
