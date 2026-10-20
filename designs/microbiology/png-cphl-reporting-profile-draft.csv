@@ -1,0 +1,125 @@
+row,organism_level,organism,specimen_group,agent,agent_name,report_default,cascade_when,trigger_agents,report_as,always_report_R,comment,comment_when,sop_section,note
+1,GROUP,Enterobacterales non-ESCPPM,Urine,AMP,Ampicillin,REPORT,,,,,,,Urine non-ESCPPM,
+2,GROUP,Enterobacterales non-ESCPPM,Urine,AMC,Amoxicillin/clavulanic acid,REPORT,,,,,,,Urine non-ESCPPM,
+3,GROUP,Enterobacterales non-ESCPPM,Urine,CRO,Ceftriaxone,REPORT,,,,,,,Urine non-ESCPPM,
+4,GROUP,Enterobacterales non-ESCPPM,Urine,GEN,Gentamicin,REPORT,,,,,,,Urine non-ESCPPM,
+5,GROUP,Enterobacterales non-ESCPPM,Urine,NOR,Norfloxacin,REPORT,,,,,,,Urine non-ESCPPM,
+6,GROUP,Enterobacterales non-ESCPPM,Urine,CIP,Ciprofloxacin,CASCADE,ANY_R,NOR,,,,,Urine non-ESCPPM,"If NOR10 R, test and report CIP5"
+7,GROUP,Enterobacterales non-ESCPPM,Urine,NIT,Nitrofurantoin,REPORT,,,,,,,Urine non-ESCPPM,
+8,GROUP,Enterobacterales non-ESCPPM,Urine,SXT,Trimethoprim/sulfamethoxazole,REPORT,,,,,,,Urine non-ESCPPM,
+9,GROUP,Enterobacterales non-ESCPPM,Urine,MEM,Meropenem,CASCADE,ANY_R,CRO;GEN,,,,,Urine non-ESCPPM,"MDR extras. SOP names E. coli, Klebsiella, C. koseri only: confirm P. mirabilis"
+10,GROUP,Enterobacterales non-ESCPPM,Urine,CAZ,Ceftazidime,CASCADE,ANY_R,CRO;GEN,,,,,Urine non-ESCPPM,MDR extras
+11,GROUP,Enterobacterales non-ESCPPM,Urine,PIP,Piperacillin,CASCADE,ANY_R,CRO;GEN,,,,,Urine non-ESCPPM,MDR extras
+12,GROUP,Enterobacterales non-ESCPPM,Urine,AMK,Amikacin,CASCADE,ANY_R,CRO;GEN,,,,,Urine non-ESCPPM,MDR extras
+13,GROUP,Klebsiella spp.,ANY,AMP,Ampicillin,REPORT,,,,YES,,,Urine and non-urine non-ESCPPM,Always report Klebsiella spp. as AMP R
+14,SPECIES,Citrobacter koseri,ANY,AMP,Ampicillin,REPORT,,,,YES,,,Urine and non-urine non-ESCPPM,Always report C. koseri as AMP R
+15,SPECIES,Citrobacter koseri,Urine,PIP,Piperacillin,REPORT,,,,YES,,,Urine non-ESCPPM,"Always report C. koseri as R to PRL30. Reported even when the MDR extras cascade is not met: confirm"
+16,GROUP,Enterobacterales ESCPPM,Urine,AMP,Ampicillin,REPORT,,,,YES,,,Urine ESCPPM,"Always AMP and AMC R, regardless of zone"
+17,GROUP,Enterobacterales ESCPPM,Urine,AMC,Amoxicillin/clavulanic acid,REPORT,,,,YES,,,Urine ESCPPM,
+18,GROUP,Enterobacterales ESCPPM,Urine,CRO,Ceftriaxone,REPORT,,,,,,,Urine ESCPPM,
+19,GROUP,Enterobacterales ESCPPM,Urine,GEN,Gentamicin,REPORT,,,,,,,Urine ESCPPM,
+20,GROUP,Enterobacterales ESCPPM,Urine,NOR,Norfloxacin,REPORT,,,,,,,Urine ESCPPM,
+21,GROUP,Enterobacterales ESCPPM,Urine,CIP,Ciprofloxacin,CASCADE,ANY_R,NOR,,,,,Urine ESCPPM,
+22,GROUP,Enterobacterales ESCPPM,Urine,NIT,Nitrofurantoin,DONT_REPORT,,,,,,,Urine ESCPPM,Do not report F for this group
+23,GROUP,Enterobacterales ESCPPM,Urine,SXT,Trimethoprim/sulfamethoxazole,REPORT,,,,,,,Urine ESCPPM,
+24,GROUP,Enterobacterales ESCPPM,Urine,MEM,Meropenem,CASCADE,ANY_R,CRO;GEN,,,,,Urine ESCPPM,MDR extras
+25,GROUP,Enterobacterales ESCPPM,Urine,CAZ,Ceftazidime,CASCADE,ANY_R,CRO;GEN,,,,,Urine ESCPPM,MDR extras
+26,GROUP,Enterobacterales ESCPPM,Urine,PIP,Piperacillin,CASCADE,ANY_R,CRO;GEN,,,,,Urine ESCPPM,MDR extras
+27,GROUP,Enterobacterales ESCPPM,Urine,AMK,Amikacin,CASCADE,ANY_R,CRO;GEN,,,,,Urine ESCPPM,MDR extras
+28,SPECIES,Pseudomonas aeruginosa,Urine,AMP,Ampicillin,REPORT,,,,YES,,,Urine P. aeruginosa,
+29,SPECIES,Pseudomonas aeruginosa,Urine,AMC,Amoxicillin/clavulanic acid,REPORT,,,,YES,,,Urine P. aeruginosa,
+30,SPECIES,Pseudomonas aeruginosa,Urine,CRO,Ceftriaxone,REPORT,,,,YES,,,Urine P. aeruginosa,
+31,SPECIES,Pseudomonas aeruginosa,Urine,SXT,Trimethoprim/sulfamethoxazole,REPORT,,,,YES,,,Urine P. aeruginosa,
+32,SPECIES,Pseudomonas aeruginosa,Urine,GEN,Gentamicin,REPORT,,,,,,,Urine P. aeruginosa,
+33,SPECIES,Pseudomonas aeruginosa,Urine,NOR,Norfloxacin,REPORT,,,,,,,Urine P. aeruginosa,"SOP says NOR replaces CIP for urine, but also lists ""Norfloxacin: not reporting"": confirm"
+34,SPECIES,Pseudomonas aeruginosa,Urine,CIP,Ciprofloxacin,CASCADE,ANY_R,NOR,,,,,Urine P. aeruginosa,
+35,SPECIES,Pseudomonas aeruginosa,Urine,NIT,Nitrofurantoin,REPORT,,,,YES,,,Urine P. aeruginosa,In 1st panel; reported as R: confirm
+36,SPECIES,Pseudomonas aeruginosa,Urine,MEM,Meropenem,CASCADE,ANY_R,GEN;CIP,,,,,Urine P. aeruginosa,MDR extras
+37,SPECIES,Pseudomonas aeruginosa,Urine,CAZ,Ceftazidime,CASCADE,ANY_R,GEN;CIP,,,,,Urine P. aeruginosa,MDR extras
+38,SPECIES,Pseudomonas aeruginosa,Urine,PIP,Piperacillin,CASCADE,ANY_R,GEN;CIP,,,,,Urine P. aeruginosa,MDR extras
+39,SPECIES,Pseudomonas aeruginosa,Urine,AMK,Amikacin,CASCADE,ANY_R,GEN;CIP,,,,,Urine P. aeruginosa,MDR extras
+40,GROUP,Acinetobacter spp.,ANY,GEN,Gentamicin,REPORT,,,,,,,Acinetobacter (urine and non-urine),
+41,GROUP,Acinetobacter spp.,ANY,CIP,Ciprofloxacin,REPORT,,,,,,,Acinetobacter (urine and non-urine),
+42,GROUP,Acinetobacter spp.,ANY,SXT,Trimethoprim/sulfamethoxazole,REPORT,,,,,,,Acinetobacter (urine and non-urine),
+43,GROUP,Acinetobacter spp.,ANY,MEM,Meropenem,CASCADE,ANY_R,GEN;CIP,,,,,Acinetobacter (urine and non-urine),
+44,GROUP,Acinetobacter spp.,ANY,AMK,Amikacin,CASCADE,ANY_R,GEN;CIP,,,,,Acinetobacter (urine and non-urine),
+45,GROUP,Acinetobacter spp.,ANY,AMP,Ampicillin,REPORT,,,,YES,,,Acinetobacter (urine and non-urine),Report as R to penicillins
+46,GROUP,Acinetobacter spp.,ANY,AMC,Amoxicillin/clavulanic acid,REPORT,,,,YES,,,Acinetobacter (urine and non-urine),
+47,GROUP,Acinetobacter spp.,ANY,PIP,Piperacillin,REPORT,,,,YES,,,Acinetobacter (urine and non-urine),
+48,GROUP,Acinetobacter spp.,ANY,CRO,Ceftriaxone,DONT_REPORT,,,,,,,Acinetobacter (urine and non-urine),Testing not recommended
+49,GROUP,Acinetobacter spp.,ANY,CAZ,Ceftazidime,DONT_REPORT,,,,,,,Acinetobacter (urine and non-urine),Testing not recommended
+50,GROUP,Acinetobacter spp.,Urine,NIT,Nitrofurantoin,DONT_REPORT,,,,,,,Urine Acinetobacter,
+51,GROUP,Acinetobacter spp.,ANY,CHL,Chloramphenicol,DONT_REPORT,,,,,,,Non-urine Acinetobacter,
+52,GROUP,Enterobacterales non-ESCPPM,ANY,AMP,Ampicillin,REPORT,,,,,,,Non-urine non-ESCPPM,ANY rows are the non-urine rules; Urine rows above are more specific and win
+53,GROUP,Enterobacterales non-ESCPPM,ANY,AMC,Amoxicillin/clavulanic acid,REPORT,,,,,,,Non-urine non-ESCPPM,
+54,GROUP,Enterobacterales non-ESCPPM,ANY,CRO,Ceftriaxone,REPORT,,,,,,,Non-urine non-ESCPPM,
+55,GROUP,Enterobacterales non-ESCPPM,ANY,GEN,Gentamicin,REPORT,,,,,,,Non-urine non-ESCPPM,
+56,GROUP,Enterobacterales non-ESCPPM,ANY,CIP,Ciprofloxacin,REPORT,,,,,,,Non-urine non-ESCPPM,
+57,GROUP,Enterobacterales non-ESCPPM,ANY,SXT,Trimethoprim/sulfamethoxazole,REPORT,,,,,,,Non-urine non-ESCPPM,
+58,GROUP,Enterobacterales non-ESCPPM,ANY,CHL,Chloramphenicol,REPORT,,,,,,,Non-urine non-ESCPPM,
+59,GROUP,Enterobacterales non-ESCPPM,ANY,MEM,Meropenem,CASCADE,ANY_R,CRO;GEN,,,,,Non-urine non-ESCPPM,MDR extras (SOP: E. coli or Klebsiella)
+60,GROUP,Enterobacterales non-ESCPPM,ANY,CAZ,Ceftazidime,CASCADE,ANY_R,CRO;GEN,,,,,Non-urine non-ESCPPM,MDR extras
+61,GROUP,Enterobacterales non-ESCPPM,ANY,PIP,Piperacillin,CASCADE,ANY_R,CRO;GEN,,,,,Non-urine non-ESCPPM,MDR extras
+62,GROUP,Enterobacterales non-ESCPPM,ANY,AMK,Amikacin,CASCADE,ANY_R,CRO;GEN,,,,,Non-urine non-ESCPPM,MDR extras
+63,SPECIES,Escherichia coli,Blood;CSF,CRO,Ceftriaxone,REPORT,,,,,(5) Meropenem 25mg/kg up to 1g 8-hourly IV should be considered for treatment of this resistant isolate. Double the dose in meningitis.,WHEN_R,Non-urine non-ESCPPM,
+64,GROUP,Klebsiella spp.,Blood;CSF,CRO,Ceftriaxone,REPORT,,,,,(5) Meropenem 25mg/kg up to 1g 8-hourly IV should be considered for treatment of this resistant isolate. Double the dose in meningitis.,WHEN_R,Non-urine non-ESCPPM,
+65,GROUP,Enterobacterales ESCPPM,ANY,AMP,Ampicillin,REPORT,,,,YES,,,Non-urine ESCPPM,
+66,GROUP,Enterobacterales ESCPPM,ANY,AMC,Amoxicillin/clavulanic acid,REPORT,,,,YES,,,Non-urine ESCPPM,
+67,GROUP,Enterobacterales ESCPPM,ANY,CRO,Ceftriaxone,REPORT,,,,,,,Non-urine ESCPPM,
+68,GROUP,Enterobacterales ESCPPM,ANY,GEN,Gentamicin,REPORT,,,,,,,Non-urine ESCPPM,
+69,GROUP,Enterobacterales ESCPPM,ANY,CIP,Ciprofloxacin,REPORT,,,,,,,Non-urine ESCPPM,
+70,GROUP,Enterobacterales ESCPPM,ANY,SXT,Trimethoprim/sulfamethoxazole,REPORT,,,,,,,Non-urine ESCPPM,
+71,GROUP,Enterobacterales ESCPPM,ANY,CHL,Chloramphenicol,REPORT,,,,,,,Non-urine ESCPPM,
+72,GROUP,Enterobacterales ESCPPM,ANY,MEM,Meropenem,CASCADE,ANY_R,CRO;GEN,,,,,Non-urine ESCPPM,MDR extras
+73,GROUP,Enterobacterales ESCPPM,ANY,CAZ,Ceftazidime,CASCADE,ANY_R,CRO;GEN,,,,,Non-urine ESCPPM,MDR extras
+74,GROUP,Enterobacterales ESCPPM,ANY,PIP,Piperacillin,CASCADE,ANY_R,CRO;GEN,,,,,Non-urine ESCPPM,MDR extras
+75,GROUP,Enterobacterales ESCPPM,ANY,AMK,Amikacin,CASCADE,ANY_R,CRO;GEN,,,,,Non-urine ESCPPM,MDR extras
+76,SPECIES,Serratia marcescens,ANY,AMK,Amikacin,REPORT,,,,YES,,,Non-urine ESCPPM,"Always report S. marcescens R to amikacin (reported even without the MDR cascade: confirm)"
+77,SPECIES,Pseudomonas aeruginosa,ANY,AMP,Ampicillin,REPORT,,,,YES,,,Non-urine P. aeruginosa,
+78,SPECIES,Pseudomonas aeruginosa,ANY,AMC,Amoxicillin/clavulanic acid,REPORT,,,,YES,,,Non-urine P. aeruginosa,
+79,SPECIES,Pseudomonas aeruginosa,ANY,CRO,Ceftriaxone,REPORT,,,,YES,,,Non-urine P. aeruginosa,
+80,SPECIES,Pseudomonas aeruginosa,ANY,SXT,Trimethoprim/sulfamethoxazole,REPORT,,,,YES,,,Non-urine P. aeruginosa,
+81,SPECIES,Pseudomonas aeruginosa,ANY,CHL,Chloramphenicol,REPORT,,,,YES,,,Non-urine P. aeruginosa,
+82,SPECIES,Pseudomonas aeruginosa,ANY,GEN,Gentamicin,REPORT,,,,,,,Non-urine P. aeruginosa,
+83,SPECIES,Pseudomonas aeruginosa,ANY,CIP,Ciprofloxacin,REPORT,,,,,,,Non-urine P. aeruginosa,
+84,SPECIES,Pseudomonas aeruginosa,ANY,MEM,Meropenem,CASCADE,ANY_R,GEN;CIP,,,,,Non-urine P. aeruginosa,MDR extras (newer SOP 9.5.2.4 differs: see v3 doc worked example)
+85,SPECIES,Pseudomonas aeruginosa,ANY,CAZ,Ceftazidime,CASCADE,ANY_R,GEN;CIP,,,,,Non-urine P. aeruginosa,MDR extras
+86,SPECIES,Pseudomonas aeruginosa,ANY,PIP,Piperacillin,CASCADE,ANY_R,GEN;CIP,,,,,Non-urine P. aeruginosa,MDR extras
+87,SPECIES,Pseudomonas aeruginosa,ANY,AMK,Amikacin,CASCADE,ANY_R,GEN;CIP,,,,,Non-urine P. aeruginosa,MDR extras
+88,SPECIES,Haemophilus influenzae,Blood;CSF,AMP,Ampicillin,REPORT,,,,,,,H. influenzae,Report only AMP; CRO; CHL
+89,SPECIES,Haemophilus influenzae,Blood;CSF,CRO,Ceftriaxone,REPORT,,,,,,,H. influenzae,
+90,SPECIES,Haemophilus influenzae,Blood;CSF,CHL,Chloramphenicol,REPORT,,,,,,,H. influenzae,
+91,SPECIES,Haemophilus influenzae,Blood;CSF,AMC,Amoxicillin/clavulanic acid,DONT_REPORT,,,,,,,H. influenzae,
+92,SPECIES,Haemophilus influenzae,Blood;CSF,SXT,Trimethoprim/sulfamethoxazole,DONT_REPORT,,,,,,,H. influenzae,
+93,SPECIES,Haemophilus influenzae,Blood;CSF,TCY,Tetracycline,DONT_REPORT,,,,,,,H. influenzae,
+94,SPECIES,Haemophilus influenzae,Blood;CSF,(isolate),,,,,,,(2) Ceftriaxone 50mg/kg up to 2g 12-hrly IV is standard treatment for meningitis,ALWAYS,H. influenzae,
+95,SPECIES,Haemophilus influenzae,Sputum,CHL,Chloramphenicol,DONT_REPORT,,,,,,,H. influenzae,Sputum: report all agents except chloramphenicol
+96,GROUP,Salmonella spp.,ANY,CRO,Ceftriaxone,DONT_REPORT,,,,,,,Salmonella/Shigella,Only report ceftriaxone for blood isolates
+97,GROUP,Salmonella spp.,Blood,CRO,Ceftriaxone,REPORT,,,,,,,Salmonella/Shigella,
+98,GROUP,Salmonella spp.,ANY,TCY,Tetracycline,DONT_REPORT,,,,,,,Salmonella/Shigella,
+99,GROUP,Salmonella spp.,ANY,PEF,Pefloxacin,REPORT,,,CIP,,,,Salmonella/Shigella,"PEF5 zone screens for ciprofloxacin: PEF S = CIP S, PEF R = CIP R. Pefloxacin itself never prints"
+100,GROUP,Salmonella spp.,ANY,CIP,Ciprofloxacin,DONT_REPORT,,,,,,,Salmonella/Shigella,CIP5 disc result not used for Salmonella; the PEF screen prints as CIP
+101,GROUP,Non-typhoidal Salmonella,Faeces,(isolate),,,,,,,(6) Antibiotic therapy is NOT usually indicated for enteric infection due to this organism,ALWAYS,Salmonella/Shigella,
+102,GROUP,Shigella spp.,ANY,CRO,Ceftriaxone,DONT_REPORT,,,,,,,Salmonella/Shigella,
+103,GROUP,Shigella spp.,Blood,CRO,Ceftriaxone,REPORT,,,,,,,Salmonella/Shigella,
+104,SPECIES,Vibrio cholerae,ANY,CRO,Ceftriaxone,DONT_REPORT,,,,,,,V. cholerae,
+105,SPECIES,Vibrio cholerae,Blood,CRO,Ceftriaxone,REPORT,,,,,,,V. cholerae,
+106,SPECIES,Staphylococcus aureus,ANY,FOX,Cefoxitin,REPORT,,,FLC,,(1) MRSA is resistant to all penicillins; cephalosporins and other beta-lactam antibiotics,WHEN_R,S. aureus,Cefoxitin is reported as flucloxacillin
+107,SPECIES,Streptococcus pneumoniae,CSF,OXA,Oxacillin,REPORT,,,PEN,,,,S. pneumoniae,"Penicillin reported as S or I from the oxacillin zone. The S/I mapping is an M-06 rule, not the profile"
+108,SPECIES,Streptococcus pneumoniae,CSF,CHL,Chloramphenicol,REPORT,,,,,,,S. pneumoniae,
+109,SPECIES,Streptococcus pneumoniae,CSF,ERY,Erythromycin,DONT_REPORT,,,,,,,S. pneumoniae,CSF: only penicillin and chloramphenicol
+110,SPECIES,Streptococcus pneumoniae,CSF,TCY,Tetracycline,DONT_REPORT,,,,,,,S. pneumoniae,
+111,SPECIES,Streptococcus pneumoniae,CSF,SXT,Trimethoprim/sulfamethoxazole,DONT_REPORT,,,,,,,S. pneumoniae,
+112,SPECIES,Streptococcus pneumoniae,CSF,(isolate),,,,,,,(2) Ceftriaxone 50mg/kg up to 2g 12-hrly IV is standard treatment for meningitis,ALWAYS,S. pneumoniae,
+113,SPECIES,Streptococcus pneumoniae,ANY,OXA,Oxacillin,REPORT,,,PEN;AMX,,,,S. pneumoniae,Other sites: penicillin and amoxicillin as S or I from oxacillin
+114,SPECIES,Streptococcus pneumoniae,ANY,(isolate),,,,,,,(3) Benzylpenicillin or amoxicillin is the preferred treatment for pneumonia. Add gentamicin 5mg/kg/d for severe pneumonia.,ALWAYS,S. pneumoniae,Other sites only; the CSF row above is more specific and wins
+115,GROUP,Enterococcus spp.,ANY,(isolate),,,,,,,(4) Enterococci are not susceptible to ceftriaxone; cephalexin or gentamicin. Enterococcus may cause endocarditis; especially in older males. Repeated positive blood cultures are an indication of this. Registrar should discuss situation with clinician.,ALWAYS,Enterococcus,
+116,GROUP,Enterococcus spp.,ANY,VAN,Vancomycin,CASCADE,ANY_R,AMP,,,,,Enterococcus,Report VA only if AMP R (all sites)
+117,GROUP,Enterococcus spp.,Urine,NIT,Nitrofurantoin,CASCADE,ANY_S,AMP,,,,,Enterococcus,Report F only on AMP-sensitive isolates
+118,GROUP,Enterococcus spp.,Urine,PEN,Penicillin,DONT_REPORT,,,,,,,Enterococcus,"Urine: AMP, F, VA only"
+119,GROUP,Enterococcus spp.,Urine,CHL,Chloramphenicol,DONT_REPORT,,,,,,,Enterococcus,
+120,GROUP,Enterococcus spp.,Blood,CHL,Chloramphenicol,DONT_REPORT,,,,,,,Enterococcus,"Blood: PEN, AMP, VA only"
+121,GROUP,Enterococcus spp.,Blood,NIT,Nitrofurantoin,DONT_REPORT,,,,,,,Enterococcus,
+122,GROUP,Enterococcus spp.,Sterile fluids,PEN,Penicillin,DONT_REPORT,,,,,,,Enterococcus,"Other sterile sites: AMP, VA only"
+123,GROUP,Enterococcus spp.,Sterile fluids,CHL,Chloramphenicol,DONT_REPORT,,,,,,,Enterococcus,
+124,GROUP,Enterococcus spp.,Sterile fluids,NIT,Nitrofurantoin,DONT_REPORT,,,,,,,Enterococcus,

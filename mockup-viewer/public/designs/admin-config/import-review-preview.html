@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Import Review - OpenELIS Preview v0.4</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif; color: #161616; }
+    .preview-banner { background: #0f62fe; color: #fff; padding: 6px 1rem; font-size: 12px; font-family: monospace; }
+    .scen { background: #fff8e1; border-bottom: 1px dashed #b28600; padding: .5rem 1rem; font-size: .8125rem; display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+    .scen b { margin-right: .25rem; }
+    .scen button { border: 1px solid #b28600; background: #fff; padding: .25rem .625rem; font-size: .8125rem; cursor: pointer; font-family: inherit; }
+    .scen button.sel { background: #b28600; color: #fff; }
+    .shell { display: flex; min-height: calc(100vh - 60px); }
+    .snav { width: 240px; background: #fff; border-right: 1px solid #e0e0e0; flex: none; padding-top: .5rem; }
+    .snav .grp { font-size: .75rem; color: #6f6f6f; padding: .75rem 1rem .25rem; text-transform: uppercase; letter-spacing: .32px; }
+    .snav .parent { padding: .75rem 1rem; font-size: .875rem; font-weight: 600; }
+    .snav a { display: block; padding: .5rem 1rem .5rem 2rem; font-size: .875rem; color: #525252; text-decoration: none; border-left: 3px solid transparent; }
+    .snav a.active { background: #e0e0e0; color: #161616; border-left-color: #0f62fe; font-weight: 600; }
+    .snav .muted { padding: .5rem 1rem; font-size: .875rem; color: #6f6f6f; }
+    .main { flex: 1; padding: 1rem 2rem 2rem; min-width: 0; max-width: 1180px; }
+    .crumbs { font-size: .875rem; color: #525252; }
+    .crumbs a { color: #0f62fe; text-decoration: none; }
+    .route { font-family: monospace; font-size: .75rem; color: #6f6f6f; }
+    .page-title { font-size: 1.75rem; font-weight: 400; margin: .5rem 0 .25rem; }
+    .explainer { font-size: .875rem; color: #525252; margin: 0 0 1rem; max-width: 52rem; }
+    .steps { display: flex; gap: 0; margin: 0 0 1rem; }
+    .step { flex: 1; border-top: 3px solid #c6c6c6; padding: .5rem .75rem 0 0; font-size: .875rem; color: #525252; }
+    .step.cur { border-top-color: #0f62fe; color: #161616; font-weight: 600; }
+    .step.done { border-top-color: #0f62fe; }
+    .panel { background: #fff; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+    .panel h3 { font-size: 1rem; font-weight: 600; margin: 0 0 .75rem; }
+    .panel h4 { font-size: .875rem; font-weight: 600; margin: 1rem 0 .5rem; }
+    .drop { border: 1px dashed #8d8d8d; padding: 1.25rem; text-align: center; color: #525252; font-size: .875rem; background: #f4f4f4; }
+    .file { display: flex; gap: 1rem; align-items: flex-start; border-bottom: 1px solid #e0e0e0; padding: .75rem 0; font-size: .875rem; flex-wrap: wrap; }
+    .file .nm { font-weight: 600; min-width: 220px; }
+    .sub { font-size: .75rem; color: #6f6f6f; }
+    .meta { font-size: .875rem; color: #525252; }
+    .cards { display: flex; gap: .75rem; flex-wrap: wrap; }
+    .radio-card { position: relative; border: 1px solid #c6c6c6; padding: .75rem 2.25rem .75rem 1rem; cursor: pointer; flex: 1 1 220px; background: #fff; font-size: .875rem; }
+    .radio-card.sel { outline: 2px solid #161616; outline-offset: -2px; }
+    .radio-card .chk { position: absolute; top: .625rem; right: .625rem; width: 16px; height: 16px; border-radius: 50%; border: 1px solid #8d8d8d; display: flex; align-items: center; justify-content: center; font-size: 11px; line-height: 1; }
+    .radio-card.sel .chk { background: #161616; border-color: #161616; color: #fff; }
+    .radio-card p { margin: .25rem 0 0; color: #525252; font-size: .8125rem; }
+    .scope { background: #f4f4f4; border-left: 3px solid #0f62fe; padding: .625rem .875rem; font-size: .875rem; margin-top: .75rem; }
+    .summary { font-size: 1.25rem; font-weight: 300; line-height: 1.5; margin: 0 0 .25rem; }
+    .todo { border: 1px solid #e0e0e0; margin-top: 1rem; }
+    .todo-hd { display: flex; align-items: center; gap: .75rem; padding: .625rem .875rem; background: #f4f4f4; flex-wrap: wrap; }
+    .todo-hd h3 { margin: 0; font-size: .875rem; font-weight: 600; }
+    .todo-row { display: grid; grid-template-columns: 24px minmax(0, 1fr) minmax(0, 220px) 110px; gap: .75rem; align-items: center; padding: .5rem .875rem; border-top: 1px solid #e0e0e0; font-size: .875rem; }
+    .todo-row .ic { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; }
+    .ic.done { background: #198038; color: #fff; } .ic.open { border: 2px solid #0f62fe; } .ic.wait { border: 2px dashed #8d8d8d; }
+    .todo-foot { padding: .5rem .875rem; border-top: 1px solid #e0e0e0; font-size: .875rem; color: #525252; }
+    .filterbar { display: flex; gap: 1rem; align-items: flex-end; margin: 0 0 .75rem; flex-wrap: wrap; }
+    .filterbar label { font-size: .75rem; color: #525252; display: block; margin-bottom: .25rem; }
+    .cds--select-input { min-width: 260px; }
+    .sec { background: #fff; margin-bottom: .5rem; }
+    .sec-hd { display: flex; align-items: center; gap: .75rem; padding: 0 1rem 0 0; border-bottom: 1px solid #e0e0e0; flex-wrap: wrap; min-height: 48px; }
+    .sec-hd h3 { margin: 0; font-size: 1rem; font-weight: 600; flex: 1; }
+    .sec-toggle { display: flex; align-items: center; gap: .5rem; width: 100%; min-height: 48px; background: none; border: none; cursor: pointer; text-align: left; padding: 0 1rem; font-family: inherit; font-size: 1rem; color: #161616; }
+    .sec-toggle:hover { background: #e8e8e8; }
+    .sec-toggle .cnt { font-weight: 400; color: #525252; font-size: .875rem; }
+    .sec-toggle .chv { display: inline-block; width: 16px; transition: transform .1s; }
+    .sec-bd { padding: .75rem 1rem 1rem; }
+    .grp { border: 1px solid #e0e0e0; margin-bottom: .75rem; }
+    .grp-hd { background: #f4f4f4; padding: .625rem .875rem; display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
+    .grp-hd h4 { margin: 0; font-size: .875rem; }
+    .grp-help { padding: .5rem .875rem 0; font-size: .875rem; color: #525252; }
+    .grp-answers { display: flex; gap: .75rem; padding: .625rem .875rem; flex-wrap: wrap; align-items: flex-start; border-bottom: 1px solid #e0e0e0; }
+    .ga { display: flex; flex-direction: column; gap: .125rem; }
+    table.dt { width: 100%; border-collapse: collapse; font-size: .875rem; }
+    table.dt th { background: #e0e0e0; text-align: left; font-weight: 600; padding: .5rem .75rem; }
+    table.dt td { padding: .5rem .75rem; border-top: 1px solid #e0e0e0; vertical-align: top; }
+    table.dt tr:focus td { background: #edf5ff; outline: none; }
+    table.dt td.ans { min-width: 220px; }
+    .answers { display: flex; flex-direction: column; gap: .25rem; font-size: .875rem; }
+    .answers label { display: flex; gap: .375rem; align-items: flex-start; cursor: pointer; }
+    .answers label.dis { color: #8d8d8d; cursor: not-allowed; }
+    .answers input { margin-top: .2rem; }
+    .chev { background: none; border: none; cursor: pointer; font-size: .875rem; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; }
+    .chev:hover { background: #e8e8e8; }
+    .fieldtbl { width: 100%; border-collapse: collapse; font-size: .8125rem; background: #f4f4f4; }
+    .fieldtbl td, .fieldtbl th { padding: .375rem .75rem; text-align: left; border-top: 1px solid #e0e0e0; }
+    .fieldtbl th { font-weight: 600; color: #525252; }
+    .old { color: #525252; } .new { font-weight: 600; }
+    .pag { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e0e0e0; font-size: .875rem; color: #161616; background: #fff; min-height: 40px; flex-wrap: wrap; }
+    .pag .l, .pag .r { display: flex; align-items: center; gap: 1rem; padding: 0 1rem; }
+    .pag .pp { border-right: 1px solid #e0e0e0; padding-right: 1rem; }
+    .pag button { width: 40px; height: 40px; border: none; border-left: 1px solid #e0e0e0; background: none; cursor: pointer; font-size: 1rem; }
+    .pag button:disabled { color: #c6c6c6; cursor: not-allowed; }
+    .bar { position: sticky; bottom: 0; z-index: 20; background: #fff; border-top: 2px solid #0f62fe; box-shadow: 0 -2px 8px rgba(0,0,0,.12); display: flex; gap: 1rem; align-items: center; padding: .625rem 1rem; margin-top: 1rem; flex-wrap: wrap; }
+    .bar .msg { flex: 1; font-size: .875rem; min-width: 280px; display: flex; flex-direction: column; gap: .125rem; }
+    .bar .btns { display: flex; gap: 1px; align-items: center; }
+    .bar .btns .cds--btn { min-width: 128px; }
+    .blocked { color: #a2191f; }
+    .saved { font-size: .75rem; color: #198038; margin-top: .25rem; }
+    .unsaved { font-size: .75rem; color: #8e6a00; margin-top: .25rem; }
+    .ofm { position: relative; }
+    .ofm-btn { width: 40px; height: 40px; border: none; background: none; cursor: pointer; font-size: 1.25rem; }
+    .ofm-btn:hover, .ofm-btn[aria-expanded=true] { background: #e8e8e8; }
+    .ofm-menu { position: absolute; bottom: 44px; right: 0; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.3); min-width: 220px; z-index: 30; }
+    .ofm-menu button { display: block; width: 100%; text-align: left; border: none; background: none; padding: .75rem 1rem; font-family: inherit; font-size: .875rem; cursor: pointer; color: #da1e28; }
+    .ofm-menu button:hover { background: #da1e28; color: #fff; }
+    .modal-bg { position: fixed; inset: 0; background: rgba(22,22,22,.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
+    .modal { background: #fff; width: 620px; max-width: 94vw; max-height: 90vh; overflow: auto; }
+    .modal .hd { padding: 1rem 1rem .5rem; } .modal .hd h3 { margin: 0; font-size: 1.25rem; font-weight: 400; }
+    .modal .bd { padding: 0 1rem 1.25rem; font-size: .875rem; }
+    .modal .ft { display: flex; position: sticky; bottom: 0; }
+    .modal .ft button { flex: 1; height: 64px; border: none; text-align: left; padding: 0 1rem; font-size: .875rem; cursor: pointer; font-family: inherit; }
+    .ft .sec-b { background: #393939; color: #fff; } .ft .pri-b { background: #0f62fe; color: #fff; } .ft .dan-b { background: #da1e28; color: #fff; }
+    .ft button:disabled { background: #c6c6c6; color: #8d8d8d; cursor: not-allowed; }
+    .progress { height: 8px; background: #e0e0e0; margin: .5rem 0; } .progress > div { height: 8px; background: #0f62fe; }
+    .notif { display: flex; gap: .75rem; padding: .75rem 1rem; margin-bottom: 1rem; font-size: .875rem; border-left: 3px solid; background: #fff; align-items: flex-start; flex-wrap: wrap; }
+    .notif.info { border-color: #0043ce; background: #edf5ff; } .notif.warn { border-color: #f1c21b; background: #fcf4d6; }
+    .notif.err { border-color: #da1e28; background: #fff1f1; } .notif.ok { border-color: #24a148; background: #defbe6; }
+    .notif .t { font-weight: 600; margin-right: .25rem; }
+    .toast { position: fixed; top: 1rem; right: 1rem; z-index: 200; width: 360px; box-shadow: 0 2px 6px rgba(0,0,0,.3); background: #fff; border-left: 3px solid #0043ce; padding: .75rem 1rem; font-size: .875rem; }
+    .linkbtn { background: none; border: none; color: #0f62fe; cursor: pointer; padding: 0; font-size: inherit; font-family: inherit; text-decoration: underline; }
+    .live { position: absolute; left: -9999px; }
+    .preview-note { font-size: .75rem; color: #8e6a00; background: #fff8e1; border: 1px dashed #b28600; padding: .375rem .625rem; margin: .5rem 0; }
+    .notes { margin-top: 2rem; font-size: .8rem; color: #525252; background: #e8e8e8; padding: .75rem 1rem; }
+    .reminder { background: #fcf4d6; border-left: 3px solid #f1c21b; padding: .5rem 1rem; font-size: .875rem; margin-bottom: 1rem; }
+    input[type=checkbox], input[type=radio] { accent-color: #0f62fe; }
+    .cds--btn { min-height: 40px; padding: calc(.375rem - 3px) 60px calc(.375rem - 3px) 12px; }
+    .cds--btn--sm { min-height: 32px; padding-right: 16px; }
+    .btnrow { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+    .tt { position: relative; display: inline-block; }
+    .tt-btn { border: none; background: none; cursor: pointer; color: #0f62fe; width: 24px; height: 24px; font-size: .875rem; }
+    .tt-pop { position: absolute; left: 0; top: 26px; z-index: 40; width: 300px; background: #393939; color: #f4f4f4; font-size: .8125rem; padding: .75rem; box-shadow: 0 2px 6px rgba(0,0,0,.3); }
+    .ack { display: flex; gap: .5rem; align-items: center; padding: .5rem .75rem; background: #fcf4d6; font-size: .875rem; }
+    .ack.on { background: #defbe6; }
+  </style>
+</head>
+<body class="cds--white">
+  <div class="preview-banner">Visual Preview: Import Review (Import Review FRS v0.4) | OpenELIS Design Mockup | Route: /MasterListsPage/locations/import and /MasterListsPage/CatalogImport | Not a live application</div>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useMemo, useEffect, useRef } = React;
+    // Route: /MasterListsPage/locations/import   (also /MasterListsPage/CatalogImport for the catalog scenario)
+    // SideNav: Admin > Locations & Organizations > Import / Export
+    const t = (key, fallback) => fallback || key;
+    const fmt = n => n.toLocaleString('en-US');
+    const plural = (n, one, many) => `${fmt(n)} ${n === 1 ? one : many}`;
+    const joinList = parts => parts.length > 1 ? parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1] : (parts[0] || '');
+
+    // ---------- small Carbon-styled pieces ----------
+    const Tag = ({ kind = 'gray', children }) => <span className={`cds--tag cds--tag--${kind}`} style={{ margin: '0 .25rem .125rem 0' }}><span className="cds--tag__label">{children}</span></span>;
+    const Btn = ({ kind = 'primary', size, children, onClick, disabled, id }) =>
+      <button id={id} className={`cds--btn cds--btn--${kind} ${size === 'sm' ? 'cds--btn--sm' : ''}`} onClick={onClick} disabled={disabled}>{children}</button>;
+    const Notif = ({ kind = 'info', title, children, action }) => <div className={`notif ${kind}`} role={kind === 'err' ? 'alert' : 'status'}><div style={{ flex: 1, minWidth: 260 }}>{title && <span className="t">{title}</span>}{children}</div>{action}</div>;
+    function Modal({ title, label, children, primary, primaryKind = 'pri-b', onPrimary, primaryDisabled, onClose, secondary = 'Cancel' }) {
+      return <div className="modal-bg" role="dialog" aria-modal="true" aria-label={title}><div className="modal">
+        <div className="hd">{label && <div className="sub">{label}</div>}<h3>{title}</h3></div>
+        <div className="bd">{children}</div>
+        <div className="ft"><button className="sec-b" onClick={onClose}>{secondary}</button>{primary && <button className={primaryKind} disabled={primaryDisabled} onClick={onPrimary}>{primary}</button>}</div>
+      </div></div>;
+    }
+    function Toggletip({ label, children }) {
+      const [open, setOpen] = useState(false);
+      return <span className="tt"><button className="tt-btn" aria-label={label} aria-expanded={open} onClick={() => setOpen(!open)}>ⓘ</button>
+        {open && <span className="tt-pop" role="dialog" aria-label={label}>{children}</span>}</span>;
+    }
+    function Pagination({ total, shown, pageSize = 25 }) {
+      const pages = Math.max(1, Math.ceil(total / pageSize));
+      return <div>
+        <div className="pag" role="navigation" aria-label="Pagination">
+          <div className="l"><span className="pp">Items per page: <b>{pageSize}</b> ▾</span><span>1 to {fmt(Math.min(pageSize, total))} of {plural(total, 'item', 'items')}</span></div>
+          <div className="r" style={{ padding: 0 }}><span style={{ padding: '0 1rem' }}>1 of {plural(pages, 'page', 'pages')}</span><button disabled aria-label="Previous page">‹</button><button disabled={pages === 1} aria-label="Next page">›</button></div>
+        </div>
+        {shown < Math.min(pageSize, total) && <div className="sub" style={{ padding: '.25rem 1rem' }}>Preview data: {fmt(shown)} sample rows shown.</div>}
+      </div>;
+    }
+
+    // ---------- scenarios (mock data) ----------
+    const renames = [
+      { line: 212, file: { name: 'Tokarara Urban Clinic', code: '', loc: 'Moresby North-West' }, cand: { name: 'Tokarara Clinic', code: 'NCD-TOK', loc: 'Moresby North-West', status: 'Active', open: 9 }, shared: 'Tokarara, same district' },
+      { line: 388, file: { name: 'Kaugere Health Sub-Centre', code: '', loc: 'Moresby South' }, cand: { name: 'Kaugere Clinic', code: 'NCD-KAU', loc: 'Moresby South', status: 'Active', open: 3 }, shared: 'Kaugere, same district' },
+      { line: 641, file: { name: 'Lae Urban Health Centre', code: '', loc: 'Lae Urban LLG' }, cand: { name: 'Lae Urban Clinic', code: 'MRB-LUC', loc: 'Lae Urban LLG', status: 'Active', open: 17 }, shared: 'Lae Urban, same LLG' },
+      { line: 902, file: { name: 'Butibam Aid Post', code: '', loc: 'Lae Urban LLG' }, cand: { name: 'Butibam Village Aid Post', code: '', loc: 'Lae Urban LLG', status: 'Active', open: 0 }, shared: 'Butibam, same LLG' },
+      { line: 1180, file: { name: 'Kainantu Rural Hospital', code: '', loc: 'Kainantu District' }, cand: { name: 'Kainantu District Hospital', code: 'EHP-KDH', loc: 'Kainantu District', status: 'Active', open: 21 }, shared: 'Kainantu, same district' },
+      { line: 1477, file: { name: 'Wabag Hospital', code: '', loc: 'Wabag District' }, cand: { name: 'Wabag Provincial Hospital', code: 'ENG-WPH', loc: 'Wabag District', status: 'Active', open: 33 }, shared: 'Wabag, same district' },
+    ];
+    const matches = [
+      { line: 155, file: { name: 'Kila Kila Clinic', code: '', loc: 'Moresby South' }, why: 'Matches 2 records by name', cands: [
+        { id: 'c1', name: 'Kilakila Clinic', code: 'NCD-KIL', loc: 'Moresby South', status: 'Active', open: 6 },
+        { id: 'c2', name: 'Kila Kila Health Sub-Centre', code: 'NCD-KKS', loc: 'Moresby South', status: 'Inactive', open: 0 }] },
+      { line: 733, file: { name: 'St Mary\'s Health Centre', code: '', loc: 'Mount Hagen Urban LLG' }, why: 'Two records have this exact name', cands: [
+        { id: 'c3', name: 'St Mary\'s Health Centre', code: 'WHP-SMH', loc: 'Mount Hagen Urban LLG', status: 'Active', open: 4 },
+        { id: 'c4', name: 'St Mary\'s Health Centre', code: 'WHP-SMR', loc: 'Mount Hagen Urban LLG', status: 'Active', open: 1 }] },
+      { line: 1309, file: { name: 'Goroka Base Hospital', code: 'EHP-0001', loc: 'Goroka District' }, why: 'Name matches a record that already has a different code (GPH)', cands: [
+        { id: 'c5', name: 'Goroka Provincial Hospital', code: 'GPH', loc: 'Goroka District', status: 'Active', open: 30 }] },
+    ];
+    const updatedRows = [
+      { id: 'u1', name: 'Port Moresby General Hospital', code: 'PMGH', type: 'Referring clinic, Referral lab', fields: [['Phone', '+675 325 6200', '+675 324 8200']] },
+      { id: 'u2', name: 'Kilakila Clinic', code: 'NCD-KIL', type: 'Referring clinic', fields: [['GPS latitude', '', '-9.4705'], ['GPS longitude', '', '147.1810']] },
+      { id: 'u3', name: 'Gerehu General Hospital', code: 'NCD-GGH', type: 'Referring clinic', guarded: true, usedBy: '1,240 open orders, national monthly report', fields: [['Reporting code', 'NCD-HC-01', 'NCD-0201']] },
+      { id: 'u4', name: 'Tokarara Clinic', code: 'NCD-TOK', type: 'Referring clinic', guarded: true, usedBy: '9 open orders, national monthly report', fields: [['Reporting code', 'NCD-HC-07', 'NCD-0207']] },
+      { id: 'u5', name: 'Badili Clinic', code: 'NCD-BAD', type: 'Referring clinic', guarded: true, usedBy: '14 open orders, national monthly report', fields: [['Reporting code', 'NCD-HC-03', 'NCD-0203']] },
+      { id: 'u6', name: 'Hohola Clinic', code: 'NCD-HOH', type: 'Referring clinic', guarded: true, usedBy: '2 open orders, national monthly report', fields: [['Reporting code', 'NCD-HC-05', 'NCD-0205']] },
+      { id: 'u7', name: 'Mount Hagen Provincial Hospital', code: 'MHPH', type: 'Referring clinic', registry: true, fields: [['Phone', '+675 542 1188', '+675 542 1100'], ['Contact name', 'Dr. P. Kuman', 'Dr. Paul Kuman']] },
+      { id: 'u8', name: 'Angau Memorial Hospital', code: 'ANGAU', type: 'Referring clinic', fields: [['Email', 'lab@angau.gov.pg', ''], ['Category', 'Provincial hospital', 'National referral hospital']], cleared: 'Email' },
+      { id: 'u9', name: 'Central Public Health Laboratory', code: 'CPHL', type: 'Referral lab', fields: [['Next review due', '2026-08-30', '2027-08-30'], ['Accreditation number', 'ISO-15189-PNG-004', 'ISO-15189-PNG-0042']] },
+      { id: 'u10', name: 'Goroka Provincial Hospital', code: 'GPH', type: 'Referring clinic', fields: [['Report email addresses', 'lab@gph.gov.pg', 'lab@gph.gov.pg; results@gph.gov.pg']] },
+    ];
+    const reactivatedRows = [{ id: 'r1', name: 'Medical Ward 3', code: 'PMGH-MW3', type: 'Ward / dept', parent: 'Port Moresby General Hospital', reactivated: true, fields: [['Active', 'Inactive', 'Active']] }];
+    const newRows = [
+      ['Gerehu Urban Clinic', 'NCD-0219', 'Referring clinic', 'Moresby North-West', 6], ['Morata Health Sub-Centre', 'NCD-0220', 'Referring clinic', 'Moresby North-West', 5],
+      ['Bomana Aid Post', 'CEN-0441', 'Referring clinic', 'Kairuku-Hiri District', 3], ['Malahang Clinic', 'MRB-0312', 'Referring clinic', 'Lae Urban LLG', 7],
+      ['Bugandi Health Centre', 'MRB-0313', 'Referring clinic', 'Lae Urban LLG', 6], ['Nawaeb Rural Health Centre', 'MRB-0390', 'Referring clinic', 'Nawae District', 4],
+      ['Kagamuga Clinic', 'WHP-0120', 'Referring clinic', 'Mount Hagen Urban LLG', 5], ['Kwikila District Hospital', 'CEN-0102', 'Referring clinic', 'Rigo District', 9],
+      ['Asaro Health Centre', 'EHP-0144', 'Referring clinic', 'Goroka District', 4], ['Henganofi Health Centre', 'EHP-0151', 'Referring clinic', 'Henganofi District', 4],
+      ['Wapenamanda Health Centre', 'ENG-0033', 'Referring clinic', 'Wapenamanda District', 5], ['Kundiawa General Hospital Lab', 'SIM-0002', 'Referral lab', 'Kundiawa-Gembogl District', 11],
+      ['Gerehu Urban Clinic / Antenatal Clinic', 'NCD-0219-ANC', 'Ward / dept', 'Gerehu Urban Clinic', 3], ['Gerehu Urban Clinic / Outpatients', 'NCD-0219-OPD', 'Ward / dept', 'Gerehu Urban Clinic', 3],
+      ['Malahang Clinic / Outpatients', 'MRB-0312-OPD', 'Ward / dept', 'Malahang Clinic', 3], ['Kwikila District Hospital / Maternity', 'CEN-0102-MAT', 'Ward / dept', 'Kwikila District Hospital', 3],
+      ['Kwikila District Hospital / Outpatients', 'CEN-0102-OPD', 'Ward / dept', 'Kwikila District Hospital', 3], ['Kwikila District Hospital / Laboratory', 'CEN-0102-LAB', 'Ward / dept', 'Kwikila District Hospital', 3],
+    ].map(([name, code, type, loc, f], i) => ({ id: 'n' + i, name, code, type, loc, f, similar: name === 'Bugandi Health Centre' ? 'Bugandi Health Center (inactive)' : null }));
+
+    const SCENARIOS = {
+      update: {
+        label: 'Ministry update', page: 'org', files: [{ name: 'organizations-png-2026-10.csv', size: '412 KB', rows: 1840, sep: 'comma separated', enc: 'Excel CSV UTF-8', area: 'Facilities, wards & sites' }],
+        fileWarn: 'These columns are not used and will be ignored: Region2', mode: 'merge',
+        base: { facilities: 12, wards: 6, updated: 31, reactivated: 1, unchanged: 1767, rejected: 8, ignored: 1 },
+        renames, matches, deact: [], deactOthers: 0, children: [], meaning: [],
+        rejected: [
+          { reason: 'nothing has the parent code NCD-MS2. Check the code, or add that record first.', lines: [301, 302, 305, 309, 311], col: 'parentCode' },
+          { reason: 'GPS is not in decimal degrees (latitude -90 to 90, longitude -180 to 180).', lines: [77, 1102, 1650], col: 'gpsLatitude' },
+        ],
+        warnings: [
+          { line: 48, msg: 'Gerehu General Hospital: automatic delivery is on and there is no delivery password. Patient reports will not be sent until one is set.', check: 'Automatic delivery, no password' },
+          { line: 509, msg: 'Tokarara Clinic: automatic delivery is on and there is no delivery password. Patient reports will not be sent until one is set.', check: 'Automatic delivery, no password' },
+          { line: 214, msg: 'Phone: looks like a spreadsheet changed it (=+675 325 1190). Check the cell in Excel.', check: 'Changed by a spreadsheet' },
+        ],
+        ignored: [{ what: 'Column "Region2"', detail: '412 rows had a value' }],
+        guarded: { field: 'Reporting code', count: 4, text: '4 reporting codes change. National reports and exports will show the new codes from now on; past exports keep the old ones.' },
+      },
+      replace: {
+        label: 'Replace (NCD clinics)', page: 'org', files: [{ name: 'organizations-ncd-clinics.csv', size: '18 KB', rows: 64, sep: 'comma separated', enc: 'Excel CSV UTF-8', area: 'Facilities, wards & sites' }],
+        mode: 'replace', scope: 'This file has Referring clinic and Ward / Dept rows in National Capital District. Referral labs, sampling sites and geographic areas will not change. Wards / depts will only be replaced at Badili Clinic and Gordons Clinic. Records from the facility registry are never deactivated.',
+        base: { facilities: 1, wards: 0, updated: 3, reactivated: 0, unchanged: 54, rejected: 0, ignored: 0 },
+        renames: [], matches: [], meaning: [], deactOthers: 0,
+        deact: [
+          { id: 'd1', name: 'Gordons Clinic', code: 'NCD-GOR', type: 'Referring clinic', loc: 'Moresby North-East', open: 12, usedBy: ['12 open orders', '1 pending referral', 'Result delivery settings'] },
+          { id: 'd2', name: 'Six Mile Aid Post', code: 'NCD-SMA', type: 'Referring clinic', loc: 'Moresby North-East', open: 3, usedBy: ['3 open orders'] },
+          { id: 'd3', name: 'Hohola Youth Clinic', code: '', type: 'Referring clinic', loc: 'Moresby North-West', open: 0, usedBy: [] },
+          { id: 'd4', name: 'Gordons Clinic / Dental', code: 'NCD-GOR-DEN', type: 'Ward / dept', loc: 'Gordons Clinic', open: 0, usedBy: [] },
+        ],
+        children: [{ line: 0, name: 'Badili Clinic', code: 'NCD-BAD', count: 2, wards: ['Badili Clinic / TB Clinic (5 open orders)', 'Badili Clinic / Outpatients (11 open orders)'] }],
+        rejected: [], warnings: [], ignored: [],
+      },
+      empty: {
+        label: 'Empty system', page: 'org', files: [{ name: 'organizations-png-national.csv', size: '402 KB', rows: 1800, sep: 'comma separated', enc: 'Excel CSV UTF-8', area: 'Facilities, wards & sites' }],
+        mode: 'merge', dominant: { count: 1792, total: 1800, text: 'the region was not found. Import the geographic areas first.' },
+        base: { facilities: 8, wards: 0, updated: 0, reactivated: 0, unchanged: 0, rejected: 1792, ignored: 0 },
+        renames: [], matches: [], deact: [], deactOthers: 0, children: [], meaning: [],
+        rejected: [{ reason: 'the region was not found. Import the geographic areas first (Geographic Areas, Import / Export).', lines: [2, 3, 4], more: 1789, col: 'parentName' }],
+        warnings: [], ignored: [],
+      },
+      many: {
+        label: 'Too many questions', page: 'org', files: [{ name: 'facilities-from-dhis2.csv', size: '96 KB', rows: 420, sep: 'comma separated', enc: 'Excel CSV UTF-8', area: 'Facilities, wards & sites' }],
+        mode: 'merge', cap: 312,
+        base: { facilities: 0, wards: 0, updated: 0, reactivated: 0, unchanged: 108, rejected: 0, ignored: 0 },
+        renames: [], matches: [], deact: [], deactOthers: 0, children: [], meaning: [], rejected: [], warnings: [], ignored: [],
+      },
+      french: {
+        label: 'French Excel file', page: 'org', files: [{ name: 'etablissements-abidjan.csv', size: '22 KB', rows: 96, sep: 'semicolon separated', enc: 'Excel CSV (Western European)', area: 'Facilities, wards & sites' }],
+        mode: 'merge',
+        base: { facilities: 2, wards: 0, updated: 3, reactivated: 0, unchanged: 90, rejected: 1, ignored: 0 },
+        renames: [], matches: [], deact: [], deactOthers: 0, children: [], meaning: [],
+        updatedOverride: [
+          { id: 'fr1', name: 'Clinique Sainte-Thérèse', code: 'ABJ-0112', type: 'Referring clinic', fields: [['GPS latitude', '', '5.3364'], ['GPS longitude', '', '-4.0267']], info: 'Read 5,3364 as 5.3364 and -4,0267 as -4.0267' },
+          { id: 'fr2', name: 'Centre de santé urbain de Treichville', code: 'ABJ-0140', type: 'Referring clinic', fields: [['Phone', '+225 21 24 00 00', '+225 21 24 11 90']] },
+          { id: 'fr3', name: 'CHU de Cocody', code: 'ABJ-0001', type: 'Referring clinic, Referral lab', fields: [['Contact name', '', 'Dr Aya Koné']] },
+        ],
+        newOverride: [{ id: 'fn1', name: 'Formation sanitaire urbaine d\'Abobo-Baoulé', code: 'ABJ-0221', type: 'Referring clinic', loc: 'Abobo', f: 6 }, { id: 'fn2', name: 'Dispensaire de Koumassi Remblais', code: 'ABJ-0222', type: 'Referring clinic', loc: 'Koumassi', f: 5 }],
+        rejected: [{ reason: 'write the number without thousands separators.', lines: [61], col: 'gpsLongitude', sample: '1.234,5' }],
+        warnings: [], ignored: [], problemsSep: 'semicolon separated, Excel CSV (Western European)',
+      },
+      catalog: {
+        label: 'Catalog: Hematology and ranges', page: 'catalog', files: [
+          { name: 'tests-hematology-chemistry.csv', size: '11 KB', rows: 11, sep: 'comma separated', enc: 'Excel CSV UTF-8', area: 'Tests' },
+          { name: 'result-limits-chemistry.csv', size: '4 KB', rows: 14, sep: 'comma separated', enc: 'Excel CSV UTF-8', area: 'Ranges' }],
+        mode: 'replace', underQuarter: { listed: 11, total: 58, others: 47 },
+        scope: 'This file has tests in Hematology and Chemistry. Tests in other lab units will not change. Ranges: the range set of each test listed in the ranges file is replaced (in either mode).',
+        base: { tests: 1, ranges: 3, updated: 6, reactivated: 0, unchanged: 7, rejected: 1, ignored: 0, rangesRemoved: 4 },
+        renames: [], matches: [{ line: 7, file: { name: 'Unit: mg/dl', code: '', loc: 'Fibrinogen' }, why: 'Not found exactly; one unit differs only in capitals', cands: [{ id: 'mgdl', name: 'mg/dL', code: 'UCUM mg/dL', loc: 'Units of measure', status: 'Active', open: 0 }], addUnit: 'mg/dl' }],
+        meaning: [{ line: 3, name: 'Glucose, fasting', code: 'CHE-GLU', field: 'Unit', from: 'mg/dL', to: 'mmol/L', results: 12400, equivalent: false, deps: '2 panels, 1 analyzer mapping, LOINC 1558-6 (order routing)' }],
+        deactOthers: 45,
+        deact: [
+          { id: 'cd1', name: 'Bleeding time (Ivy)', code: 'HEM-BT', type: 'Test', loc: 'Hematology', open: 0, usedBy: ['212 results', '1 panel'] },
+          { id: 'cd2', name: 'ESR (Wintrobe)', code: 'HEM-ESRW', type: 'Test', loc: 'Hematology', open: 4, usedBy: ['4 open analyses', '3,102 results', '1 analyzer mapping', '1 reflex rule'], openAnalyses: 4 },
+        ],
+        children: [],
+        rejected: [{ reason: 'the low limit is above the high limit (normal range 6.5 to 3.5).', lines: [12], col: 'lowNormal' }],
+        warnings: [
+          { line: 4, msg: 'Haemoglobin, normal range, Male 18+: the new range is 10 times the current one (130 to 170, was 13.0 to 17.0). Check the unit (g/L or g/dL).', check: 'Range scale' },
+          { line: 9, msg: 'After this import, Glucose, fasting has no normal range for: children 1 to 17, infants under 1. Their results will not be flagged.', check: 'Range coverage' },
+        ],
+        ignored: [],
+        guarded: { field: 'Significant digits', count: 1, text: 'Fibrinogen changes from 1 to 2 significant digits. Ranges shown on past results will use the new number of digits.' },
+      },
+    };
+
+    const catalogUpdated = [
+      { id: 'cu1', name: 'Glucose, fasting', code: 'CHE-GLU', type: 'Test', usedBy: '12,400 results, 2 panels, 1 analyzer mapping, LOINC 1558-6 (order routing)', fields: [], items: [['Range', 'Adult, both sexes, 18+', '', '3.9 to 5.5 mmol/L', 'Added'], ['Range', 'Child, 1 to 17', '70 to 100 mg/dL', '', 'Removed'], ['Range', 'Infant, under 1', '60 to 95 mg/dL', '', 'Removed'], ['Range', 'Female, 18+', '70 to 99 mg/dL', '', 'Removed'], ['Range', 'Male, 18+', '70 to 105 mg/dL', '', 'Removed']], note: 'The unit change is a question in Needs your answer. If you choose a new version, these ranges go on the new version.' },
+      { id: 'cu2', name: 'Haemoglobin', code: 'HEM-HB', type: 'Test', fields: [], items: [['Range', 'Male, 18+', '13.0 to 17.0 g/dL', '130 to 170 g/L', 'Changed'], ['Range', 'Female, 18+', '12.0 to 15.0 g/dL', '120 to 150 g/L', 'Changed']], note: 'Past results keep the range they were reported with.' },
+      { id: 'cu3', name: 'Platelet count', code: 'HEM-PLT', type: 'Test', fields: [['Reporting name', 'Platelets', 'Platelet count']] },
+      { id: 'cu4', name: 'White cell count', code: 'HEM-WBC', type: 'Test', fields: [['Sort order', '4', '2']] },
+      { id: 'cu5', name: 'Prothrombin time', code: 'HEM-PT', type: 'Test', fields: [['Sample types', 'Citrate plasma', 'Citrate plasma; Citrate whole blood']] },
+      { id: 'cu6', name: 'Fibrinogen', code: 'HEM-FIB', type: 'Test', guarded: true, usedBy: '2,870 results', fields: [['Significant digits', '1', '2']] },
+    ];
+
+    // ---------- shell ----------
+    function Shell({ page, children }) {
+      const org = page === 'org';
+      return <div className="shell">
+        <nav className="snav" aria-label="Admin">
+          <div className="grp">Admin</div>
+          {org ? <>
+            <div className="muted">Config</div>
+            <div className="parent">Locations &amp; Organizations</div>
+            <a>Organizations</a><a>Sampling Sites</a><a>Geographic Areas</a><a className="active" aria-current="page">Import / Export</a>
+            <div className="muted">Resources</div><div className="muted">Automation</div>
+          </> : <>
+            <div className="parent">Test Catalogue Management</div>
+            <a>Tests</a><a>Panels</a><a>Sample Types</a><a>Lab Units</a><a className="active" aria-current="page">Import Catalog (CSV)</a>
+            <div className="muted">Locations &amp; Organizations</div>
+          </>}
+        </nav>
+        <main className="main">
+          <div className="crumbs">{org ? <><a>Home</a> / <a>Admin Management</a> / <a>Locations &amp; Organizations</a> / Import / Export</> : <><a>Home</a> / <a>Admin Management</a> / Import Catalog (CSV)</>}</div>
+          <div className="route">{org ? '/MasterListsPage/locations/import' : '/MasterListsPage/CatalogImport'}</div>
+          <h1 className="page-title">{org ? 'Import / Export' : 'Import Catalog (CSV)'}</h1>
+          <p className="explainer">{org ? 'Load or update organizations, wards / depts, sampling sites and geographic areas from CSV files, in the same format the system uses at installation. Nothing is saved until you review the preview and apply it.' : 'Load or update the test catalog from CSV files: lab units, sample types, tests, ranges, panels, answers and more. Nothing is saved until you review the preview and apply it.'}</p>
+          {children}
+        </main>
+      </div>;
+    }
+
+    function Steps({ step }) {
+      const order = ['upload', 'review', 'done'];
+      const idx = order.indexOf(step);
+      return <ol className="steps" aria-label="Import steps" style={{ listStyle: 'none', padding: 0 }}>
+        {[t('label.importReview.step.upload', 'Upload'), t('label.importReview.step.review', 'Review'), t('label.importReview.step.done', 'Done')].map((s, i) =>
+          <li key={s} className={`step ${i === idx ? 'cur' : i < idx ? 'done' : ''}`} aria-current={i === idx ? 'step' : undefined}>{i + 1}. {s}</li>)}
+      </ol>;
+    }
+
+    function Section({ id, title, count, open, onToggle, actions, children }) {
+      return <section className="sec" id={id} aria-labelledby={id + '-h'}>
+        <div className="sec-hd">
+          <h3 id={id + '-h'}><button className="sec-toggle" aria-expanded={open} aria-controls={id + '-b'} onClick={onToggle}>
+            <span className="chv" aria-hidden="true" style={{ transform: open ? 'rotate(90deg)' : 'none' }}>›</span>
+            <span>{title}</span>{count && <span className="cnt">· {count}</span>}</button></h3>
+          {open && actions}
+        </div>
+        {open && <div className="sec-bd" id={id + '-b'}>{children}</div>}
+      </section>;
+    }
+
+    // ---------- the app ----------
+    function App() {
+      const [scenKey, setScenKey] = useState('update');
+      return <div>
+        <div className="scen" role="region" aria-label="Preview scenarios (not part of the design)">
+          <b>Preview scenario (not part of the design):</b>
+          {Object.entries(SCENARIOS).map(([k, s]) => <button key={k} className={k === scenKey ? 'sel' : ''} onClick={() => setScenKey(k)}>{s.label}</button>)}
+        </div>
+        <ImportReview key={scenKey} sc={SCENARIOS[scenKey]} scenKey={scenKey} />
+      </div>;
+    }
+
+    const SHOW_OPTIONS = [['all', 'All outcomes'], ['decision', 'Needs your answer'], ['deactivated', 'Will be deactivated'], ['updated', 'Will change'], ['new', 'New'], ['rejected', 'Rejected'], ['warning', 'Warnings'], ['ignored', 'Ignored'], ['unchanged', 'Unchanged']];
+
+    function ImportReview({ sc, scenKey }) {
+      const isCatalog = sc.page === 'catalog';
+      const [step, setStep] = useState('upload');
+      const [mode, setMode] = useState(sc.mode);
+      const [running, setRunning] = useState(null);
+      const [answers, setAnswers] = useState({});
+      const [groupAns, setGroupAns] = useState({});
+      const [deactAns, setDeactAns] = useState({});
+      const [keepAll, setKeepAll] = useState(false);
+      const [reviewedDeact, setReviewedDeact] = useState(false);
+      const [guardTick, setGuardTick] = useState(false);
+      const [warnAck, setWarnAck] = useState({});
+      const [capChoice, setCapChoice] = useState(null);
+      const [confirm, setConfirm] = useState(false);
+      const [replaceTick, setReplaceTick] = useState(false);
+      const [showSection, setShowSection] = useState('all');
+      const [openSecs, setOpenSecs] = useState({});
+      const [sampleCheck, setSampleCheck] = useState(null);
+      const [conn, setConn] = useState('ok');
+      const [savedState, setSavedState] = useState('saved');
+      const [changedDuringApply, setChangedDuringApply] = useState(false);
+      const [result, setResult] = useState(null);
+      const [undoOpen, setUndoOpen] = useState(false);
+      const [undoKeep, setUndoKeep] = useState({ n3: true });
+      const [undoDone, setUndoDone] = useState(null);
+      const [expanded, setExpanded] = useState({ u3: true, cu1: true, fr1: true });
+      const [quarterAns, setQuarterAns] = useState(null);
+      const [live, setLive] = useState('');
+      const [changedRows, setChangedRows] = useState([]);
+      const [menuOpen, setMenuOpen] = useState(false);
+      const [discardAsk, setDiscardAsk] = useState(false);
+      const [discarded, setDiscarded] = useState(false);
+      const [toast, setToast] = useState(null);
+      const [exportArea, setExportArea] = useState('Facilities, wards & sites');
+      const timers = useRef([]);
+      useEffect(() => () => timers.current.forEach(clearTimeout), []);
+      const later = (fn, ms) => { const tm = setTimeout(fn, ms); timers.current.push(tm); };
+      const touch = () => { setSavedState('saving'); later(() => setSavedState('saved'), 600); };
+      const showToast = (title, text) => { setToast({ title, text }); later(() => setToast(null), 4500); };
+
+      // ----- decision rows (one count model) -----
+      const decisionRows = useMemo(() => {
+        const rows = [];
+        sc.meaning.forEach(r => rows.push({ key: 'g' + r.line, group: 'meaning', r }));
+        sc.renames.forEach(r => rows.push({ key: 'r' + r.line, group: 'rename', r }));
+        sc.matches.forEach(r => rows.push({ key: 'm' + r.line, group: 'match', r }));
+        if (mode === 'replace') sc.children.forEach(r => rows.push({ key: 'c' + r.name, group: 'children', r }));
+        changedRows.forEach(r => rows.push({ key: 'x' + r.line, group: 'changed', r }));
+        return rows;
+      }, [sc, changedRows, mode]);
+      const effective = row => answers[row.key] || groupAns[row.group] || null;
+      const deactDefault = d => d.openAnalyses ? 'notOrderable' : 'deactivate';
+      const deactEff = d => deactAns[d.id] || (keepAll ? 'keep' : deactDefault(d));
+      const isReplace = mode === 'replace';
+
+      const counts = useMemo(() => {
+        const b = sc.base;
+        let facilities = b.facilities || 0, wards = b.wards || 0, tests = b.tests || 0, ranges = b.ranges || 0;
+        let updated = b.updated, deactivated = 0, deactWards = 0, unchanged = b.unchanged, decision = 0, notOrd = 0;
+        decisionRows.forEach(row => {
+          const a = effective(row);
+          if (!a) { decision++; return; }
+          if (row.group === 'meaning') { if (a === 'newVersion') { tests++; notOrd++; } }
+          if (row.group === 'rename') { a === 'renamed' ? updated++ : facilities++; }
+          if (row.group === 'match') { if (a.startsWith('use')) updated++; else if (a === 'new' && !isCatalog) facilities++; }
+          if (row.group === 'children') { if (a === 'with') { deactivated++; deactWards += row.r.count; } else if (a === 'only') deactivated++; }
+          if (row.group === 'changed') { if (a === 'file') updated++; else unchanged++; }
+        });
+        if (sc.cap) { const g = groupAns.capgroup; if (capChoice === 'new' || (capChoice === 'show' && g === 'new')) facilities += sc.cap; else if (capChoice === 'show' && g === 'renamed') updated += sc.cap; else decision += sc.cap; }
+        if (isReplace) {
+          sc.deact.forEach(d => { const e = deactEff(d); if (e === 'deactivate') { d.type === 'Ward / dept' ? deactWards++ : deactivated++; } else if (e === 'notOrderable') notOrd++; });
+          if (!keepAll) deactivated += sc.deactOthers || 0;
+        }
+        const warnings = sc.warnings.length;
+        return { facilities, wards, tests, ranges, updated, deactivated, deactWards, reactivated: b.reactivated, unchanged, decision, rejected: b.rejected, warnings, ignored: b.ignored, notOrd, rangesRemoved: b.rangesRemoved || 0 };
+      }, [sc, decisionRows, answers, groupAns, deactAns, keepAll, capChoice, isReplace]);
+      const adds = counts.facilities + counts.wards + counts.tests + counts.ranges;
+      const deTotal = counts.deactivated + counts.deactWards;
+      const changes = adds + counts.updated + deTotal + counts.reactivated + counts.notOrd;
+      const deactScope = isReplace ? sc.deact.length + (sc.deactOthers || 0) : 0;
+
+      const summaryText = past => {
+        const parts = [];
+        const a = [];
+        if (isCatalog) { if (counts.tests) a.push(plural(counts.tests, 'test', 'tests')); if (counts.ranges) a.push(plural(counts.ranges, 'range', 'ranges')); }
+        else { if (counts.facilities) a.push(plural(counts.facilities, 'facility', 'facilities')); if (counts.wards) a.push(plural(counts.wards, 'ward / dept', 'wards / depts')); }
+        if (a.length) parts.push((past ? 'added ' : 'adds ') + a.join(' and '));
+        if (counts.updated) parts.push((past ? 'updated ' : 'updates ') + fmt(counts.updated));
+        if (counts.reactivated) parts.push((past ? 'reactivated ' : 'reactivates ') + fmt(counts.reactivated));
+        if (deTotal) parts.push((past ? 'deactivated ' : 'deactivates ') + (isCatalog ? plural(deTotal, 'test', 'tests') : [counts.deactivated ? plural(counts.deactivated, 'facility', 'facilities') : null, counts.deactWards ? plural(counts.deactWards, 'ward / dept', 'wards / depts') : null].filter(Boolean).join(' and ')));
+        if (isCatalog && counts.notOrd) parts.push((past ? 'made ' : 'makes ') + plural(counts.notOrd, 'test', 'tests') + ' not orderable');
+        if (isCatalog && counts.rangesRemoved) parts.push((past ? 'removed ' : 'removes ') + plural(counts.rangesRemoved, 'range', 'ranges'));
+        if (!past && counts.unchanged) parts.push('leaves ' + fmt(counts.unchanged) + ' unchanged');
+        if (!parts.length) return past ? 'Nothing was changed.' : 'This file changes nothing.';
+        const list = joinList(parts);
+        return past ? list.charAt(0).toUpperCase() + list.slice(1) + '.' : 'This file ' + list + '.';
+      };
+
+      const announce = msg => setLive(msg);
+      const setAnswer = (k, v) => { setAnswers(a => ({ ...a, [k]: v })); touch(); const left = decisionRows.filter(r => r.key !== k && !effective(r)).length; announce(`${decisionRows.length - left} answered, ${left} not answered yet`); };
+      const setGroup = (g, v) => { setGroupAns(a => ({ ...a, [g]: v })); touch(); announce('Group answered'); };
+      const clearGroup = g => { setGroupAns(a => { const n = { ...a }; delete n[g]; return n; }); touch(); announce('Group answers cleared'); };
+
+      const simulate = (kind, after) => {
+        setRunning({ kind, pct: 0 });
+        let p = 0;
+        const tick = () => { p += 20; setRunning(r => r && { ...r, pct: p }); if (p < 100) later(tick, 300); else { setRunning(null); after(); } };
+        later(tick, 200);
+      };
+      const startPreview = () => simulate('preview', () => {
+        setOpenSecs({ decision: true, deactivated: false, updated: !!sc.guarded, new: false, problems: sc.warnings.length > 0, unchanged: false, onlyHere: true });
+        setStep('review');
+      });
+      const startApply = () => {
+        setConfirm(false);
+        simulate('apply', () => {
+          const moved = changedDuringApply ? [{ line: 509, name: 'Tokarara Clinic', field: 'Phone', file: '+675 325 9911', atPreview: '+675 325 9900', now: '+675 325 9955', who: 'Joseph Kila, 15:42' }] : [];
+          setChangedRows(moved);
+          setResult({ text: summaryText(true), waiting: counts.decision, moved: moved.length, deact: deTotal, notOrd: counts.notOrd });
+          setStep('done');
+        });
+      };
+
+      // ----- to-do list ("Before you apply") -----
+      const groupMeta = {
+        meaning: { title: 'Changes what past results mean' },
+        rename: { title: 'Possible renames' },
+        match: { title: isCatalog ? 'Possible matches' : 'Several possible matches' },
+        children: { title: 'Has active wards / depts not in this file' },
+        changed: { title: 'Changed since preview' },
+      };
+      const warnGroups = useMemo(() => { const m = {}; sc.warnings.forEach(w => { (m[w.check] = m[w.check] || []).push(w); }); return Object.entries(m); }, [sc]);
+      const todo = [];
+      Object.keys(groupMeta).forEach(g => {
+        const rows = decisionRows.filter(r => r.group === g);
+        if (!rows.length) return;
+        const left = rows.filter(r => !effective(r)).length;
+        todo.push({ id: 'todo-' + g, label: groupMeta[g].title, progress: left ? `${fmt(left)} not answered yet` : `${fmt(rows.length)} answered`, done: !left, blocking: false, section: 'decision', target: 'grp-' + g, action: 'Answer' });
+      });
+      if (sc.cap) todo.push({ id: 'todo-cap', label: `${fmt(sc.cap)} rows without a code`, progress: capChoice === 'wait' ? `${fmt(sc.cap)} left to wait` : (capChoice === 'new' || (capChoice === 'show' && groupAns.capgroup)) ? `${fmt(sc.cap)} answered` : `${fmt(sc.cap)} not answered yet`, done: !!capChoice && capChoice !== 'show' || (capChoice === 'show' && !!groupAns.capgroup), blocking: false, section: 'decision', target: 'grp-cap', action: 'Answer' });
+      if (isReplace && deactScope > 0) todo.push({ id: 'todo-deact', label: 'Will be deactivated', progress: reviewedDeact ? 'Checked' : `${plural(deactScope, 'record', 'records')} to check`, done: reviewedDeact, blocking: true, section: 'deactivated', target: 'deact-table', action: 'Check' });
+      if (sc.guarded) todo.push({ id: 'todo-guard', label: `${sc.guarded.field} changes`, progress: guardTick ? `${fmt(sc.guarded.count)} checked` : `${fmt(sc.guarded.count)} to check`, done: guardTick, blocking: true, section: 'updated', target: 'guard-tick', action: 'Check' });
+      warnGroups.forEach(([check, ws], i) => todo.push({ id: 'todo-w' + i, label: `Warnings: ${check}`, progress: warnAck[check] ? `${fmt(ws.length)} checked` : `${fmt(ws.length)} to check`, done: !!warnAck[check], blocking: true, section: 'problems', target: 'warn-' + i, action: 'Check' }));
+      const blockingLeft = todo.filter(x => x.blocking && !x.done).length;
+      const todoDone = todo.filter(x => x.done).length;
+
+      const isOpen = k => showSection !== 'all' ? true : !!openSecs[k];
+      const toggle = k => { setOpenSecs(o => ({ ...o, [k]: !isOpen(k) })); if (k === 'deactivated' && !isOpen(k)) setReviewedDeact(true); };
+      const goTo = item => {
+        setShowSection('all');
+        setOpenSecs(o => ({ ...o, [item.section]: true }));
+        if (item.section === 'deactivated') { setReviewedDeact(true); touch(); }
+        later(() => { const el = document.getElementById(item.target); if (el) { el.scrollIntoView({ block: 'center' }); el.focus(); } }, 50);
+      };
+      const goPanel = () => { const el = document.getElementById('todo'); if (el) { el.scrollIntoView({ block: 'start' }); el.focus(); } };
+
+      // ---------- UPLOAD ----------
+      if (step === 'upload') return <Shell page={sc.page}>
+        <Steps step="upload" />
+        {toast && <div className="toast" role="status"><b>{toast.title}</b><div>{toast.text}</div></div>}
+        {!isCatalog && <div className="reminder">3 rows from the import of organizations-png-2026-09.csv on 14 October 2026 are not answered yet. <button className="linkbtn">Answer them</button></div>}
+        {!isCatalog && <Notif kind="info">Open: Joseph Kila's preview of facilities-highlands.csv, 14:02. Two imports of the same records can overlap; check with Joseph before applying.</Notif>}
+        {discarded && <Notif kind="info">Preview discarded. Nothing was applied. It stays in Recent imports as Discarded.</Notif>}
+        <div className="panel">
+          <h3>1. {t('label.importReview.files', 'Files')}</h3>
+          <div className="drop">{t('help.importReview.drop', 'Drop CSV files here, or browse')}</div>
+          {sc.files.map(f => <div className="file" key={f.name}>
+            <div className="nm">{f.name}<div className="sub">{f.size}</div></div>
+            <div style={{ flex: 1, minWidth: 260 }}>{fmt(f.rows)} rows, {f.sep}, {f.enc}, read as <b>{f.area}</b> <button className="linkbtn" style={{ fontSize: '.8125rem' }}>change</button>
+              {sc.fileWarn && <div className="sub" style={{ color: '#8e6a00', marginTop: '.25rem' }}>{sc.fileWarn}</div>}
+            </div>
+            <button className="linkbtn">Remove</button>
+          </div>)}
+        </div>
+        <div className="panel">
+          <h3>2. {t('label.importReview.mode', 'Import mode')}</h3>
+          <div className="cards" role="radiogroup" aria-label="Import mode">
+            {[['merge', 'Add & update', 'Add new records and update matching ones. Nothing else changes.'],
+              ['replace', 'Replace', 'Also deactivate records that this file covers but does not list. Values are not overwritten by this choice, and nothing is deleted.'],
+              ['compare', 'Compare only', 'Show the differences between this file and this server. Nothing can be applied.']].map(([k, l, h]) =>
+              <div key={k} role="radio" aria-checked={mode === k} tabIndex={0} className={`radio-card ${mode === k ? 'sel' : ''}`} onClick={() => setMode(k)} onKeyDown={e => (e.key === ' ' || e.key === 'Enter') && setMode(k)}>
+                <span className="chk" aria-hidden="true">{mode === k ? '✓' : ''}</span><b>{l}</b><p>{h}</p></div>)}
+          </div>
+          {mode === 'replace' && <div className="scope"><b>For this file: </b>{sc.scope || 'This file has Referring clinic rows. Referral labs, sampling sites and geographic areas will not change. Records from the facility registry are never deactivated.'}</div>}
+          {mode === 'compare' && <div className="scope">The review will show what the file has that this server lacks, what differs, and what this server has that the file lacks. Nothing can be applied from a comparison; you can turn it into an import afterwards.</div>}
+        </div>
+        {running ? <div className="panel" aria-live="polite">
+          <b>Checking {fmt(Math.round(sc.files.reduce((a, f) => a + f.rows, 0) * running.pct / 100))} of {fmt(sc.files.reduce((a, f) => a + f.rows, 0))} rows.</b> You can leave this page; we will tell you when the preview is ready.
+          <div className="progress"><div style={{ width: running.pct + '%' }} /></div>
+          <Btn kind="ghost" size="sm" onClick={() => { timers.current.forEach(clearTimeout); setRunning(null); }}>{t('button.importReview.stop', 'Stop')}</Btn>
+        </div> : <div className="btnrow"><Btn onClick={() => { setDiscarded(false); startPreview(); }}>{t('button.importReview.preview', 'Preview')}</Btn><span className="sub">Nothing is saved yet.</span></div>}
+        {!isCatalog && <div className="panel" style={{ marginTop: '1.5rem' }}>
+          <h3>Export</h3>
+          <div className="filterbar" style={{ marginBottom: '.5rem' }}>
+            <div><label htmlFor="exp-area">What to export</label>
+              <select id="exp-area" className="cds--select-input" value={exportArea} onChange={e => setExportArea(e.target.value)}>
+                {['Facilities, wards & sites', 'Sampling sites', 'Geographic areas'].map(o => <option key={o}>{o}</option>)}</select></div>
+            <Btn kind="tertiary" onClick={() => showToast('Export started', `${exportArea}: the CSV will download when it is ready.`)}>Download CSV</Btn>
+          </div>
+          <p className="meta" style={{ margin: 0 }}>The file starts with a line that records the filters used. If you import it back with Replace, only those records can be deactivated. Filter a list first (Organizations, Sampling Sites) to export part of it.</p>
+        </div>}
+        <RecentImports isCatalog={isCatalog} discarded={discarded} />
+        <Notes />
+      </Shell>;
+
+      // ---------- DONE / UNDO ----------
+      if (step === 'done') return <Shell page={sc.page}>
+        <Steps step="done" />
+        {undoDone ? <>
+          <Notif kind="ok">{undoDone}</Notif>
+          {!isCatalog && undoKeep.n3 && <div className="panel"><h3>Kept because in use</h3><table className="dt"><tbody><tr><td>Kwikila District Hospital</td><td>2 open orders since the import</td><td><button className="linkbtn">Edit</button></td></tr></tbody></table></div>}
+        </> : <>
+          <Notif kind="ok" title="Import applied.">{result.text}{result.waiting ? ` ${plural(result.waiting, 'row was', 'rows were')} not answered and ${result.waiting === 1 ? 'is' : 'are'} waiting.` : ''}</Notif>
+          {result.moved > 0 && <Notif kind="warn" title="1 row was not applied because its record changed after the preview.">Tokarara Clinic's phone was changed by Joseph Kila at 15:42. Choose which value to keep in Changed since preview.</Notif>}
+          <div className="panel">
+            <div className="btnrow">
+              {(result.waiting > 0 || result.moved > 0) && <Btn kind="primary" onClick={() => { setStep('review'); setShowSection('all'); setOpenSecs(o => ({ ...o, decision: true })); }}>Answer the waiting rows</Btn>}
+              <Btn kind="tertiary" size="sm">Download result report</Btn>
+              <Btn kind="tertiary" size="sm" onClick={() => setUndoOpen(true)}>Undo this import</Btn>
+              <Btn kind="ghost" size="sm">View history</Btn>
+            </div>
+            <p className="sub" style={{ marginTop: '.75rem' }}>Lists and pickers already show the new records (order entry's referring site, referral lists).</p>
+          </div>
+        </>}
+        <RecentImports isCatalog={isCatalog} justApplied={!undoDone} undone={!!undoDone} />
+        {undoOpen && <Modal label="Undo" title={`Undo the import of ${sc.files[0].name}?`} primary="Undo import" primaryKind="dan-b" onClose={() => setUndoOpen(false)}
+          onPrimary={() => { setUndoOpen(false); setUndoDone(!isCatalog && undoKeep.n3 ? 'Undone, except 1 record kept because it is in use.' : 'Undone.'); }}>
+          <h4 style={{ marginTop: 0 }}>Will be deactivated ({isCatalog ? 1 : 18})</h4>
+          <p className="sub">Records this import created. Records now in use are listed first.</p>
+          {!isCatalog && <table className="dt"><tbody>
+            <tr><td><b>Kwikila District Hospital</b><div className="sub">In use: 2 open orders since the import</div></td>
+              <td className="answers"><label><input type="radio" name="u3" checked={!!undoKeep.n3} onChange={() => setUndoKeep({ n3: true })} />Keep</label><label><input type="radio" name="u3" checked={!undoKeep.n3} onChange={() => setUndoKeep({ n3: false })} />Deactivate anyway</label></td></tr>
+            <tr><td>Gerehu Urban Clinic, Morata Health Sub-Centre and 15 more</td><td className="sub">Not in use</td></tr></tbody></table>}
+          <h4>Will be restored ({isCatalog ? 6 : 31})</h4>
+          <p className="sub">Values this import changed go back to what they were.</p>
+          <table className="dt"><tbody><tr><td>{isCatalog ? 'Fibrinogen' : 'Gerehu General Hospital'}</td><td>{isCatalog ? 'Significant digits: 2 to 1' : 'Reporting code: NCD-0201 to NCD-HC-01'}</td></tr>
+            <tr><td>{isCatalog ? 'Haemoglobin' : 'Port Moresby General Hospital'}</td><td>{isCatalog ? 'Ranges: 130 to 170 g/L back to 13.0 to 17.0 g/dL' : <>Phone: changed later by Joseph Kila to +675 324 8299. <label style={{ marginLeft: '.5rem' }}><input type="radio" defaultChecked name="later" /> Keep the later value</label> <label><input type="radio" name="later" /> Restore +675 325 6200</label></>}</td></tr></tbody></table>
+          <h4>Will be reactivated ({fmt(result ? result.deact : 0)}){isCatalog && result && result.notOrd ? `, orderable again (${result.notOrd})` : ''}</h4>
+          <div className="notif warn" style={{ marginTop: '1rem' }}><div><span className="t">Undo cannot take these back:</span>{isCatalog ? 'Systems that already copied this catalog (an OpenMRS concept sync, an exported file, a FHIR export) keep the old values until they read them again.' : 'Other systems that already copied these organizations (from a FHIR export or their own sync) keep the old values until they read them again.'} Reports already issued keep the values they were issued with.</div></div>
+          <p className="sub">A later import of organizations-png-2026-10b.csv also changed 2 of these records; their later values are kept unless you choose otherwise.</p>
+        </Modal>}
+        <Notes />
+      </Shell>;
+
+      // ---------- REVIEW ----------
+      const showAll = showSection === 'all';
+      const visible = k => showAll || showSection === k || (k === 'problems' && ['rejected', 'warning', 'ignored'].includes(showSection));
+      const updBase = isCatalog ? catalogUpdated : sc.updatedOverride ? sc.updatedOverride
+        : scenKey === 'update' ? updatedRows : scenKey === 'replace' ? updatedRows.filter(u => ['u1', 'u2', 'u10'].includes(u.id)) : [];
+      const updList = updBase.concat(!isCatalog && sc.base.reactivated ? reactivatedRows : []);
+      const newList = isCatalog ? [{ id: 'cn1', name: 'D-dimer', code: 'HEM-DDI', type: 'Test', loc: 'Hematology', f: 8 }] : sc.newOverride ? sc.newOverride
+        : scenKey === 'update' ? newRows : scenKey === 'replace' ? newRows.slice(2, 3) : scenKey === 'empty' ? newRows.slice(0, 8) : [];
+      const isCompare = mode === 'compare';
+      const changeCount = counts.updated + counts.reactivated;
+      const changeCountText = [counts.updated ? `${fmt(counts.updated)} updated` : null, counts.reactivated ? `${fmt(counts.reactivated)} reactivated` : null].filter(Boolean).join(', ');
+      const deactHeader = (() => {
+        if (!isReplace) return '';
+        const de = sc.deact.filter(d => deactEff(d) === 'deactivate').length + (keepAll ? 0 : (sc.deactOthers || 0));
+        const no = sc.deact.filter(d => deactEff(d) === 'notOrderable').length;
+        const kept = deactScope - de - no;
+        const p = [];
+        if (de) p.push(`${fmt(de)} deactivated`);
+        if (no) p.push(`${fmt(no)} made not orderable`);
+        if (kept) p.push(`${fmt(kept)} kept active`);
+        return `${plural(deactScope, 'record', 'records')}: ${p.join(', ')}`;
+      })();
+      const unansweredFirst = () => { const el = document.querySelector('[data-unanswered="true"]'); if (el) { el.scrollIntoView({ block: 'center' }); el.focus(); } };
+      const sectionDefs = [];
+      if ((decisionRows.length > 0 || sc.cap) && !isCompare) sectionDefs.push(['decision', 'Needs your answer', counts.decision ? `${fmt(counts.decision)} not answered yet` : 'all answered']);
+      if (isReplace && deactScope > 0) sectionDefs.push(['deactivated', 'Will be deactivated', deactHeader]);
+      if (updList.length > 0) sectionDefs.push(['updated', 'Will change', `${plural(changeCount, 'record', 'records')}: ${changeCountText}`]);
+      if (adds > 0) sectionDefs.push(['new', 'New', plural(adds, 'record', 'records')]);
+      const probCount = sc.rejected.length + sc.warnings.length + sc.ignored.length;
+      if (probCount > 0) sectionDefs.push(['problems', 'Problems', [counts.rejected ? `${fmt(counts.rejected)} rejected` : null, counts.warnings ? plural(counts.warnings, 'warning', 'warnings') : null, counts.ignored ? `${fmt(counts.ignored)} ignored` : null].filter(Boolean).join(', ')]);
+      if (counts.unchanged > 0) sectionDefs.push(['unchanged', 'Unchanged', plural(counts.unchanged, 'record', 'records')]);
+      const showCounts = { decision: counts.decision, deactivated: deactScope, updated: changeCount, new: adds, rejected: counts.rejected, warning: counts.warnings, ignored: counts.ignored, unchanged: counts.unchanged };
+
+      return <Shell page={sc.page}>
+        <Steps step="review" />
+        <div className="live" aria-live="polite">{live}</div>
+        {toast && <div className="toast" role="status"><b>{toast.title}</b><div>{toast.text}</div></div>}
+        {conn === 'lost' && <Notif kind="warn" title="Connection lost.">Your import is still running on the server. This page will reconnect.</Notif>}
+        {sc.dominant && <Notif kind="err" title={`${fmt(sc.dominant.count)} of ${fmt(sc.dominant.total)} rows:`}>{sc.dominant.text} <button className="linkbtn" onClick={() => setShowSection('rejected')}>See the problem</button></Notif>}
+        <div className="panel">
+          <p className="summary">{isCompare ? `Compared with this server: the file has ${adds} records this server lacks, ${counts.updated} records differ, and this server has 27 records the file lacks.` : summaryText(false)}
+            {!isCompare && counts.decision > 0 && <> <b>{plural(counts.decision, 'needs your answer before it can be applied.', 'need your answer before they can be applied.')}</b></>}</p>
+          <div className="sub">{sc.files.map(f => f.name).join(', ')} · {mode === 'merge' ? 'Add & update' : mode === 'replace' ? 'Replace' : 'Compare only'} · <b>Nothing is saved yet.</b></div>
+
+          {!isCompare && todo.length > 0 && <div className="todo" id="todo" tabIndex={-1} role="region" aria-labelledby="todo-h">
+            <div className="todo-hd"><h3 id="todo-h">Before you apply</h3><span className="meta">{todoDone} of {todo.length} done</span><span style={{ flex: 1 }} />
+              <Btn kind="ghost" size="sm" onClick={unansweredFirst} disabled={!counts.decision}>Next unanswered</Btn></div>
+            {todo.map(item => <div className="todo-row" key={item.id}>
+              <span className={`ic ${item.done ? 'done' : item.blocking ? 'open' : 'wait'}`} aria-hidden="true">{item.done ? '✓' : ''}</span>
+              <span>{item.label}{!item.blocking && !item.done && <span className="sub"> (can wait)</span>}</span>
+              <span className="meta">{item.progress}</span>
+              <span><button className="linkbtn" onClick={() => goTo(item)} aria-label={`${item.done ? 'Show' : item.action}: ${item.label}`}>{item.done ? 'Show' : item.action}</button></span>
+            </div>)}
+            <div className="todo-foot">Questions you leave unanswered do not stop Apply. Those rows wait, and you can answer them later from Recent imports.</div>
+          </div>}
+        </div>
+
+        {/* Under a quarter */}
+        {isReplace && sc.underQuarter && quarterAns !== 'continue' && <Notif kind="warn" title={`This file lists ${sc.underQuarter.listed} of the ${sc.underQuarter.total} records in its scope.`} action={<div className="btnrow"><Btn kind="secondary" size="sm" onClick={() => setMode('merge')}>Switch to Add &amp; update</Btn><Btn kind="ghost" size="sm" onClick={() => setQuarterAns('continue')}>Continue with Replace</Btn></div>}>
+          Replace would take the other {sc.underQuarter.others} out of use (tests with open analyses are made not orderable instead of deactivated). Did you mean Add &amp; update?</Notif>}
+
+        <div className="filterbar">
+          <div><label htmlFor="show-sel">Show</label>
+            <select id="show-sel" className="cds--select-input" value={showSection} onChange={e => setShowSection(e.target.value)}>
+              {SHOW_OPTIONS.filter(([k]) => k === 'all' || showCounts[k] > 0 || (k === 'deactivated' && isReplace && deactScope > 0)).map(([k, l]) => <option key={k} value={k}>{k === 'all' ? l : `${l} (${fmt(showCounts[k])})`}</option>)}
+            </select></div>
+          <span className="sub" style={{ paddingBottom: '.75rem' }}>Filtering opens the URL with ?show=, so the view can be shared.</span>
+        </div>
+
+        {/* NEEDS YOUR ANSWER */}
+        {visible('decision') && sectionDefs.some(s => s[0] === 'decision') && <Section id="sec-decision" title="Needs your answer" count={sectionDefs.find(s => s[0] === 'decision')[2]} open={isOpen('decision')} onToggle={() => toggle('decision')}>
+          {sc.cap && <div className="grp" id="grp-cap" tabIndex={-1}>
+            <div className="grp-hd"><h4>{fmt(sc.cap)} rows look like places you already have but carry no code</h4><span className="meta">{capChoice ? '' : `${fmt(sc.cap)} not answered yet`}</span></div>
+            <div style={{ padding: '.75rem .875rem', fontSize: '.875rem' }}>
+              <div className="btnrow" style={{ alignItems: 'flex-start' }}>
+                <span style={{ flex: 1, minWidth: 280 }}>If this file lists new places, treat them all as new. If they are the same places, add the code column and upload again: <b>Export with codes</b> gives you this file's rows with the matching codes filled in.</span>
+                <Btn kind="tertiary" size="sm" onClick={() => showToast('Export with codes started', `facilities-from-dhis2-with-codes.csv: your ${fmt(sc.cap)} rows in your file's columns, plus the code of the record each one looks like. It will download when it is ready.`)}>Export with codes</Btn>
+              </div>
+              <div className="answers" role="radiogroup" aria-label={`${fmt(sc.cap)} rows without a code`} style={{ marginTop: '.75rem' }}>
+                {[['new', `Treat all ${fmt(sc.cap)} as new`], ['wait', 'Leave them waiting (the rest can apply)'], ['show', 'Show them anyway']].map(([k, l]) =>
+                  <label key={k}><input type="radio" name="cap" checked={capChoice === k} onChange={() => { setCapChoice(k); touch(); }} />{l}</label>)}
+              </div>
+              {capChoice === 'show' && <div style={{ marginTop: '.75rem' }}><DecisionGroup id="grp-capgroup" title="Possible renames" help="These rows look like places you already have under another name." group="capgroup"
+                rows={renames.map(r => ({ key: 'cap' + r.line, group: 'capgroup', r }))} total={sc.cap} effective={row => answers[row.key] || groupAns.capgroup || null} groupAns={groupAns} setGroup={setGroup} clearGroup={clearGroup} setSampleCheck={setSampleCheck}
+                groupAnswers={[['new', 'All new places'], ['renamed', 'All the same place, renamed']]} kind="rename" setAnswer={setAnswer} /></div>}
+            </div>
+          </div>}
+          {sc.meaning.length > 0 && <DecisionGroup id="grp-meaning" title="Changes what past results mean" danger
+            help={<>Glucose, fasting has 12,400 results. Changing its unit would show them in the new unit. A new version keeps past results as they were.</>}
+            group="meaning" rows={decisionRows.filter(r => r.group === 'meaning')} effective={effective} groupAns={groupAns} setGroup={setGroup} clearGroup={clearGroup} groupAnswers={[]} kind="meaning" setAnswer={setAnswer} />}
+          {sc.renames.length > 0 && <DecisionGroup id="grp-rename" title="Possible renames" help="These rows look like places you already have under another name. Common words (Health, Centre, Clinic, Hospital...) are ignored when matching."
+            group="rename" rows={decisionRows.filter(r => r.group === 'rename')} total={sc.renames.length} effective={effective} groupAns={groupAns} setGroup={setGroup} clearGroup={clearGroup} setSampleCheck={setSampleCheck}
+            groupAnswers={[['new', 'All new places'], ['renamed', 'All the same place, renamed']]} kind="rename" setAnswer={setAnswer} />}
+          {sc.matches.length > 0 && <DecisionGroup id="grp-match" title={isCatalog ? 'Possible matches' : 'Several possible matches'} help={isCatalog ? 'These values were not found exactly. Pick the one you meant, or add it.' : 'Each of these rows matches more than one existing record, or matches by name a record that has a different code.'}
+            group="match" rows={decisionRows.filter(r => r.group === 'match')} effective={effective} groupAns={groupAns} setGroup={setGroup} clearGroup={clearGroup}
+            groupAnswers={isCatalog ? [] : [['new', 'Create all as new'], ['skip', 'Skip all']]} kind="match" isCatalog={isCatalog} setAnswer={setAnswer} />}
+          {isReplace && sc.children.length > 0 && <DecisionGroup id="grp-children" title="Has active wards / depts not in this file" help="Replace would deactivate these facilities, but some of their wards / depts are outside this file's scope."
+            group="children" rows={decisionRows.filter(r => r.group === 'children')} effective={effective} groupAns={groupAns} setGroup={setGroup} clearGroup={clearGroup}
+            groupAnswers={[['keep', 'Keep all active']]} kind="children" setAnswer={setAnswer} />}
+          {changedRows.length > 0 && <DecisionGroup id="grp-changed" title="Changed since preview" help="Someone changed these records after this preview. Choose which value to keep."
+            group="changed" rows={decisionRows.filter(r => r.group === 'changed')} effective={effective} groupAns={groupAns} setGroup={setGroup} clearGroup={clearGroup}
+            groupAnswers={[['file', 'Use the file for all'], ['current', 'Keep current for all']]} kind="changed" setAnswer={setAnswer} />}
+        </Section>}
+
+        {/* WILL BE DEACTIVATED */}
+        {visible('deactivated') && isReplace && deactScope > 0 && <Section id="sec-deactivated" title="Will be deactivated" count={deactHeader} open={isOpen('deactivated')} onToggle={() => toggle('deactivated')}>
+          <div className="scope" style={{ marginTop: 0, marginBottom: '.75rem' }}>{sc.scope}</div>
+          <div className="grp-answers" style={{ border: '1px solid #e0e0e0', marginBottom: '.5rem' }}>
+            <div className="ga"><Btn kind="tertiary" size="sm" onClick={() => { setKeepAll(true); setDeactAns({}); touch(); }}>{keepAll ? '✓ ' : ''}Keep all active</Btn><span className="sub">Answers all {fmt(deactScope)} records</span></div>
+            {keepAll && <button className="linkbtn" style={{ fontSize: '.8125rem', alignSelf: 'center' }} onClick={() => { setKeepAll(false); touch(); }}>Clear this answer</button>}
+          </div>
+          <table className="dt" id="deact-table" tabIndex={-1}><thead><tr><th>Name</th><th>Code</th><th>Type</th><th>Location or parent</th><th>{isCatalog ? 'Open analyses' : 'Open orders'}</th><th>Used by</th><th>Answer</th></tr></thead>
+            <tbody>{[...sc.deact].sort((a, b) => (b.open > 0) - (a.open > 0)).map(d => {
+              const e = deactEff(d);
+              const opts = d.openAnalyses ? [['notOrderable', 'Make not orderable'], ['keep', 'Keep active']] : [['deactivate', 'Deactivate'], ['keep', 'Keep active']];
+              return <tr key={d.id}>
+                <td><b>{d.name}</b>{d.open > 0 && <div><Tag kind="red">In use</Tag></div>}</td><td>{d.code || <span className="sub">none</span>}</td><td>{d.type}</td><td>{d.loc}</td><td>{fmt(d.open)}</td>
+                <td className="meta">{d.usedBy.length ? d.usedBy.join(', ') : 'Nothing'}</td>
+                <td className="ans"><div className="answers" role="radiogroup" aria-label={d.name}>
+                  {opts.map(([k, l]) => <label key={k}><input type="radio" name={'de-' + d.id} checked={e === k} onChange={() => { setDeactAns({ ...deactAns, [d.id]: k }); touch(); }} />{l}</label>)}
+                  {d.openAnalyses && <span className="sub">It has {d.openAnalyses} open analyses, so it cannot be deactivated now. Not orderable: it leaves order entry; open analyses can still be completed and released.</span>}
+                </div></td></tr>; })}</tbody></table>
+          {sc.deactOthers > 0 && <Pagination total={deactScope} shown={sc.deact.length} />}
+        </Section>}
+        {visible('deactivated') && isCompare && <Section id="sec-only" title="Only on this server" count="27 records the file does not list" open={isOpen('onlyHere')} onToggle={() => toggle('onlyHere')}>
+          <table className="dt"><thead><tr><th>Name</th><th>Code</th><th>Type</th><th>Location</th></tr></thead><tbody>
+            <tr><td>Gordons Clinic</td><td>NCD-GOR</td><td>Referring clinic</td><td>Moresby North-East</td></tr>
+            <tr><td>Six Mile Aid Post</td><td>NCD-SMA</td><td>Referring clinic</td><td>Moresby North-East</td></tr></tbody></table>
+          <Pagination total={27} shown={2} /></Section>}
+
+        {/* WILL CHANGE */}
+        {visible('updated') && updList.length > 0 && <Section id="sec-updated" title="Will change" count={`${plural(changeCount, 'record', 'records')}: ${changeCountText}`} open={isOpen('updated')} onToggle={() => toggle('updated')}
+          actions={<span className="sub">Filter: Type · Field changed · Search by name or code</span>}>
+          {sc.guarded && <div className={`ack ${guardTick ? 'on' : ''}`} style={{ marginBottom: '.75rem', display: 'block' }}>
+            <div><b>{isCatalog ? 'Changes past results: ' : 'Changes reports: '}</b>{sc.guarded.text}</div>
+            <label style={{ display: 'flex', gap: '.5rem', marginTop: '.375rem' }}><input id="guard-tick" type="checkbox" checked={guardTick} onChange={e => { setGuardTick(e.target.checked); touch(); }} />
+              {sc.guarded.count === 1 ? `I have checked the change to ${sc.guarded.field}` : `I have checked all ${fmt(sc.guarded.count)} changes to ${sc.guarded.field}`}</label></div>}
+          <table className="dt"><thead><tr><th style={{ width: 40 }}><span className="live">Expand</span></th><th>Name</th><th>Code</th><th>Type</th><th>What changes</th><th>Outcome</th></tr></thead>
+            <tbody>{[...updList].sort((a, b) => (!!b.guarded) - (!!a.guarded)).map(r => {
+              const f = r.fields || [], it = r.items || [];
+              const expandable = f.length > 1 || it.length > 0 || !!r.usedBy || !!r.info || !!r.registry;
+              const what = f.length === 1 && !it.length ? <><span>{f[0][0]}: </span><span className="old">{f[0][1] || 'empty'}</span> → <span className="new">{r.cleared === f[0][0] ? 'cleared' : (f[0][2] || 'empty')}</span></>
+                : [...f.map(x => r.cleared === x[0] ? `${x[0]} (cleared)` : x[0]), ...(it.length ? [`Ranges: ${joinList(['Added', 'Changed', 'Removed'].map(s => [s, it.filter(i => i[4] === s).length]).filter(([, n]) => n).map(([s, n]) => `${n} ${s.toLowerCase()}`))}`] : [])].join(', ');
+              return <React.Fragment key={r.id}>
+                <tr><td>{expandable && <button className="chev" aria-expanded={!!expanded[r.id]} aria-label={`Show changes, ${r.name}`} onClick={() => setExpanded({ ...expanded, [r.id]: !expanded[r.id] })}>{expanded[r.id] ? '▾' : '▸'}</button>}</td>
+                  <td><b>{r.name}</b>{r.parent && <div className="sub">{r.parent}</div>}{r.guarded && <div><Tag kind={isCatalog ? 'red' : 'magenta'}>{isCatalog ? 'Changes past results' : 'Changes reports'}</Tag></div>}
+                    {r.registry && <div><Tag kind="cool-gray">Registry</Tag><Toggletip label="About registry records">From the facility registry. Name, code and location come from the registry and are not changed by this file. Active status and local settings are.</Toggletip></div>}</td>
+                  <td>{r.code}</td><td>{r.type}</td><td>{what}</td>
+                  <td><Tag kind={r.reactivated ? 'teal' : 'blue'}>{r.reactivated ? 'Reactivated' : 'Updated'}</Tag></td></tr>
+                {expandable && expanded[r.id] && <tr><td></td><td colSpan={5}>
+                  {r.usedBy && <div className="meta" style={{ marginBottom: '.375rem' }}><b>Used by:</b> {r.usedBy}</div>}
+                  {f.length > 0 && <table className="fieldtbl"><thead><tr><th>Field</th><th>Now</th><th>After import</th></tr></thead><tbody>
+                    {f.map(([fl, o, n]) => <tr key={fl}><td>{fl}</td><td className="old">{o || 'empty'}</td><td className="new">{r.cleared === fl ? <Tag kind="warm-gray">Will be cleared</Tag> : (n || 'empty')}
+                      {r.registry && fl === 'Phone' && <div className="sub" style={{ color: '#8e6a00' }}>Will be overwritten by the next registry sync</div>}</td></tr>)}</tbody></table>}
+                  {r.info && <div className="meta" style={{ marginTop: '.25rem' }}>ⓘ {r.info}</div>}
+                  {it.length > 0 && <table className="fieldtbl" style={{ marginTop: '.375rem' }}><thead><tr><th>Item</th><th>For</th><th>Now</th><th>After import</th><th></th></tr></thead><tbody>
+                    {it.map(([k, fr, o, n, st], i) => <tr key={i}><td>{k}</td><td>{fr}</td><td className="old">{o || 'none'}</td><td className="new">{n || 'none'}</td><td><Tag kind={st === 'Removed' ? 'red' : st === 'Added' ? 'green' : 'blue'}>{st}</Tag></td></tr>)}</tbody></table>}
+                  {r.note && <div className="meta" style={{ marginTop: '.25rem' }}>{r.note}</div>}
+                </td></tr>}
+              </React.Fragment>; })}</tbody></table>
+          <Pagination total={changeCount} shown={updList.length} />
+        </Section>}
+
+        {/* NEW */}
+        {visible('new') && adds > 0 && <Section id="sec-new" title="New" count={plural(adds, 'record', 'records')} open={isOpen('new')} onToggle={() => toggle('new')}>
+          <table className="dt"><thead><tr><th>Name</th><th>Code</th><th>Type</th><th>Location or parent</th><th>Other fields set</th></tr></thead>
+            <tbody>{newList.map(n => <tr key={n.id}><td><b>{n.name}</b>{n.similar && <div className="meta">ⓘ Similar to {n.similar}</div>}</td><td>{n.code}</td><td>{n.type}</td><td>{n.loc}</td><td>{n.f}</td></tr>)}</tbody></table>
+          {isCatalog && <p className="meta">Also: 3 ranges for D-dimer.{counts.tests > 1 ? ' And the new version of Glucose, fasting (mmol/L).' : ''}</p>}
+          <Pagination total={adds} shown={newList.length + (isCatalog ? counts.tests - 1 + counts.ranges : 0)} />
+        </Section>}
+
+        {/* PROBLEMS */}
+        {visible('problems') && probCount > 0 && <Section id="sec-problems" title="Problems" count={sectionDefs.find(s => s[0] === 'problems')[2]} open={isOpen('problems')} onToggle={() => toggle('problems')}
+          actions={<Btn kind="tertiary" size="sm">Download with problems</Btn>}>
+          {sc.problemsSep && <p className="meta" style={{ marginTop: 0 }}>The download keeps your file's format: {sc.problemsSep}.</p>}
+          {(showAll || showSection === 'warning') && sc.warnings.length > 0 && <><h4 style={{ marginTop: 0, fontSize: '.875rem' }}>Warnings (will be applied; check each group)</h4>
+            {warnGroups.map(([check, ws], i) => <div key={check} className="grp">
+              <div className="grp-hd"><h4>{check}</h4><span className="meta">{plural(ws.length, 'warning', 'warnings')}</span></div>
+              <table className="dt"><thead><tr><th style={{ width: 70 }}>Line</th><th>What to check</th></tr></thead><tbody>
+                {ws.map((w, j) => <tr key={j}><td>{w.line}</td><td>{w.msg}</td></tr>)}</tbody></table>
+              <label className={`ack ${warnAck[check] ? 'on' : ''}`}><input id={'warn-' + i} type="checkbox" checked={!!warnAck[check]} onChange={e => { setWarnAck({ ...warnAck, [check]: e.target.checked }); touch(); }} />
+                {ws.length === 1 ? 'I have checked this warning' : `I have checked these ${ws.length} warnings`}</label>
+            </div>)}</>}
+          {(showAll || showSection === 'rejected') && sc.rejected.length > 0 && <><h4 style={{ fontSize: '.875rem' }}>Rejected (not applied)</h4>
+            <table className="dt"><thead><tr><th>Rows</th><th>What to do</th><th>Sample lines</th></tr></thead><tbody>
+              {sc.rejected.map((g, i) => { const n = g.lines.length + (g.more || 0); return <tr key={i}><td><b>{fmt(n)}</b></td><td>{g.col}: {g.sample ? `"${g.sample}": ` : ''}{g.reason}</td><td className="meta">{n === 1 ? 'Line' : 'Lines'} {g.lines.slice(0, 3).join(', ')}{n > 3 && <> · <button className="linkbtn">Show all {fmt(n)}</button></>}</td></tr>; })}</tbody></table></>}
+          {(showAll || showSection === 'ignored') && sc.ignored.length > 0 && <><h4 style={{ fontSize: '.875rem' }}>Ignored</h4>{sc.ignored.map((g, i) => <div key={i} style={{ fontSize: '.875rem' }}>{g.what}: {g.detail}. Not imported.</div>)}</>}
+        </Section>}
+
+        {/* UNCHANGED */}
+        {visible('unchanged') && counts.unchanged > 0 && <Section id="sec-unchanged" title="Unchanged" count={plural(counts.unchanged, 'record', 'records')} open={isOpen('unchanged')} onToggle={() => toggle('unchanged')}>
+          <p className="meta" style={{ margin: 0 }}>Loaded when opened, {fmt(Math.min(25, counts.unchanged))} at a time.</p></Section>}
+
+        <div className="preview-note">Preview only: <label><input type="checkbox" checked={changedDuringApply} onChange={e => setChangedDuringApply(e.target.checked)} /> Another admin edits Tokarara Clinic during Apply</label> · <button className="linkbtn" onClick={() => { setConn('lost'); setSavedState('unsaved'); later(() => { setConn('ok'); setSavedState('saved'); }, 2500); }}>Simulate a dropped connection</button></div>
+
+        {/* APPLY BAR */}
+        <div className="bar" role="region" aria-label="Apply">
+          {isCompare ? <><div className="msg">This is a comparison. Nothing can be applied from it.</div>
+            <div className="btns"><Btn kind="secondary" onClick={() => setStep('upload')}>Back</Btn><Btn kind="primary" onClick={() => { setMode('merge'); simulate('preview', () => {}); }}>Use this file to update</Btn></div></> : <>
+            <div className="msg">
+              <b>Apply {plural(changes, 'change', 'changes')}.</b>
+              {counts.decision > 0 && <span>{counts.decision === 1 ? '1 row is not answered yet and will wait.' : `${fmt(counts.decision)} rows are not answered yet and will wait.`}</span>}
+              {blockingLeft > 0 && <span className="blocked">{blockingLeft === 1 ? '1 thing left before you can apply' : `${blockingLeft} things left before you can apply`} · <button className="linkbtn" onClick={goPanel}>Show</button></span>}
+              <span className={savedState === 'unsaved' ? 'unsaved' : 'saved'}>{savedState === 'unsaved' ? 'Not saved yet, reconnecting.' : savedState === 'saving' ? 'Saving...' : 'All answers saved.'}</span></div>
+            {running ? <div style={{ minWidth: 280 }} aria-live="polite"><b>Applying {running.pct}%.</b> You can leave this page.<div className="progress"><div style={{ width: running.pct + '%' }} /></div></div> :
+              <div className="btns">
+                <Btn kind="secondary" onClick={() => setStep('upload')}>Back</Btn>
+                <Btn kind={isReplace ? 'danger' : 'primary'} disabled={blockingLeft > 0 || conn === 'lost' || changes === 0} onClick={() => { setConfirm(true); setReplaceTick(false); }}>Apply</Btn>
+                <span className="ofm"><button className="ofm-btn" aria-label="More actions" aria-haspopup="menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>⋮</button>
+                  {menuOpen && <div className="ofm-menu" role="menu"><button role="menuitem" onClick={() => { setMenuOpen(false); setDiscardAsk(true); }}>Discard this preview</button></div>}</span>
+              </div>}</>}
+        </div>
+
+        {/* CONFIRM */}
+        {confirm && <Modal label={isReplace ? 'Replace' : 'Add & update'} title="Apply this import?" primary="Apply" primaryKind={isReplace ? 'dan-b' : 'pri-b'}
+          primaryDisabled={isReplace && deTotal > 0 && !replaceTick}
+          onClose={() => setConfirm(false)} onPrimary={startApply}>
+          <p style={{ marginTop: 0 }}>{summaryText(false)}</p>
+          {counts.decision > 0 && <p>{counts.decision === 1 ? '1 row is not answered yet and will wait.' : `${fmt(counts.decision)} rows are not answered yet and will wait.`}</p>}
+          {counts.rejected > 0 && <p>{plural(counts.rejected, 'rejected row is', 'rejected rows are')} left out.</p>}
+          {counts.warnings > 0 && <p>{plural(counts.warnings, 'warning was', 'warnings were')} checked and will be applied.</p>}
+          {isReplace && deTotal > 0 && <>
+            {sc.deact.filter(d => deactEff(d) === 'deactivate' && d.open > 0).length > 0 && <p>In use and will be deactivated: <b>{sc.deact.filter(d => deactEff(d) === 'deactivate' && d.open > 0).map(d => `${d.name} (${d.open} open orders)`).join(', ')}</b>.</p>}
+            <label style={{ display: 'block', marginBottom: '.5rem' }}><input type="checkbox" checked={replaceTick} onChange={e => setReplaceTick(e.target.checked)} /> I understand {plural(deTotal, 'record will be deactivated', 'records will be deactivated')}</label></>}
+          <div className="notif warn" style={{ margin: '.75rem 0 .5rem' }}><div><span className="t">Undo cannot take these back:</span>{isCatalog ? 'Systems that already copied this catalog (an OpenMRS concept sync, an exported file, a FHIR export) keep the old values until they read them again.' : 'Other systems that already copied these organizations (from a FHIR export or their own sync) keep the old values until they read them again.'} Reports already issued keep their values.</div></div>
+          <p className="sub">Apply cannot be stopped once it starts. You can undo it afterwards.</p>
+        </Modal>}
+        {discardAsk && <Modal label="Discard" title="Discard this preview?" primary="Discard preview" primaryKind="dan-b" onClose={() => setDiscardAsk(false)}
+          onPrimary={() => { setDiscardAsk(false); setDiscarded(true); setAnswers({}); setGroupAns({}); setStep('upload'); }}>
+          <p style={{ marginTop: 0 }}>Your answers are discarded and nothing is applied. The run stays in Recent imports as Discarded, so others no longer see it as open.</p>
+        </Modal>}
+        {sampleCheck && <Modal label="Possible renames" title={`Answer all ${fmt(sampleCheck.total)}: ${sampleCheck.label}?`} primary={`Answer all ${fmt(sampleCheck.total)}`} onClose={() => setSampleCheck(null)} onPrimary={() => { setGroup(sampleCheck.group, sampleCheck.value); setSampleCheck(null); }}>
+          <p style={{ marginTop: 0 }}>The 5 closest pairs. Check them before answering all {fmt(sampleCheck.total)}:</p>
+          <table className="dt"><thead><tr><th>In your file</th><th>Already in OpenELIS</th><th>Why matched</th></tr></thead><tbody>
+            {renames.slice(0, 5).map(r => <tr key={r.line}><td>{r.file.name}</td><td>{r.cand.name} {r.cand.code}</td><td className="meta">They share: {r.shared}</td></tr>)}</tbody></table>
+          <p className="sub">You can change any row afterwards, or clear this group's answers.</p>
+        </Modal>}
+        <Notes />
+      </Shell>;
+    }
+
+    // ---------- decision groups: one table pattern (FR-C2) ----------
+    function DecisionGroup({ id, title, help, group, rows, total, effective, groupAns, setGroup, clearGroup, groupAnswers, setSampleCheck, kind, setAnswer, isCatalog, danger }) {
+      const unanswered = rows.filter(r => !effective(r)).length;
+      const reach = total || rows.length;
+      const heads = { rename: ['In your file', 'Already in OpenELIS', 'Why matched'], match: ['In your file', 'Candidates', 'Why matched'], children: ['In your file', 'Already in OpenELIS', 'Why asked'],
+        changed: ['In your file', 'At preview and now', 'Why asked'], meaning: ['In your file', 'Already in OpenELIS', 'Why asked'] }[kind];
+      return <div className="grp" id={id} tabIndex={-1} role="group" aria-label={title}>
+        <div className="grp-hd"><h4>{title}</h4>{danger && <Tag kind="red">Changes past results</Tag>}<span className="meta">{plural(rows.length, 'row', 'rows')}{unanswered ? ` · ${fmt(unanswered)} not answered yet` : ' · all answered'}</span></div>
+        <div className="grp-help">{help}</div>
+        {groupAnswers.length > 0 && <div className="grp-answers">
+          {groupAnswers.map(([v, l]) => <div className="ga" key={v}>
+            <Btn kind="tertiary" size="sm" onClick={() => (reach > 25 && setSampleCheck) ? setSampleCheck({ group, value: v, total: reach, label: l }) : setGroup(group, v)}>{groupAns[group] === v ? '✓ ' : ''}{l}</Btn>
+            <span className="sub">Answers all {fmt(reach)} rows{reach > 25 ? `, ${Math.min(25, rows.length)} on this page` : ''}</span></div>)}
+          {groupAns[group] && <button className="linkbtn" style={{ fontSize: '.8125rem', alignSelf: 'center' }} onClick={() => clearGroup(group)}>Clear this group's answers</button>}
+        </div>}
+        <table className="dt" style={{ marginTop: '.5rem' }}><thead><tr><th style={{ width: 120 }}>Line</th>{heads.map(h => <th key={h}>{h}</th>)}<th>Answer</th></tr></thead>
+          <tbody>{rows.map(row => <DecisionRow key={row.key} row={row} eff={effective(row)} kind={kind} setAnswer={setAnswer} isCatalog={isCatalog} />)}</tbody></table>
+        {total > rows.length && <Pagination total={total} shown={rows.length} />}
+      </div>;
+    }
+
+    function DecisionRow({ row, eff, kind, setAnswer, isCatalog }) {
+      const r = row.r;
+      const name = r.file ? r.file.name : r.name;
+      const radio = (v, label, extra) => <label key={v} className={extra && extra.disabled ? 'dis' : ''}><input type="radio" name={row.key} disabled={extra && extra.disabled} checked={eff === v} onChange={() => setAnswer(row.key, v)} /><span>{label}{extra && extra.sub && <div className="sub">{extra.sub}</div>}</span></label>;
+      let cells, answers, after = null;
+      if (kind === 'rename') {
+        cells = [<><b>{r.file.name}</b><div className="meta">{r.file.code || 'no code'} · {r.file.loc}</div></>,
+          <><b>{r.cand.name}</b><div className="meta">{r.cand.code || 'no code'} · {r.cand.loc} · {r.cand.status} · {plural(r.cand.open, 'open order', 'open orders')}</div></>,
+          <span className="meta">They share: {r.shared}</span>];
+        answers = [radio('renamed', 'Same place, renamed', { sub: `Updates ${r.cand.name} and keeps its history` }), radio('new', 'New place')];
+      } else if (kind === 'match') {
+        cells = [<><b>{r.file.name}</b><div className="meta">{r.file.code || 'no code'} · {r.file.loc}</div></>,
+          <>{r.cands.map(c => <div key={c.id} style={{ marginBottom: '.25rem' }}><b>{c.name}</b><div className="meta">{c.code} · {c.loc} · {c.status}{!isCatalog ? ` · ${plural(c.open, 'open order', 'open orders')}` : ''}</div></div>)}</>,
+          <span className="meta">{r.why}</span>];
+        answers = [...r.cands.map(c => radio('use:' + c.id, `Use ${c.name} (${c.code})`)), r.addUnit ? radio('new', `Add "${r.addUnit}" as a new unit`) : radio('new', 'Create new'), radio('skip', 'Skip row')];
+        if (eff && eff.startsWith('use')) answers.push(<label key="rem" className="meta"><input type="checkbox" /> Remember this name</label>);
+      } else if (kind === 'children') {
+        cells = [<span className="meta">Not listed, so Replace deactivates it</span>, <><b>{r.name}</b> {r.code}<ul style={{ margin: '.25rem 0 0 1.25rem', padding: 0 }} className="meta">{r.wards.map(w => <li key={w}>{w}</li>)}</ul></>,
+          <span className="meta">{r.count} active wards / depts are outside this file's scope</span>];
+        answers = [radio('with', `Deactivate with its ${r.count} wards / depts`), radio('only', `Deactivate ${r.name} only`), radio('keep', 'Keep active')];
+      } else if (kind === 'changed') {
+        cells = [<><b>{r.name}</b><div className="meta">{r.field}: {r.file}</div></>, <><div className="meta">At preview: {r.atPreview}</div><div><b>Now: {r.now}</b></div><div className="sub">Changed by {r.who}</div></>, <span className="meta">Changed after the preview</span>];
+        answers = [radio('file', "Use the file's value"), radio('current', 'Keep the current value')];
+      } else if (kind === 'meaning') {
+        cells = [<><b>{r.name}</b><div className="meta">{r.field}: {r.to}</div></>, <><b>{r.name}</b> {r.code}<div className="meta">{r.field}: {r.from} · {fmt(r.results)} results</div></>,
+          <span className="meta">The {r.field.toLowerCase()} changes from {r.from} to {r.to}</span>];
+        answers = [radio('newVersion', 'Create a new version of this test (recommended)'),
+          radio('relabel', 'Same measurement, only the label changes', r.equivalent ? null : { disabled: true, sub: `${r.from} and ${r.to} are different measurements. Choose a new version.` }),
+          radio('skip', 'Skip this row')];
+        if (eff === 'newVersion') after = <tr><td></td><td colSpan={4} className="meta" style={{ background: '#f4f4f4' }}>
+          A new test "{r.name}" ({r.code}, {r.to}) is created with the file's ranges. The current test becomes "{r.name} (to 2026-10-20)", is made not orderable and keeps its {fmt(r.results)} results as they were. These stay on the current test until you move them: {r.deps}.</td></tr>;
+      }
+      return <><tr data-unanswered={!eff} tabIndex={-1} aria-label={`Line ${r.line || ''}, ${name}`}>
+        <td>{r.line ? `Line ${r.line}` : ''}{!eff && <div><Tag kind="purple">Not answered yet</Tag></div>}</td>
+        {cells.map((c, i) => <td key={i}>{c}</td>)}
+        <td className="ans"><div className="answers" role="radiogroup" aria-label={`Line ${r.line || ''}, ${name}`}>{answers}</div></td></tr>{after}</>;
+    }
+
+    function RecentImports({ isCatalog, justApplied, undone, discarded }) {
+      const rows = [
+        ...(discarded ? [['2026-10-20 15:40', 'Casey', isCatalog ? 'tests-hematology-chemistry.csv, result-limits-chemistry.csv' : 'organizations-png-2026-10.csv', isCatalog ? 'Replace' : 'Add & update', 'Import', 'Discarded', '']] : []),
+        ...(justApplied || undone ? [['2026-10-20 15:44', 'Casey', isCatalog ? 'tests-hematology-chemistry.csv, result-limits-chemistry.csv' : 'organizations-png-2026-10.csv', isCatalog ? 'Replace' : 'Add & update', 'Import', undone ? 'Undone, 1 kept' : 'Applied', undone ? '' : 'undo']] : []),
+        ['2026-10-14 11:02', 'Joseph Kila', 'organizations-png-2026-09.csv', 'Add & update', 'Import', 'Applied with rows waiting', 'answer'],
+        ['2026-10-09 09:30', 'Casey', 'organizations-staging-export.csv', 'Compare only', 'Compare', 'Preview ready', 'diff'],
+        ['2026-10-02 16:15', 'Mary Kasu', 'sites-vector-2026.csv', 'Replace', 'Import', 'Expired', 'again'],
+        ['2026-09-28 10:05', 'Casey', 'organizations-png-2026-08.csv', 'Add & update', 'Undo', 'Applied', ''],
+      ];
+      const tagFor = s => s.startsWith('Applied with') ? 'purple' : s.startsWith('Applied') ? 'green' : 'gray';
+      return <div className="panel" style={{ marginTop: '1.5rem' }}>
+        <h3>Recent imports</h3>
+        <table className="dt"><thead><tr><th>Date</th><th>User</th><th>Files</th><th>Mode</th><th>Type</th><th>Status</th><th></th></tr></thead>
+          <tbody>{rows.map((r, i) => <tr key={i}><td>{r[0]}</td><td>{r[1]}</td><td>{r[2]}</td><td>{r[3]}</td><td>{r[4]}</td><td><Tag kind={r[5] === 'Preview ready' ? 'blue' : tagFor(r[5])}>{r[5]}</Tag></td>
+            <td style={{ fontSize: '.8125rem' }}>{r[6] === 'undo' && <button className="linkbtn">Undo this import</button>}
+              {r[6] === 'answer' && <button className="linkbtn">Answer the waiting rows (3)</button>}
+              {r[6] === 'diff' && <button className="linkbtn">Download differences</button>}
+              {r[6] === 'again' && <button className="linkbtn">Preview again with my answers</button>}
+              {r[5] !== 'Discarded' && <>{' '}<button className="linkbtn">Download with problems</button></>}</td></tr>)}</tbody></table>
+      </div>;
+    }
+
+    function Notes() {
+      return <div className="notes"><b>Preview notes (v0.4).</b> Use the yellow scenario bar to switch situations; each opens on Upload, so click <b>Preview</b>. Things to try: the <b>Before you apply</b> list under the summary collects everything that needs you; each row's link opens its section and moves focus to the item. Answer a question and watch the summary, the list, the section headers and the Apply bar change together. Rows you leave unanswered do not block Apply; ticks and warning checks do, and the bar says how many are left with a link back to the list. Sections open and close from their headers; the <b>Show</b> dropdown filters to one outcome. In <b>Ministry update</b>, use a group answer on Possible renames and then clear it, tick the reporting-code check, check both warning groups in Problems, open the Registry ⓘ on Mount Hagen, then Apply. In <b>Catalog</b>, answer the Glucose unit question (only a new version is allowed for a different measurement), check the range coverage warning, keep a test active or Keep all active, and compare the counts with the "11 of 58" alert. In <b>Too many questions</b>, try <b>Export with codes</b>. On Upload (organizations), see the Export panel. From the Apply bar's ⋮ menu, <b>Discard this preview</b>. Before Apply, tick "Another admin edits Tokarara Clinic during Apply" to see a row held in Changed since preview, or simulate a dropped connection. On Done, open <b>Undo this import</b>. Mock data is Papua New Guinea (and Abidjan for the French file). Strings map to keys in the Import Review FRS v0.4 Localization tables; this preview uses the English fallbacks.</div>;
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
