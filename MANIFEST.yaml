@@ -4577,3 +4577,23 @@
   added: "2026-09-17"
   status: draft
   tags: ["provider", "title", "honorific", "admin", "configuration", "PNG", "CPHL"]
+
+
+- id: admin-redesign
+  type: spec
+  path: designs/admin-config/admin-redesign.md
+  preview_path: mockup-viewer/public/designs/admin-config/admin-redesign.html
+  category: admin-config
+  description: >
+    Admin Redesign FRS v1.1 — the single definitive design for the OpenELIS Admin section:
+    one grouped sidebar and generated admin home (Part A), one page standard across six page
+    types (Part B), a register of every admin page (Part C), and full specs for Configuration,
+    Menu Configuration and Report Management (Part D). Every setting lives on one searchable
+    Configuration page. Supersedes four earlier generations of admin design.
+  links:
+    jira: ["OGC-1111"]
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/admin-redesign
+    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/admin-redesign.html
+  added: "2026-10-20"
+  status: draft
+  tags: ["admin", "redesign", "configuration", "navigation", "settings", "report-management", "ia"]
