@@ -4507,25 +4507,6 @@
   added: "2026-09-09"
   status: draft
 
-- id: provider-titles
-  type: html
-  path: designs/admin-config/provider-titles.html
-  spec: designs/admin-config/provider-titles.md
-  preview_path: mockup-viewer/public/designs/admin-config/provider-titles.html
-  category: admin-config
-  description: >
-    Provider Title field plus the Provider Titles admin page (OGC-1223): configurable
-    honorific/cadre list with abbreviation, sort order and active/inactive status,
-    maintained under Provider Management. From the CPHL PNG duplicate-provider cleanup.
-  links:
-    jira: ["OGC-1223"]
-    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/provider-titles
-    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/provider-titles.html
-  added: "2026-09-17"
-  status: draft
-  tags: ["provider", "title", "honorific", "admin", "configuration", "PNG", "CPHL"]
-
-
 - id: amr-micro-v3
   type: jsx
   path: designs/microbiology/amr-micro-v3-mockup.jsx
@@ -4578,3 +4559,21 @@
   added: "2026-10-20"
   status: draft
   tags: ["admin", "reference-data", "import", "import-review", "csv", "configuration"]
+
+- id: provider-titles
+  type: html
+  path: designs/admin-config/provider-titles.html
+  spec: designs/admin-config/provider-titles.md
+  preview_path: mockup-viewer/public/designs/admin-config/provider-titles.html
+  category: admin-config
+  description: >
+    Provider Title field plus the Provider Titles admin page (OGC-1223): configurable
+    honorific/cadre list with abbreviation, sort order and active/inactive status,
+    maintained under Provider Management. From the CPHL PNG duplicate-provider cleanup.
+  links:
+    jira: ["OGC-1223"]
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/provider-titles
+    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/provider-titles.html
+  added: "2026-09-17"
+  status: draft
+  tags: ["provider", "title", "honorific", "admin", "configuration", "PNG", "CPHL"]
