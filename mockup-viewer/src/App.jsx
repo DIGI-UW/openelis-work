@@ -413,8 +413,21 @@ export const MOCKUP_REGISTRY = [
     tags: ['test-catalog', 'microbiology', 'png', 'workflow-type', 'basic-info', 'admin'],
   },
   {
+    name: 'Admin Redesign',
+    category: 'admin-config',
+    component: null,
+    description: 'The single definitive FRS for the OpenELIS Admin section (v1.1): one grouped sidebar and a generated admin home (Part A), one page standard across six page types (Part B), a register of every admin page (Part C), and full specs for Configuration, Menu Configuration and Report Management (Part D) — every setting on one searchable Configuration page. Supersedes four earlier generations of admin design (April IA/Pattern Library, May MVP scope, August Phase 5 finalization, the September nav redesign Admin sidebar).',
+    specPath: 'designs/admin-config/admin-redesign.md',
+    htmlUrl: 'designs/admin-config/admin-redesign.html',
+    added: '2026-10-20',
+    status: 'draft',
+    jira: ['OGC-1111'],
+    tags: ['admin', 'redesign', 'configuration', 'navigation', 'settings', 'report-management', 'ia'],
+  },
+  {
     name: 'Admin Redesign — MVP Scope',
     category: 'admin-config',
+    archived: true,
     component: null,
     description: 'Umbrella scope/FRS for the OpenELIS admin redesign MVP — Admin Shell + consolidated pages (42→27 pages), and the per-feature configuration surfaces below.',
     specPath: 'designs/admin-config/admin-mvp-scope.md',
@@ -425,6 +438,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'Application Properties',
     category: 'admin-config',
+    archived: true,
     component: null,
     description: 'Admin redesign: consolidated Application/Common Properties editor (61 properties across 7 domains).',
     specPath: 'designs/admin-config/admin-mvp-scope.md',
@@ -436,6 +450,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'Feature Flags',
     category: 'admin-config',
+    archived: true,
     component: null,
     description: 'Admin redesign: Feature Flags tab in Application Settings (hybrid auto-aggregate + curated dictionary).',
     specPath: 'designs/admin-config/admin-mvp-scope.md',
@@ -447,6 +462,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'Menu Configuration',
     category: 'admin-config',
+    archived: true,
     component: null,
     description: 'Admin redesign: Menu Configuration across 5 scopes with per-node Side Nav Active + Show Child Elements toggles.',
     specPath: 'designs/admin-config/admin-mvp-scope.md',
@@ -458,6 +474,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'Site Information',
     category: 'admin-config',
+    archived: true,
     component: null,
     description: 'Admin redesign: Site Information editor (29 properties; banner heading, patient-search, training installation).',
     specPath: 'designs/admin-config/admin-mvp-scope.md',
@@ -469,6 +486,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'Validation Configuration',
     category: 'admin-config',
+    archived: true,
     component: null,
     description: 'Admin redesign: Validation Configuration with a live try-a-value charset preview (firstName/lastName/patientId/userName).',
     specPath: 'designs/admin-config/admin-mvp-scope.md',
@@ -480,6 +498,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'Test Notification',
     category: 'admin-config',
+    archived: true,
     component: null,
     description: 'Admin redesign: Test Notification config — 4 channels, 3-tier template fallback, substitution variables.',
     specPath: 'designs/admin-config/admin-mvp-scope.md',
@@ -491,6 +510,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'Order & Patient Entry',
     category: 'admin-config',
+    archived: true,
     component: null,
     description: 'Admin redesign: merged Order Entry + Patient Entry configuration (22 properties; conditional fields grey out when parent toggle off).',
     specPath: 'designs/admin-config/admin-mvp-scope.md',
@@ -502,6 +522,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'WorkPlan Configuration',
     category: 'admin-config',
+    archived: true,
     component: null,
     description: 'Admin redesign: WorkPlan Configuration with live workplan preview showing columns conditionally (nextVisit/results/subject).',
     specPath: 'designs/admin-config/admin-mvp-scope.md',
@@ -659,6 +680,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'Admin Shell',
     category: 'admin-config',
+    archived: true,
     component: null,
     description: 'Phase 5 admin shell design brief — the SideNav + header chrome that hosts every admin page. Defines the canonical two-column layout (240px SideNav + content column), breadcrumb pattern, page-level action bar placement, and responsive collapse behavior.',
     specPath: 'designs/admin-config/admin-shell.md',
@@ -671,6 +693,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'Admin Pattern Library',
     category: 'admin-config',
+    archived: true,
     component: null,
     description: 'Canonical Carbon component patterns for all OpenELIS admin pages — P-01 Admin Table, P-02 Inline Row-Expand Edit, P-03 Create Modal, P-04 Confirm-Delete Modal, P-05 Form Validation, P-06 Empty State, P-09 Breadcrumb + Header, P-13 Permission Gate. Reference for all Phase 5 admin page specs.',
     specPath: 'designs/admin-config/admin-pattern-library.md',
@@ -683,6 +706,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'Admin Phase 5 Roadmap',
     category: 'admin-config',
+    archived: true,
     component: null,
     description: 'Roadmap for Phase 5 admin redesign — covers all admin pages bucketed into People & Access, Test Catalog, Configuration, QC & Quality, and Reports & Analytics. Sequencing, dependency graph, and spec completion status.',
     specPath: 'designs/admin-config/admin-phase5-roadmap.md',
@@ -694,6 +718,7 @@ export const MOCKUP_REGISTRY = [
   {
     name: 'Admin Phase 5 Finalization',
     category: 'admin-config',
+    archived: true,
     component: null,
     description: 'Phase 5 admin redesign finalization (v2.0) — re-grounds the whole program against the live v3.2.2.0 app (44 SideNav entries resolving to 33 pages, a finalized 12-bucket IA), resolves the contradictions accumulated across the planning documents, and states a finalized disposition for every admin page. Supersedes admin-phase5-roadmap and admin-mvp-scope.',
     specPath: 'designs/admin-config/admin-phase5-finalization.md',

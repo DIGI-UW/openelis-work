@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Admin Redesign: Where Would You Look? (OpenELIS area test)</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+ body{background:#f4f4f4;margin:0;font-family:'IBM Plex Sans',sans-serif;color:#161616}
+ .bnr{background:#0f62fe;color:#fff;padding:6px 1rem;font-size:12px;font-family:monospace}
+ .wrap{max-width:860px;margin:0 auto;background:#fff;min-height:100vh;padding:1.5rem 2rem 4rem}
+ h1{font-size:1.6rem;font-weight:400;margin:.2rem 0 .4rem}
+ .sub{color:#525252;font-size:.9375rem;line-height:1.55;margin:0 0 1.2rem;max-width:70ch}
+ .prog{height:4px;background:#e0e0e0;margin-bottom:1.5rem}
+ .prog div{height:4px;background:#0f62fe;transition:width .2s}
+ .qn{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:#6f6f6f;font-weight:600}
+ .setting{background:#f4f4f4;border-left:3px solid #0f62fe;padding:1.1rem 1.25rem;margin:.6rem 0 1.4rem}
+ .setting .d{font-size:1.0625rem;line-height:1.5;color:#161616}
+ .areas{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.6rem}
+ .areas button{text-align:left;padding:.7rem .85rem;background:#fff;border:1px solid #8d8d8d;cursor:pointer;
+   font-family:inherit;font-size:.875rem;color:#161616}
+ .areas button:hover{background:#e8e8e8;border-color:#0f62fe}
+ .nav{margin-top:1.5rem;display:flex;gap:.75rem;align-items:center}
+ .cds--btn{min-height:2rem;padding-top:.4rem;padding-bottom:.4rem}
+ table{border-collapse:collapse;width:100%;font-size:.8125rem;margin-top:1rem}
+ th{text-align:left;font-size:.6875rem;letter-spacing:.06em;text-transform:uppercase;color:#6f6f6f;padding:.5rem .6rem;border-bottom:1px solid #8d8d8d}
+ td{padding:.5rem .6rem;border-bottom:1px solid #e0e0e0;vertical-align:top}
+ .ok{color:#0e6027;font-weight:600}.no{color:#da1e28;font-weight:600}
+ .box{background:#f4f4f4;border-left:3px solid #0f62fe;padding:.9rem 1.1rem;margin:1.2rem 0;font-size:.875rem;line-height:1.55}
+ textarea{width:100%;height:200px;font-family:'IBM Plex Mono',monospace;font-size:.75rem;padding:.6rem;border:1px solid #8d8d8d}
+ .mono{font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:#8d8d8d}
+</style>
+</head>
+<body class="cds--white">
+<div class="bnr">Where would you look? OpenELIS admin area test &nbsp;|&nbsp; ~10 minutes &nbsp;|&nbsp; 20 real settings</div>
+<div class="wrap" id="root"></div>
+<script type="text/babel">
+const {useState}=React;
+
+const AREAS=['Lab identity','Language & display','Patients','Orders & samples','Results & validation',
+ 'Workplans','Labels & barcodes','Notifications','Integrations & exchange','Storage & devices',
+ 'Security & access','Menus & help','System & server'];
+
+// 20 real settings. `mine` is the current draft assignment, never shown during the test.
+const Q=[
+ {d:'How many days a sample sent to an outside laboratory may wait before the system flags it as overdue.',k:'referralStuckThresholdDays',mine:'Orders & samples'},
+ {d:'Whether a checkbox appears at order entry to mark a sample as an external quality assessment sample.',k:'eqaEnabled',mine:'Orders & samples'},
+ {d:'Replaces the application’s built-in wording with translation files placed on the server.',k:'overrideDefaultTranslation',mine:'Language & display'},
+ {d:'Marks this server as a training system, which enables a function that deletes all patient and sample data.',k:'TrainingInstallation',mine:'System & server'},
+ {d:'The shape a telephone number must take, where x is any digit.',k:'phone format',mine:'Patients'},
+ {d:'The network port used to read temperatures from freezers that speak the Modbus protocol.',k:'freezer.modbus.tcp.port',mine:'Storage & devices'},
+ {d:'Requires every user to choose which laboratory unit they are working in when they sign in.',k:'requireLabUnitAtLogin',mine:'Security & access'},
+ {d:'The web address of the outside system that supplies patient demographic details.',k:'patientSearchURL',mine:'Integrations & exchange'},
+ {d:'The prefix on identifiers for boxes of samples shipped between sites.',k:'boxLabelPrefix',mine:'Labels & barcodes'},
+ {d:'How strictly the acceptance checklist is enforced when a clinical sample is received.',k:'sampleAcceptCheck.clinical',mine:'Orders & samples'},
+ {d:'Which characters may be typed into a patient’s first name.',k:'firstNameCharset',mine:'Patients'},
+ {d:'The laboratory name shown in the header bar at the top of every page.',k:'bannerHeading',mine:'Lab identity'},
+ {d:'Whether times display on a 24-hour or a 12-hour clock.',k:'24 hour clock',mine:'Language & display'},
+ {d:'Turns on electronic signatures meeting 21 CFR Part 11 for result entry and validation.',k:'electronicSignatureEnabled',mine:'Results & validation'},
+ {d:'The site code at the start of every accession number. Cannot change once samples exist.',k:'Accession number prefix',mine:'Orders & samples'},
+ {d:'Adds a blank column to the printed worksheet for technicians to write results by hand.',k:'results on workplan',mine:'Workplans'},
+ {d:'The address that outgoing notification emails are sent from.',k:'mail.from',mine:'Notifications'},
+ {d:'Lets users sign in through an external identity provider instead of an OpenELIS password.',k:'login.saml',mine:'Security & access'},
+ {d:'What the first line of an address is called on patient and organization forms.',k:'Address line 1 label',mine:'Patients'},
+ {d:'Checks that a manually typed accession number matches the configured format.',k:'validateAccessionNumber',mine:'Orders & samples'}
+];
+
+function App(){
+  const [i,setI]=useState(-1);
+  const [ans,setAns]=useState([]);
+  const [who,setWho]=useState('');
+
+  if(i===-1) return (
+    <div>
+      <h1>Where would you look?</h1>
+      <p className="sub">We are reorganising every OpenELIS setting into thirteen areas. Before we build it,
+        we want to know whether the areas match how you actually think about the system.</p>
+      <p className="sub">You will see twenty real settings, described in plain language. For each one, pick the
+        area where <b>you would go looking for it</b>. There are no wrong answers: we are testing our
+        categories, not you. If two areas feel equally right, pick either and say so afterwards.
+        It takes about ten minutes.</p>
+      <div className="box"><b>Please do not think too hard.</b> Your first instinct is the useful answer:
+        that is what someone hunting for a setting actually does.</div>
+      <div style={{margin:'1.2rem 0'}}>
+        <label style={{fontSize:'.8125rem',display:'block',marginBottom:'.3rem'}}>Your name or role (optional)</label>
+        <div className="cds--text-input-wrapper" style={{maxWidth:340}}>
+          <input className="cds--text-input" value={who} onChange={e=>setWho(e.target.value)}
+            placeholder="e.g. Lab manager, Madagascar"/></div>
+      </div>
+      <button className="cds--btn cds--btn--primary" onClick={()=>setI(0)}>Start</button>
+    </div>);
+
+  if(i>=Q.length){
+    const rows=Q.map((q,n)=>({...q,got:ans[n]}));
+    const agree=rows.filter(r=>r.got===r.mine).length;
+    const txt=(who?'Participant: '+who+'\n':'')+'Agreement with draft: '+agree+'/'+Q.length+'\n\n'+
+      rows.map(r=>(r.got===r.mine?'  ':'! ')+r.k+'\n   chose: '+r.got+'\n   draft: '+r.mine).join('\n');
+    return (
+      <div>
+        <h1>Done, thank you</h1>
+        <p className="sub">You matched the current draft on <b>{agree} of {Q.length}</b>. Disagreements are the
+          useful part: they show where the draft categories do not match how people think.</p>
+        <table><thead><tr><th>Setting</th><th>You chose</th><th>Current draft</th><th></th></tr></thead>
+          <tbody>{rows.map((r,n)=>(
+            <tr key={n}><td className="mono">{r.k}</td><td>{r.got}</td><td>{r.mine}</td>
+              <td className={r.got===r.mine?'ok':'no'}>{r.got===r.mine?'match':'differs'}</td></tr>))}</tbody></table>
+        <div className="box"><b>Send this back.</b> Copy the text below into a message. It is the whole result.</div>
+        <textarea readOnly value={txt}/>
+        <div className="nav"><button className="cds--btn cds--btn--secondary"
+          onClick={()=>{setI(-1);setAns([]);}}>Start again for the next person</button></div>
+      </div>);
+  }
+
+  const q=Q[i];
+  return (
+    <div>
+      <div className="prog"><div style={{width:((i)/Q.length*100)+'%'}}></div></div>
+      <div className="qn">Setting {i+1} of {Q.length}</div>
+      <div className="setting"><div className="d">{q.d}</div></div>
+      <p className="sub" style={{marginBottom:'.7rem'}}>Where would you go looking for this?</p>
+      <div className="areas">
+        {AREAS.map(a=>(
+          <button key={a} onClick={()=>{const n=[...ans];n[i]=a;setAns(n);setI(i+1);}}>{a}</button>))}
+      </div>
+      <div className="nav">
+        {i>0 && <button className="cds--btn cds--btn--ghost" onClick={()=>setI(i-1)}>Back</button>}
+        <button className="cds--btn cds--btn--ghost"
+          onClick={()=>{const n=[...ans];n[i]='(not sure)';setAns(n);setI(i+1);}}>I genuinely don’t know</button>
+      </div>
+    </div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body></html>
