@@ -2476,8 +2476,9 @@ export const MOCKUP_REGISTRY = [
 
   // ─── Inventory ───
   {
-    name: 'Reagent Forecasting Workbench',
+    name: 'Reagent Forecasting Workbench [Completed]',
     category: 'inventory',
+    archived: true,
     component: React.lazy(() => import('@designs/inventory/reagent-forecasting-workbench.jsx')),
     description: 'National/regional reagent forecasting workbench — multi-facility days-of-stock table, critical/low alerts, ADC-based projections, and reorder planning for program managers',
     specPath: 'designs/inventory/reagent-forecasting-workbench.md',
@@ -2488,8 +2489,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['inventory', 'reagents', 'forecasting', 'stock'],
   },
   {
-    name: 'Inventory Module Redesign',
+    name: 'Inventory Module Redesign [Completed]',
     category: 'inventory',
+    archived: true,
     component: null,
     description: 'Decision-support redesign of the Inventory module — Items board (catalog + live stock, count mode, tags), scan-first Receive, Reorder suggestions with learned lead time, median-based run-out window, per-location visibility, CSV import. Coordinates with Results Entry reagent-usage (consumption + FEFO) and OGC-657 (shared storage).',
     specPath: 'designs/inventory/inventory-redesign.md',
@@ -2500,8 +2502,9 @@ export const MOCKUP_REGISTRY = [
     tags: ['inventory','decision-support','reorder','fefo','redesign','OGC-438'],
   },
   {
-    name: 'Inventory Item-Type Management',
+    name: 'Inventory Item-Type Management [Completed]',
     category: 'inventory',
+    archived: true,
     component: React.lazy(() => import('@designs/inventory/inventory-item-type-management.jsx')),
     description: 'Amended by Microbiology v2 (D-147: Microbiology medium item type, FR-05.1d). Move the hard-coded "Type of Item" list into the Data Dictionary: managed item-type admin with add/edit/deactivate, replacing hardcoded values.',
     specPath: 'designs/inventory/inventory-item-type-management.md',
@@ -2521,7 +2524,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-03-23',
     status: 'draft',
     githubIssue: 61,
-    relatedTo: ['Reagent Forecasting Workbench'],
+    relatedTo: ['Reagent Forecasting Workbench [Completed]'],
     tags: ['inventory', 'reagents', 'forecasting', 'facility'],
   },
 
@@ -3504,6 +3507,10 @@ const PERMALINK_ALIASES = {
   'vector-surveillance/referral-out-notification': 'vector-surveillance/referral-out-notification-completed',
   'vector-surveillance/subcontract-management': 'vector-surveillance/subcontract-management-completed',
   'vector-surveillance/environmental-vector-testing-roadmap': 'vector-surveillance/environmental-vector-testing-roadmap-completed',
+  // Archived 2026-10-20 — inventory designs completed/shipped (Casey).
+  'inventory/reagent-forecasting-workbench': 'inventory/reagent-forecasting-workbench-completed',
+  'inventory/inventory-module-redesign': 'inventory/inventory-module-redesign-completed',
+  'inventory/inventory-item-type-management': 'inventory/inventory-item-type-management-completed',
 };
 
 /** Find a mockup by its hash path (e.g. "pathology/cytology-case-view") */
