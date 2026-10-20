@@ -4525,3 +4525,56 @@
   status: draft
   tags: ["provider", "title", "honorific", "admin", "configuration", "PNG", "CPHL"]
 
+
+- id: amr-micro-v3
+  type: jsx
+  path: designs/microbiology/amr-micro-v3-mockup.jsx
+  spec: designs/microbiology/amr-micro-v3-frs.md
+  preview_path: mockup-viewer/public/designs/microbiology/amr-micro-v3-preview.html
+  category: microbiology
+  description: >
+    Microbiology (AMR) v3 FRS draft 0.21 — AMR reference data, AST rules, default panels
+    and suggestions as a v3 delta on the mostly-shipped v2 micro UI: lab-level reporting
+    table keyed on antibiotic with Cascade, default AST panels from targeting, computed
+    suggestions, organism/breakpoint reference model with versioned seed packs, AST QC and
+    resistant-organism email alerts. Build map, slicing guide, critique, CPHL test fixture.
+  links:
+    jira: ["OGC-1528"]
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/microbiology-amr-v3
+    preview: https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-v3-preview.html
+  added: "2026-10-20"
+  status: draft
+  tags: ["microbiology", "amr", "v3", "ast-rules", "reporting-rules", "cascade", "reference-data", "breakpoints"]
+
+- id: reference-data-config
+  type: spec
+  path: designs/admin-config/reference-data-config-frs.md
+  category: admin-config
+  description: >
+    Reference Data as Configuration — architecture & roadmap v0.6: every configurable table
+    loads from CSV (later a workbook or pack) through one import pipeline; coverage audit,
+    packs and layers, import rules R-1..R-11, sense checks and guarded fields, roadmap P0..P5.
+    First slice is Import Review. Companions: two /analyze passes and the slicing guide.
+  links:
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/reference-data-as-configuration
+  added: "2026-10-20"
+  status: draft
+  tags: ["admin", "reference-data", "configuration", "import", "csv", "architecture", "roadmap"]
+
+- id: import-review
+  type: jsx
+  path: designs/admin-config/import-review-mockup.jsx
+  spec: designs/admin-config/import-review-frs.md
+  preview_path: mockup-viewer/public/designs/admin-config/import-review-preview.html
+  category: admin-config
+  description: >
+    Import Review FRS v0.4 (first slice of Reference Data as Configuration, P1b) —
+    review-before-apply for reference-data imports: a Before you apply panel, collapsible
+    decision tables, sense checks and guarded fields, Undo, Compare, Export with codes.
+    Preview covers six scenarios. Carbon React mockup + critique companion.
+  links:
+    gallery: https://digi-uw.github.io/openelis-work/#/admin-config/import-review
+    preview: https://digi-uw.github.io/openelis-work/designs/admin-config/import-review-preview.html
+  added: "2026-10-20"
+  status: draft
+  tags: ["admin", "reference-data", "import", "import-review", "csv", "configuration"]
