@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-20T20:20:25.547Z",
+  "generatedAt": "2026-10-24T08:41:46.189Z",
   "sections": [
     {
       "id": "add-patient",
@@ -11,7 +11,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:13:36.846Z",
+      "checkedAt": "2026-10-24T08:33:22.499Z",
       "codeChanged": {
         "count": 22,
         "since": "2026-06-24",
@@ -39,7 +39,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:15:32.747Z",
+      "checkedAt": "2026-10-24T08:35:18.744Z",
       "codeChanged": {
         "count": 6,
         "since": "2026-06-24",
@@ -68,7 +68,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:15:35.830Z",
+      "checkedAt": "2026-10-24T08:35:21.832Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-10-12",
@@ -93,7 +93,7 @@
       "routeErrors": [
         "/MasterListsPage/vectorSurveillanceSetup/sampling-sites :: redirected to /MasterListsPage/locations/sites"
       ],
-      "checkedAt": "2026-10-20T20:15:16.721Z",
+      "checkedAt": "2026-10-24T08:35:02.742Z",
       "codeChanged": {
         "count": 3,
         "since": "2026-06-24",
@@ -123,7 +123,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:20:13.017Z"
+      "checkedAt": "2026-10-24T08:39:57.640Z"
     },
     {
       "id": "aliquot",
@@ -135,7 +135,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:17:03.135Z"
+      "checkedAt": "2026-10-24T08:36:48.576Z"
     },
     {
       "id": "analyzer-bridge-install",
@@ -147,7 +147,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:20:09.792Z",
+      "checkedAt": "2026-10-24T08:39:54.505Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-10-13",
@@ -171,7 +171,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:13:39.916Z",
+      "checkedAt": "2026-10-24T08:33:25.674Z",
       "codeChanged": {
         "count": 32,
         "since": "2026-06-24",
@@ -200,7 +200,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:13:43.059Z",
+      "checkedAt": "2026-10-24T08:33:28.885Z",
       "codeChanged": {
         "count": 28,
         "since": "2026-06-24",
@@ -229,7 +229,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:17:55.171Z",
+      "checkedAt": "2026-10-24T08:37:40.436Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-10-13",
@@ -254,7 +254,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:17:42.454Z",
+      "checkedAt": "2026-10-24T08:37:27.559Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-10-13",
@@ -278,7 +278,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:15:48.198Z"
+      "checkedAt": "2026-10-24T08:35:34.304Z"
     },
     {
       "id": "barcode-labels",
@@ -289,7 +289,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:13:46.120Z",
+      "checkedAt": "2026-10-24T08:33:31.983Z",
       "codeChanged": {
         "count": 7,
         "since": "2026-06-24",
@@ -319,7 +319,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:16:25.104Z"
+      "checkedAt": "2026-10-24T08:36:11.126Z"
     },
     {
       "id": "calendar-management",
@@ -331,7 +331,19 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:16:50.482Z"
+      "checkedAt": "2026-10-24T08:36:36.171Z"
+    },
+    {
+      "id": "capa-register",
+      "title": "Record corrective and preventive actions and use the CAPA Register",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.4.0",
+      "capturedVersion": "3.3.0",
+      "manualDoc": "Confluence 1733001264",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-10-24T08:41:24.374Z"
     },
     {
       "id": "catalog-import-csv",
@@ -343,7 +355,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:18:35.810Z",
+      "checkedAt": "2026-10-24T08:38:20.882Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-09-22",
@@ -372,7 +384,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:17:22.451Z"
+      "checkedAt": "2026-10-24T08:37:07.644Z"
     },
     {
       "id": "clinical-order-enter",
@@ -384,22 +396,22 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:18:20.160Z",
+      "checkedAt": "2026-10-24T08:38:05.347Z",
       "codeChanged": {
-        "count": 15,
+        "count": 16,
         "since": "2026-10-09",
         "paths": [
           "frontend/src/components/order",
           "frontend/src/components/addOrder"
         ],
         "branches": {
-          "develop": 15,
+          "develop": 16,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "ad2f2c9",
-          "date": "2026-10-19",
-          "msg": "fix: component validation, lab-unit order scope, rule types, range ages, FHIR component codes (#4757)",
+          "sha": "350cbc8",
+          "date": "2026-10-22",
+          "msg": "feat(i18n): shipped NCE and dictionary values read through Transifex keys (OGC-1507) (#4800)",
           "branch": "develop"
         }
       }
@@ -414,7 +426,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:19:41.652Z"
+      "checkedAt": "2026-10-24T08:39:26.362Z"
     },
     {
       "id": "custom-data-export",
@@ -426,7 +438,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:20:06.618Z"
+      "checkedAt": "2026-10-24T08:39:51.344Z"
     },
     {
       "id": "dictionary-menu",
@@ -438,7 +450,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:16:18.888Z"
+      "checkedAt": "2026-10-24T08:36:04.900Z"
     },
     {
       "id": "electronic-lab-notebook",
@@ -449,7 +461,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:13:49.209Z",
+      "checkedAt": "2026-10-24T08:33:35.078Z",
       "codeChanged": {
         "count": 12,
         "since": "2026-06-24",
@@ -477,7 +489,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:13:55.482Z",
+      "checkedAt": "2026-10-24T08:33:41.443Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-10-12",
@@ -507,9 +519,9 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:14:04.799Z",
+      "checkedAt": "2026-10-24T08:33:50.821Z",
       "codeChanged": {
-        "count": 51,
+        "count": 52,
         "since": "2026-09-22",
         "paths": [
           "frontend/src/components/order",
@@ -517,13 +529,13 @@
           "frontend/src/components/compliance"
         ],
         "branches": {
-          "develop": 51,
+          "develop": 52,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "ad2f2c9",
-          "date": "2026-10-19",
-          "msg": "fix: component validation, lab-unit order scope, rule types, range ages, FHIR component codes (#4757)",
+          "sha": "350cbc8",
+          "date": "2026-10-22",
+          "msg": "feat(i18n): shipped NCE and dictionary values read through Transifex keys (OGC-1507) (#4800)",
           "branch": "develop"
         }
       }
@@ -540,7 +552,7 @@
         "/LogbookResults?type= :: redirected to /Results",
         "/ResultValidation?type=&test= :: redirected to /validation"
       ],
-      "checkedAt": "2026-10-20T20:15:07.460Z",
+      "checkedAt": "2026-10-24T08:34:53.363Z",
       "codeChanged": {
         "count": 110,
         "since": "2026-06-24",
@@ -554,12 +566,24 @@
           "demo-silnas": 20
         },
         "latest": {
-          "sha": "ad2f2c9",
-          "date": "2026-10-19",
-          "msg": "fix: component validation, lab-unit order scope, rule types, range ages, FHIR component codes (#4757)",
+          "sha": "350cbc8",
+          "date": "2026-10-22",
+          "msg": "feat(i18n): shipped NCE and dictionary values read through Transifex keys (OGC-1507) (#4800)",
           "branch": "develop"
         }
       }
+    },
+    {
+      "id": "eqa-in-house-blinding",
+      "title": "Run an in-house blinded EQA panel",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.4.0",
+      "capturedVersion": "3.3.0",
+      "manualDoc": "Confluence 1733886070",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-10-24T08:41:30.595Z"
     },
     {
       "id": "eqa-participant",
@@ -571,7 +595,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:19:16.602Z",
+      "checkedAt": "2026-10-24T08:39:01.349Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-10-12",
@@ -600,7 +624,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:19:01.037Z",
+      "checkedAt": "2026-10-24T08:38:45.808Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-10-12",
@@ -629,21 +653,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:18:17.005Z",
+      "checkedAt": "2026-10-24T08:38:02.189Z",
       "codeChanged": {
-        "count": 19,
+        "count": 21,
         "since": "2026-10-12",
         "paths": [
           "frontend/src/components/admin"
         ],
         "branches": {
-          "develop": 19,
+          "develop": 21,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "ee5d92c",
-          "date": "2026-10-20",
-          "msg": "fix: upgrade and loader defects found by the 3.2.3.0 -> develop release-readiness run (OGC-1508, OGC-1509, OGC-1510, OGC",
+          "sha": "350cbc8",
+          "date": "2026-10-22",
+          "msg": "feat(i18n): shipped NCE and dictionary values read through Transifex keys (OGC-1507) (#4800)",
           "branch": "develop"
         }
       }
@@ -658,7 +682,31 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:19:57.312Z"
+      "checkedAt": "2026-10-24T08:39:41.965Z"
+    },
+    {
+      "id": "inventory-items",
+      "title": "Manage inventory items, lots, counts and reorders",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.4.0",
+      "capturedVersion": "3.3.0",
+      "manualDoc": "Confluence 1729134594",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-10-24T08:40:38.145Z"
+    },
+    {
+      "id": "inventory-receive-reports",
+      "title": "Receive stock and run inventory reports",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.4.0",
+      "capturedVersion": "3.3.0",
+      "manualDoc": "Confluence 1729167388",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-10-24T08:40:44.350Z"
     },
     {
       "id": "lab-number-management",
@@ -670,7 +718,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:15:45.128Z"
+      "checkedAt": "2026-10-24T08:35:31.180Z"
     },
     {
       "id": "lab-unit-add",
@@ -682,7 +730,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:18:32.707Z",
+      "checkedAt": "2026-10-24T08:38:17.801Z",
       "codeChanged": {
         "count": 6,
         "since": "2026-09-15",
@@ -711,7 +759,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:18:42.040Z",
+      "checkedAt": "2026-10-24T08:38:27.110Z",
       "codeChanged": {
         "count": 6,
         "since": "2026-09-21",
@@ -740,7 +788,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:19:51.011Z",
+      "checkedAt": "2026-10-24T08:39:35.724Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-10-12",
@@ -764,7 +812,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:17:25.568Z"
+      "checkedAt": "2026-10-24T08:37:10.757Z"
     },
     {
       "id": "laporan-hasil-report",
@@ -776,7 +824,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:17:15.729Z",
+      "checkedAt": "2026-10-24T08:37:00.983Z",
       "codeChanged": {
         "count": 2,
         "since": "2026-09-22",
@@ -805,7 +853,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:19:54.117Z"
+      "checkedAt": "2026-10-24T08:39:38.871Z"
     },
     {
       "id": "logging-configuration",
@@ -817,7 +865,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:16:12.526Z"
+      "checkedAt": "2026-10-24T08:35:58.683Z"
     },
     {
       "id": "menu-configuration",
@@ -829,7 +877,31 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:16:47.388Z"
+      "checkedAt": "2026-10-24T08:36:33.069Z"
+    },
+    {
+      "id": "microbiology-v2",
+      "title": "Microbiology (pre-release): work a case from culture to release",
+      "base": "https://pngtest.openelis-global.org",
+      "instanceVersion": "3.3.0",
+      "capturedVersion": "3.3.0-SNAPSHOT (Microbiology V2 pre-release stack)",
+      "manualDoc": "Confluence 1729789973 (with 1729167362 admin and 1729331248 WHONET, review area)",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-10-24T08:32:44.510Z"
+    },
+    {
+      "id": "modify-order-requester",
+      "title": "Modify an order and the optional requesting provider",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.4.0",
+      "capturedVersion": "3.3.0",
+      "manualDoc": "Confluence 1729462279",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-10-24T08:40:28.827Z"
     },
     {
       "id": "nce-capa",
@@ -840,21 +912,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:14:14.123Z",
+      "checkedAt": "2026-10-24T08:34:00.118Z",
       "codeChanged": {
-        "count": 9,
+        "count": 10,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/nonconform"
         ],
         "branches": {
-          "develop": 8,
+          "develop": 9,
           "demo-silnas": 1
         },
         "latest": {
-          "sha": "9332478",
-          "date": "2026-10-09",
-          "msg": "fix(a11y): required fields are announced; a missing required patient field is named before save (OGC-1240) (#4665)",
+          "sha": "350cbc8",
+          "date": "2026-10-22",
+          "msg": "feat(i18n): shipped NCE and dictionary values read through Transifex keys (OGC-1507) (#4800)",
           "branch": "develop"
         }
       }
@@ -869,7 +941,19 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:19:38.540Z"
+      "checkedAt": "2026-10-24T08:39:23.182Z"
+    },
+    {
+      "id": "notifications-admin",
+      "title": "Admin: Set up notification triggers, templates, channels and delivery",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.4.0",
+      "capturedVersion": "3.3.0",
+      "manualDoc": "Confluence 1734017045",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-10-24T08:41:43.055Z"
     },
     {
       "id": "order-entry",
@@ -881,7 +965,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:14:17.261Z",
+      "checkedAt": "2026-10-24T08:34:03.236Z",
       "codeChanged": {
         "count": 76,
         "since": "2026-06-30",
@@ -895,9 +979,9 @@
           "demo-silnas": 12
         },
         "latest": {
-          "sha": "ad2f2c9",
-          "date": "2026-10-19",
-          "msg": "fix: component validation, lab-unit order scope, rule types, range ages, FHIR component codes (#4757)",
+          "sha": "350cbc8",
+          "date": "2026-10-22",
+          "msg": "feat(i18n): shipped NCE and dictionary values read through Transifex keys (OGC-1507) (#4800)",
           "branch": "develop"
         }
       }
@@ -912,7 +996,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:16:56.744Z"
+      "checkedAt": "2026-10-24T08:36:42.363Z"
     },
     {
       "id": "organization-management-330",
@@ -924,7 +1008,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:19:47.885Z"
+      "checkedAt": "2026-10-24T08:39:32.617Z"
     },
     {
       "id": "organizations-management",
@@ -935,7 +1019,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:14:20.356Z",
+      "checkedAt": "2026-10-24T08:34:06.356Z",
       "codeChanged": {
         "count": 47,
         "since": "2026-06-24",
@@ -947,9 +1031,9 @@
           "demo-silnas": 17
         },
         "latest": {
-          "sha": "ee5d92c",
-          "date": "2026-10-20",
-          "msg": "fix: upgrade and loader defects found by the 3.2.3.0 -> develop release-readiness run (OGC-1508, OGC-1509, OGC-1510, OGC",
+          "sha": "350cbc8",
+          "date": "2026-10-22",
+          "msg": "feat(i18n): shipped NCE and dictionary values read through Transifex keys (OGC-1507) (#4800)",
           "branch": "develop"
         }
       }
@@ -964,24 +1048,36 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:18:29.564Z",
+      "checkedAt": "2026-10-24T08:38:14.702Z",
       "codeChanged": {
-        "count": 26,
+        "count": 27,
         "since": "2026-09-15",
         "paths": [
           "frontend/src/components/admin/testCatalog"
         ],
         "branches": {
-          "develop": 26,
+          "develop": 27,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "8ea4293",
-          "date": "2026-10-15",
-          "msg": "feat(inventory): drop the unused item_type column (OGC-438) (#4369)",
+          "sha": "4909f67",
+          "date": "2026-10-20",
+          "msg": "ci(deploy): gate retries, never fail a ready deploy on pruning; fix the inline panel create race (#4783)",
           "branch": "develop"
         }
       }
+    },
+    {
+      "id": "pathology-cassettes-slides",
+      "title": "Record cassettes and slides on a pathology case",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.4.0",
+      "capturedVersion": "3.3.0",
+      "manualDoc": "Confluence 1729560592",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-10-24T08:40:31.926Z"
     },
     {
       "id": "patient-management",
@@ -993,7 +1089,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:16:40.861Z"
+      "checkedAt": "2026-10-24T08:36:26.638Z"
     },
     {
       "id": "patient-merge",
@@ -1005,7 +1101,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:17:06.259Z"
+      "checkedAt": "2026-10-24T08:36:51.680Z"
     },
     {
       "id": "patient-order-enhancements",
@@ -1016,7 +1112,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:14:26.743Z",
+      "checkedAt": "2026-10-24T08:34:12.591Z",
       "codeChanged": {
         "count": 22,
         "since": "2026-06-24",
@@ -1036,6 +1132,18 @@
       }
     },
     {
+      "id": "printed-report-header",
+      "title": "Admin: Set the patient report header (Printed Report Configuration)",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.4.0",
+      "capturedVersion": "3.3.0",
+      "manualDoc": "Confluence 1732739089",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-10-24T08:41:46.183Z"
+    },
+    {
       "id": "programs-v2",
       "title": "Admin \u2014 Define programs and their questionnaires",
       "base": "https://testing.openelis-global.org",
@@ -1045,7 +1153,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:19:19.716Z"
+      "checkedAt": "2026-10-24T08:39:04.452Z"
     },
     {
       "id": "provider-management",
@@ -1057,7 +1165,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:15:42.064Z",
+      "checkedAt": "2026-10-24T08:35:28.052Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-30",
@@ -1072,6 +1180,18 @@
       }
     },
     {
+      "id": "qa-overview-qi",
+      "title": "QA Overview and quality indicators",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.4.0",
+      "capturedVersion": "3.3.0",
+      "manualDoc": "Confluence 1732739133",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-10-24T08:41:18.136Z"
+    },
+    {
       "id": "qa-review-shared",
       "title": "Complete the sample check for an environmental or vector order",
       "base": "https://testing.openelis-global.org",
@@ -1081,7 +1201,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:17:28.716Z"
+      "checkedAt": "2026-10-24T08:37:13.849Z"
     },
     {
       "id": "qc-control-lot",
@@ -1093,7 +1213,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:19:26.037Z"
+      "checkedAt": "2026-10-24T08:39:10.673Z"
     },
     {
       "id": "qc-overview",
@@ -1105,7 +1225,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:19:32.297Z"
+      "checkedAt": "2026-10-24T08:39:16.895Z"
     },
     {
       "id": "reference-lab-results",
@@ -1117,7 +1237,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:17:18.902Z",
+      "checkedAt": "2026-10-24T08:37:04.141Z",
       "codeChanged": {
         "count": 2,
         "since": "2026-09-22",
@@ -1146,7 +1266,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:16:21.995Z"
+      "checkedAt": "2026-10-24T08:36:07.985Z"
     },
     {
       "id": "register-new-patient",
@@ -1158,7 +1278,19 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:17:09.434Z"
+      "checkedAt": "2026-10-24T08:36:54.769Z"
+    },
+    {
+      "id": "report-print-queue",
+      "title": "Report Print Queue: print and reprint patient reports",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.4.0",
+      "capturedVersion": "3.3.0",
+      "manualDoc": "Confluence 1729429517",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-10-24T08:40:13.271Z"
     },
     {
       "id": "result-reporting-configuration",
@@ -1170,7 +1302,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:16:53.613Z"
+      "checkedAt": "2026-10-24T08:36:39.263Z"
     },
     {
       "id": "result-validation",
@@ -1185,7 +1317,7 @@
         "/AccessionValidation :: redirected to /validation",
         "/ResultValidationByTestDate :: redirected to /validation"
       ],
-      "checkedAt": "2026-10-20T20:14:36.107Z",
+      "checkedAt": "2026-10-24T08:34:21.923Z",
       "codeChanged": {
         "count": 34,
         "since": "2026-06-24",
@@ -1214,7 +1346,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:16:28.239Z"
+      "checkedAt": "2026-10-24T08:36:14.234Z"
     },
     {
       "id": "results-entry-legacy",
@@ -1228,7 +1360,7 @@
       "routeErrors": [
         "/LogbookResults?type= :: redirected to /Results"
       ],
-      "checkedAt": "2026-10-20T20:16:31.366Z"
+      "checkedAt": "2026-10-24T08:36:17.330Z"
     },
     {
       "id": "running-reports",
@@ -1240,7 +1372,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:16:37.665Z"
+      "checkedAt": "2026-10-24T08:36:23.528Z"
     },
     {
       "id": "sample-acceptance-checklist",
@@ -1252,7 +1384,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:15:38.954Z",
+      "checkedAt": "2026-10-24T08:35:24.911Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-09-22",
@@ -1278,7 +1410,7 @@
         "/SampleShipment :: redirected to /SampleShipment/boxes",
         "/ReferredOutTests :: redirected to /api/OpenELIS-Global/ReferredOutTests"
       ],
-      "checkedAt": "2026-10-20T20:14:42.640Z",
+      "checkedAt": "2026-10-24T08:34:28.466Z",
       "codeChanged": {
         "count": 9,
         "since": "2026-06-24",
@@ -1307,7 +1439,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:16:59.947Z"
+      "checkedAt": "2026-10-24T08:36:45.467Z"
     },
     {
       "id": "sample-storage-management",
@@ -1318,7 +1450,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:14:51.990Z",
+      "checkedAt": "2026-10-24T08:34:37.792Z",
       "codeChanged": {
         "count": 13,
         "since": "2026-06-24",
@@ -1348,7 +1480,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:18:23.322Z",
+      "checkedAt": "2026-10-24T08:38:08.485Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-09-15",
@@ -1372,7 +1504,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:20:00.383Z"
+      "checkedAt": "2026-10-24T08:39:45.099Z"
     },
     {
       "id": "search-index-management",
@@ -1384,7 +1516,19 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:15:54.434Z"
+      "checkedAt": "2026-10-24T08:35:40.529Z"
+    },
+    {
+      "id": "sent-messages",
+      "title": "Sent Messages: check and resend deliveries",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.4.0",
+      "capturedVersion": "3.3.0",
+      "manualDoc": "Confluence 1729724423",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-10-24T08:40:19.516Z"
     },
     {
       "id": "site-information",
@@ -1396,7 +1540,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:16:43.953Z"
+      "checkedAt": "2026-10-24T08:36:29.768Z"
     },
     {
       "id": "test-accreditation",
@@ -1408,7 +1552,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:20:03.492Z"
+      "checkedAt": "2026-10-24T08:39:48.239Z"
     },
     {
       "id": "test-catalog-editor",
@@ -1420,21 +1564,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:18:38.945Z",
+      "checkedAt": "2026-10-24T08:38:23.988Z",
       "codeChanged": {
-        "count": 24,
+        "count": 25,
         "since": "2026-09-21",
         "paths": [
           "frontend/src/components/admin/testCatalog"
         ],
         "branches": {
-          "develop": 24,
+          "develop": 25,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "8ea4293",
-          "date": "2026-10-15",
-          "msg": "feat(inventory): drop the unused item_type column (OGC-438) (#4369)",
+          "sha": "4909f67",
+          "date": "2026-10-20",
+          "msg": "ci(deploy): gate retries, never fail a ready deploy on pruning; fix the inline panel create race (#4783)",
           "branch": "develop"
         }
       }
@@ -1449,21 +1593,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:18:26.432Z",
+      "checkedAt": "2026-10-24T08:38:11.594Z",
       "codeChanged": {
-        "count": 26,
+        "count": 27,
         "since": "2026-09-15",
         "paths": [
           "frontend/src/components/admin/testCatalog"
         ],
         "branches": {
-          "develop": 26,
+          "develop": 27,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "8ea4293",
-          "date": "2026-10-15",
-          "msg": "feat(inventory): drop the unused item_type column (OGC-438) (#4369)",
+          "sha": "4909f67",
+          "date": "2026-10-20",
+          "msg": "ci(deploy): gate retries, never fail a ready deploy on pruning; fix the inline panel create race (#4783)",
           "branch": "develop"
         }
       }
@@ -1478,7 +1622,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:15:51.340Z"
+      "checkedAt": "2026-10-24T08:35:37.419Z"
     },
     {
       "id": "user-management",
@@ -1490,7 +1634,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:16:15.762Z"
+      "checkedAt": "2026-10-24T08:36:01.799Z"
     },
     {
       "id": "validation",
@@ -1504,7 +1648,7 @@
       "routeErrors": [
         "/ResultValidation?type=&test= :: redirected to /validation"
       ],
-      "checkedAt": "2026-10-20T20:16:34.499Z"
+      "checkedAt": "2026-10-24T08:36:20.421Z"
     },
     {
       "id": "validation-v4",
@@ -1516,7 +1660,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:17:31.874Z"
+      "checkedAt": "2026-10-24T08:37:16.965Z"
     },
     {
       "id": "vector-surveillance",
@@ -1532,7 +1676,7 @@
         "/vector/identification :: Split"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:14:58.247Z",
+      "checkedAt": "2026-10-24T08:34:44.022Z",
       "codeChanged": {
         "count": 39,
         "since": "2026-06-24",
@@ -1545,9 +1689,9 @@
           "demo-silnas": 9
         },
         "latest": {
-          "sha": "c37745d",
-          "date": "2026-10-15",
-          "msg": "fix: EQA order entry, EQA sample rejection and patient form messages (OGC-1483, OGC-1488, OGC-1497) (#4731)",
+          "sha": "350cbc8",
+          "date": "2026-10-22",
+          "msg": "feat(i18n): shipped NCE and dictionary values read through Transifex keys (OGC-1507) (#4800)",
           "branch": "develop"
         }
       }
@@ -1562,7 +1706,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:17:12.630Z",
+      "checkedAt": "2026-10-24T08:36:57.887Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-09-22",
@@ -1591,7 +1735,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-20T20:20:25.540Z"
+      "checkedAt": "2026-10-24T08:40:10.096Z"
     }
   ],
   "note": "indonesiademo unreachable (auth setup failed all retries) on 2026-09-23; its sections carried over from previous published report",

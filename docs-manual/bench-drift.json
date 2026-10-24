@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-10-20T20:21:07Z",
-  "reportAt": "2026-10-20T20:20:25.547Z",
-  "sections": 79,
-  "contracts": 79,
+  "generatedAt": "2026-10-24T08:42:26Z",
+  "reportAt": "2026-10-24T08:41:46.189Z",
+  "sections": 91,
+  "contracts": 91,
   "ok": 0,
-  "review": 72,
+  "review": 84,
   "errors": 6,
   "stale": [
     "add-patient",
@@ -22,6 +22,7 @@
     "barcode-labels",
     "calculated-value-tests",
     "calendar-management",
+    "capa-register",
     "catalog-import-csv",
     "clinical-collect",
     "clinical-order-enter",
@@ -32,10 +33,13 @@
     "electronic-signatures",
     "environmental-order-results",
     "environmental-surveillance",
+    "eqa-in-house-blinding",
     "eqa-participant",
     "eqa-provider",
     "general-configurations",
     "geographic-areas",
+    "inventory-items",
+    "inventory-receive-reports",
     "lab-number-management",
     "lab-unit-add",
     "lab-units-editor",
@@ -45,24 +49,31 @@
     "locations-import-export",
     "logging-configuration",
     "menu-configuration",
+    "microbiology-v2",
+    "modify-order-requester",
     "nce-capa",
     "nce-report",
+    "notifications-admin",
     "order-entry",
     "order-search",
     "organization-management-330",
     "organizations-management",
     "panel-editor",
+    "pathology-cassettes-slides",
     "patient-management",
     "patient-merge",
     "patient-order-enhancements",
+    "printed-report-header",
     "programs-v2",
     "provider-management",
+    "qa-overview-qi",
     "qa-review-shared",
     "qc-control-lot",
     "qc-overview",
     "reference-lab-results",
     "reflex-testing",
     "register-new-patient",
+    "report-print-queue",
     "result-reporting-configuration",
     "result-validation",
     "results-entry",
@@ -75,6 +86,7 @@
     "sample-type-editor",
     "sampling-sites",
     "search-index-management",
+    "sent-messages",
     "site-information",
     "test-accreditation",
     "test-catalog-editor",
@@ -87,18 +99,28 @@
     "vector-surveillance-report",
     "workplans"
   ],
-  "capturedOld": 60,
+  "capturedOld": 72,
   "unchecked": [],
   "instances": {
-    "testing.openelis-global.org": {
-      "contracts": 79,
-      "checked": 79,
+    "pngtest.openelis-global.org": {
+      "contracts": 1,
+      "checked": 1,
       "ok": 0,
-      "review": 72,
+      "review": 1,
+      "drift": 0,
+      "error": 0,
+      "version": "3.3.0",
+      "checkedAt": "2026-10-24T08:32:44.510Z"
+    },
+    "testing.openelis-global.org": {
+      "contracts": 90,
+      "checked": 90,
+      "ok": 0,
+      "review": 83,
       "drift": 1,
       "error": 6,
       "version": "3.4.0",
-      "checkedAt": "2026-10-20T20:20:25.540Z"
+      "checkedAt": "2026-10-24T08:41:46.183Z"
     }
   },
   "drift": [
@@ -168,5 +190,5 @@
       "page": null
     }
   ],
-  "summary": "79 of 79 contracts checked: 0 ok, 72 review, 1 drift, 6 route errors."
+  "summary": "91 of 91 contracts checked: 0 ok, 84 review, 1 drift, 6 route errors."
 }
