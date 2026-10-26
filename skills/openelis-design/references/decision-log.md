@@ -368,6 +368,14 @@
 | D-348 | **AST results carry the antibiotic's LOINC for their method, and analyzer mapping screens suggest mappings** from the package's codes, abbreviations, synonyms and LOINC, applied only when accepted (Casey, 2026-10-26). | n/a | Microbiology (AMR) v3 | FEATURE | active | AMR v3 FRS draft 0.31 |
 | D-349 | **On EUCAST labs, an I shows its high dose** from the package dosage data (Casey, 2026-10-26). | n/a | Microbiology (AMR) v3 | FEATURE | active | AMR v3 FRS draft 0.31 |
 | D-350 | **French and Spanish names for antibiotics, classes and organism groups are seeded from the package** as editable starting translations (Casey, 2026-10-26). | n/a | Microbiology (AMR) v3 | FEATURE | active | AMR v3 FRS draft 0.31 |
+| D-351 | **Proposed (OGC-1535):** No breakpoint rows import as rules and stop fallback to a broader group (v3.1 D-326) (Casey, 2026-10-21). | n/a | Microbiology (AMR) v3.2 | FEATURE | proposed | AMR v3.2 FRS draft 0.32, Part E |
+| D-352 | **Proposed (OGC-1535):** CLSI S-only rows give NS above the breakpoint (v3.1 D-327) (Casey, 2026-10-21). | n/a | Microbiology (AMR) v3.2 | FEATURE | proposed | AMR v3.2 FRS draft 0.32, Part E |
+| D-353 | **Proposed (OGC-1535):** MICs compare by dilution step; strip values between dilutions round up; the read value is kept (v3.1 D-328) (Casey, 2026-10-21). | n/a | Microbiology (AMR) v3.2 | FEATURE | proposed | AMR v3.2 FRS draft 0.32, Part E |
+| D-354 | **Proposed (OGC-1535):** indications are term sets matched before organism level, urine falls back to general, anaerobes are a matcher level, topical rows are not imported (v3.1 D-329) (Casey, 2026-10-21). | n/a | Microbiology (AMR) v3.2 | FEATURE | proposed | AMR v3.2 FRS draft 0.32, Part E |
+| D-355 | **Proposed (OGC-1535):** panel agents carry a Screen switch (v3.1 D-330) (Casey, 2026-10-21). | n/a | Microbiology (AMR) v3.2 | FEATURE | proposed | AMR v3.2 FRS draft 0.32, Part E |
+| D-356 | **Proposed (OGC-1535):** test vectors come from the package's boundary rules for every row plus matcher vectors and a sampled as.sir() check; deliberate differences are listed (v3.1 D-331) (Casey, 2026-10-21). | n/a | Microbiology (AMR) v3.2 | FEATURE | proposed | AMR v3.2 FRS draft 0.32, Part E |
+| D-357 | **Proposed (OGC-1535):** packs carry the current and previous guideline year; the CLSI pack is gated until permission (v3.1 D-332) (Casey, 2026-10-21). | n/a | Microbiology (AMR) v3.2 | FEATURE | proposed | AMR v3.2 FRS draft 0.32, Part E |
+| D-358 | **Proposed (OGC-1535):** seeded organisms and antibiotics pass admin validation without guessed values (v3.1 D-333) (Casey, 2026-10-21). | n/a | Microbiology (AMR) v3.2 | FEATURE | proposed | AMR v3.2 FRS draft 0.32, Part E |
 
 ---
 
@@ -434,3 +442,6 @@ consolidation task promotes stable decisions out of memory into this log. Re-con
 - **2026-10-26 (Microbiology (AMR) v3.2 and Reference search).** Appended D-313 to D-350 from the
   AMR v3.2 FRS (drafts 0.22 to 0.31) and the Reference search FRS v0.2 (D-318 to D-322). The
   "Why" column is "n/a" for these rows; the rationale is in each FRS's Decisions table. **Next ID: D-351.**
+
+- **2026-10-26 (AMR v3.2 Part E).** Appended D-351 to D-358, the v3.1 AMR for R data fit (OGC-1535)
+  renumbered from its own D-326 to D-333, status proposed until the OGC-1535 review. **Next ID: D-359.**

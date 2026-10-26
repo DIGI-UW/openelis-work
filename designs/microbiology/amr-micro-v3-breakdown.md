@@ -1,6 +1,6 @@
 # Microbiology (AMR) v3.2: slicing guide
 
-**FRS:** `amr-micro-v3-frs.md` (v3.2, draft 0.31) · **Shared spec:** `reference-search-frs.md` (built in slice 1)
+**FRS:** `amr-micro-v3-frs.md` (v3.2, draft 0.32) · **Shared spec:** `reference-search-frs.md` (built in slice 1)
 **Mockup:** `amr-micro-v3-mockup.jsx` (Carbon React) · **Preview:** `amr-micro-v3-preview.html` · **Build map:** `amr-micro-v3-build-map.md`
 **Pipeline:** Claude Code (agentic). Each slice is one branch, one PR, one review; slices are sized to a PR a reviewer can read in one sitting, not to story points.
 **Status:** a non-binding suggestion for the developer. The developer slices the work; nothing here is a Jira ticket.
@@ -28,7 +28,7 @@ Three things to check, not assume:
 
 | # | Slice (what a user can do) | FRS | Depends on | Blocked by OGC-730? |
 |---|---|---|---|---|
-| 1 | **The lab loads AMR for R organisms and antibiotics as a versioned pack and finds organisms by any name or code.** Taxonomy matcher, organism seed with synonyms and codes, antibiotic master, pack licence gate, Import Review preview and apply, and the shared reference search (server type-ahead plus search dialog) swapped into the existing organism and antibiotic pickers. | R-12, R-13, R-19, R-21, FR-R29.5, FR-R29.7, D-286, D-348, D-350; reference search D-318 to D-322 | Reference data pipeline P1a | No |
+| 1 | **The lab loads AMR for R organisms and antibiotics as a versioned pack and finds organisms by any name or code.** Taxonomy matcher, organism seed with synonyms and codes, antibiotic master, pack licence gate, Import Review preview and apply, and the shared reference search (server type-ahead plus search dialog) swapped into the existing organism and antibiotic pickers. | R-12, R-13, R-19, R-21, FR-R29.5, FR-R29.7, Part E R-30, R-33, R-36, R-37 (proposed, OGC-1535), D-286, D-348, D-350, D-351, D-354, D-357, D-358; reference search D-318 to D-322 | Reference data pipeline P1a | No |
 | 2 | **The lab loads breakpoints in the package's native format and they interpret exactly as AMR for R does.** Native import with test vectors, indication, disk content from the lot, SDD and WT/NWT, ECOFF, dosage notes, QC range domain; local breakpoints as a layer over the pack with reason, history and pack-difference review; breakpoints per disk content (for example 10 or 30 µg). | R-14 to R-18, R-20, R-25, FR-R23.3, D-326 to D-328 | 1 | No |
 | 3 | **Identifying an isolate adds the right AST panel by itself.** Panel targeting on the existing AST panels page, a fourth tier (On request) in the panel tier picker, and default panels on the case. | R-01, D-313 | 1 | No |
 | 4 | **The lab sets which antibiotics report, on one AST rules page, and the case ticks them.** AST rules page (reporting rules, unconditional interpretation rules such as Always R, one Preview), Report column and reason in the AST table, report summary line, rule notes in run notes, CLSI tiers via the import Tier and Trigger agents columns (Cascade rules with no condition listed under Needs a condition; "X or Y" agents, species limits and specimen exclusions as ordinary rows), Import and Export through Import Review. | R-02, R-06 (unconditional), R-07, R-08, R-09, R-10, D-276, D-287, D-288, D-291, D-314 to D-317 | 2, 3 | No (Cascade rows save but do not evaluate yet) |
@@ -44,7 +44,7 @@ Slices 1 to 4 and 6 to 10 can start without the Test Rules MVP. Only slice 5 wai
 
 ## Coverage check
 
-- **Every FRS requirement is in a slice:** R-01 to R-29 as listed above; D-Q1 to D-Q7 and D-250 to D-295, D-313 to D-317 and D-323 to D-339 and D-342 to D-350 traced through the requirements they decide. D-340 and D-341 (surveillance analysis, bulk isolate import) are separate epics after v3 and have no slice here.
+- **Every FRS requirement is in a slice:** R-01 to R-37 as listed above (Part E R-30 to R-37 proposed, decided in OGC-1535; R-31, R-32, R-34 and R-35 land with slice 2, breakpoints); D-Q1 to D-Q7 and D-250 to D-295, D-313 to D-317 and D-323 to D-339 and D-342 to D-358 traced through the requirements they decide. D-340 and D-341 (surveillance analysis, bulk isolate import) are separate epics after v3 and have no slice here.
 - **Part C QA carry-forward:** each AC-Q criterion is verified in the slice that touches its area (case and release: 6; culture, isolates, AST entry: 7; reporting: 4; admin and logs: 4 and 8). The tripwires in `tests/amr-v2.spec.ts` flip to pass as their slice lands.
 - **Every UI element in the mockup is built by a slice:** case header and bar (6), culture and inoculation (7), AST section (4, 5, 7, 8), report section (4, 6), critical communication rows (8), worklist (6, 8), AST panels (3), AST rules (4, 5), reference data sections (1, 2), test catalog Alerts and result mapping (7, 8), Methods (7).
 - **Slices are titled by what a user can do,** not by layer; each includes its own localization keys (FRS Localization table) and access checks (FRS Access table).
