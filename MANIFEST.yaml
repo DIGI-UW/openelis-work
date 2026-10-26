@@ -4515,13 +4515,13 @@
   category: microbiology
   version: "3.2"
   description: >
-    Microbiology (AMR) v3.2, FRS draft 0.31. Replaces v3.0 (draft 0.21) and the v3.1 working
-    drafts. Adds CLSI tiers 1 to 4, the shared reference search, received isolates through Tested
+    Microbiology (AMR) v3.2, FRS draft 0.32. Merges v3.0 (draft 0.21), drafts 0.22 to 0.31 and
+    v3.1 (the AMR for R data fit from OGC-1535, now Part E R-30 to R-37, proposed). Adds CLSI tiers 1 to 4, the shared reference search, received isolates through Tested
     elsewhere, local breakpoints and disk contents, isolates organised like WHONET, section
     purposes with Next step and Complete states, Flag rules, a targeting-driven Add panel chooser,
     and bench helps from the AMR package metadata. Build map, slicing guide, critique.
   links:
-    jira: ["OGC-1528"]
+    jira: ["OGC-1528", "OGC-1535"]
     github_issue: 370
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/microbiology-amr-v3-2
     preview: https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-v3-preview.html
