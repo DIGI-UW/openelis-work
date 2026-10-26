@@ -4513,19 +4513,54 @@
   spec: designs/microbiology/amr-micro-v3-frs.md
   preview_path: mockup-viewer/public/designs/microbiology/amr-micro-v3-preview.html
   category: microbiology
+  version: "3.2"
   description: >
-    Microbiology (AMR) v3 FRS draft 0.21 — AMR reference data, AST rules, default panels
-    and suggestions as a v3 delta on the mostly-shipped v2 micro UI: lab-level reporting
-    table keyed on antibiotic with Cascade, default AST panels from targeting, computed
-    suggestions, organism/breakpoint reference model with versioned seed packs, AST QC and
-    resistant-organism email alerts. Build map, slicing guide, critique, CPHL test fixture.
+    Microbiology (AMR) v3.2, FRS draft 0.31. Replaces v3.0 (draft 0.21) and the v3.1 working
+    drafts. Adds CLSI tiers 1 to 4, the shared reference search, received isolates through Tested
+    elsewhere, local breakpoints and disk contents, isolates organised like WHONET, section
+    purposes with Next step and Complete states, Flag rules, a targeting-driven Add panel chooser,
+    and bench helps from the AMR package metadata. Build map, slicing guide, critique.
   links:
     jira: ["OGC-1528"]
-    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/microbiology-amr-v3
+    github_issue: 370
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/microbiology-amr-v3-2
     preview: https://digi-uw.github.io/openelis-work/designs/microbiology/amr-micro-v3-preview.html
   added: "2026-10-20"
+  updated: "2026-10-26"
   status: draft
-  tags: ["microbiology", "amr", "v3", "ast-rules", "reporting-rules", "cascade", "reference-data", "breakpoints"]
+  tags: ["microbiology", "amr", "v3.2", "ast-rules", "reporting-rules", "cascade", "reference-data", "breakpoints", "whonet"]
+
+- id: reference-search
+  type: spec
+  path: designs/microbiology/reference-search-frs.md
+  category: microbiology
+  description: >
+    Reference search v0.2, a shared picker for very large reference lists (organisms,
+    antibiotics): server type-ahead plus a search dialog. First adopter AMR v3.2.
+  paired_with: amr-micro-v3
+  links:
+    jira: ["OGC-1528"]
+    github_issue: 371
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/reference-search-shared-picker
+  added: "2026-10-26"
+  status: draft
+  tags: ["microbiology", "reference-search", "picker", "shared-component"]
+
+- id: clsi-reporting-rules-setup-guide
+  type: spec
+  path: designs/microbiology/clsi-reporting-rules-setup-guide.md
+  category: microbiology
+  description: >
+    How a CLSI lab enters its reporting tiers from its own M100 Table 1 through the AST rules
+    import. Contains no CLSI content. Companion to AMR v3.2.
+  paired_with: amr-micro-v3
+  links:
+    jira: ["OGC-1528"]
+    github_issue: 372
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/clsi-reporting-rules-setup-guide
+  added: "2026-10-26"
+  status: draft
+  tags: ["microbiology", "amr", "clsi", "setup-guide"]
 
 - id: reference-data-config
   type: spec

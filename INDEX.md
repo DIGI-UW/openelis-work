@@ -103,6 +103,9 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Case Workbench | — | [case-workbench.md](designs/microbiology/case-workbench.md) |
 | Guided Workflow Walkthrough | [amr-micro-workflow-flow.html](designs/microbiology/amr-micro-workflow-flow.html) | [amr-micro-narrative.md](designs/microbiology/amr-micro-narrative.md) |
 | Microbiology v2 Amendments (draft 9) | [amr-micro-v2-mockup.jsx](designs/microbiology/amr-micro-v2-mockup.jsx) · [preview](designs/microbiology/amr-micro-v2-preview.html) | [amr-micro-v2-amendments.md](designs/microbiology/amr-micro-v2-amendments.md) |
+| Microbiology (AMR) v3.2 | [amr-micro-v3-mockup.jsx](designs/microbiology/amr-micro-v3-mockup.jsx) · [preview](designs/microbiology/amr-micro-v3-preview.html) | [amr-micro-v3-frs.md](designs/microbiology/amr-micro-v3-frs.md) · [build map](designs/microbiology/amr-micro-v3-build-map.md) · [slicing guide](designs/microbiology/amr-micro-v3-breakdown.md) |
+| Reference Search (shared picker) | n/a | [reference-search-frs.md](designs/microbiology/reference-search-frs.md) |
+| CLSI Reporting Rules Setup Guide | n/a | [clsi-reporting-rules-setup-guide.md](designs/microbiology/clsi-reporting-rules-setup-guide.md) |
 | M-18 Environmental Microbiology (v0.9) | [m-18-environmental-microbiology.jsx](designs/microbiology/m-18-environmental-microbiology.jsx) · [preview](designs/microbiology/m-18-environmental-microbiology.html) | [m-18-environmental-microbiology.md](designs/microbiology/m-18-environmental-microbiology.md) |
 
 ## Non-Conforming Events (NCE)
