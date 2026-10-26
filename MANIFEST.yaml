@@ -4515,7 +4515,7 @@
   category: microbiology
   version: "3.2"
   description: >
-    Microbiology (AMR) v3.2, FRS draft 0.32. Merges v3.0 (draft 0.21), drafts 0.22 to 0.31 and
+    Microbiology (AMR) v3.2, FRS draft 0.33 (adds R-38, default breakpoint standard). Merges v3.0 (draft 0.21), drafts 0.22 to 0.31 and
     v3.1 (the AMR for R data fit from OGC-1535, now Part E R-30 to R-37, proposed). Adds CLSI tiers 1 to 4, the shared reference search, received isolates through Tested
     elsewhere, local breakpoints and disk contents, isolates organised like WHONET, section
     purposes with Next step and Complete states, Flag rules, a targeting-driven Add panel chooser,

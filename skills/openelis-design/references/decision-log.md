@@ -376,6 +376,7 @@
 | D-356 | **Proposed (OGC-1535):** test vectors come from the package's boundary rules for every row plus matcher vectors and a sampled as.sir() check; deliberate differences are listed (v3.1 D-331) (Casey, 2026-10-21). | n/a | Microbiology (AMR) v3.2 | FEATURE | proposed | AMR v3.2 FRS draft 0.32, Part E |
 | D-357 | **Proposed (OGC-1535):** packs carry the current and previous guideline year; the CLSI pack is gated until permission (v3.1 D-332) (Casey, 2026-10-21). | n/a | Microbiology (AMR) v3.2 | FEATURE | proposed | AMR v3.2 FRS draft 0.32, Part E |
 | D-358 | **Proposed (OGC-1535):** seeded organisms and antibiotics pass admin validation without guessed values (v3.1 D-333) (Casey, 2026-10-21). | n/a | Microbiology (AMR) v3.2 | FEATURE | proposed | AMR v3.2 FRS draft 0.32, Part E |
+| D-359 | **The breakpoint standard at entry comes from a lab default with organism exceptions; with no default the technician chooses it at entry.** Never preselected from list order or remembered from the last run; changing a default needs a reason (Casey, 2026-10-26). | n/a | Microbiology (AMR) v3.2 | FEATURE | active | AMR v3.2 FRS draft 0.33 |
 
 ---
 
@@ -445,3 +446,5 @@ consolidation task promotes stable decisions out of memory into this log. Re-con
 
 - **2026-10-26 (AMR v3.2 Part E).** Appended D-351 to D-358, the v3.1 AMR for R data fit (OGC-1535)
   renumbered from its own D-326 to D-333, status proposed until the OGC-1535 review. **Next ID: D-359.**
+
+- **2026-10-26 (AMR v3.2 R-38).** Appended D-359 (default breakpoint standard or a choice at entry). **Next ID: D-360.**

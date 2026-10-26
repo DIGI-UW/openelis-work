@@ -1,6 +1,6 @@
 # Microbiology (AMR) v3.2: slicing guide
 
-**FRS:** `amr-micro-v3-frs.md` (v3.2, draft 0.32) · **Shared spec:** `reference-search-frs.md` (built in slice 1)
+**FRS:** `amr-micro-v3-frs.md` (v3.2, draft 0.33) · **Shared spec:** `reference-search-frs.md` (built in slice 1)
 **Mockup:** `amr-micro-v3-mockup.jsx` (Carbon React) · **Preview:** `amr-micro-v3-preview.html` · **Build map:** `amr-micro-v3-build-map.md`
 **Pipeline:** Claude Code (agentic). Each slice is one branch, one PR, one review; slices are sized to a PR a reviewer can read in one sitting, not to story points.
 **Status:** a non-binding suggestion for the developer. The developer slices the work; nothing here is a Jira ticket.
@@ -44,7 +44,7 @@ Slices 1 to 4 and 6 to 10 can start without the Test Rules MVP. Only slice 5 wai
 
 ## Coverage check
 
-- **Every FRS requirement is in a slice:** R-01 to R-37 as listed above (Part E R-30 to R-37 proposed, decided in OGC-1535; R-31, R-32, R-34 and R-35 land with slice 2, breakpoints); D-Q1 to D-Q7 and D-250 to D-295, D-313 to D-317 and D-323 to D-339 and D-342 to D-358 traced through the requirements they decide. D-340 and D-341 (surveillance analysis, bulk isolate import) are separate epics after v3 and have no slice here.
+- **Every FRS requirement is in a slice:** R-01 to R-38 as listed above (R-38, the default standard, lands with slice 2, breakpoints) (Part E R-30 to R-37 proposed, decided in OGC-1535; R-31, R-32, R-34 and R-35 land with slice 2, breakpoints); D-Q1 to D-Q7 and D-250 to D-295, D-313 to D-317 and D-323 to D-339 and D-342 to D-359 traced through the requirements they decide. D-340 and D-341 (surveillance analysis, bulk isolate import) are separate epics after v3 and have no slice here.
 - **Part C QA carry-forward:** each AC-Q criterion is verified in the slice that touches its area (case and release: 6; culture, isolates, AST entry: 7; reporting: 4; admin and logs: 4 and 8). The tripwires in `tests/amr-v2.spec.ts` flip to pass as their slice lands.
 - **Every UI element in the mockup is built by a slice:** case header and bar (6), culture and inoculation (7), AST section (4, 5, 7, 8), report section (4, 6), critical communication rows (8), worklist (6, 8), AST panels (3), AST rules (4, 5), reference data sections (1, 2), test catalog Alerts and result mapping (7, 8), Methods (7).
 - **Slices are titled by what a user can do,** not by layer; each includes its own localization keys (FRS Localization table) and access checks (FRS Access table).
