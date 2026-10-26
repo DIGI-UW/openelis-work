@@ -1580,17 +1580,44 @@ export const MOCKUP_REGISTRY = [
   },
 
   {
-    name: 'Microbiology (AMR) v3',
+    name: 'Microbiology (AMR) v3.2',
     category: 'microbiology',
     component: React.lazy(() => import('@designs/microbiology/amr-micro-v3-mockup.jsx')),
-    description: 'AMR Module v3 FRS draft 0.21 — AMR reference data, AST rules, default panels and suggestions as a v3 delta on the mostly-shipped v2 micro UI: a lab-level reporting table keyed on antibiotic with Cascade; default AST panels from panel targeting; computed suggestions; organism taxonomy + breakpoint/ECOFF/SDD reference model with versioned seed packs; AST QC and resistant-organism email alerts. Build map marks what is already built on develop. Preview (v2 UI fork), Carbon React mockup, build map, slicing guide, critique, and the CPHL reporting-profile test fixture.',
+    description: 'Microbiology (AMR) v3.2, FRS draft 0.31: replaces v3.0 (draft 0.21) and the v3.1 working drafts. Keeps v3.0 (lab reporting table with Cascade, default AST panels from targeting, computed suggestions, AMR reference data packs, AST QC, resistant-organism email alerts) and adds CLSI tiers 1 to 4 with cascade import, the shared reference search for organisms and antibiotics, received isolates through Tested elsewhere, local breakpoints and disk contents, isolates organised like WHONET inside OpenELIS screens with a worklist Isolates view, section purposes with a Next step and Complete states, Flag rules for WHONET-style alerts, a targeting-driven Add panel chooser, and bench helps from the AMR package metadata (expected R not tested, no-breakpoint warnings, class grouping, MDR/XDR/PDR, LOINC, EUCAST dosing, seeded French and Spanish names). Preview, Carbon React mockup, build map, slicing guide and critique.',
     specPath: 'designs/microbiology/amr-micro-v3-frs.md',
     htmlUrl: 'designs/microbiology/amr-micro-v3-preview.html',
     added: '2026-10-20',
+    updated: '2026-10-26',
     status: 'draft',
+    githubIssue: 370,
     jira: ['OGC-1528'],
-    tags: ['microbiology', 'amr', 'v3', 'ast-rules', 'reporting-rules', 'cascade', 'reference-data', 'breakpoints'],
+    tags: ['microbiology', 'amr', 'v3.2', 'ast-rules', 'reporting-rules', 'cascade', 'reference-data', 'breakpoints', 'whonet', 'reference-search'],
   },
+  {
+    name: 'Reference Search (shared picker)',
+    category: 'microbiology',
+    component: null,
+    description: 'Reference search v0.2: a shared picker for very large reference lists (organisms, antibiotics). Server type-ahead of the best 20 by name, synonym or code, ranked by the lab\'s own use and commonness, plus a search dialog with filters and a results table; a screen\'s limit is visible and removable. Drawn on the Microbiology (AMR) v3.2 preview (Isolates, Identify). First adopter: AMR v3.2 slice 1.',
+    specPath: 'designs/microbiology/reference-search-frs.md',
+    added: '2026-10-26',
+    status: 'draft',
+    githubIssue: 371,
+    jira: ['OGC-1528'],
+    tags: ['microbiology', 'reference-search', 'picker', 'organisms', 'antibiotics', 'shared-component'],
+  },
+  {
+    name: 'CLSI Reporting Rules Setup Guide',
+    category: 'microbiology',
+    component: null,
+    description: 'How a lab that interprets with CLSI enters its reporting tiers once from its own licensed copy of M100 Table 1, through the AST rules import (Tier and Trigger agents columns). Contains no CLSI content. Companion to Microbiology (AMR) v3.2.',
+    specPath: 'designs/microbiology/clsi-reporting-rules-setup-guide.md',
+    added: '2026-10-26',
+    status: 'draft',
+    githubIssue: 372,
+    jira: ['OGC-1528'],
+    tags: ['microbiology', 'amr', 'clsi', 'reporting-rules', 'setup-guide'],
+  },
+
 
   // ─── NCE ───
   {
@@ -3577,6 +3604,7 @@ const PERMALINK_ALIASES = {
   'microbiology/m-11-critical-notification-inline': 'microbiology/m-11-critical-notification-inline-superseded',
   'microbiology/m-14-mycobacteriology-tb': 'microbiology/m-14-mycobacteriology-tb-superseded',
   'microbiology/microbiology-amr-narrative-v2-1': 'microbiology/microbiology-amr-narrative-v2-1-superseded',
+  'microbiology/microbiology-amr-v3': 'microbiology/microbiology-amr-v3-2',
   'system/lab-management-dashboard': 'system/lab-management-dashboard-superseded',
 };
 
