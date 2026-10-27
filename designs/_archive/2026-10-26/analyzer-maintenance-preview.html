@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analyzer Maintenance — Preview v3</title>
+  <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css" />
+  <style>
+    :root {
+      --rail-w: 240px;
+      --header-h: 48px;
+      --c-bg: #f4f4f4;
+      --c-card: #ffffff;
+      --c-border: #e0e0e0;
+      --c-text: #161616;
+      --c-muted: #525252;
+      --c-link: #0f62fe;
+      --c-link-bg: #edf5ff;
+      --c-good: #198038;
+      --c-good-bg: #defbe6;
+      --c-warn: #f1c21b;
+      --c-warn-bg: #fcf4d6;
+      --c-warn-fg: #6f4700;
+      --c-bad: #da1e28;
+      --c-bad-bg: #ffe0e0;
+      --c-bad-fg: #a2191f;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: var(--c-bg); color: var(--c-text); font-size: 0.875rem; }
+
+    .preview-banner { background: var(--c-link); color: #fff; padding: 6px 1.5rem; font-size: 0.75rem; font-family: monospace; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+
+    .app-header { height: var(--header-h); background: #161616; color: #fff; display: flex; align-items: center; padding: 0 1rem; gap: 1rem; }
+    .app-header .brand { font-size: 0.875rem; font-weight: 500; letter-spacing: 0.04em; }
+    .app-header .brand .sub { opacity: 0.7; font-weight: 400; margin-left: 0.5rem; }
+    .app-header .spacer { flex: 1; }
+    .app-header .user-chip { font-size: 0.8125rem; opacity: 0.85; padding: 0.25rem 0.5rem; border: 1px solid #393939; }
+
+    .layout { display: flex; min-height: 700px; }
+    .rail { width: var(--rail-w); flex: 0 0 var(--rail-w); background: #fff; border-right: 1px solid var(--c-border); }
+    .main { flex: 1; padding: 1.125rem 1.5rem 2.5rem 1.5rem; overflow-x: auto; }
+
+    .rail-title { padding: 0.875rem 1rem 0.375rem 1rem; font-size: 0.6875rem; letter-spacing: 0.06em; color: var(--c-muted); text-transform: uppercase; }
+    .rail-item { display: flex; align-items: center; width: 100%; padding: 0.5625rem 1rem; font-size: 0.8125rem; color: var(--c-text); background: transparent; border: 0; border-left: 3px solid transparent; cursor: pointer; text-align: left; font-family: inherit; }
+    .rail-item:hover { background: #e8e8e8; }
+    .rail-item.current { background: var(--c-link-bg); border-left-color: var(--c-link); font-weight: 600; }
+    .rail-item .icon { margin-right: 0.5625rem; width: 16px; display: inline-flex; justify-content: center; opacity: 0.8; }
+    .rail-item .label { flex: 1; }
+    .rail-item.nested { padding-left: 2.5rem; font-size: 0.75rem; color: var(--c-muted); }
+    .rail-item.nested.new { font-weight: 600; color: var(--c-link); }
+    .rail-item.nested.current { color: var(--c-text); font-weight: 600; background: #f4f4f4; border-left-color: var(--c-link); }
+
+    .crumb { font-size: 0.8125rem; color: var(--c-muted); margin-bottom: 0.5rem; }
+    .crumb a { color: var(--c-link); text-decoration: none; }
+    .crumb .current { color: var(--c-text); font-weight: 500; }
+    .crumb .sep { margin: 0 0.375rem; }
+
+    .page-header { background: #fff; border: 1px solid var(--c-border); padding: 1rem 1.25rem; margin-bottom: 0.875rem; }
+    .page-header h1 { font-size: 1.375rem; font-weight: 300; margin: 0; letter-spacing: -0.01em; }
+    .page-header .sub { font-size: 0.8125rem; color: var(--c-muted); margin: 0.1875rem 0 0 0; }
+
+    /* Scope filter row */
+    .scope-row { background: #fff; border: 1px solid var(--c-border); padding: 0.875rem 1.25rem; margin-bottom: 0.875rem; display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; }
+    .scope-row .filter-block { display: flex; flex-direction: column; gap: 0.25rem; min-width: 280px; }
+    .scope-row .lbl { font-size: 0.6875rem; color: var(--c-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .scope-row .multiselect { background: #fff; border: 0; border-bottom: 1px solid #8d8d8d; padding: 0.5rem 0.75rem; font-family: inherit; font-size: 0.8125rem; min-width: 280px; cursor: pointer; display: flex; align-items: center; gap: 0.4375rem; flex-wrap: wrap; min-height: 36px; }
+    .scope-row .multiselect:focus-within { outline: 2px solid var(--c-link); }
+    .scope-row .multiselect .chip { background: var(--c-link-bg); color: var(--c-link); padding: 0.125rem 0.4375rem; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.25rem; }
+    .scope-row .multiselect .chip .x { cursor: pointer; font-weight: 700; opacity: 0.7; }
+    .scope-row .multiselect .placeholder { color: var(--c-muted); }
+    .scope-row .multiselect .caret { margin-left: auto; color: var(--c-muted); font-size: 0.625rem; }
+    .scope-row .summary-strip { flex: 1; display: flex; justify-content: flex-end; gap: 1.5rem; font-size: 0.8125rem; }
+    .scope-row .summary-strip .cell { display: flex; flex-direction: column; }
+    .scope-row .summary-strip .cell .meta { font-size: 0.6875rem; color: var(--c-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .scope-row .summary-strip .cell .val { font-weight: 500; margin-top: 0.125rem; }
+    .scope-row .summary-strip .cell .val .overdue { color: var(--c-bad-fg); font-weight: 600; }
+    .scope-row .btn-primary { background: var(--c-link); color: #fff; border: 0; padding: 0.5rem 1rem; font-size: 0.8125rem; cursor: pointer; font-family: inherit; }
+    .scope-row .btn-primary:hover { background: #0353e9; }
+
+    /* Variant toggle (preview-only control) */
+    .variant-toggle { background: #161616; color: #fff; padding: 0.5rem 1.5rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+    .variant-toggle .lbl { opacity: 0.8; }
+    .variant-toggle button { background: transparent; color: #c6c6c6; border: 1px solid #393939; padding: 0.25rem 0.625rem; font-size: 0.75rem; cursor: pointer; font-family: inherit; }
+    .variant-toggle button.active { background: var(--c-link); color: #fff; border-color: var(--c-link); }
+    .variant { display: none; }
+    .variant.active { display: block; }
+
+    /* DataTable */
+    .dt-container { background: #fff; border: 1px solid var(--c-border); }
+    .dt-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 0.625rem 1rem; border-bottom: 1px solid var(--c-border); }
+    .dt-toolbar .search { background: #f4f4f4; border: 0; padding: 0.4375rem 0.75rem; font-size: 0.8125rem; font-family: inherit; min-width: 240px; }
+    .dt-toolbar .filters { display: flex; gap: 0.4375rem; font-size: 0.75rem; }
+    .dt-toolbar .filter-chip { padding: 0.1875rem 0.5rem; background: var(--c-link-bg); color: var(--c-link); border: 0; font-family: inherit; font-size: 0.75rem; cursor: pointer; }
+    .dt-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+    .dt-table th { background: #f4f4f4; color: var(--c-muted); font-weight: 500; padding: 0.625rem 0.75rem; text-align: left; border-bottom: 1px solid var(--c-border); text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.6875rem; cursor: pointer; }
+    .dt-table th .sort { color: #c6c6c6; margin-left: 0.25rem; }
+    .dt-table td { padding: 0.625rem 0.75rem; border-bottom: 1px solid #f0f0f0; font-size: 0.8125rem; vertical-align: top; }
+    .dt-table tr.row-header:hover td { background: #fafafa; }
+    .dt-table tr.row-header { cursor: pointer; }
+    .dt-table .col-expand { width: 32px; text-align: center; color: var(--c-muted); }
+    .dt-table .col-expand .caret { transition: transform 0.12s; display: inline-block; }
+    .dt-table tr.row-header.expanded .col-expand .caret { transform: rotate(90deg); color: var(--c-link); }
+    .dt-table .col-actions { width: 60px; text-align: right; color: var(--c-muted); }
+    .dt-table .col-actions .menu { cursor: pointer; }
+    .dt-table .col-actions .menu:hover { color: var(--c-link); }
+    .dt-table .tag { font-size: 0.6875rem; padding: 0.1875rem 0.5rem; border-radius: 2px; font-weight: 500; display: inline-block; }
+    .dt-table .tag.completed { background: var(--c-good-bg); color: #0e6027; }
+    .dt-table .tag.in-progress { background: #d0e2ff; color: #0043ce; }
+    .dt-table .tag.failed { background: var(--c-bad-bg); color: var(--c-bad-fg); }
+    .dt-table .tag.needs-followup { background: var(--c-warn-bg); color: var(--c-warn-fg); }
+    .dt-table .tag.type-service { background: #d0e2ff; color: #0043ce; }
+    .dt-table .tag.type-calibration { background: #e8daff; color: #491d8b; }
+    .dt-table .tag.type-repair { background: var(--c-bad-bg); color: var(--c-bad-fg); }
+    .dt-table .tag.type-inspection { background: #d9fbfb; color: #005d5d; }
+    .dt-table .tag.type-cleaning { background: #defbe6; color: #0e6027; }
+    .dt-table .due-overdue { color: var(--c-bad-fg); font-weight: 500; }
+    .dt-table .due-soon { color: var(--c-warn-fg); font-weight: 500; }
+    .dt-table .analyzer-cell .name { font-weight: 500; }
+    .dt-table .analyzer-cell .type { font-size: 0.6875rem; color: var(--c-muted); margin-top: 0.125rem; }
+
+    /* Expanded row */
+    .row-expanded-content td { background: #f4f4f4; border-bottom: 2px solid var(--c-border); padding: 0; }
+    .expanded-tile { padding: 1.125rem 1.5rem; }
+    .expanded-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 2rem; }
+    .expanded-grid .field { display: flex; flex-direction: column; gap: 0.1875rem; }
+    .expanded-grid .field .lbl { font-size: 0.6875rem; color: var(--c-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .expanded-grid .field .val { font-size: 0.8125rem; color: var(--c-text); }
+    .expanded-grid .field .val.muted { color: var(--c-muted); font-style: italic; }
+    .expanded-grid .field.full-row { grid-column: 1 / -1; }
+    .expanded-actions { margin-top: 1rem; display: flex; gap: 0.5rem; padding-top: 0.75rem; border-top: 1px solid var(--c-border); }
+    .expanded-actions .btn { padding: 0.4375rem 0.875rem; font-size: 0.75rem; cursor: pointer; font-family: inherit; border: 1px solid var(--c-border); background: #fff; color: var(--c-text); }
+    .expanded-actions .btn:hover { background: var(--c-link-bg); border-color: var(--c-link); color: var(--c-link); }
+    .expanded-actions .btn.danger { color: var(--c-bad); border-color: var(--c-bad); margin-left: auto; }
+    .expanded-actions .btn.danger:hover { background: var(--c-bad-bg); color: var(--c-bad-fg); }
+
+    /* Designer note */
+    .dn { background: #fdf6dd; border-left: 3px solid var(--c-warn); padding: 0.75rem 1rem; margin-bottom: 0.875rem; font-size: 0.75rem; color: #684e00; line-height: 1.5; }
+    .dn strong { color: #684e00; }
+    .dn code { background: rgba(0,0,0,0.06); padding: 0 0.1875rem; font-size: 0.6875rem; }
+  </style>
+</head>
+<body>
+
+<div class="preview-banner">
+  <span>Analyzer Maintenance — design preview v3 (trimmed columns + multi-select filter + name/type split)</span>
+  <span>Route: <code>/analyzers/maintenance</code></span>
+</div>
+
+<header class="app-header">
+  <span class="brand">OpenELIS Global<span class="sub">· CPHL Port Moresby</span></span>
+  <span class="spacer"></span>
+  <span class="user-chip">Dr. Joseph K · Admin</span>
+</header>
+
+<div class="layout">
+  <nav class="rail" aria-label="Main navigation">
+    <div class="rail-title">Workspace</div>
+    <button class="rail-item"><span class="icon">⌂</span><span class="label">Home</span></button>
+    <button class="rail-item"><span class="icon">＋</span><span class="label">Order Entry</span></button>
+    <button class="rail-item"><span class="icon">⚕</span><span class="label">Patient Management</span></button>
+    <button class="rail-item"><span class="icon">▤</span><span class="label">Workplan</span></button>
+    <button class="rail-item"><span class="icon">✓</span><span class="label">Results Validation</span></button>
+    <button class="rail-item"><span class="icon">⎙</span><span class="label">Reports</span></button>
+    <div class="rail-title">Analyzers</div>
+    <button class="rail-item nested"><span class="label">All Analyzers</span></button>
+    <button class="rail-item nested"><span class="label">QC Dashboard</span></button>
+    <button class="rail-item nested"><span class="label">QC Alerts</span></button>
+    <button class="rail-item nested"><span class="label">Corrective Actions</span></button>
+    <button class="rail-item nested new current"><span class="label">Maintenance (NEW)</span></button>
+    <div class="rail-title">Modules</div>
+    <button class="rail-item"><span class="icon">◐</span><span class="label">Quality Assurance</span></button>
+    <button class="rail-item"><span class="icon">⇄</span><span class="label">Sample Shipment</span></button>
+    <button class="rail-item"><span class="icon">📦</span><span class="label">Inventory</span></button>
+    <button class="rail-item"><span class="icon">⚙</span><span class="label">Admin</span></button>
+  </nav>
+
+  <main class="main">
+    <div class="crumb">
+      <a href="#">Home</a><span class="sep">/</span><a href="#">Analyzers</a><span class="sep">/</span><span class="current">Maintenance</span>
+    </div>
+
+    <div class="dn">
+      <strong>v3 changes:</strong> (1) Analyzer <em>name</em> (user-given designation) and <em>type</em> (model identifier) shown as separate display elements — CPHL has two Sysmex XN-550s with different names ("Hematology Bench 1" and "Hematology Bench 2"). (2) Table columns trimmed to the 6 most actionable; everything else moves to the expanded row. (3) Filter is a multi-select — labs can compare events across multiple analyzers, not just one at a time. (4) <code>Analyzer.storageRoomId</code> FK is new; coexists with existing <code>Analyzer.location</code> free-text varchar.
+    </div>
+
+    <div class="page-header">
+      <h1>Maintenance</h1>
+      <p class="sub">All service, calibration, repair, inspection, and cleaning events for the lab's analyzers.</p>
+    </div>
+
+    <div class="variant-toggle">
+      <span class="lbl">Preview state:</span>
+      <button class="active" onclick="setVariant('all', this)">All analyzers (empty filter)</button>
+      <button onclick="setVariant('one', this)">1 selected (Hematology Bench 1)</button>
+      <button onclick="setVariant('two', this)">2 selected (both XN-550 units)</button>
+    </div>
+
+    <!-- VARIANT A — All analyzers -->
+    <div class="variant active" id="variant-all">
+      <div class="scope-row">
+        <div class="filter-block">
+          <span class="lbl">Filter by analyzer (multi-select)</span>
+          <div class="multiselect" role="combobox" tabindex="0">
+            <span class="placeholder">All analyzers</span>
+            <span class="caret">▼</span>
+          </div>
+        </div>
+        <div class="summary-strip">
+          <div class="cell"><span class="meta">Events this period</span><span class="val">47</span></div>
+          <div class="cell"><span class="meta">Overdue</span><span class="val"><span class="overdue">3</span></span></div>
+          <div class="cell"><span class="meta">Due in 30 days</span><span class="val">5</span></div>
+        </div>
+        <button class="btn-primary" type="button">＋ Log new event</button>
+      </div>
+
+      <div class="dt-container">
+        <div class="dt-toolbar">
+          <input type="search" class="search" placeholder="Search notes, vendor, performed by..." />
+          <div class="filters">
+            <button class="filter-chip" type="button">Type: All ▾</button>
+            <button class="filter-chip" type="button">Outcome: All ▾</button>
+            <button class="filter-chip" type="button">Vendor: All ▾</button>
+            <button class="filter-chip" type="button">Date: Last 12 months ▾</button>
+            <button class="filter-chip" type="button" style="background:#f4f4f4; color:var(--c-muted);">☐ Show archived</button>
+          </div>
+        </div>
+
+        <table class="dt-table" aria-label="Maintenance event history — all analyzers">
+          <thead>
+            <tr>
+              <th class="col-expand"></th>
+              <th>Analyzer <span class="sort">↕</span></th>
+              <th>Date <span class="sort">↓</span></th>
+              <th>Type <span class="sort">↕</span></th>
+              <th>Outcome</th>
+              <th>Next due <span class="sort">↕</span></th>
+              <th class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="row-header expanded" onclick="toggleExpand(this)">
+              <td class="col-expand"><span class="caret">▸</span></td>
+              <td class="analyzer-cell"><div class="name">Hematology Bench 1</div><div class="type">Sysmex XN-550</div></td>
+              <td>12 May 2026</td>
+              <td><span class="tag type-calibration">Calibration</span></td>
+              <td><span class="tag completed">Completed</span></td>
+              <td><span class="due-soon">14 Jun 2026 (8d)</span></td>
+              <td class="col-actions"><span class="menu">⋮</span></td>
+            </tr>
+            <tr class="row-expanded-content">
+              <td colspan="7">
+                <div class="expanded-tile">
+                  <div class="expanded-grid">
+                    <div class="field"><span class="lbl">Performed by</span><span class="val">Sysmex Tech A (vendor)</span></div>
+                    <div class="field"><span class="lbl">Verified by</span><span class="val">Dr. Joseph K · 12 May 2026 16:42</span></div>
+                    <div class="field"><span class="lbl">Location</span><span class="val">Main Lab 2F-A</span></div>
+                    <div class="field"><span class="lbl">Vendor</span><span class="val">Sysmex APAC</span></div>
+                    <div class="field"><span class="lbl">Downtime</span><span class="val">2.0 hours</span></div>
+                    <div class="field"><span class="lbl">Cost</span><span class="val">USD 380.00</span></div>
+                    <div class="field full-row"><span class="lbl">Parts replaced</span><span class="val">Aspiration probe seal; lot SX-PRB-2024-188</span></div>
+                    <div class="field full-row"><span class="lbl">Notes</span><span class="val">Quarterly calibration per Sysmex maintenance schedule. Post-cal QC verified within ±2SD on Levey-Jennings.</span></div>
+                  </div>
+                  <div class="expanded-actions">
+                    <button class="btn" type="button">Edit</button>
+                    <button class="btn danger" type="button">Archive</button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+
+            <tr class="row-header" onclick="toggleExpand(this)">
+              <td class="col-expand"><span class="caret">▸</span></td>
+              <td class="analyzer-cell"><div class="name">Molecular Bench</div><div class="type">GeneXpert IV</div></td>
+              <td>08 May 2026</td>
+              <td><span class="tag type-repair">Repair</span></td>
+              <td><span class="tag completed">Completed</span></td>
+              <td>—</td>
+              <td class="col-actions"><span class="menu">⋮</span></td>
+            </tr>
+            <tr class="row-header" onclick="toggleExpand(this)">
+              <td class="col-expand"><span class="caret">▸</span></td>
+              <td class="analyzer-cell"><div class="name">HIV VL Bench</div><div class="type">Roche cobas 4800</div></td>
+              <td>05 May 2026</td>
+              <td><span class="tag type-repair">Repair</span></td>
+              <td><span class="tag needs-followup">Needs Follow-up</span></td>
+              <td><span class="due-overdue">02 Jun 2026 (3d overdue)</span></td>
+              <td class="col-actions"><span class="menu">⋮</span></td>
+            </tr>
+            <tr class="row-header" onclick="toggleExpand(this)">
+              <td class="col-expand"><span class="caret">▸</span></td>
+              <td class="analyzer-cell"><div class="name">Micro AST Bench 1</div><div class="type">VITEK 2 Compact</div></td>
+              <td>02 May 2026</td>
+              <td><span class="tag type-service">Service</span></td>
+              <td><span class="tag completed">Completed</span></td>
+              <td>12 Aug 2026</td>
+              <td class="col-actions"><span class="menu">⋮</span></td>
+            </tr>
+            <tr class="row-header" onclick="toggleExpand(this)">
+              <td class="col-expand"><span class="caret">▸</span></td>
+              <td class="analyzer-cell"><div class="name">Chemistry Bench 1</div><div class="type">Abbott Architect c4000</div></td>
+              <td>28 Apr 2026</td>
+              <td><span class="tag type-calibration">Calibration</span></td>
+              <td><span class="tag completed">Completed</span></td>
+              <td>22 Jul 2026</td>
+              <td class="col-actions"><span class="menu">⋮</span></td>
+            </tr>
+            <tr class="row-header" onclick="toggleExpand(this)">
+              <td class="col-expand"><span class="caret">▸</span></td>
+              <td class="analyzer-cell"><div class="name">Hematology Bench 1</div><div class="type">Sysmex XN-550</div></td>
+              <td>28 Apr 2026</td>
+              <td><span class="tag type-service">Service</span></td>
+              <td><span class="tag completed">Completed</span></td>
+              <td>—</td>
+              <td class="col-actions"><span class="menu">⋮</span></td>
+            </tr>
+            <tr class="row-header" onclick="toggleExpand(this)">
+              <td class="col-expand"><span class="caret">▸</span></td>
+              <td class="analyzer-cell"><div class="name">Hematology Bench 2</div><div class="type">Sysmex XN-550</div></td>
+              <td>25 Apr 2026</td>
+              <td><span class="tag type-calibration">Calibration</span></td>
+              <td><span class="tag completed">Completed</span></td>
+              <td>26 Jul 2026</td>
+              <td class="col-actions"><span class="menu">⋮</span></td>
+            </tr>
+            <tr class="row-header" onclick="toggleExpand(this)">
+              <td class="col-expand"><span class="caret">▸</span></td>
+              <td class="analyzer-cell"><div class="name">Micro AST Bench 2</div><div class="type">BD Phoenix M50</div></td>
+              <td>20 Apr 2026</td>
+              <td><span class="tag type-calibration">Calibration</span></td>
+              <td><span class="tag completed">Completed</span></td>
+              <td>28 Aug 2026</td>
+              <td class="col-actions"><span class="menu">⋮</span></td>
+            </tr>
+            <tr class="row-header" onclick="toggleExpand(this)">
+              <td class="col-expand"><span class="caret">▸</span></td>
+              <td class="analyzer-cell"><div class="name">Molecular Bench</div><div class="type">GeneXpert IV</div></td>
+              <td>04 Mar 2026</td>
+              <td><span class="tag type-service">Service</span></td>
+              <td><span class="tag completed">Completed</span></td>
+              <td><span class="due-overdue">04 Jun 2026 (overdue 1d)</span></td>
+              <td class="col-actions"><span class="menu">⋮</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VARIANT B — 1 analyzer selected (Hematology Bench 1) -->
+    <div class="variant" id="variant-one">
+      <div class="scope-row">
+        <div class="filter-block">
+          <span class="lbl">Filter by analyzer (multi-select)</span>
+          <div class="multiselect" role="combobox" tabindex="0">
+            <span class="chip">Hematology Bench 1 <span class="x">×</span></span>
+            <span class="caret">▼</span>
+          </div>
+        </div>
+        <div class="summary-strip">
+          <div class="cell"><span class="meta">Type</span><span class="val">Sysmex XN-550</span></div>
+          <div class="cell"><span class="meta">Location</span><span class="val">Main Lab 2F-A</span></div>
+          <div class="cell"><span class="meta">Last service</span><span class="val">12 May 2026 · Calibration</span></div>
+          <div class="cell"><span class="meta">Next due</span><span class="val">14 Jun 2026 (8d)</span></div>
+        </div>
+        <button class="btn-primary" type="button">＋ Log new event</button>
+      </div>
+
+      <div class="dt-container">
+        <div class="dt-toolbar">
+          <input type="search" class="search" placeholder="Search notes, vendor, performed by..." />
+          <div class="filters">
+            <button class="filter-chip" type="button">Type: All ▾</button>
+            <button class="filter-chip" type="button">Outcome: All ▾</button>
+            <button class="filter-chip" type="button">Date: Last 12 months ▾</button>
+            <button class="filter-chip" type="button" style="background:#f4f4f4; color:var(--c-muted);">☐ Show archived</button>
+          </div>
+        </div>
+
+        <table class="dt-table" aria-label="Maintenance event history — Hematology Bench 1">
+          <thead>
+            <tr>
+              <th class="col-expand"></th>
+              <th>Date <span class="sort">↓</span></th>
+              <th>Type <span class="sort">↕</span></th>
+              <th>Outcome</th>
+              <th>Next due <span class="sort">↕</span></th>
+              <th class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="row-header" onclick="toggleExpand(this)">
+              <td class="col-expand"><span class="caret">▸</span></td>
+              <td>12 May 2026</td>
+              <td><span class="tag type-calibration">Calibration</span></td>
+              <td><span class="tag completed">Completed</span></td>
+              <td><span class="due-soon">14 Jun 2026 (8d)</span></td>
+              <td class="col-actions"><span class="menu">⋮</span></td>
+            </tr>
+            <tr class="row-header" onclick="toggleExpand(this)">
+              <td class="col-expand"><span class="caret">▸</span></td>
+              <td>28 Apr 2026</td>
+              <td><span class="tag type-service">Service</span></td>
+              <td><span class="tag completed">Completed</span></td>
+              <td>—</td>
+              <td class="col-actions"><span class="menu">⋮</span></td>
+            </tr>
+            <tr class="row-header" onclick="toggleExpand(this)">
+              <td class="col-expand"><span class="caret">▸</span></td>
+              <td>15 Apr 2026</td>
+              <td><span class="tag type-cleaning">Cleaning</span></td>
+              <td><span class="tag completed">Completed</span></td>
+              <td>—</td>
+              <td class="col-actions"><span class="menu">⋮</span></td>
+            </tr>
+            <tr class="row-header" onclick="toggleExpand(this)">
+              <td class="col-expand"><span class="caret">▸</span></td>
+              <td>02 Apr 2026</td>
+              <td><span class="tag type-repair">Repair</span></td>
+              <td><span class="tag completed">Completed</span></td>
+              <td>—</td>
+              <td class="col-actions"><span class="menu">⋮</span></td>
+            </tr>
+            <tr class="row-header" onclick="toggleExpand(this)">
+              <td class="col-expand"><span class="caret">▸</span></td>
+              <td>14 Mar 2026</td>
+              <td><span class="tag type-inspection">Inspection</span></td>
+              <td><span class="tag completed">Completed</span></td>
+              <td>—</td>
+              <td class="col-actions"><span class="menu">⋮</span></td>
+            </tr>
+            <tr class="row-header" onclick="toggleExpand(this)">
+              <td class="col-expand"><span class="caret">▸</span></td>
+              <td>14 Feb 2026</td>
+              <td><span class="tag type-calibration">Calibration</span></td>
+              <td><span class="tag completed">Completed</span></td>
+              <td>12 May 2026 (resolved)</td>
+              <td class="col-actions"><span class="menu">⋮</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VARIANT C — 2 analyzers selected (both XN-550) -->
+    <div class="variant" id="variant-two">
+      <div class="scope-row">
+        <div class="filter-block">
+          <span class="lbl">Filter by analyzer (multi-select)</span>
+          <div class="multiselect" role="combobox" tabindex="0">
+            <span class="chip">Hematology Bench 1 <span class="x">×</span></span>
+            <span class="chip">Hematology Bench 2 <span class="x">×</span></span>
+            <span class="caret">▼</span>
+          </div>
+        </div>
+        <div class="summary-strip">
+          <div class="cell"><span class="meta">Selected</span><span class="val">2 analyzers (both XN-550)</span></div>
+          <div class="cell"><span class="meta">Events this period</span><span class="val">14</span></div>
+          <div class="cell"><span class="meta">Overdue</span><span class="val">0</span></div>
+          <div class="cell"><span class="meta">Due in 30 days</span><span class="val">1</span></div>
+        </div>
+        <button class="btn-primary" type="button">＋ Log new event</button>
+      </div>
+
+      <div class="dt-container">
+        <div class="dt-toolbar">
+          <input type="search" class="search" placeholder="Search notes, vendor, performed by..." />
+          <div class="filters">
+            <button class="filter-chip" type="button">Type: All ▾</button>
+            <button class="filter-chip" type="button">Outcome: All ▾</button>
+            <button class="filter-chip" type="button">Date: Last 12 months ▾</button>
+            <button class="filter-chip" type="button" style="background:#f4f4f4; color:var(--c-muted);">☐ Show archived</button>
+          </div>
+        </div>
+
+        <table class="dt-table" aria-label="Maintenance event history — both XN-550 units">
+          <thead>
+            <tr>
+              <th class="col-expand"></th>
+              <th>Analyzer <span class="sort">↕</span></th>
+              <th>Date <span class="sort">↓</span></th>
+              <th>Type <span class="sort">↕</span></th>
+              <th>Outcome</th>
+              <th>Next due <span class="sort">↕</span></th>
+              <th class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="row-header" onclick="toggleExpand(this)">
+              <td class="col-expand"><span class="caret">▸</span></td>
+              <td class="analyzer-cell"><div class="name">Hematology Bench 1</div><div class="type">Sysmex XN-550</div></td>
+              <td>12 May 2026</td>
+              <td><span class="tag type-calibration">Calibration</span></td>
+              <td><span class="tag completed">Completed</span></td>
+              <td><span class="due-soon">14 Jun 2026 (8d)</span></td>
+              <td class="col-actions"><span class="menu">⋮</span></td>
+            </tr>
+            <tr class="row-header" onclick="toggleExpand(this)">
+              <td class="col-expand"><span class="caret">▸</span></td>
+              <td class="analyzer-cell"><div class="name">Hematology Bench 1</div><div class="type">Sysmex XN-550</div></td>
+              <td>28 Apr 2026</td>
+              <td><span class="tag type-service">Service</span></td>
+              <td><span class="tag completed">Completed</span></td>
+              <td>—</td>
+              <td class="col-actions"><span class="menu">⋮</span></td>
+            </tr>
+            <tr class="row-header" onclick="toggleExpand(this)">
+              <td class="col-expand"><span class="caret">▸</span></td>
+              <td class="analyzer-cell"><div class="name">Hematology Bench 2</div><div class="type">Sysmex XN-550</div></td>
+              <td>25 Apr 2026</td>
+              <td><span class="tag type-calibration">Calibration</span></td>
+              <td><span class="tag completed">Completed</span></td>
+              <td>26 Jul 2026</td>
+              <td class="col-actions"><span class="menu">⋮</span></td>
+            </tr>
+            <tr class="row-header" onclick="toggleExpand(this)">
+              <td class="col-expand"><span class="caret">▸</span></td>
+              <td class="analyzer-cell"><div class="name">Hematology Bench 2</div><div class="type">Sysmex XN-550</div></td>
+              <td>18 Apr 2026</td>
+              <td><span class="tag type-cleaning">Cleaning</span></td>
+              <td><span class="tag completed">Completed</span></td>
+              <td>—</td>
+              <td class="col-actions"><span class="menu">⋮</span></td>
+            </tr>
+            <tr class="row-header" onclick="toggleExpand(this)">
+              <td class="col-expand"><span class="caret">▸</span></td>
+              <td class="analyzer-cell"><div class="name">Hematology Bench 1</div><div class="type">Sysmex XN-550</div></td>
+              <td>15 Apr 2026</td>
+              <td><span class="tag type-cleaning">Cleaning</span></td>
+              <td><span class="tag completed">Completed</span></td>
+              <td>—</td>
+              <td class="col-actions"><span class="menu">⋮</span></td>
+            </tr>
+            <tr class="row-header" onclick="toggleExpand(this)">
+              <td class="col-expand"><span class="caret">▸</span></td>
+              <td class="analyzer-cell"><div class="name">Hematology Bench 2</div><div class="type">Sysmex XN-550</div></td>
+              <td>02 Apr 2026</td>
+              <td><span class="tag type-repair">Repair</span></td>
+              <td><span class="tag completed">Completed</span></td>
+              <td>—</td>
+              <td class="col-actions"><span class="menu">⋮</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="dn" style="margin-top: 1rem;">
+      <strong>Downstream consumers (waiting on this epic):</strong>
+      OGC-897 Management Dashboard equipment cards extend from last-activity-only to render last-service, next-calibration, and overdue flags (per-bench, since Analyzer.name distinguishes duplicate units). OGC-896 Home Page Lab Snapshot analyzer connections cell similarly extends; Home Attention feed gets an "Equipment maintenance due" row when <code>EQUIPMENT_MAINTENANCE_DUE</code> Alerts are open. Future QA Dashboard equipment status panel consumes the same data.
+    </div>
+
+  </main>
+</div>
+
+<script>
+function setVariant(which, btn) {
+  document.querySelectorAll('.variant').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.variant-toggle button').forEach(b => b.classList.remove('active'));
+  document.getElementById('variant-' + which).classList.add('active');
+  btn.classList.add('active');
+}
+function toggleExpand(row) {
+  row.classList.toggle('expanded');
+  const next = row.nextElementSibling;
+  if (next && next.classList.contains('row-expanded-content')) {
+    next.style.display = next.style.display === 'none' ? '' : 'none';
+  }
+}
+</script>
+
+</body>
+</html>
