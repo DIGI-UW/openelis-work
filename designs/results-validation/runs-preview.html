@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Runs — OpenELIS Preview</title>
+<title>Runs Preview v0.5</title>
 <link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
@@ -11,6 +11,7 @@
 <style>
   body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans', sans-serif; }
   .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; }
+  .preview-nav { background:#fff; border-bottom:1px solid #e0e0e0; padding:6px 1rem; font-size:12px; display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
   .preview-content { padding:1rem 2rem 4rem; max-width:1440px; margin:0 auto; }
   .blk { background:#fff; border:1px solid #e0e0e0; }
   .blk + .blk { border-top:0; }
@@ -22,25 +23,34 @@
   .kv .v { font-size:13px; }
   table.cds--data-table td, table.cds--data-table th { font-size:13px; }
   .expand { background:#f4f4f4; padding:.75rem 1rem; font-size:13px; border-bottom:1px solid #e0e0e0; }
-  .band { background:#fff; border:1px solid #e0e0e0; margin-bottom:1rem; }
   .clickrow { cursor:pointer; }
   .toast { position:fixed; right:1.5rem; bottom:1.5rem; max-width:560px; z-index:50; }
-  .pill { cursor:pointer; }
+  .cds--tag { max-width:none; }
+  .cds--tag__label { overflow:visible; text-overflow:clip; white-space:nowrap; }
+  .qcrow td { background:#f6f2ff; }
+  .planned td { color:#8d8d8d; }
+  .slot { border:1px solid #c6c6c6; padding:4px; font-size:11px; min-width:84px; background:#fff; }
+  .slot select { font-size:11px; width:100%; }
+  .field { margin-bottom:.75rem; }
+  .field label { display:block; font-size:12px; color:#525252; margin-bottom:2px; }
+  @media (max-width: 700px) { .preview-content { padding:1rem 16px 4rem; } }
 </style>
 </head>
 <body class="cds--white">
 <div class="preview-banner">
-  Visual Preview — Runs (OGC-1200) &nbsp;|&nbsp; Route: /Results?run=&lt;id&gt; &nbsp;|&nbsp;
-  FRS runs-frs.md v0.4 &nbsp;|&nbsp; Not a live application
+  Visual Preview: Runs (OGC-1200) &nbsp;|&nbsp; Routes: /Results?run=&lt;id&gt;, Test Catalog QC section, /MasterListsPage/WorkPlanConfigurationMenu &nbsp;|&nbsp;
+  FRS runs.md v0.5 &nbsp;|&nbsp; Not a live application
 </div>
 <div style="background:#f6f2ff;border-bottom:1px solid #d4bbff;padding:8px 1rem;font-size:12px">
   <strong>How to read this preview.</strong> Regions inside a dashed border are <em>existing OpenELIS UI</em>,
   drawn abbreviated so this file reads standalone. They are not designs and not a specification of their
   own contents: build them by reusing the shipped components and take their real filter set, fields,
   ordering and states from the live app and the owning specs. Only the "Runs adds" line inside each fence
-  is specified here.
+  is specified here. <strong>New in v0.5:</strong> open RUN-2409-0145 (blanks, duplicates, planned positions),
+  RUN-2409-0146 (instrument out of service) and RUN-2409-0144 (test locked after a failed control), and the two
+  configuration screens in the preview switcher below.
 </div>
-<div class="preview-content" id="root"></div>
+<div id="root"></div>
 
 <script type="text/babel">
 const { useState, useMemo } = React;
@@ -59,15 +69,17 @@ const ANALYTES = [
 const SURNAMES = ['Mwangi','Achieng','Otieno','Njoroge','Kamau','Wafula','Nyambura','Mutua',
   'Chebet','Omondi','Wanjiru','Kiptoo','Adhiambo','Maina','Barasa','Cherono'];
 const INITIALS = 'AJKMFTSDEN';
+const SITES = ['Kilimani borehole 3','Ruiru intake','Athi river WP-2','Kibera standpipe 11','Ngong Rd tap 4',
+  'Thika WTP outlet','Karura spring','Githurai tank 2','Embakasi well 7','Dandora kiosk 5'];
 
 let seed = 20260922;
 const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
 
-function buildRack() {
-  seed = 20260922;
+function buildChem(runId, n, startNo, seedVal) {
+  seed = seedVal;
   const rows = [];
-  for (let s = 0; s < 96; s++) {
-    const sample = '24-0' + (1200 + s);
+  for (let s = 0; s < n; s++) {
+    const sample = '24-0' + (startNo + s);
     const patient = INITIALS[s % INITIALS.length] + '. ' + SURNAMES[s % SURNAMES.length];
     ANALYTES.forEach((a, i) => {
       const span = a.hi - a.lo, r = rnd();
@@ -75,15 +87,50 @@ function buildRack() {
       if (r < 0.015)      { value = a.critHi ? a.critHi * (1 + rnd()*0.15) : a.lo*0.5; flag = 'critical'; }
       else if (r < 0.085) { value = rnd() < 0.5 ? a.lo - span*(0.1+rnd()*0.3) : a.hi + span*(0.1+rnd()*0.4); flag = 'abnormal'; }
       else                { value = a.lo + span*(0.15 + rnd()*0.7); }
-      rows.push({ id:'R'+s+'-'+i, sample, patient, test:a.test, unit:'Chemistry', status:'pending',
-        run:'RUN-2409-0142', value: value.toFixed(a.hi > 100 ? 0 : 1) + ' ' + a.unit, flag, dup:false, exception:null });
+      rows.push({ id:runId+'-'+s+'-'+i, sample, patient, test:a.test, unit:'Chemistry', status:'pending',
+        run:runId, value: value.toFixed(a.hi > 100 ? 0 : 1) + ' ' + a.unit, flag, dup:false, exception:null });
     });
   }
-  ['R7-0','R23-2','R51-4','R80-6'].forEach(id => { const r = rows.find(x => x.id === id); if (r) r.dup = true; });
-  rows.find(x => x.id === 'R14-1').exception = 'unmatched';
-  rows.find(x => x.id === 'R14-3').exception = 'unmatched';
-  rows.find(x => x.id === 'R62-7').exception = 'unmapped';
   return rows;
+}
+
+function buildRack() {
+  const rows = buildChem('RUN-2409-0142', 96, 1200, 20260922);
+  ['RUN-2409-0142-7-0','RUN-2409-0142-23-2','RUN-2409-0142-51-4','RUN-2409-0142-80-6']
+    .forEach(id => { const r = rows.find(x => x.id === id); if (r) r.dup = true; });
+  rows.find(x => x.id === 'RUN-2409-0142-14-1').exception = 'unmatched';
+  rows.find(x => x.id === 'RUN-2409-0142-14-3').exception = 'unmatched';
+  rows.find(x => x.id === 'RUN-2409-0142-62-7').exception = 'unmapped';
+  return rows;
+}
+
+/* RUN-2409-0145: lead by ICP-MS, 20 client samples, placement rules applied (FR-I1, FR-I2) */
+const LEAD = ['3.1','1.2','0.8','6.4','2.2','0.6','11.9','1.7','4.3','12.9','0.9','2.8','1.5','7.6','0.7','3.3','2.0','1.1','9.8','5.6'];
+function buildLead() {
+  const rows = [];
+  const S = i => ({ id:'L-S'+i, kind:'sample', sample:'24-0' + (1301 + i), patient:SITES[i % SITES.length],
+    test:'Lead (ICP-MS)', unit:'Environmental', status:'pending', run:'RUN-2409-0145',
+    value: LEAD[i] + ' µg/L', flag: Number(LEAD[i]) > 10 ? 'abnormal' : null, dup:false, exception:null });
+  const Q = (id, label, extra) => Object.assign({ id, kind:'qc', qcLabel:label, sample:'', patient:'',
+    test:'Lead (ICP-MS)', unit:'Environmental', status:'qc', run:'RUN-2409-0145', flag:null, dup:false, exception:null }, extra);
+  rows.push(Q('L-Q1','Blank', { value:'0.08 µg/L', sample:'BLK-1' }));
+  rows.push(Q('L-Q2','Control L1', { value:'10.3 µg/L', sample:'QC-PB-L1-77' }));
+  rows.push(Q('L-Q3','Control L2', { value:'49.1 µg/L', sample:'QC-PB-L2-77' }));
+  for (let i = 0; i < 10; i++) rows.push(S(i));
+  rows.push(Q('L-Q4','Duplicate of 24-01310', { value:'12.4 µg/L', sample:'24-01310.1' }));
+  for (let i = 10; i < 20; i++) rows.push(S(i));
+  rows.push(Q('L-Q5','Duplicate of 24-01320', { value:'4.1 µg/L', sample:'24-01320.1' }));
+  rows.push(Q('L-Q6','Control L2', { value:null, sample:'QC-PB-L2-77', planned:true }));
+  rows.forEach((r, i) => { r.pos = i + 1; });
+  return rows;
+}
+
+/* RUN-2409-0146: total suspended solids weighed on a balance that is out of service (FR-C8) */
+function buildTss() {
+  const vals = ['14','38','6','122','27','9','51','18'];
+  return vals.map((v, i) => ({ id:'T-'+i, kind:'sample', sample:'24-0' + (1340 + i), patient:SITES[(i+3) % SITES.length],
+    test:'Total suspended solids', unit:'Environmental', status:'pending', run:'RUN-2409-0146',
+    value: v + ' mg/L', flag:null, dup:false, exception:null }));
 }
 
 const OTHER = [
@@ -102,75 +149,122 @@ const OTHER = [
     status:'pending', run:null, value:null, flag:null, dup:false, exception:null },
 ];
 
-const ALL_ROWS = buildRack().concat(OTHER);
+const ALL_ROWS = buildRack()
+  .concat(buildChem('RUN-2409-0144', 6, 1400, 20261021))
+  .concat(buildLead()).concat(buildTss()).concat(OTHER);
+
+const L1 = { level:'Level 1', lot:'QC-CHEM-L1-2291',
+  covers:['Glucose','Urea','Creatinine','Sodium','Chloride','ALT','Total bilirubin'],
+  observed:'all analytes within target', expected:'per QC Targets', verdict:'Pass',
+  verdictSource:'analyzer-reported', operator:'A. Wanjiru' };
 
 const RUNS = {
-  'RUN-2409-0142': { id:'RUN-2409-0142', source:'ANALYZER', method:'Cobas c311', analyzer:'Donatello (c311 #2)',
+  'RUN-2409-0142': { id:'RUN-2409-0142', source:'ANALYZER', method:'Cobas c311', instrument:'Donatello (c311 #2)',
+    service:{ status:'Restricted', detail:'Potassium locked since 08:12 (this run)' },
     labUnit:'Chemistry', operator:'A. Wanjiru', opened:'08:14', lastActivity:'08:41', state:'Held',
     lot:{ name:'CHEM-PANEL L24-118', provenance:'Analyzer-reported', expires:'2026-11-30' },
-    periodicQc:'Instrument QC recorded 07:52 today — Pass (OGC-428)',
-    controls:[
-      { level:'Level 1', lot:'QC-CHEM-L1-2291',
-        covers:['Glucose','Urea','Creatinine','Sodium','Chloride','ALT','Total bilirubin'],
-        observed:'all analytes within target', expected:'per QC Targets', verdict:'Pass',
-        verdictSource:'analyzer-reported', operator:'A. Wanjiru', time:'08:12' },
+    controls:[ Object.assign({}, L1, { time:'08:12' }),
       { level:'Level 2', lot:'QC-CHEM-L2-2291', covers:['Potassium'],
         observed:'6.9 mmol/L', expected:'5.8 ± 0.4 mmol/L', verdict:'Fail',
         verdictSource:'computed from target', operator:'A. Wanjiru', time:'08:12' }],
-    exceptions:[
+    items:[], exceptions:[
       { kind:'unmatched', detail:'Lab number 24-01214 not found (2 records)' },
       { kind:'unmapped',  detail:'Analyzer code TBIL-2 has no mapped test (1 record)' }] },
-  'RUN-2409-0141': { id:'RUN-2409-0141', source:'ANALYZER', method:'Xpert MTB/RIF Ultra', analyzer:'GeneXpert IV (TB bench)',
+  'RUN-2409-0144': { id:'RUN-2409-0144', source:'ANALYZER', method:'Cobas c311', instrument:'Donatello (c311 #2)',
+    service:{ status:'Restricted', detail:'Potassium locked since 08:12' },
+    lock:{ test:'Potassium', reason:'control Level 2 failed in RUN-2409-0142 at 08:12' },
+    labUnit:'Chemistry', operator:'J. Kiptoo', opened:'09:05', lastActivity:'09:07', state:'Held',
+    lot:{ name:'CHEM-PANEL L24-118', provenance:'Analyzer-reported', expires:'2026-11-30' },
+    controls:[ Object.assign({}, L1, { operator:'J. Kiptoo', time:'09:03' }) ], items:[], exceptions:[] },
+  'RUN-2409-0141': { id:'RUN-2409-0141', source:'ANALYZER', method:'Xpert MTB/RIF Ultra', instrument:'GeneXpert IV (TB bench)',
+    service:{ status:'In service' },
     labUnit:'Chemistry', operator:'System', opened:'07:58', lastActivity:'07:58', state:'Open',
     lot:{ name:'Ultra cartridge 24F-7741', provenance:'Analyzer-reported', expires:'2027-02-28' },
-    periodicQc:'Instrument QC recorded 07:30 today — Pass (OGC-428)',
-    controls:[{ level:'Internal (SPC)', lot:'—', covers:['Xpert MTB/RIF Ultra'], observed:'PASS', expected:'PASS',
-      verdict:'Pass', verdictSource:'analyzer-reported', operator:'System', time:'07:58' }],
-    exceptions:[] },
-  'RUN-2409-0143': { id:'RUN-2409-0143', source:'WORKPLAN', method:'HemoCue Hb 301', analyzer:'HemoCue bench unit 1',
+    controls:[{ level:'Internal (SPC)', lot:'none', covers:['Xpert MTB/RIF Ultra'], observed:'PASS', expected:'PASS',
+      verdict:'Pass', verdictSource:'analyzer-reported', operator:'System', time:'07:58' }], items:[], exceptions:[] },
+  'RUN-2409-0143': { id:'RUN-2409-0143', source:'WORKPLAN', method:'HemoCue Hb 301', instrument:'HemoCue bench unit 1',
+    service:{ status:'In service' },
     labUnit:'Hematology', operator:'B. Otieno', opened:'08:30', lastActivity:'08:47', state:'Open',
     lot:{ name:'HemoCue microcuvette 24-08B', provenance:'Selected', expires:'2026-10-15' },
-    periodicQc:null,
     controls:[{ level:'Normal', lot:'QC-HB-N-118', covers:['Hemoglobin'], observed:'12.4 g/dL',
       expected:'12.2 ± 0.6 g/dL', verdict:'Pass', verdictSource:'computed from target', operator:'B. Otieno', time:'08:30' }],
+    items:[], exceptions:[] },
+  'RUN-2409-0145': { id:'RUN-2409-0145', source:'WORKPLAN', method:'ICP-MS (EPA 200.8)', instrument:'ICP-MS Agilent 7900',
+    service:{ status:'In service' }, placement:'Placement rules: 1 blank at start; L1, L2 at start; L2 at end; 1 duplicate per 10 samples (26 positions)',
+    labUnit:'Environmental', operator:'R. Maina', opened:'09:20', lastActivity:'11:02', state:'Held',
+    lot:{ name:'HNO3 trace grade 26-0412', provenance:'Selected', expires:'2027-04-30' },
+    policy:{ blankFail:'Hold', dupFail:'Hold', rpdLimit:20, ceiling:0.5 },
+    controls:[
+      { level:'L1', lot:'QC-PB-L1-77', covers:['Lead (ICP-MS)'], observed:'10.3 µg/L', expected:'10.0 ± 1.0 µg/L',
+        verdict:'Pass', verdictSource:'computed from target', operator:'R. Maina', time:'09:31' },
+      { level:'L2', lot:'QC-PB-L2-77', covers:['Lead (ICP-MS)'], observed:'49.1 µg/L', expected:'50.0 ± 5.0 µg/L',
+        verdict:'Pass', verdictSource:'computed from target', operator:'R. Maina', time:'09:33' }],
+    items:[
+      { kind:'Blank', scope:'lab', label:'Blank (position 1)', detail:'0.08 µg/L against ceiling 0.5 µg/L', verdict:'Pass', time:'09:29' },
+      { kind:'Blank', scope:'field', label:'Field blank, order ENV-24-0310', detail:'0.11 µg/L against ceiling 0.5 µg/L', verdict:'Pass', time:'10:12' },
+      { kind:'Duplicate', scope:'lab', label:'Duplicate of 24-01310 (24-01310.1)', detail:'12.9 and 12.4 µg/L, RPD 3.9% against limit 20%', verdict:'Pass', time:'10:05' },
+      { kind:'Duplicate', scope:'lab', label:'Duplicate of 24-01320 (24-01320.1)', detail:'5.6 and 4.1 µg/L, RPD 30.9% against limit 20%', verdict:'Fail', time:'10:58' },
+      { kind:'Control', scope:'lab', label:'Control L2 (position 26, end of batch)', detail:'not yet entered', verdict:'Planned', time:'' }],
     exceptions:[] },
+  'RUN-2409-0146': { id:'RUN-2409-0146', source:'WORKPLAN', method:'Gravimetric (SM 2540 D)', instrument:'Balance B-02 (Mettler XS205)',
+    service:{ status:'Out of service', detail:'Calibration certificate C-4471 expired 14 Oct 2026' },
+    labUnit:'Environmental', operator:'R. Maina', opened:'10:40', lastActivity:'10:52', state:'Held',
+    lot:{ name:'Glass fibre filters GF/C 25-1188', provenance:'Selected', expires:'2028-01-31' },
+    controls:[{ level:'Check standard', lot:'QC-TSS-CS-12', covers:['Total suspended solids'], observed:'98 mg/L',
+      expected:'100 ± 10 mg/L', verdict:'Pass', verdictSource:'computed from target', operator:'R. Maina', time:'10:44' }],
+    items:[], exceptions:[] },
 };
 
 /* --------------------------------------------------------------- derivations */
-const verdictsOf = run => {
+function verdictsOf(run) {
   const out = {};
   run.controls.forEach(c => c.covers.forEach(test => {
     out[test] = (out[test] === 'Fail' || c.verdict === 'Fail') ? 'Fail' : c.verdict;
   }));
+  (run.items || []).filter(i => i.scope === 'lab' && i.verdict === 'Fail').forEach(i => {
+    const test = run.controls[0] ? run.controls[0].covers[0] : null;
+    if (!test) return;
+    const pol = i.kind === 'Blank' ? run.policy.blankFail : run.policy.dupFail;
+    if (pol === 'Hold') out[test] = 'Fail';
+    else if (out[test] !== 'Fail') out[test] = 'Pass with warning';
+  });
   return out;
+}
+/* FR-C8, FR-C9, FR-C12: one hold per test, with the cause the tag names first */
+function holdOf(row) {
+  if (!row.run || row.kind === 'qc') return null;
+  const run = RUNS[row.run];
+  if (run.service.status === 'Out of service')
+    return { cause:'instrument', tag:'Held: ' + run.instrument.split(' (')[0] + ' out of service', reason:run.service.detail };
+  if (run.lock && run.lock.test === row.test)
+    return { cause:'locked', tag:'Held: ' + row.test + ' locked on ' + run.instrument.split(' (')[0], reason:run.lock.reason };
+  if (verdictsOf(run)[row.test] === 'Fail')
+    return { cause:'qc', tag:'Held: QC failed in ' + row.run, reason:'a QC item for ' + row.test + ' failed in this run' };
+  return null;
+}
+const heldTestsOf = run => {
+  const tests = {};
+  ALL_ROWS.filter(r => r.run === run.id && r.kind !== 'qc').forEach(r => { if (holdOf(r)) tests[r.test] = holdOf(r); });
+  return tests;
 };
-const heldTests = run => Object.entries(verdictsOf(run)).filter(([,v]) => v === 'Fail').map(([k]) => k);
-const isHeld = row => row.run && heldTests(RUNS[row.run]).includes(row.test);
 
-/* FR-E1a — the worklist's existing filter chips are the run view's only row control */
 const CHIPS = [
   { key:'all',         label:'All',          match:() => true },
-  { key:'needsReview', label:'Needs review',
-    match:(r, held) => held.indexOf(r.test) >= 0 || !!r.exception || r.dup || !!r.flag },
+  { key:'needsReview', label:'Needs review', match:r => r.kind !== 'qc' && (!!holdOf(r) || !!r.exception || r.dup || !!r.flag) },
   { key:'critical',    label:'Critical',     match:r => r.flag === 'critical' },
   { key:'abnormal',    label:'Abnormal',     match:r => r.flag === 'abnormal' },
   { key:'exceptions',  label:'Exceptions',   match:r => !!r.exception },
-  { key:'held',        label:'Held',         match:(r, held) => held.indexOf(r.test) >= 0 },
-  { key:'normal',      label:'Normal',
-    match:(r, held) => !r.flag && !r.dup && !r.exception && held.indexOf(r.test) < 0 },
+  { key:'held',        label:'Held',         match:r => !!holdOf(r) },
+  { key:'normal',      label:'Normal',       match:r => r.kind !== 'qc' && !r.flag && !r.dup && !r.exception && !holdOf(r) },
 ];
-const chipMatch = (key, row, held) => CHIPS.find(c => c.key === key).match(row, held);
-const sortRank = (row, held) =>
-  (held.indexOf(row.test) >= 0 || row.exception) ? 0 : row.dup ? 1
+const sortRank = row => (holdOf(row) || row.exception) ? 0 : row.dup ? 1
   : row.flag === 'critical' ? 2 : row.flag === 'abnormal' ? 3 : 4;
 
-/* A fenced region the developer must not build from this mockup. Everything inside is an
-   abbreviated stand-in for a shipped component; only the "Runs adds" line is specified. */
 function ReuseBoundary({ title, owner, adds, children }) {
   return (
     <div style={{border:'2px dashed #8d8d8d', padding:'.5rem', margin:'.25rem 0'}}>
       <div className="row-flex" style={{marginBottom:4}}>
-        <Tag kind="purple">Existing component — reuse, do not re-implement</Tag>
+        <Tag kind="purple">Existing component: reuse, do not re-implement</Tag>
         <span style={{fontSize:12}}><strong>{title}</strong></span>
         <span className="sub">{owner}</span>
       </div>
@@ -192,71 +286,112 @@ const Btn = ({ kind='primary', size='sm', onClick, disabled, children }) => (
   <button className={'cds--btn cds--btn--' + kind + (size === 'sm' ? ' cds--btn--sm' : '')}
     onClick={onClick} disabled={disabled}>{children}</button>
 );
-const verdictKind = v => v === 'Pass' ? 'green' : v === 'Fail' ? 'red' : v === 'No control' ? 'purple' : 'gray';
+const verdictKind = v => v === 'Pass' ? 'green' : v === 'Fail' ? 'red' : v === 'Pass with warning' ? 'warm-gray'
+  : v === 'No control' ? 'purple' : 'gray';
+const serviceKind = s => s === 'In service' ? 'green' : s === 'Restricted' ? 'warm-gray' : 'red';
+const serviceIcon = s => s === 'In service' ? '● ' : s === 'Restricted' ? '▲ ' : '■ ';
 
 /* ------------------------------------------------------------- header blocks */
-function QcBlock({ run, runRows }) {
+function QcBlock({ run, runRows, say }) {
   const verdicts = verdictsOf(run);
-  const held = heldTests(run);
-  const [openTest, setOpenTest] = useState('Potassium');
-  const overall = held.length ? 'Held' : 'Pass';
-  const blocked = runRows.filter(r => held.indexOf(r.test) >= 0).length;
+  const holds = heldTestsOf(run);
+  const heldNames = Object.keys(holds);
+  const tests = Array.from(new Set(Object.keys(verdicts).concat(heldNames)));
+  const [openTest, setOpenTest] = useState(heldNames[0] || tests[0]);
+  const overall = heldNames.length ? 'Held' : 'Pass';
+  const blocked = runRows.filter(r => holdOf(r)).length;
   return (
     <div className="blk pad">
       <div className="row-flex">
         <strong>QC</strong>
         <Tag kind={overall === 'Held' ? 'red' : 'green'}>{overall}</Tag>
-        {held.length > 0 && <span style={{fontSize:13}}>
-          {held.join(', ')} held — {blocked} rows blocked. Every other test in this run is unaffected.</span>}
+        {heldNames.length > 0 && <span style={{fontSize:13}}>
+          {heldNames.join(', ')} held: {blocked} rows blocked. Every other test in this run is unaffected.</span>}
         <span style={{flex:1}} />
         <Btn kind="ghost">Record control</Btn>
+        {run.source === 'WORKPLAN' && <>
+          <Btn kind="ghost" onClick={() => say('Blank added as a new inline row (FR-E2).')}>Add blank</Btn>
+          <Btn kind="ghost" onClick={() => say('Search the run’s samples to pick the parent; the aliquot and its label are created when you enter the value (FR-I3).')}>Add duplicate of</Btn>
+        </>}
       </div>
-      {Object.keys(verdicts).map(test => (
-        <div key={test} style={{borderTop:'1px solid #f4f4f4', paddingTop:6, marginTop:6}}>
-          <div className="row-flex">
-            <Btn kind="ghost" onClick={() => setOpenTest(openTest === test ? null : test)}>
-              {openTest === test ? '▾' : '▸'} {test}</Btn>
-            <Tag kind={verdictKind(verdicts[test])}>{verdicts[test]}</Tag>
-            {verdicts[test] === 'Fail' && <>
-              <Btn kind="secondary">Retest</Btn>
-              <Btn kind="ghost">Reject</Btn>
-              <Btn kind="danger--tertiary">Accept despite QC failure</Btn>
-            </>}
-          </div>
-          {openTest === test && run.controls.filter(c => c.covers.indexOf(test) >= 0).map((c, i) => (
-            <div key={i} className="sub" style={{padding:'4px 0 4px 2rem'}}>
-              {c.level} · Lot {c.lot} · observed {c.observed}, expected {c.expected} ·{' '}
-              <Tag kind={verdictKind(c.verdict)}>{c.verdict}</Tag> · {c.verdictSource} · {c.operator} {c.time}
-            </div>
-          ))}
+      {run.service.status !== 'In service' && (
+        <div className="row-flex" style={{marginTop:6, padding:'6px 8px', background: run.service.status === 'Out of service' ? '#fff1f1' : '#fcf4d6'}}>
+          <Tag kind={serviceKind(run.service.status)}>{serviceIcon(run.service.status)}{run.service.status}</Tag>
+          <span style={{fontSize:13}}><strong>{run.instrument}</strong>: {run.service.detail}
+            {run.lock && <span>. Potassium rows in this run are held until a potassium control passes on this analyzer in a run.</span>}
+          </span>
+          <span style={{flex:1}} />
+          <a href="#" onClick={e => { e.preventDefault(); say('Opens /analyzers/maintenance?analyzerId=... on the instrument status panel (Instruments FR-D4).'); }}
+            style={{fontSize:13}}>Instrument status panel</a>
         </div>
-      ))}
+      )}
+      {tests.map(test => {
+        const hold = holds[test];
+        const v = hold && hold.cause !== 'qc' ? 'Held' : (verdicts[test] || 'No control');
+        return (
+          <div key={test} style={{borderTop:'1px solid #f4f4f4', paddingTop:6, marginTop:6}}>
+            <div className="row-flex">
+              <Btn kind="ghost" onClick={() => setOpenTest(openTest === test ? null : test)}>
+                {openTest === test ? '▾' : '▸'} {test}</Btn>
+              <Tag kind={v === 'Held' ? 'red' : verdictKind(v)}>{v}</Tag>
+              {hold && <span className="sub">{hold.tag}</span>}
+              {hold && <>
+                <Btn kind="secondary">Retest</Btn>
+                <Btn kind="ghost">Reject</Btn>
+                <Btn kind="danger--tertiary" onClick={() => say('Accept despite opens a mandatory NCE pre-populated with ' +
+                  (hold.cause === 'qc' ? 'the failing item, observed against expected' : 'the instrument and its reason') + ' and the affected samples (FR-C5).')}>
+                  Accept despite {hold.cause === 'qc' ? 'QC failure' : 'instrument hold'}</Btn>
+              </>}
+            </div>
+            {openTest === test && <div style={{padding:'4px 0 4px 2rem'}}>
+              {run.controls.filter(c => c.covers.indexOf(test) >= 0).map((c, i) => (
+                <div key={'c'+i} className="sub" style={{padding:'2px 0'}}>
+                  <Tag kind="cool-gray">Control</Tag> {c.level} · Lot {c.lot} · observed {c.observed}, expected {c.expected} ·{' '}
+                  <Tag kind={verdictKind(c.verdict)}>{c.verdict}</Tag> · {c.verdictSource} · {c.operator} {c.time}
+                </div>
+              ))}
+              {(run.items || []).map((it, i) => (
+                <div key={'i'+i} className="sub" style={{padding:'2px 0', color: it.verdict === 'Planned' ? '#a8a8a8' : undefined}}>
+                  <Tag kind={it.scope === 'field' ? 'teal' : 'cool-gray'}>{it.scope === 'field' ? 'Field ' + it.kind.toLowerCase() : it.kind}</Tag>{' '}
+                  {it.label} · {it.detail}{it.verdict !== 'Planned' && ' · '}
+                  {it.verdict === 'Planned' ? <Tag kind="gray">Planned</Tag> : <Tag kind={verdictKind(it.verdict)}>{it.verdict}</Tag>}
+                  {it.time && ' · R. Maina ' + it.time}
+                  {it.scope === 'field' && <span> · a field failure flags its order at validation and does not hold this run</span>}
+                  {it.kind === 'Duplicate' && it.verdict === 'Fail' && <span> · duplicate failures hold this test (policy Hold); they never lock the instrument</span>}
+                </div>
+              ))}
+              {hold && hold.cause === 'locked' && <div className="sub">No potassium control has been recorded on this run since the lock was set. Record one; if it passes, it lifts the lock and this run is no longer held for potassium.</div>}
+            </div>}
+          </div>
+        );
+      })}
     </div>
   );
 }
 
 function SettingsBlock({ run, runRows }) {
-  const done = runRows.filter(r => r.status !== 'pending').length;
+  const done = runRows.filter(r => r.status !== 'pending' && r.kind !== 'qc').length;
+  const total = runRows.filter(r => r.kind !== 'qc').length;
   const KV = ({ k, children }) => <div className="kv"><div className="k">{k}</div><div className="v">{children}</div></div>;
   return (
     <div className="blk pad">
       <div className="row-flex">
         <strong>Run settings</strong>
         <span style={{flex:1}} />
-        <span style={{fontSize:13}}>{done} of {runRows.length} rows dispositioned</span>
+        <span style={{fontSize:13}}>{done} of {total} rows dispositioned</span>
         {run.source === 'WORKPLAN' && <Btn kind="tertiary">Mark complete</Btn>}
       </div>
       <div className="row-flex" style={{marginTop:'.5rem', gap:'1.5rem'}}>
-        <KV k="Source">{run.source}</KV>
+        <KV k="Source">{run.source === 'ANALYZER' ? 'Analyzer message' : 'Workplan batch'}</KV>
         <KV k="Method">{run.method}</KV>
-        <KV k="Analyzer">{run.analyzer}</KV>
+        <KV k="Instrument">{run.instrument} <Tag kind={serviceKind(run.service.status)}>{serviceIcon(run.service.status)}{run.service.status}</Tag></KV>
         <KV k="Lab unit">{run.labUnit}</KV>
         <KV k="Operator">{run.operator}</KV>
         <KV k="Opened">{run.opened} (last activity {run.lastActivity})</KV>
         <KV k="Status"><Tag kind={run.state === 'Held' ? 'red' : 'blue'}>{run.state}</Tag></KV>
         <KV k="Reagent lot">{run.lot.name} <Tag kind="gray">{run.lot.provenance}</Tag></KV>
       </div>
-      {run.periodicQc && <div className="sub" style={{marginTop:'.5rem'}}>{run.periodicQc}</div>}
+      {run.placement && <div className="sub" style={{marginTop:'.5rem'}}>{run.placement}. Positions can be moved, added or removed in the table below; removing a required item makes it missing under the test's policy.</div>}
     </div>
   );
 }
@@ -279,9 +414,6 @@ function ExceptionsBlock({ run }) {
   );
 }
 
-/* FR-E10 / FR-E10a — the row expands into the Results Entry panel, prefilled and editable.
-   Everything below the run-specific strip belongs to Results Entry and is reproduced here
-   only so the preview reads standalone. */
 function ResultsEntryPanel({ row, run }) {
   const [value, setValue] = useState(row.value || '');
   const edited = value !== (row.value || '');
@@ -313,95 +445,98 @@ function ResultsEntryPanel({ row, run }) {
         queue like any other result entry.
       </div>
       <div className="row-flex" style={{marginTop:'.5rem'}}>
-        {row.dup
-          ? <><Btn>Keep existing</Btn><Btn kind="secondary">Replace</Btn></>
-          : <Btn>Accept</Btn>}
+        {row.dup ? <><Btn>Keep existing</Btn><Btn kind="secondary">Replace</Btn></> : <Btn>Accept</Btn>}
         <Btn kind="secondary">Retest</Btn><Btn kind="ghost">Ignore</Btn><Btn kind="ghost">View raw</Btn>
-      </div>
-      <div className="sub" style={{marginTop:6}}>
-        The shipped panel also carries notes, order info, history, attachments, storage, method and
-        the rest of its reference sections. They are omitted here on purpose; their absence from this
-        preview is not a scope decision.
       </div>
     </ReuseBoundary>
   );
 }
 
 /* --------------------------------------------------------------------- table */
-function RowsTable({ list, runFilter, selected, toggle, expanded, setExpanded }) {
+function RowsTable({ list, runFilter, selected, toggle, expanded, setExpanded, showPos }) {
   return (
-    <div className="cds--data-table-container">
+    <div className="cds--data-table-container" style={{overflowX:'auto'}}>
       <table className="cds--data-table cds--data-table--sm">
         <thead>
-          <tr><th style={{width:40}}></th><th style={{width:40}}></th>
-            <th>Sample ID</th><th>Test</th><th>Result</th><th>Method / Analyzer</th><th>Status</th><th>Flags</th></tr>
+          <tr><th style={{width:40}}></th><th style={{width:40}}></th>{showPos && <th>Pos.</th>}
+            <th>Sample ID</th><th>Test</th><th>Result</th><th>Method / Instrument</th><th>Status</th><th>Flags</th></tr>
         </thead>
         <tbody>
         {list.map(row => {
           const run = row.run ? RUNS[row.run] : null;
-          const held = isHeld(row);
-          const showValue = row.status !== 'pending' || (runFilter && run && run.source === 'ANALYZER' && !held);
-          const disabled = (!runFilter && !!row.run) || (runFilter && (held || !!row.exception));
+          const hold = holdOf(row);
+          const isQc = row.kind === 'qc';
+          const showValue = isQc ? !!row.value : (row.status !== 'pending' || (runFilter && run && !hold));
+          const disabled = isQc || (!runFilter && !!row.run) || (runFilter && (!!hold || !!row.exception));
           return (
             <React.Fragment key={row.id}>
-              <tr>
+              <tr className={(isQc ? 'qcrow' : '') + (row.planned ? ' planned' : '')}>
                 <td><input type="checkbox" className="cds--checkbox" disabled={disabled}
                   checked={selected.indexOf(row.id) >= 0} onChange={() => toggle(row.id)} /></td>
                 <td><span className="clickrow" onClick={() => setExpanded(expanded === row.id ? null : row.id)}>
                   {expanded === row.id ? '▾' : '▸'}</span></td>
-                <td><strong>{row.sample}</strong> <span className="sub">{row.patient}</span></td>
+                {showPos && <td>{row.pos}</td>}
+                <td>{isQc ? <><Tag kind="cool-gray">QC</Tag> <strong>{row.qcLabel}</strong> <span className="sub">{row.sample}</span></>
+                  : <><strong>{row.sample}</strong> <span className="sub">{row.patient}</span></>}</td>
                 <td>{row.test}</td>
-                <td>{showValue ? row.value : <span className="sub">—</span>}
+                <td>{showValue ? row.value : <span className="sub">{row.planned ? 'Planned' : 'Not entered'}</span>}
                   {row.components && runFilter && <div className="sub">{row.components.length} components</div>}</td>
-                <td>{run ? <span>{run.method} <span className="sub">
-                    {run.source === 'ANALYZER' ? run.analyzer : run.operator}</span></span>
+                <td>{run ? <span>{run.method} <span className="sub">{run.instrument}</span></span>
                   : <span className="sub">Manual</span>}</td>
                 <td>
-                  <Tag kind={row.status === 'entered' ? 'teal' : 'gray'}>{row.status}</Tag>{' '}
-                  {!runFilter && run && (held
-                    ? <Tag kind="red">Held: QC failed in {row.run}</Tag>
-                    : run.source === 'WORKPLAN'
-                      ? <Tag kind="blue">Batched in {row.run}</Tag>
-                      : <Tag kind="blue">Waiting in {row.run}</Tag>)}
-                  {runFilter && held && <Tag kind="red">Held</Tag>}
+                  {!isQc && <Tag kind={row.status === 'entered' ? 'teal' : 'gray'}>{row.status}</Tag>}{' '}
+                  {!runFilter && run && !isQc && (hold
+                    ? <Tag kind="red">{hold.tag}</Tag>
+                    : run.source === 'WORKPLAN' ? <Tag kind="blue">Batched in {row.run}</Tag>
+                    : <Tag kind="blue">Waiting in {row.run}</Tag>)}
+                  {runFilter && hold && <Tag kind="red">{hold.tag.replace(' in ' + row.run, '')}</Tag>}
+                  {isQc && row.planned && <Tag kind="gray">Planned</Tag>}
+                  {isQc && row.qcLabel.indexOf('Duplicate of 24-01320') === 0 && <Tag kind="red">Fail · RPD 30.9%</Tag>}
+                  {isQc && !row.planned && row.qcLabel.indexOf('Duplicate of 24-01320') !== 0 && <Tag kind="green">Pass</Tag>}
                 </td>
                 <td>
                   {showValue && row.flag === 'critical' && <Tag kind="red">Critical</Tag>}
-                  {showValue && row.flag === 'abnormal' && <Tag kind="warm-gray">Abnormal</Tag>}
+                  {showValue && row.flag === 'abnormal' && <Tag kind="warm-gray">Above limit</Tag>}
                   {runFilter && row.dup && <Tag kind="magenta">Already resulted</Tag>}
                   {runFilter && row.exception && <Tag kind="purple">{row.exception}</Tag>}
                 </td>
               </tr>
               {expanded === row.id && (
-                <tr><td colSpan={8} style={{padding:0}}>
+                <tr><td colSpan={showPos ? 9 : 8} style={{padding:0}}>
                   <div className="expand">
-                    {held ? (
+                    {isQc ? (
+                      <div>
+                        {row.planned
+                          ? <span>Planned position {row.pos}: {row.qcLabel}. Enter the value when the control has been run; until then the end-of-batch control is missing and the batch cannot be marked complete under a Hold policy.
+                              <span className="row-flex" style={{marginTop:6}}><Btn kind="ghost">Move</Btn><Btn kind="ghost">Remove (audited)</Btn></span></span>
+                          : <span>QC item recorded on the run. It is a QC result: it never appears on a client report, certificate, export or site statistic (FR-G8, D-099).</span>}
+                      </div>
+                    ) : hold ? (
                       <div className="cds--inline-notification cds--inline-notification--error" style={{maxWidth:'none'}}>
                         <div className="cds--inline-notification__details">
                           <div className="cds--inline-notification__text-wrapper">
-                            <p className="cds--inline-notification__title">Held: the {row.test} control failed in {row.run}</p>
+                            <p className="cds--inline-notification__title">{hold.tag}</p>
                             <p className="cds--inline-notification__subtitle">
-                              This row cannot be accepted, entered, edited or released until the hold is
-                              dispositioned on the QC block above.</p>
+                              {hold.reason[0].toUpperCase() + hold.reason.slice(1)}. This row cannot be accepted, entered, edited or released until the hold is
+                              dispositioned on the QC block above (Retest, Reject, or Accept despite with an NCE).</p>
                           </div>
                         </div>
                       </div>
                     ) : run && run.source === 'ANALYZER' ? (
                       <ResultsEntryPanel row={row} run={run} />
                     ) : (
-                      <div>Entering a result here records the lot and control you enter as a run of one.</div>
+                      <div>{run ? 'Entering a result here records it into ' + run.id + ' and inherits its lot and QC.' : 'Entering a result here records the lot and control you enter as a run of one.'}</div>
                     )}
-                    <div style={{marginTop:'.75rem', borderTop:'1px solid #e0e0e0', paddingTop:'.5rem'}}>
+                    {!isQc && <div style={{marginTop:'.75rem', borderTop:'1px solid #e0e0e0', paddingTop:'.5rem'}}>
                       <strong>Reagents, QC and Controls</strong>
                       {run ? <>
-                        <div>Reagent lot: {run.lot.name} ({run.lot.provenance})</div>
+                        <div>Reagent lot: {run.lot.name} ({run.lot.provenance}) · Instrument: {run.instrument} ({run.service.status})</div>
                         {run.controls.filter(c => c.covers.indexOf(row.test) >= 0).map((c, i) => (
                           <div key={i}>{c.level} · {c.lot} · {c.observed} vs {c.expected} · {c.verdict} · {c.operator} {c.time}</div>
                         ))}
-                        <div className="sub">Read-only here; lot and controls are edited once, on the run header.
-                          The same record is what the validator sees on the Validation page.</div>
+                        <div className="sub">Read-only here; lot and QC are edited once, on the run header.</div>
                       </> : <div className="sub">No run yet; saving a result here creates a run of one.</div>}
-                    </div>
+                    </div>}
                   </div>
                 </td></tr>
               )}
@@ -414,9 +549,9 @@ function RowsTable({ list, runFilter, selected, toggle, expanded, setExpanded })
   );
 }
 
-/* ---------------------------------------------------------------------- page */
-function App() {
-  const [rows] = useState(ALL_ROWS);
+/* ------------------------------------------------------------ results page */
+function ResultsPage({ say }) {
+  const rows = ALL_ROWS;
   const [runFilter, setRunFilterRaw] = useState(null);
   const [chip, setChip] = useState('all');
   const [page, setPage] = useState(1);
@@ -425,54 +560,43 @@ function App() {
   const [expanded, setExpanded] = useState(null);
   const [runsOpen, setRunsOpen] = useState(false);
   const [showHeld, setShowHeld] = useState(true);
-  const [toast, setToast] = useState(null);
 
   const setRunFilter = id => { setRunFilterRaw(id); setSelected([]); setPage(1); setChip('all'); setExpanded(null); };
-  const say = m => { setToast(m); setTimeout(() => setToast(null), 6000); };
-
   const run = runFilter ? RUNS[runFilter] : null;
-  const held = run ? heldTests(run) : [];
-  const runRows = useMemo(() => rows.filter(r => r.run === runFilter), [rows, runFilter]);
+  const runRows = useMemo(() => rows.filter(r => r.run === runFilter), [runFilter]);
+  const hasPos = run && runRows.some(r => r.pos);
 
   const chipCounts = useMemo(() => {
-    const c = {};
-    CHIPS.forEach(ch => { c[ch.key] = runRows.filter(r => ch.match(r, held)).length; });
-    return c;
-  }, [runRows, runFilter]);
+    const c = {}; CHIPS.forEach(ch => { c[ch.key] = runRows.filter(r => ch.match(r)).length; }); return c;
+  }, [runFilter]);
 
-  const filtered = useMemo(() => (
-    runRows.filter(r => chipMatch(chip, r, held))
-      .sort((a, b) => sortRank(a, held) - sortRank(b, held))
-  ), [runRows, runFilter, chip]);
+  const filtered = useMemo(() => {
+    const f = runRows.filter(r => CHIPS.find(c => c.key === chip).match(r));
+    return hasPos && chip === 'all' ? f : f.slice().sort((a, b) => sortRank(a) - sortRank(b));
+  }, [runFilter, chip]);
 
   const worklistRows = useMemo(() => {
     const seen = {};
-    return rows.filter(r => {
+    return rows.filter(r => r.kind !== 'qc').filter(r => {
       if (!r.run) return true;
       if (RUNS[r.run].source !== 'ANALYZER') return true;
-      if (seen[r.run]) return false;
-      seen[r.run] = 1; return true;
-    }).filter(r => showHeld || !isHeld(r));
-  }, [rows, showHeld]);
+      const key = r.run + (holdOf(r) ? 'h' : '');
+      if (seen[key]) return false;
+      seen[key] = 1; return true;
+    }).filter(r => showHeld || !holdOf(r)).slice(0, 60);
+  }, [showHeld]);
 
   const toggle = id => setSelected(s => s.indexOf(id) >= 0 ? s.filter(x => x !== id) : s.concat([id]));
-
-  const eligible = filtered.filter(r => r.status === 'pending' && !r.dup && !r.exception
-    && held.indexOf(r.test) < 0);
-  const selectAllInFilter = () => {
-    setSelected(eligible.map(r => r.id));
-    say(eligible.length + ' rows selected across the whole run, not just this page.');
-  };
-
+  const eligible = filtered.filter(r => r.kind !== 'qc' && r.status === 'pending' && !r.dup && !r.exception && !holdOf(r));
   const sel = runRows.filter(r => selected.indexOf(r.id) >= 0);
-  const skipped = sel.filter(r => r.dup || r.exception || held.indexOf(r.test) >= 0);
+  const skipped = sel.filter(r => r.dup || r.exception || holdOf(r));
   const accept = sel.filter(r => skipped.indexOf(r) < 0);
   const crit = accept.filter(r => r.flag === 'critical').length;
   const abn  = accept.filter(r => r.flag === 'abnormal').length;
 
   const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const heldCountAll = rows.filter(r => isHeld(r)).length;
+  const heldCountAll = rows.filter(r => holdOf(r)).length;
   const openRuns = Object.values(RUNS).filter(r => r.state === 'Open').length;
   const heldRuns = Object.values(RUNS).filter(r => r.state === 'Held').length;
 
@@ -480,31 +604,30 @@ function App() {
     <div>
       <div className="sub" style={{marginBottom:6}}>Home / Workplan / Results</div>
       <h1 style={{fontWeight:400, fontSize:28, margin:'0 0 .25rem'}}>Results</h1>
-
       <p className="sub" style={{marginBottom:'1rem'}}>
         {run
           ? <span>Run <strong>{run.id}</strong> · {run.source === 'ANALYZER' ? 'Analyzer message' : 'Workplan batch'} ·{' '}
               {run.labUnit} · {runRows.length} rows &nbsp;
               <Btn kind="ghost" onClick={() => setRunFilter(null)}>← All pending results</Btn></span>
-          : 'Pending results for your lab units. Rows waiting in or held by a run say so; open the run to review it.'}
+          : 'Pending results for your lab units. Rows waiting in or held by a run say so, and a held row names its cause; open the run to review it.'}
       </p>
 
       {!run && (
         <div className="row-flex" style={{marginBottom:'1rem'}}>
-          <Tag kind="high-contrast">All {rows.length}</Tag>
+          <Tag kind="high-contrast">All</Tag>
           <Tag kind="outline">Needs review</Tag>
           <Tag kind={showHeld ? 'red' : 'outline'} onClick={() => setShowHeld(v => !v)}>Held {heldCountAll}</Tag>
           <div style={{position:'relative'}}>
             <Btn kind="tertiary" onClick={() => setRunsOpen(v => !v)}>
               Runs · {openRuns} open, {heldRuns} held {runsOpen ? '▴' : '▾'}</Btn>
             {runsOpen && (
-              <div className="cds--tile" style={{position:'absolute', zIndex:20, marginTop:4, minWidth:560}}>
+              <div className="cds--tile" style={{position:'absolute', zIndex:20, marginTop:4, minWidth:600}}>
                 {Object.values(RUNS).map(r => {
-                  const rr = rows.filter(x => x.run === r.id);
+                  const rr = rows.filter(x => x.run === r.id && x.kind !== 'qc');
                   return (
                     <div key={r.id} style={{padding:'6px 0', cursor:'pointer', fontSize:13}}
                       onClick={() => { setRunFilter(r.id); setRunsOpen(false); }}>
-                      <strong>{r.id}</strong> · {r.source === 'ANALYZER' ? r.method + ', ' + r.analyzer : r.method + ', ' + r.operator}
+                      <strong>{r.id}</strong> · {r.method}, {r.source === 'ANALYZER' ? r.instrument : r.operator}
                       {' · '}{r.opened} · 0 of {rr.length} rows dispositioned{' '}
                       <Tag kind={r.state === 'Held' ? 'red' : 'blue'}>{r.state}</Tag>
                     </div>
@@ -521,23 +644,9 @@ function App() {
       {run && (
         <>
           <div style={{marginBottom:'1rem'}}>
-            <QcBlock run={run} runRows={runRows} />
+            <QcBlock key={run.id} run={run} runRows={runRows} say={say} />
             <SettingsBlock run={run} runRows={runRows} />
             <ExceptionsBlock run={run} />
-          </div>
-
-          {/* FR-E1b — opening a run replaces the worklist's other filters */}
-          <div className="cds--inline-notification cds--inline-notification--info"
-            style={{maxWidth:'none', marginBottom:'.5rem'}}>
-            <div className="cds--inline-notification__details">
-              <div className="cds--inline-notification__text-wrapper">
-                <p className="cds--inline-notification__title">The run is the filter</p>
-                <p className="cds--inline-notification__subtitle">
-                  Opening a run replaced the lab unit, search and signal filters you had on the
-                  worklist; the run opens whole, on All. The analyzer and its tests already carry the
-                  lab unit, so nothing is lost. Leaving the run restores what you had.</p>
-              </div>
-            </div>
           </div>
 
           <ReuseBoundary
@@ -549,44 +658,32 @@ function App() {
                 <Tag key={c.key} kind={chip === c.key ? 'high-contrast' : c.key === 'held' ? 'red' : 'outline'}
                   onClick={() => { setChip(c.key); setPage(1); }}>{c.label} {chipCounts[c.key]}</Tag>
               ))}
-              <span className="sub">Counts are for the whole run, not the visible page.</span>
+              <span className="sub">Counts are for the whole run, not the visible page.{hasPos && ' On All, a batch with planned positions shows them in position order.'}</span>
             </div>
           </ReuseBoundary>
 
-          {run.source === 'ANALYZER' && (
-            <div className="cds--tile" style={{marginBottom:'.5rem'}}>
-              <div className="row-flex">
-                <Btn kind="tertiary" disabled={!eligible.length} onClick={selectAllInFilter}>
-                  Select all {eligible.length} in {CHIPS.find(c => c.key === chip).label}</Btn>
-                {sel.length === 0
-                  ? <span className="sub">Select rows to see exactly what Accept will write. Selection spans the whole
-                      run, not just this page or this chip. Held rows are dispositioned on the QC block.</span>
-                  : <>
-                      <span style={{fontSize:13}}>
-                        <strong>{sel.length} selected across this run</strong> — Accept {accept.length}:{' '}
-                        {accept.length - crit - abn} normal, {abn} abnormal, {crit} critical
-                        {crit > 0 && ' (creates ' + crit + ' acknowledgment tasks)'}.
-                        {skipped.length > 0 && <span> {skipped.length} will be skipped: {
-                          skipped.slice(0,4).map(r => r.sample + ' ' + r.test + ' (' +
-                            (r.dup ? 'already resulted' : r.exception ? 'unresolved exception' : 'held') + ')').join('; ')
-                        }{skipped.length > 4 && ' and ' + (skipped.length - 4) + ' more'}.</span>}
-                        <span className="sub"> Lot attached to all accepted results: {run.lot.name}.
-                          All of them land entered, not validated, and enter the Validation queue.</span>
-                      </span>
-                      <span style={{flex:1}} />
-                      <Btn onClick={() => { say(accept.length + ' results accepted with lot ' + run.lot.name +
-                        '. They are entered, not validated, and are now in the Validation queue. Undo available for 30 seconds.');
-                        setSelected([]); }}>Accept {accept.length}</Btn>
-                      <Btn kind="secondary">Retest {accept.length}</Btn>
-                      <Btn kind="ghost">Ignore {accept.length}</Btn>
-                      <Btn kind="ghost" onClick={() => setSelected([])}>Clear selection</Btn>
-                    </>}
-              </div>
+          <div className="cds--tile" style={{marginBottom:'.5rem'}}>
+            <div className="row-flex">
+              <Btn kind="tertiary" disabled={!eligible.length} onClick={() => { setSelected(eligible.map(r => r.id)); say(eligible.length + ' rows selected across the whole run, not just this page.'); }}>
+                Select all {eligible.length} in {CHIPS.find(c => c.key === chip).label}</Btn>
+              {sel.length === 0
+                ? <span className="sub">Select rows to see exactly what Accept will write. Held rows and QC rows cannot be selected; held rows are dispositioned on the QC block.</span>
+                : <>
+                    <span style={{fontSize:13}}>
+                      <strong>{sel.length} selected across this run</strong>. Accept {accept.length}:{' '}
+                      {accept.length - crit - abn} normal, {abn} abnormal, {crit} critical.
+                      {skipped.length > 0 && <span> {skipped.length} will be skipped (held, exception or already resulted).</span>}
+                      <span className="sub"> Lot attached: {run.lot.name}. All land entered, not validated.</span>
+                    </span>
+                    <span style={{flex:1}} />
+                    <Btn onClick={() => { say(accept.length + ' results accepted. They are entered, not validated, and in the Validation queue.'); setSelected([]); }}>Accept {accept.length}</Btn>
+                    <Btn kind="ghost" onClick={() => setSelected([])}>Clear selection</Btn>
+                  </>}
             </div>
-          )}
+          </div>
 
           <RowsTable list={pageRows} runFilter={runFilter} selected={selected} toggle={toggle}
-            expanded={expanded} setExpanded={setExpanded} />
+            expanded={expanded} setExpanded={setExpanded} showPos={hasPos} />
           <div className="pad row-flex blk" style={{borderTop:0}}>
             <span style={{fontSize:13}}>Items per page&nbsp;
               <select className="cds--select-input" value={pageSize}
@@ -594,7 +691,7 @@ function App() {
                 <option>25</option><option>50</option><option>100</option>
               </select>
             </span>
-            <span className="sub">{filtered.length ? (page - 1) * pageSize + 1 : 0}–{Math.min(page * pageSize, filtered.length)} of {filtered.length} rows</span>
+            <span className="sub">{filtered.length ? (page - 1) * pageSize + 1 : 0} to {Math.min(page * pageSize, filtered.length)} of {filtered.length} rows</span>
             <span style={{flex:1}} />
             <Btn kind="ghost" disabled={page === 1} onClick={() => setPage(p => p - 1)}>‹ Previous</Btn>
             <span style={{fontSize:13}}>Page {page} of {pageCount}</span>
@@ -605,18 +702,224 @@ function App() {
 
       {!run && (
         <RowsTable list={worklistRows} runFilter={null} selected={selected} toggle={toggle}
-          expanded={expanded} setExpanded={setExpanded} />
+          expanded={expanded} setExpanded={setExpanded} showPos={false} />
       )}
+    </div>
+  );
+}
 
+/* ---------------------------------------- Test Catalog QC section (FR-H1, FR-I1) */
+function TestQcSection({ say }) {
+  const [pol, setPol] = useState({
+    Control:{ req:'Yes', missing:'Hold' }, Blank:{ req:'Yes', missing:'Hold', fails:'Hold' }, Duplicate:{ req:'Yes', missing:'Warn', fails:'Hold' } });
+  const [blanksStart, setBlanksStart] = useState(1);
+  const [blankEvery, setBlankEvery] = useState('');
+  const [ctlStart, setCtlStart] = useState(['L1','L2']);
+  const [ctlEnd, setCtlEnd] = useState(['L2']);
+  const [dupEvery, setDupEvery] = useState(10);
+  const [dupMode, setDupMode] = useState('nth');
+  const [instr, setInstr] = useState('Required');
+  const set = (kind, key, v) => setPol(p => Object.assign({}, p, { [kind]: Object.assign({}, p[kind], { [key]: v }) }));
+  const n = 40;
+  const dups = dupEvery ? Math.floor(n / Number(dupEvery)) : 0;
+  const extraBlanks = blankEvery ? Math.floor(n / Number(blankEvery)) : 0;
+  const total = n + Number(blanksStart) + extraBlanks + ctlStart.length + ctlEnd.length + dups;
+  const toggleLvl = (arr, setArr, l) => setArr(arr.indexOf(l) >= 0 ? arr.filter(x => x !== l) : arr.concat([l]));
+  const Sel = ({ value, onChange, opts }) => (
+    <select className="cds--select-input" value={value} onChange={e => onChange(e.target.value)} style={{minWidth:90}}>
+      {opts.map(o => <option key={o}>{o}</option>)}</select>);
+  return (
+    <div>
+      <div className="sub" style={{marginBottom:6}}>Home / Admin Management / Test Catalog / Lead (ICP-MS) / QC</div>
+      <h1 style={{fontWeight:400, fontSize:28, margin:'0 0 1rem'}}>Lead (ICP-MS)</h1>
+      <ReuseBoundary title="QC section: control targets, LOD and LOQ"
+        owner="Owned by test-catalog-qc-targets.md (OGC-1148, In Review) and D-058."
+        adds="the policy block for controls, blanks and duplicates, the blank ceiling and duplicate RPD limit (D-058, shown here), Record the instrument used, and Placement rules (FR-H1, FR-I1).">
+        <div className="sub">Targets: L1 10.0 ± 1.0 µg/L (lot QC-PB-L1-77) · L2 50.0 ± 5.0 µg/L (lot QC-PB-L2-77) · LOD 0.05 µg/L · LOQ 0.2 µg/L</div>
+      </ReuseBoundary>
+
+      <div className="blk pad" style={{marginTop:'1rem'}}>
+        <strong>QC policy</strong>
+        <div className="sub" style={{margin:'4px 0 8px'}}>What each run of this test must carry, and what happens when an item is missing or fails. Applies to analyzer runs and workplan batches; a run of one needs only its control.</div>
+        <div className="cds--data-table-container" style={{overflowX:'auto'}}>
+          <table className="cds--data-table cds--data-table--sm">
+            <thead><tr><th>Kind</th><th>Required per run</th><th>When missing</th><th>When it fails</th><th>Evaluated against</th></tr></thead>
+            <tbody>
+              {['Control','Blank','Duplicate'].map(k => (
+                <tr key={k}>
+                  <td><strong>{k}</strong></td>
+                  <td><Sel value={pol[k].req} onChange={v => set(k,'req',v)} opts={['Yes','No']} /></td>
+                  <td><Sel value={pol[k].missing} onChange={v => set(k,'missing',v)} opts={['Warn','Hold']} /></td>
+                  <td>{k === 'Control' ? <span className="sub">Always holds the test (FR-C4)</span>
+                    : <Sel value={pol[k].fails} onChange={v => set(k,'fails',v)} opts={['Hold','Warn']} />}</td>
+                  <td>{k === 'Control' ? 'Targets above' : k === 'Blank'
+                    ? <span>Ceiling <input className="cds--text-input" defaultValue="0.5" style={{width:70, display:'inline-block'}} /> µg/L</span>
+                    : <span>RPD limit <input className="cds--text-input" defaultValue="20" style={{width:60, display:'inline-block'}} /> %</span>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="row-flex" style={{marginTop:'.75rem'}}>
+          <span style={{fontSize:13}}>Record the instrument used</span>
+          <Sel value={instr} onChange={setInstr} opts={['Optional','Required']} />
+          <span className="sub">{instr === 'Required' ? 'A result for this test cannot be saved without naming the instrument, so an out-of-service balance or a locked analyzer always reaches the result.' : 'Results may be saved without an instrument; such results are not affected by instrument status.'}</span>
+        </div>
+      </div>
+
+      <div className="blk pad" style={{marginTop:'1rem'}}>
+        <strong>Placement rules</strong>
+        <div className="sub" style={{margin:'4px 0 8px'}}>Optional. When a workplan batch is created for this test, OpenELIS plans these positions. A QC layout chosen at batch creation overrides them.</div>
+        <div className="row-flex" style={{alignItems:'flex-start', gap:'2rem'}}>
+          <div className="field"><label>Blanks at start</label>
+            <input className="cds--text-input" type="number" min="0" value={blanksStart} onChange={e => setBlanksStart(e.target.value)} style={{width:80}} /></div>
+          <div className="field"><label>Then one blank every N samples (optional)</label>
+            <input className="cds--text-input" type="number" min="0" value={blankEvery} placeholder="none" onChange={e => setBlankEvery(e.target.value)} style={{width:80}} /></div>
+          <div className="field"><label>Control levels at start</label>
+            <div className="row-flex">{['L1','L2'].map(l => <Tag key={l} kind={ctlStart.indexOf(l) >= 0 ? 'blue' : 'outline'} onClick={() => toggleLvl(ctlStart, setCtlStart, l)}>{l}</Tag>)}</div></div>
+          <div className="field"><label>Control levels at end</label>
+            <div className="row-flex">{['L1','L2'].map(l => <Tag key={l} kind={ctlEnd.indexOf(l) >= 0 ? 'blue' : 'outline'} onClick={() => toggleLvl(ctlEnd, setCtlEnd, l)}>{l}</Tag>)}</div></div>
+          <div className="field"><label>One duplicate per N samples</label>
+            <input className="cds--text-input" type="number" min="0" value={dupEvery} onChange={e => setDupEvery(e.target.value)} style={{width:80}} /></div>
+          <div className="field"><label>Duplicate sample</label>
+            <div className="row-flex" style={{fontSize:13}}>
+              <label><input type="radio" checked={dupMode === 'nth'} onChange={() => setDupMode('nth')} /> Every Nth sample</label>
+              <label><input type="radio" checked={dupMode === 'pick'} onChange={() => setDupMode('pick')} /> Technician picks</label>
+            </div></div>
+        </div>
+        <div className="cds--inline-notification cds--inline-notification--info" style={{maxWidth:'none'}}>
+          <div className="cds--inline-notification__details"><div className="cds--inline-notification__text-wrapper">
+            <p className="cds--inline-notification__subtitle">For a 40-sample batch: {Number(blanksStart) + extraBlanks} blank{Number(blanksStart) + extraBlanks === 1 ? '' : 's'},
+              {' '}{ctlStart.join(' and ') || 'no controls'} at start, {ctlEnd.join(' and ') || 'no controls'} at end, {dups} duplicate{dups === 1 ? '' : 's'}{dupMode === 'pick' ? ' (technician picks)' : ''}: {total} positions.</p>
+          </div></div>
+        </div>
+        <div className="row-flex" style={{marginTop:'.75rem'}}>
+          <Btn onClick={() => say('QC policy and placement rules saved. Change history records who changed what (D-112).')}>Save</Btn>
+          <Btn kind="ghost">Cancel</Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------------------------- Workplan Configuration: QC layouts (FR-I5) */
+const LAYOUTS0 = [
+  { id:1, name:'ICP-MS 40-position rack', unit:'Environmental', cap:40, active:true,
+    tests:['Lead (ICP-MS)','Cadmium (ICP-MS)','Arsenic (ICP-MS)'], def:'Lead (ICP-MS)' },
+  { id:2, name:'PCR 96-well plate', unit:'Molecular', cap:96, active:true,
+    tests:['HIV-1 viral load','HBV viral load'], def:'HIV-1 viral load' },
+  { id:3, name:'AAS 24-cup tray (retired)', unit:'Environmental', cap:24, active:false, tests:['Lead (AAS)'], def:'' },
+];
+function slotMapFor(cap) {
+  const m = [];
+  for (let i = 1; i <= cap; i++) {
+    if (i === 1) m.push('Blank'); else if (i === 2) m.push('L1'); else if (i === 3) m.push('L2');
+    else if (i === cap) m.push('L2'); else if ((i - 3) % 11 === 0) m.push('Duplicate of slot ' + (i - 1)); else m.push('Sample');
+  }
+  return m;
+}
+function LayoutsPage({ say }) {
+  const [layouts, setLayouts] = useState(LAYOUTS0);
+  const [showDeact, setShowDeact] = useState(false);
+  const [open, setOpen] = useState(1);
+  const [slots, setSlots] = useState(slotMapFor(40));
+  const list = layouts.filter(l => showDeact || l.active);
+  return (
+    <div>
+      <div className="sub" style={{marginBottom:6}}>Home / Admin Management / Workplan Configuration</div>
+      <h1 style={{fontWeight:400, fontSize:28, margin:'0 0 1rem'}}>Workplan Configuration</h1>
+      <ReuseBoundary title="Workplan Configuration settings"
+        owner="Existing page /MasterListsPage/WorkPlanConfigurationMenu (three workplan settings)."
+        adds="the QC layouts list below (FR-I5).">
+        <div className="sub">Existing workplan settings render here unchanged.</div>
+      </ReuseBoundary>
+      <div className="blk pad" style={{marginTop:'1rem'}}>
+        <div className="row-flex">
+          <strong>QC layouts</strong>
+          <span className="sub">Fixed positions for racks and plates. A layout overrides a test's placement rules when chosen at batch creation.</span>
+          <span style={{flex:1}} />
+          <label style={{fontSize:13}}><input type="checkbox" checked={showDeact} onChange={() => setShowDeact(v => !v)} /> Show deactivated</label>
+          <Btn kind="primary" onClick={() => say('A new layout opens as an inline row (FR-I5).')}>Add layout</Btn>
+        </div>
+        <div className="cds--data-table-container" style={{marginTop:'.5rem', overflowX:'auto'}}>
+          <table className="cds--data-table cds--data-table--sm">
+            <thead><tr><th>Name</th><th>Lab unit</th><th>Positions</th><th>Applies to tests</th><th>Active</th><th></th></tr></thead>
+            <tbody>
+              {list.map(l => (
+                <React.Fragment key={l.id}>
+                  <tr style={l.active ? null : {color:'#8d8d8d'}}>
+                    <td><strong>{l.name}</strong></td><td>{l.unit}</td><td>{l.cap}</td>
+                    <td><div className="row-flex" style={{gap:4}}>{l.tests.map(t => <Tag key={t} kind="gray">{t}{t === l.def ? ' (default)' : ''}</Tag>)}</div></td>
+                    <td><label style={{fontSize:13}}><input type="checkbox" checked={l.active}
+                      onChange={() => setLayouts(ls => ls.map(x => x.id === l.id ? Object.assign({}, x, { active:!x.active }) : x))} /> {l.active ? 'Active' : 'Deactivated'}</label></td>
+                    <td><Btn kind="ghost" onClick={() => { setOpen(open === l.id ? null : l.id); setSlots(slotMapFor(Math.min(l.cap, 40))); }}>Edit</Btn></td>
+                  </tr>
+                  {open === l.id && (
+                    <tr><td colSpan={6} style={{padding:0}}>
+                      <div className="expand">
+                        <div className="row-flex" style={{alignItems:'flex-start', gap:'1.5rem'}}>
+                          <div className="field"><label>Name</label><input className="cds--text-input" defaultValue={l.name} style={{width:260}} /></div>
+                          <div className="field"><label>Lab unit</label><input className="cds--text-input" defaultValue={l.unit} style={{width:180}} /></div>
+                          <div className="field"><label>Positions</label><input className="cds--text-input" type="number" defaultValue={l.cap} style={{width:90}} /></div>
+                          <div className="field"><label>Applies to tests (search)</label>
+                            <div className="row-flex" style={{gap:4}}>{l.tests.map(t => <Tag key={t} kind="blue">{t} ✕</Tag>)}
+                              <input className="cds--text-input" placeholder="Search tests" style={{width:160}} /></div></div>
+                        </div>
+                        <div className="sub" style={{margin:'4px 0'}}>Slot map{l.cap > 40 ? ' (first 40 of ' + l.cap + ' shown)' : ''}: each slot is a sample, a blank, a control level or a duplicate.</div>
+                        <div style={{display:'flex', flexWrap:'wrap', gap:4}}>
+                          {slots.map((s, i) => (
+                            <div key={i} className="slot" style={{background: s === 'Sample' ? '#fff' : '#f6f2ff'}}>
+                              <div className="sub">Slot {i + 1}</div>
+                              <select value={s} onChange={e => { const v = e.target.value; setSlots(sl => sl.map((x, j) => j === i ? v : x)); }}>
+                                {['Sample','Blank','L1','L2','Duplicate of slot ' + Math.max(1, i)].concat(s.indexOf('Duplicate') === 0 && s !== 'Duplicate of slot ' + Math.max(1, i) ? [s] : [])
+                                  .map(o => <option key={o}>{o}</option>)}
+                              </select>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="row-flex" style={{marginTop:'.75rem'}}>
+                          <Btn onClick={() => { setOpen(null); say('Layout saved. Required kinds on each test are still checked against what the layout places (FR-I6).'); }}>Save</Btn>
+                          <Btn kind="ghost" onClick={() => setOpen(null)}>Cancel</Btn>
+                        </div>
+                      </div>
+                    </td></tr>
+                  )}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------------- app */
+function App() {
+  const [view, setView] = useState('results');
+  const [toast, setToast] = useState(null);
+  const say = m => { setToast(m); setTimeout(() => setToast(null), 6000); };
+  const V = ({ k, children }) => <Tag kind={view === k ? 'high-contrast' : 'outline'} onClick={() => setView(k)}>{children}</Tag>;
+  return (
+    <div>
+      <div className="preview-nav">
+        <span className="sub">Preview navigation (not part of the design):</span>
+        <V k="results">Results worklist and runs</V>
+        <V k="catalog">Test Catalog › QC section</V>
+        <V k="layouts">Workplan Configuration › QC layouts</V>
+      </div>
+      <div className="preview-content">
+        {view === 'results' && <ResultsPage say={say} />}
+        {view === 'catalog' && <TestQcSection say={say} />}
+        {view === 'layouts' && <LayoutsPage say={say} />}
+      </div>
       {toast && (
         <div className="toast">
           <div className="cds--inline-notification cds--inline-notification--success">
-            <div className="cds--inline-notification__details">
-              <div className="cds--inline-notification__text-wrapper">
-                <p className="cds--inline-notification__title">Done</p>
-                <p className="cds--inline-notification__subtitle">{toast}</p>
-              </div>
-            </div>
+            <div className="cds--inline-notification__details"><div className="cds--inline-notification__text-wrapper">
+              <p className="cds--inline-notification__title">Done</p>
+              <p className="cds--inline-notification__subtitle">{toast}</p>
+            </div></div>
           </div>
         </div>
       )}

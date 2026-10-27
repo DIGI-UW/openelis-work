@@ -1,5 +1,8 @@
 # OpenELIS Dashboards & Home Redesign — Functional Requirements Specification
 
+> **Amended (2026-10-26, OGC-1015 Instruments v2.0):** equipment cards gain service status (D-361) and the `INSTRUMENT_OUT_OF_SERVICE` alert. See `designs/analyzer-integration/analyzer-maintenance.md`.
+
+
 **Version:** 1.1 (Draft — post-/analyze)
 **Date:** 2026-06-05
 **Status:** Draft for review; /analyze findings F-01 through F-21 applied

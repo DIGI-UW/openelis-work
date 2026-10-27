@@ -3373,15 +3373,16 @@
   spec: designs/results-validation/runs.md
   breakdown: designs/results-validation/runs-breakdown.md
   crosscheck: designs/results-validation/runs-crosscheck.md
+  crosscheck_qc_parity: designs/quality/qc-parity-crosscheck.md
   category: results-validation
-  description: "Runs — the shared unit of QC, reagent-lot provenance and result review across analyzer messages, workplan batches, and single manual entries. Every result belongs to a run; controls, reagent lot and a per-test QC verdict live on the run. Converges Analyzer Results Import onto the Results worklist as a run-filtered view (/Results?run=<id>) with a run header; run-aware worklist row states (waiting/held); per-test QC gate (a failed control holds only that test's rows). Consumption contracts for QC persistence (OGC-1147), Batch Workplan (OGC-427), QC dashboard and Validation. FRS v0.4 (2026-09-22), approved for handoff — single paginated run table on the worklist filter chips, rows expand into the Results Entry panel prefilled, Accept corrected vs D-057, Validation routed to the clearance rule."
+  description: "Runs — the shared unit of QC, reagent-lot provenance and result review across analyzer messages, workplan batches, and single manual entries. Every result belongs to a run; controls, reagent lot and a per-test QC verdict live on the run. Converges Analyzer Results Import onto the Results worklist as a run-filtered view (/Results?run=<id>) with a run header; run-aware worklist row states (waiting/held); per-test QC gate (a failed control holds only that test's rows). Consumption contracts for QC persistence (OGC-1147), Batch Workplan (OGC-427), QC dashboard and Validation. v0.5 (2026-10-21): blanks and duplicates as run QC items, QC placement rules and named layouts, instrument holds (out of service, test locked) read from OGC-1015. FRS v0.4 (2026-09-22), approved for handoff — single paginated run table on the worklist filter chips, rows expand into the Results Entry panel prefilled, Accept corrected vs D-057, Validation routed to the clearance rule."
   paired_with: designs/results-validation/runs-preview.html
   links:
     github: null
-    jira: null
+    jira: ["OGC-1200"]
     gallery: "https://digi-uw.github.io/openelis-work/#/results-validation/runs-qc-reagent-lot-result-review"
   added: "2026-09-09"
-  updated: "2026-09-22"
+  updated: "2026-10-26"
   status: draft
 
 - id: results-entry-multicomponent-v1
@@ -4272,23 +4273,25 @@
   status: draft
 
 - id: analyzer-maintenance
-  type: html
-  path: designs/analyzer-integration/analyzer-maintenance-preview.html
+  type: jsx
+  path: designs/analyzer-integration/analyzer-maintenance.jsx
   spec: designs/analyzer-integration/analyzer-maintenance.md
+  breakdown: designs/analyzer-integration/analyzer-maintenance-breakdown.md
+  crosscheck: designs/quality/qc-parity-crosscheck.md
   preview: designs/analyzer-integration/analyzer-maintenance-preview.html
+  paired_with: designs/analyzer-integration/analyzer-maintenance-preview.html
   category: analyzer-integration
   description: >
-    Analyzer Maintenance & Service Tracking — Maintenance page in the analyzer area:
-    consolidated per-analyzer + cross-lab service log, EquipmentMaintenanceLog entity,
-    archive-not-delete, EQUIPMENT_MAINTENANCE_DUE alerts, ISO 15189 verifiedBy.
-    FRS v1.0 + HTML preview v3. Registered from the 2026-06-12 orphan review backlog.
+    Instruments: maintenance, certificates and service status. One register of connected and not-connected instruments (balances, pipettes, incubators), certificates on maintenance events, required checks, server-computed service status (In service, Restricted, Out of service), and instrument-test locks after failed controls; Runs holds results from unfit instruments. FRS v2.0 (2026-10-21), replaces v1.0.
+    Mockup: default export InstrumentsList; named exports MaintenancePage, InstrumentFieldOnResult.
   links:
     jira:
       - OGC-1015
     github_issue: 239
+    gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-maintenance
+    preview: https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-maintenance-preview.html
   added: "2026-07-24"
-
-
+  updated: "2026-10-26"
 - id: manual-rdt-qc-persistence
   type: spec
   path: designs/quality/manual-rdt-qc-persistence.md

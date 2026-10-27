@@ -1,13 +1,15 @@
-# Runs — Slicing Guide (non-binding suggestion for the developer)
+# Runs: Slicing Guide (non-binding suggestion for the developer)
 
-**Mockup:** `runs-mockup.jsx`
-**FRS:** `runs-frs.md` (v0.4, 2026-09-22)
+**Mockup:** `runs.jsx` (default export: the Results worklist with runs; named exports `TestCatalogQcPolicy` and `WorkplanQcLayouts`)
+**FRS:** `runs.md` (v0.5, 2026-10-21)
 **Preview:** `runs-preview.html`
 **Pipeline assumption:** Claude Code (agentic) implementer, so slices are sized to **one reviewable PR each** (D-026), not to story points. Points are given only as a human-team fallback.
-**Total slices:** 9
-**Human-team fallback:** 3 versions, roughly 66 points, 3 to 4 sprints
+**Total slices:** 12
+**Human-team fallback:** 4 versions, roughly 92 points, 5 sprints
 
 The developer slices the work. This guide is the suggested order; every slice is a user-facing capability, dependency-ordered, and covered by FRS acceptance criteria.
+
+> **Extended for v0.5 (2026-10-21).** Slices 1 to 9 are unchanged. v0.5 adds a fourth version (slices 10 to 12): blanks and duplicates as QC items, QC placement on batches, and instrument holds read from the Instruments FRS (OGC-1015 v2.0). Slice 12 waits for Instruments slice 3 (service status) and slice 5 (locks).
 
 > **Re-cut for v0.4.** The v0.2 guide is superseded. Two things it planned no longer exist: a bespoke "what this accept writes" review panel, and the rack-scale triage/all-rows view split. Both were replaced by reuse: the run's rows use the worklist's own filter chips, and a row expands into the Results Entry panel with the analyzer value prefilled. Three contracts it did not carry are now explicit and are sliced below: what Accept leaves behind (D-059), how a run's verdict reaches Validation (D-061), and what happens to the worklist's other filters (D-062).
 
@@ -16,9 +18,9 @@ The developer slices the work. This guide is the suggested order; every slice is
 **Title:** Runs: one unit of QC, reagent lot and result review across analyzer, workplan and manual results
 **Description summary:** Every result belongs to a run (analyzer message, workplan batch, or a run of one from a manual save). Controls, lot and a per-test QC verdict live on the run; the Results worklist shows waiting and held rows and opens a run as a filtered view with a run header, replacing the separate Analyzer Results Import page.
 **Parent / linked program epic:** to be confirmed at ticket creation (candidates: OGC-682 QA Menu Release umbrella, OGC-899 PNG/CPHL Phase II).
-**Why Epic, not Story:** several screens (worklist, run header, Workplan, QC Targets section), new data (run record, run-linked controls, Result → run reference), more than one PR.
+**Why Epic, not Story:** several screens (worklist, run header, Workplan, Test Catalog QC section, Workplan Configuration), new data (run record, run-linked QC items, placement rules, layouts, Result → run reference), more than one PR.
 
-## v1 — The analyzer run is visible and reviewable
+## v1: The analyzer run is visible and reviewable
 
 **Fallback estimate:** 24 points
 
@@ -30,7 +32,7 @@ The developer slices the work. This guide is the suggested order; every slice is
 
 Result after v1: analyzer runs are visible from the worklist, review happens on `/Results?run=`, a 96-position rack is workable, accepted results land in the Validation queue as ordinary result entries, and the old import page redirects. QC is still the existing whole-run gate.
 
-## v2 — The per-test QC gate, holds, and their consumers
+## v2: The per-test QC gate, holds, and their consumers
 
 **Fallback estimate:** 29 points
 
@@ -44,7 +46,7 @@ Result after v1: analyzer runs are visible from the worklist, review happens on 
 
 Result after v2: the analyzer path is complete on the new surface with per-test holds, and the validator can see why a row was held or accepted despite a failure. Import v2 FRs are all delivered or consumed.
 
-## v3 — Manual runs: workplan batches and runs of one
+## v3: Manual runs: workplan batches and runs of one
 
 **Fallback estimate:** 13 points
 
@@ -54,13 +56,25 @@ Result after v2: the analyzer path is complete on the new surface with per-test 
 
 Result after v3: every result created after ship references a run; OGC-427 and OGC-1147 consume the run; the QC dashboard's source filter lists runs from all three sources.
 
+## v4: Blanks, duplicates, placement and instrument holds (v0.5)
+
+**Fallback estimate:** 26 points
+
+| Slice | Points | FRs covered | Cross-cutting included |
+|---|---|---|---|
+| 10. Tech records lab blanks and duplicates on a run and they feed the per-test verdict; field QC from order entry appears with its order | 8 | FR-C1a, FR-C10 to FR-C14, FR-B1 (QC code kinds Blank and Duplicate), FR-E2 (blank and duplicate lines, Add blank, Add duplicate of), FR-G1 (source typing), FR-G8, FR-H1 (policy per kind, failure policy, ceiling and RPD limit), FR-H2, FR-H4 | **Reuse the S-08 evaluator** (`QcEvaluationServiceImpl`, `SampleItemQcProfile`, `TestQcThreshold`) behind one entry point (Dependency 11, D-365). Lab duplicate is an aliquot with a label (D-366, D-082). QC rows never on client reports (D-099). `run.qc.*`, `run.verdict.passWarning / notEvaluated / belowLoq`, `admin.testCatalog.qc.policy.*` keys. Coordinate the QC section with OGC-1148 (Mozzy) before it merges |
+| 11. Tech batches samples and the run comes with blanks, controls and duplicates already placed, from the test's rules or a named layout | 8 | FR-I1 to FR-I7, FR-B2 and FR-B4 (planned positions), FR-E1a (position order on All), FR-D4 (Held: QC missing) | Placement rules in the Test Catalog QC section (`admin.testCatalog.qc.placement.*`); QC layouts list on Workplan Configuration (`admin.workplan.layout.*`, D-111 list conventions, deactivate not delete); bench sheet prints positions (Workplan print, D-188 pattern); aliquot labels via existing presets (Dependency 15); audit `positionMoved / positionAdded / positionRemoved / layoutApplied`. Nominated privilege `workplan:configure` |
+| 12. Results produced on an instrument that is out of service, or on a test locked on it, are held with the reason | 10 | FR-C8, FR-C9, FR-C5 (Accept despite instrument hold), FR-D4 (instrument tags), FR-E2 (instrument line), FR-E3 (Instrument field with service status), FR-G6, FR-G7, FR-H1 (Record the instrument used) | **Reads** service status and locks from the Instruments FRS; computes neither (FR-G7, D-361). Feeds every control verdict back to the Instruments lock evaluator. `run.tag.heldInstrument / heldLocked`, `run.qc.instrumentLine` keys. Nominated privilege `result:accept_despite_qc`. Depends on Instruments slices 3 and 5 |
+
+Result after v4: a batch carries its blanks and duplicates in position, contamination or poor precision holds the batch like a failed control, and no result is accepted from an unfit instrument without an NCE.
+
 ## Coverage check
 
-- Every FR from the FRS appears in at least one slice: yes. FR-A1–A6, B1–B5, C1–C7, D1–D7, E1, E1a, E1b, E2–E14, F1, G1–G6, H1–H3 are all assigned above.
-- Every UI element in the mockup is built by at least one slice: yes. Runs chip and popover (1), waiting tag (1), filter-replacement notice (1), chip row with whole-run counts and pagination (2), bulk bar and run-scoped selection (2), expanded Results Entry panel with prefill and edited treatment (3), held tag and Held chip (4), run header QC block and Record control (4, 5), Exceptions block (7), Run settings (1, 9), batched tag and Batch these (9).
+- Every FR from the FRS appears in at least one slice: yes. FR-A1 to A6, B1 to B5, C1 to C14 (C1a included), D1 to D7, E1, E1a, E1b, E2 to E14, F1, G1 to G8, H1 to H4 and I1 to I7 are all assigned above.
+- Every UI element in the mockup is built by at least one slice: yes. Runs chip and popover (1), waiting tag (1), filter-replacement notice (1), chip row with whole-run counts and pagination (2), bulk bar and run-scoped selection (2), expanded Results Entry panel with prefill and edited treatment (3), held tag and Held chip (4), run header QC block and Record control (4, 5), Exceptions block (7), Run settings (1, 9), batched tag and Batch these (9), blank and duplicate lines, Add blank and Add duplicate of, Field blank lines (10), QC policy table (8, 10), placement rules, planned position rows and the Pos. column, QC layouts list (11), instrument line, instrument tags, Instrument field with service status, Accept despite instrument hold (12).
 - Every slice is titled and scoped around user value, not a technical layer: yes.
 - Cross-cutting concerns folded into their user-facing slice: localization per slice; access per slice (Results rights, lab-unit scoped throughout; Admin and Test Catalog Manager for slice 8 only).
-- Dependencies honored: slice 1 needs the run record and Result → run reference (Dependency 1) and the accession lookup (Dependency 4); slice 2 needs server-side paging and bulk-by-filter (Dependency 9); slice 4 needs the run-linked control record (Dependency 2) and the QC Targets store (Dependency 3); slice 9 needs the Workplan batch service (Dependency 7). No slice needs a later slice.
+- Dependencies honored: slice 10 needs the S-08 evaluator behind one entry point (Dependency 11) and the QC section (Dependency 12); slice 11 needs slice 10 and the Workplan Configuration page (Dependency 14); slice 12 needs the Instruments FRS's service status and locks (Dependency 10). Slice 1 needs the run record and Result → run reference (Dependency 1) and the accession lookup (Dependency 4); slice 2 needs server-side paging and bulk-by-filter (Dependency 9); slice 4 needs the run-linked control record (Dependency 2) and the QC Targets store (Dependency 3); slice 9 needs the Workplan batch service (Dependency 7). No slice needs a later slice.
 
 ## Notes for the implementer
 
@@ -69,4 +83,5 @@ Result after v3: every result created after ship references a run; OGC-427 and O
 - **Storage is yours to decide, with one constraint.** The FRS describes the run as information. OGC-1054 (repo, authoritative) says `QcRun` is not part of the target architecture and openelis-work data-model suggestions are not implementation direction (D-055). Decide the run record's storage together with OGC-1147 D1 (Samuel) so there is one answer, and record it in the PR or a dev-notes ADR.
 - **Coordinate four tickets.** OGC-1147 (control results and QC-fail signal scope), OGC-1025 (Results Entry section D re-scope), OGC-427 (batch as run) and **OGC-1226 (the Validation clearance rule, whose FR-10/FR-12 slot slice 6 fills)** are live. Slice 6 should not start before OGC-1226's slot exists.
 - **i18n.** Constitution v1.11.1 Principle VII: run `npm run i18n:find` before minting any key in the FRS string table; `common.*` rows are pending PR #3863. Runs mints nothing in the `label.validation.*` namespace; anything rendered on the Validation page uses that page's keys.
+- **Slice 12 reads, it never computes.** Service status and locks are computed once, by the Instruments evaluator (Instruments FR-D5). If a slice-12 PR derives "out of service" from maintenance dates itself, stop: that duplicates the Instruments logic and the two will drift.
 - **Slice 1 is the risky one.** It changes IA (redirect, menu retirement) and introduces the run record. Ship it behind nothing new; the existing reagent-lot gate and Results rights are the only flags involved.
