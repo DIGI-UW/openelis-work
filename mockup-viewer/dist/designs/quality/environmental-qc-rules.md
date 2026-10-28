@@ -1,4 +1,7 @@
 # S-08 — QC Result Evaluation & Validation Warning
+
+> **Amended (2026-10-26, OGC-1200 Runs v0.5):** the evaluator is shared with Runs (D-365), and "no per-batch QC frequency rules" is reversed for runs (D-367). See `runs.md`.
+
 ## Functional Requirements Specification — v2.0
 
 **Version:** 2.0 (significant rewrite of v1.0)

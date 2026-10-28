@@ -1,5 +1,8 @@
 # Test Catalog — QC Targets & Detection Limits (LOD/LOQ) — Functional Requirements Specification
 
+> **Amended (2026-10-26, OGC-1200 Runs v0.5):** the policy block and placement rules come from Runs FR-H1 and FR-I1 (D-367), and the "blanks/duplicates QC types" scope boundary is withdrawn. See `designs/results-validation/runs.md`.
+
+
 **Status:** Draft for review
 **Technology:** Java / Spring backend, React + Carbon (`@carbon/react`) frontend
 **Route:** Test Catalog unified editor (OGC-949 v2.5 scaffold) → new **QC Targets** section leaf; LOD/LOQ fields extend the existing **Sample & Results** section. Section key `qcTargets`; exact URL follows the shipped editor's section routing — verify against the live editor before implementation (editor scaffold M2, `/MasterListsPage/…` shell).

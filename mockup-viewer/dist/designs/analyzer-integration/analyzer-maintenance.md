@@ -1,453 +1,317 @@
-# Analyzer Maintenance & Service Tracking — Functional Requirements Specification
+# Instruments: Maintenance, Certificates and Service Status
 
-**Version:** 1.0 (Draft)
-**Date:** 2026-06-05
-**Status:** Draft for review
+## Functional Requirements Specification
+
+**Version:** 2.0 (approved for handoff, 2026-10-21). Replaces v1.0 (2026-06-05) in place; v1.0 was never built.
 **Author:** Casey Iiams-Hauser
-**Module:** New top-level `Analyzers` SideNav group + new `EquipmentMaintenanceLog` entity
-**Mockup:** `analyzer-maintenance-preview.html`
-**Sister epic / consumer:** OGC-897 Management Dashboard (equipment cards extend once this ships) + OGC-896 Home Page Redesign (Lab Snapshot analyzer connections cell extends)
+**Jira:** OGC-1015 (Epic, Ready; re-scoped to this version 2026-10-21)
+**Technology:** Java / Spring backend, React + Carbon (`@carbon/react`) frontend
+**Owns:** the instrument register (connected and not connected), the maintenance log with certificates, required checks per instrument, the derived **service status**, and the **instrument-test QC lock**.
+**Does not own:** what a hold does to results. Runs (`designs/results-validation/runs.md`, OGC-1200) owns the hold, its actions and its rendering; this FRS publishes the status that Runs reads.
+**Companion artifacts:** `analyzer-maintenance-preview.html` (replaces the v1.0 preview), `analyzer-maintenance.jsx` (Carbon handoff mockup), `analyzer-maintenance-breakdown.md` (slicing guide).
+**What changed from v1.0:** non-connected instruments (balances, pipettes, spectrophotometers, incubators) join the register; certificates are recorded on maintenance events; each instrument has required checks; an overdue required check, a failed control, or a manual decision changes the instrument's service status, and that status holds results through Runs. The menu label becomes **Instruments**. The IA section is rewritten to match D-069 (QC lives under Quality, not under Analyzers). The prescriptive data model is replaced by an information description, per the standing convention that storage is the implementing engineer's decision.
+**Origin:** SENAITE parity review (2026-10-21): SENAITE invalidates an instrument when its calibration certificate expires, while it is under calibration or validation, or when its latest QC fails, and refuses results from it. This FRS brings the same protection to OpenELIS while keeping OpenELIS's per-test QC model and override path.
 
 ---
 
-## 1. Lab Context
+## Lab Context
 
-### 1.1 Current State
+### Current State
 
-OpenELIS already manages analyzers — instruments like the Sysmex XN-550, Abbott Architect c4000, or GeneXpert IV — via an entity at `org.openelisglobal.analyzer.valueholder.Analyzer`. Today, analyzer configuration (channels, test mappings, file watchers, HL7 / ASTM message parsing) lives under **Admin → Resources → Analyzer Management** — buried in the admin section that bench techs and lab managers don't typically visit. The page handles instrument *configuration* but not the day-to-day *operational* concerns of running an instrument.
+A laboratory depends on dozens of instruments. Some are analyzers connected to OpenELIS (a Sysmex XN-550 hematology analyzer, an Abbott Architect chemistry analyzer, a GeneXpert for tuberculosis) and send results electronically. Many more are never connected: the analytical balance used to weigh samples for environmental metals testing, the pipettes that measure every volume, the spectrophotometer read by hand, the incubators that grow cultures, the HemoCue read at the bench. Every one of them must be calibrated or checked on a schedule, often by an outside vendor who issues a **calibration certificate**: a signed document stating the instrument was within specification on a date, and valid until a date, usually twelve months later.
 
-Maintenance — service visits, calibration runs, repair tickets, routine cleaning — is tracked in paper logbooks, side spreadsheets, or vendor emails. None of it lives in OpenELIS. When the calibration interval on a hematology analyzer comes due, the tech in charge has to remember; there's no system reminder. When a service technician visits to repair a GeneXpert, the report goes into a folder somewhere; OpenELIS sees nothing. The lab manager preparing a monthly stakeholder report or an ISO 15189 surveillance audit reconstructs equipment history from invoices, sign-off sheets, and what people remember.
+Today that schedule lives on paper. A binder per instrument holds the certificates; a wall chart or a spreadsheet tracks due dates; the quality officer checks it before an audit. OpenELIS knows the connected analyzers exist, because it receives their messages, but knows nothing about their calibration, and does not know the non-connected instruments exist at all. When a control fails on an instrument, the technician recalibrates, re-runs the control and carries on; nothing in OpenELIS records that the instrument was unfit between the failure and the fix.
 
-Cold-storage equipment (freezers) has dedicated monitoring with temperature alerts via the `Alert` entity. Lab analyzers don't have an analogous workflow.
+### Pain
 
-### 1.2 Pain
+An expired certificate is found by an auditor, not by the lab. In a typical ISO/IEC 17025 (the accreditation standard for testing laboratories) surveillance visit, the assessor picks a reported result, asks which balance weighed the sample, and asks for that balance's certificate. If the certificate expired three weeks before the result date, every result weighed on that balance in those three weeks is unsupported, and the lab must recall or qualify them. The lab had no warning, because the due date was on a spreadsheet nobody opened that month.
 
-Equipment failures surface late. When the Roche cobas 4800 goes offline at 14:00 on a Tuesday, the first signal is a tech noticing the HIV viral load queue stopped moving — usually after the day's results were supposed to be released. The same thing happens with calibration drift: the lab finds out the analyzer was out of spec when a QC failure flags it, not when the calibration interval lapsed.
+A failed control on Monday morning protects Monday morning's run, but not the run a second technician starts on the same analyzer at 10:00 before anyone has recalibrated. Nothing tells the second technician the analyzer failed QC two hours earlier. Service history is reconstructed from binders and vendor emails when an assessor asks for it ("we think it was serviced in March"), and the lab manager cannot answer "which of our instruments are fit for use today" without walking the bench.
 
-Service history is reconstructed, not recorded. When an auditor asks for the last 12 months of maintenance on Analyzer X, the lab manager hunts through emails and binders. The answer often comes back "we think we did it in March" rather than "23 March, calibration by vendor Tech A, downtime 2 hours, signed off by Dr. K."
+### What Changes
 
-Cost visibility is missing. A lab manager budgeting for next year has no aggregated figure for what analyzer maintenance actually costs. Each service invoice is a one-off paper trail.
+Every instrument the lab uses is in OpenELIS, connected or not, with its required checks: "calibration by an accredited vendor every 12 months, out of service if overdue", "daily verification with check weights". A technician who receives a new certificate logs a Calibration event, types the certificate number, attaches the PDF and enters the valid-until date. Seven days before a certificate or check is due, an alert appears on the Home page. The day it lapses, the instrument shows **Out of service**, and any result produced on it is held on the technician's worklist with the reason "Balance B-02: calibration certificate expired 14 Oct", until a new certificate is logged or a validator accepts the result with a non-conformance record.
 
-Compliance is fragile. ISO 15189 surveillance audits and similar quality accreditation expect a complete service history with second-person verification on certain events (calibration, after-major-repair QC). Today this lives outside OpenELIS and only some labs maintain it rigorously.
-
-The existing analyzer admin page being **hidden in Admin** is itself a friction point. Most users who need to *use* analyzer data (techs running tests, lab managers planning) don't have an obvious place to navigate; the only people who naturally find Admin → Resources are sysadmin-level users.
-
-### 1.3 What Changes
-
-OpenELIS already has an analyzer area at `frontend/src/pages/analyzers/` with in-progress pages for QC Dashboard, QC Alerts, and Corrective Actions (currently placeholders). This epic **plugs Maintenance into that existing analyzer area** as another menu item alongside the others, rather than inventing a parallel top-level. The analyzer area becomes the single landing for *anything analyzer*: list, QC dashboard, alerts, corrective actions, and now maintenance.
-
-The analyzer area gets a new **Maintenance** page (`/analyzers/maintenance`). One page, not two. A filter dropdown at the top scopes the view: *All analyzers* (cross-lab service history, useful for auditors and lab managers) or a specific analyzer (per-instrument log, useful for the tech who just finished a calibration). Same DataTable, same form, same audit trail — the filter just narrows the rows.
-
-A bench tech who just finished a calibration clicks `+ Log new event`, picks Calibration from a dropdown, enters the date, who performed it (in-house or external vendor), the room the analyzer is in (reusing OpenELIS's existing `StorageRoom` entity at room level), downtime hours, outcome (Completed / In Progress / Failed / Needs Follow-up), and the next due date. Saves. The event is now in the system, audited, and available for the Mgmt Dashboard, the auditor, and the next tech to ask "when was this last calibrated?"
-
-Approaching due dates surface as **Alerts** through the same Alert entity that already handles freezer temperature breaches. Seven days before a calibration is due, an `EQUIPMENT_MAINTENANCE_DUE` Alert fires; the Home page Attention feed and the Mgmt Dashboard equipment cards both pick it up automatically because they already read the Alert table.
-
-For compliance-conscious labs, an optional `verifiedBy` field captures the second-person verification required by ISO 15189 for calibration and major service events. For cost-tracking labs, an optional `cost` field aggregates into the budget. For others, those fields stay empty and don't add friction.
-
-Once this epic ships, OGC-897's Management Dashboard equipment cards stop showing "last activity only" — they extend to render last-service date, next-calibration due, and overdue flags (red) based on `EquipmentMaintenanceLog` data. OGC-896's Lab Snapshot analyzer connections cell similarly evolves from heartbeat-only to lifecycle-aware.
+When a potassium control fails on the chemistry analyzer, the analyzer shows **Restricted: potassium**. Every potassium result from that analyzer is held, in this run and in any later run, until a potassium control passes on it again. Glucose on the same analyzer keeps flowing. The lab manager opens one page and sees every instrument with a green, amber or red status, and the assessor's question is answered from the instrument's log in under a minute.
 
 ---
 
-## 2. User Stories
+## Overview
 
-- **US-1.** As a **bench technician**, I want to log analyzer maintenance events as they happen so the lab has an accurate service history without me writing it in two places.
-- **US-2.** As a **lab manager**, I want to see analyzer-by-analyzer service history and upcoming due dates so I can plan calibration schedules and budget for vendor service visits.
-- **US-3.** As a **compliance officer / quality manager**, I want a complete audit trail of every maintenance event with optional second-person verification, so ISO 15189 surveillance audits pass without manual reconstruction.
-- **US-4.** As a **lab director**, I want analyzer service status to surface on the Management Dashboard so equipment isn't a silent risk in stakeholder briefings.
-- **US-5.** As an **OpenELIS admin migrating from the old IA**, I want existing Analyzer Management configuration to be reachable from the new Analyzers group so my workflow doesn't break.
+This FRS turns the analyzer area into the lab's **instrument register**. An instrument is either connected (an analyzer that sends messages, configured as today) or not connected (registered with a name, kind, location, serial number and the tests it is used for). Every instrument has a maintenance log, carried forward from v1.0, which now records certificates. Every instrument may have **required checks**, each with an interval or a certificate validity, and a choice of whether being overdue takes the instrument out of service.
 
----
+From those checks, from manual decisions, and from control failures, OpenELIS derives one **service status** per instrument: **In service**, **Restricted** (one or more tests locked by a failed control) or **Out of service**. The status is computed once on the server and read by every surface: the Instruments list, the Maintenance page, the Results Entry instrument field, Runs, Alerts, the Home attention feed and the Management Dashboard. Runs turns an unfit status into a hold on the affected results, with the same Retest, Reject and Accept despite (with an NCE, a non-conformance event) actions it already defines for failed controls.
 
-## 3. Overview
+The FRS is version-agnostic; slicing happens at handoff.
 
-This feature elevates Analyzer Management out of `Admin → Resources` into a new top-level **Analyzers** SideNav group and adds a maintenance/service log feature alongside the existing analyzer configuration. The maintenance log captures events (service, calibration, repair, etc. — configurable via Dictionary), surfaces upcoming due dates as Alerts using the existing Alert entity, and provides the data foundation that lets OGC-897 (Management Dashboard) and OGC-896 (Home page) extend their equipment-related surfaces from heartbeat-only to lifecycle-aware.
+### Navigation & URL
 
-The work has two distinct slices:
-
-1. **IA elevation:** the existing Analyzer Management page moves from Admin to the new `Analyzers` SideNav group as the `Configuration` submenu of each analyzer's detail page. No data model change; routes change to `/analyzers/{id}/configuration`; a redirect from the old admin URL preserves bookmarks for one release. Existing permissions (Admin bundle) carry over.
-
-2. **Maintenance & Service feature:** new `EquipmentMaintenanceLog` entity, new admin form for entry/edit, list view per analyzer and cross-analyzer, due-date reminder Alerts via a new `EQUIPMENT_MAINTENANCE_DUE` AlertType. Event types are extensible via the existing Dictionary admin mechanism.
+- **SideNav placement:** the Analyzers group is relabelled **Instruments** and becomes, in order: **Instruments** (the list, `/analyzers`), **Analyzer Types** (`/analyzers/types`), **Import Issues** (as D-069), **Maintenance** (`/analyzers/maintenance`, new). Amends D-069 (labels and one added child). QC stays under Quality › Quality Control.
+- **Breadcrumb:** `Home / Instruments / Maintenance`; `Home / Instruments` for the list. Per-instrument pages keep `Home / Instruments / [instrument name] / <subpage>`.
+- **URL routes:** routes do not change with the label. `/analyzers` (list), `/analyzers/maintenance` (log, all instruments), `/analyzers/maintenance?analyzerId=<id>` (one instrument: status panel, required checks, its log). Deep-linkable: the `analyzerId` and the **Show archived** toggle are carried in the query string. Per-instrument configuration keeps `/analyzers/{id}/<subpage>` (D-069). Verify each route against the live app before build (design-addendum MUST C).
 
 ---
 
-## 4. Functional Requirements
+## User Stories
 
-### 4.1 IA — extending the existing analyzer area
+- **As a bench technician,** I want to log a calibration with its certificate number and PDF the day the vendor leaves, so the certificate is where the assessor will look and the due date is tracked for me.
+- **As a bench technician,** I want to see before I start a run that the instrument is out of service or restricted for my test, so I do not produce results that will be held.
+- **As a quality officer,** I want an instrument to go out of service automatically when its certificate lapses, and its results to be held, so no result is reported from an instrument the lab cannot show was in specification.
+- **As a lab supervisor,** I want a failed control to restrict that test on that instrument until a control passes again, so a second technician cannot run patients on it in the meantime.
+- **As a lab manager,** I want one list of every instrument with its service status and next due check, so I can answer "what is fit for use today" without walking the bench.
 
-**FR-IA-001 — Add `Maintenance` to the existing analyzer area.** OpenELIS already has a frontend analyzer area at `frontend/src/pages/analyzers/` with in-progress pages (QC Dashboard, QC Alerts, Corrective Actions). This epic adds **Maintenance** as another page in that area. No new top-level SideNav group is invented.
+---
 
-The analyzer area's menu becomes (in display order):
+## Functional Requirements
 
-- `All Analyzers` — existing list view
-- `QC Dashboard` — existing (placeholder)
-- `QC Alerts` — existing (placeholder)
-- `Corrective Actions` — existing (placeholder)
-- `Maintenance` — **new (this epic)**
-- Per-analyzer detail page (existing — accessed by clicking an analyzer in the list)
+### A. The instrument register
 
-The Maintenance page consolidates what would otherwise be two views (per-analyzer service history + cross-analyzer maintenance log) into one. A filter dropdown at the top of the page scopes the table.
-
-**FR-IA-002 — Route + breadcrumb.**
-- Route: `/analyzers/maintenance` (with optional query param `?analyzerId={id}` to pre-filter)
-- Breadcrumb: `Home / Analyzers / Maintenance`
-- SideNav placement: under the existing `Analyzers` group, after `Corrective Actions` and before per-analyzer detail
-
-**FR-IA-003 — Configuration stays where it is.** This epic does NOT move the existing per-analyzer configuration pages (the Admin → Analyzer Management work) into a new location. Those pages stay accessible via their current routes. A small future enhancement can rationalize that IA; not in scope here.
-
-### 4.2 Maintenance page
-
-**FR-MAINT-001 — Page layout.** Three stacked sections:
-
-1. **Top: scope filter + summary strip.** A `Carbon <MultiSelect.Filterable>` component at the top — *Filter by analyzer:* — listing every analyzer by name (with type as secondary text). Multi-select with checkboxes; empty selection = `All analyzers`. Multiple analyzers can be selected at once (e.g., both Hematology bench units when comparing throughput on duplicate Sysmex XN-550 instruments).
-   - Empty selection (default) → summary strip shows lab-wide counts (e.g., "47 events this period · 3 overdue · 5 due in next 30 days"); table includes `Analyzer` column
-   - 1 analyzer selected → summary strip shows that analyzer's name + type + location + last service + next due (with overdue red flag); `Analyzer` column omitted from table (redundant)
-   - 2+ analyzers selected → summary strip shows narrowed lab counts ("12 events across 2 analyzers · 1 overdue · 2 due in next 30 days"); `Analyzer` column shown in table
-
-2. **Middle: `+ Log new event` primary button.** When clicked, opens the inline entry form (FR-MAINT-003). If exactly one analyzer is selected in the scope filter, the form's `Analyzer` field defaults to that analyzer (but stays editable in case the user wants to switch).
-
-3. **Bottom: event history.** Carbon `<DataTable>` with inline-row-expansion. Trimmed columns show only the most actionable takeaways; full event detail lives in the expanded row.
-
-**FR-MAINT-002 — DataTable: trimmed columns + expanded-row detail.** Only the most actionable takeaways appear in the table view; the rest of the maintenance record lives in the expanded row.
-
-**Trimmed columns (6 max, default sort by date descending):**
-
-| Column | Source | Visibility |
+| ID | Requirement | Notes |
 |---|---|---|
-| Analyzer | `analyzerId` → `Analyzer.name` (with `Analyzer.type` shown as smaller secondary text below the name) | Shown when scope filter = `All analyzers` OR 2+ analyzers selected; hidden when exactly 1 analyzer is selected (redundant) |
-| Date | `performedDate` | Always |
-| Type | `eventTypeId` → Dictionary lookup name (with Carbon `<Tag>` chip coloring per event type) | Always |
-| Outcome | `outcome` enum (with Carbon `<Tag>` chip — green for Completed, red for Failed, amber for In Progress / Needs Follow-up) | Always |
-| Next due | `nextDueDate` (red text if past due, amber if within 7 days) | Always |
-| Actions | Expand/collapse row · Edit · Archive (overflow menu) | Always |
+| FR-A1 | The register holds every instrument the lab uses. An instrument is **Connected** (an analyzer configured with a bridge connection and test mapping, as today) or **Not connected** (no connection; results are entered by hand). Both are the same kind of record and appear in one list. | Reuses the `Analyzer` record (`org.openelisglobal.analyzer.valueholder.Analyzer`, develop `965d6d1`): a not-connected instrument has no `bridge_connection_id` and no mapping. D-360. |
+| FR-A2 | **Add a not-connected instrument** from the Instruments list with a short inline form: Name (required, unique among active instruments), Kind (required, searchable list, see FR-A3), Manufacturer and model (text), Serial number, Asset tag, Location (room), Lab units (as for analyzers, D-043/D-045), and **Used for** (the tests performed with it, searchable multi-select over the test catalog, labels shown). Adding a connected analyzer keeps today's flow unchanged. | Used for is what lets a lock or an out-of-service status reach the right results (FR-E, FR-F). For a connected analyzer it is derived from the test mapping and shown read-only. |
+| FR-A3 | **Kind** is a Dictionary category `INSTRUMENT_KIND`, seeded with Analyzer, Analytical balance, Pipette, Spectrophotometer, Incubator, Centrifuge, Microscope, Thermometer, Water bath, Biosafety cabinet, Refrigerator or freezer, Other. Labs extend it through the existing Dictionary admin. A connected instrument is Kind Analyzer by default and may be changed. | Dictionary reuse (MUST F). Refrigerators and freezers may be registered for their calibration certificates; their temperature monitoring stays with the existing cold storage alerts. |
+| FR-A4 | The **Instruments list** (`/analyzers`) shows, per instrument: Name (with kind as secondary text), Connection (Connected / Not connected, plus today's connection state for connected analyzers), **Service status** (FR-D1, as a Tag with icon and word), Next due (the earliest due required check, red when overdue, amber within 7 days), Location, Lab units. Filters: Connection, Service status, Kind, Lab unit, search by name, serial number or asset tag. Deactivated instruments are hidden by default with a **Show deactivated** toggle (D-002). | The existing connection state (`Analyzer.status`: SETUP, VALIDATION, ACTIVE, ERROR_PENDING, OFFLINE, INACTIVE) is shown as it is today and never merged with service status (FR-D6). |
+| FR-A5 | Instruments are deactivated and reactivated, never deleted. Deactivating an instrument with open runs or open locks is allowed and states how many runs reference it; its history stays readable. | D-002. |
 
-Sortable by every column. Additional toolbar filters (independent of the scope multi-select): date range, event type, outcome, vendor.
+### B. Maintenance log (carried from v1.0, extended)
 
-**Expanded-row content (shown when row is opened):** A Carbon `Tile` with the full event detail, organized as two columns:
-
-- *Left column:* Performed by · Location (StorageRoom name) · Vendor or "In-house" · Cost (formatted with currency) · Downtime hours
-- *Right column:* Parts replaced · Notes (full text, not truncated) · Verified by + verified-at timestamp (or "Not verified")
-
-Edit and Archive buttons live at the bottom of the expanded row.
-
-**FR-MAINT-003 — Entry / edit form (inline row expansion).** When `+ Log new event` is clicked, an inline row expands above the table with a form. When an existing row's `Edit` is clicked, the row expands in place. Fields:
-
-| Field | Carbon component | Required |
+| ID | Requirement | Notes |
 |---|---|---|
-| Analyzer | `<ComboBox>` (Analyzer search by name; type shown as secondary text) — defaults to scope-filter selection if exactly one analyzer is selected | Yes |
-| Event type | `<Select>` (Dictionary lookup, category `EQUIPMENT_MAINTENANCE_TYPE`) | Yes |
-| Performed date | `<DatePicker>` | Yes |
-| Performed by | `<ComboBox>` (SystemUser search) | Yes |
-| Location | `<ComboBox>` (StorageRoom search) — defaults to selected analyzer's current `storageRoomId`; falls back to existing `Analyzer.location` free-text display when no FK is set | No |
-| Outcome | `<RadioButtonGroup>` (Completed / In Progress / Failed / Needs Follow-up) | Yes |
-| Downtime hours | `<NumberInput>` step 0.5 | No |
-| Vendor | `<TextInput>` placeholder "In-house" | No |
-| Cost | `<NumberInput>` step 0.01, currency suffix | No |
-| Parts replaced | `<TextArea>` | No |
-| Notes | `<TextArea>` | No |
-| Next due date | `<DatePicker>` | No |
-| Verified by | `<ComboBox>` (SystemUser search) | No |
+| FR-B1 | One **Maintenance** page (`/analyzers/maintenance`) lists events for all instruments or, with an instrument selected, for that one. The scope filter is a filterable multi-select over instruments that shows selected names as removable chips. With nothing selected the summary strip shows lab-wide counts (events this period, overdue checks, due in the next 30 days, instruments out of service); with one instrument selected the status panel (FR-D4) replaces it. | v1.0 FR-MAINT-001, with the status panel added. |
+| FR-B2 | The event table columns are: Instrument (hidden when exactly one is selected), Date, Type, Outcome, Certificate (number, with a PDF icon when one is attached), Valid until or Next due, and the row's Edit button. Every column sorts. Toolbar filters: date range, type, outcome, **Has certificate**, vendor. | v1.0 FR-MAINT-002; Certificate column and filter are new. D-111: Edit is the only row action; Archive is inside the expanded row. |
+| FR-B3 | **Log new event** opens an inline row with: Instrument (search), Event type (Dictionary `EQUIPMENT_MAINTENANCE_TYPE`), Date performed, Performed by (user search) or Vendor, Outcome (Completed, In progress, Failed, Needs follow-up), Downtime hours, Cost, Parts replaced, Notes, **Valid until / Next due**, Verified by. When the event type is linked to a required check that is certificate-based (FR-C2), the row also shows **Certificate number**, **Issued by** (defaults to Vendor) and **Certificate file** (PDF upload). | v1.0 FR-MAINT-003 plus the certificate fields. The seeded event types gain Verification and Performance check beside Service, Calibration, Repair, Inspection, Cleaning. |
+| FR-B4 | A certificate file is a PDF of at most 10 MB, stored and served with the existing attachment pattern (view and download from the event row). Once the event is verified (FR-B6) the file cannot be replaced; a corrected certificate is a new event that states which event it corrects. | D-086. |
+| FR-B5 | Saving an event writes the audit trail and, when it is Completed and linked to a required check, recalculates that check's next due date and the instrument's service status at once (FR-D2). | |
+| FR-B6 | **Verified by** records a second person. When the linked required check says verification is required (FR-C1), a Completed event does not satisfy the check until it is verified; until then the check shows **Awaiting verification** and the status panel says so. The verifier cannot be the person who performed or logged the event. | v1.0 left this optional and global; it becomes per check. ISO 15189 and ISO/IEC 17025 ask for review of calibration results before use. |
+| FR-B7 | Events are archived, never deleted. Archive sits inside the expanded row with a confirmation; **Show archived** reveals archived rows, which can be unarchived. An archived event no longer satisfies a required check, and the status recalculates. | v1.0 FR-MAINT-005; D-002. |
+| FR-B8 | Validation messages: Valid until earlier than Date performed is an error for a certificate-based check and a warning otherwise; negative cost or downtime is an error; a certificate-based check requires a certificate number and a Valid until date to be saved as Completed. | |
 
-Validation: `outcome = Completed` AND `nextDueDate < performedDate` → warning ("Next due is in the past — was this intentional?"). `cost < 0` → error. `downtimeHours < 0` → error.
+### C. Required checks per instrument
 
-**FR-MAINT-004 — Save behavior.** On save:
+| ID | Requirement | Notes |
+|---|---|---|
+| FR-C1 | With one instrument selected, the Maintenance page shows a **Required checks** tile listing the checks this instrument must have. Each check has: Event type; Due by (**Certificate validity**, meaning the Valid until date on the last completed event, or **Interval**, a number of days or months after the last completed event); **Out of service when overdue** (Yes / No); **Verification required** (Yes / No). Checks are added and edited as inline rows; a check is deactivated, not deleted. | New information (Dependencies 3). Example for a balance: Calibration, Certificate validity, Out of service when overdue Yes, Verification required Yes; Performance check, Interval 1 day, Out of service when overdue No. |
+| FR-C2 | A check's **next due date** is the Valid until of its most recent completed (and, where required, verified) linked event for certificate-based checks, or that event's date plus the interval. A check with no event yet is **Never done** and counts as overdue from the day the check is added, unless the user who adds it sets a first due date. | Lets a lab register existing instruments without being taken out of service on day one. |
+| FR-C3 | Each check shows its state: **Current** (green), **Due soon** (within 7 days, amber), **Overdue** (red), **Awaiting verification** (amber), **In progress** (an In progress or Failed event of this type is the most recent one, amber or red per FR-D2). | Tag with icon and word, never colour alone. |
+| FR-C4 | Alerts reuse the `EQUIPMENT_MAINTENANCE_DUE` alert type from v1.0: warning 7 days before a check falls due, critical on the due date, resolved automatically when a completed (and verified where required) event satisfies the check. A second alert type `INSTRUMENT_OUT_OF_SERVICE` is raised when an instrument enters Out of service and resolved when it leaves it. Both reach the Home attention feed and the Management Dashboard through the Alert table, as v1.0 FR-ALERT-002 specified. | One alert per instrument and check (existing Alert dedup). |
+| FR-C5 | A daily job and every relevant save (event, verification, check edit, control recording) recalculate check states. A check that falls overdue at midnight local time takes effect for results produced from then on. | |
 
-- Create or update `EquipmentMaintenanceLog` row
-- Emit `audit_trail` entry (`EQUIPMENT_MAINTENANCE_LOGGED` for new, `EQUIPMENT_MAINTENANCE_UPDATED` for edit, `EQUIPMENT_MAINTENANCE_VERIFIED` if `verifiedBy` is being newly set)
-- If `nextDueDate` is set: schedule (or update) an `EQUIPMENT_MAINTENANCE_DUE` Alert to fire 7 days before that date with severity WARNING; on the due date with severity CRITICAL
+### D. Service status
 
-**FR-MAINT-005 — Archive behavior.** Maintenance log rows are **archived, not deleted** (soft-delete pattern). Archive action opens a Carbon confirmation modal: *"Archive this maintenance event? It will be hidden from the default view but preserved in the audit trail."* On confirm:
+| ID | Requirement | Notes |
+|---|---|---|
+| FR-D1 | Every active instrument has exactly one **service status**: **Out of service**, **Restricted**, or **In service**, in that order of precedence. Out of service applies to every test the instrument is used for. Restricted names the tests that are locked (FR-E). | D-361. |
+| FR-D2 | An instrument is **Out of service** while any of these is true: (a) a required check with Out of service when overdue = Yes is Overdue or Never done; (b) the most recent event of such a check is In progress or Failed (the instrument is under calibration, or failed it); (c) a user took it out of service manually (FR-D3). Each true reason is listed; the status lifts only when none remains. | SENAITE equivalents: certificate expired, calibration or validation in progress. |
+| FR-D3 | **Take out of service** and **Return to service** are actions on the status panel. Taking out requires a note (stored in the existing `note` table against the instrument). Return to service clears only the manual reason; if an automatic reason still stands, the panel says which one and the status stays Out of service. | Notes are never removed (project convention). |
+| FR-D4 | The **status panel** (Maintenance page, one instrument selected) shows: the status Tag; each active reason as a sentence with its date and a link to the event, check or run behind it ("Calibration certificate C-4471 expired 14 Oct 2026", "Potassium locked: control L2 failed in RUN-2026-10-21-004 at 07:12"); the Required checks tile; and the actions the user may take. | One signal per problem (D-105): the list and other surfaces link here rather than restating the reasons. |
+| FR-D5 | Service status is computed once, on the server, and exposed with its reasons to every consumer (FR-F). No screen derives it on its own. | Build-once rule from the crosscheck. |
+| FR-D6 | Service status is separate from the analyzer **connection** state. An analyzer can be connected and Out of service (certificate lapsed, still sending results, which are held), or In service and offline (no messages arriving). Labels never mix the two. | `Analyzer.status` keeps its current meaning. |
+| FR-D7 | Every change of service status is written to the audit trail with the reason that caused it (event, check, control, or user). | |
 
-- Set `archived_at = now()` and `archived_by = currentUser` on the row
-- Emit `EQUIPMENT_MAINTENANCE_ARCHIVED` audit event
-- Row disappears from the default table view
+### E. Instrument-test QC lock
 
-A toolbar toggle `Show archived` reveals archived rows (rendered with muted styling — gray background, "Archived {date} by {user}" tag). When archived rows are visible, the `Archive` action on those rows changes to `Unarchive`, which clears `archived_at` and `archived_by` and emits `EQUIPMENT_MAINTENANCE_UNARCHIVED`.
+| ID | Requirement | Notes |
+|---|---|---|
+| FR-E1 | A **lock** on an instrument and a test is set when any of these is recorded: a control covering that test fails on a run whose instrument is this one (Runs FR-C2, FR-C3); a statistical QC rule rejects a control result for this instrument and test (a Westgard rejection rule, not a warning such as 1-2s); an instrument-level periodic check recorded through Analyzer Manual QC (OGC-428) fails, which locks every test the instrument is used for. | D-364. Blank and duplicate failures do not lock the instrument (D-368): they point at contamination or precision of a batch, not the instrument. |
+| FR-E2 | While a lock stands, the instrument's status is Restricted (unless Out of service), the status panel names the test, the failing control and its run, and Runs holds the locked test's rows on this instrument in every run that does not carry a passing control for that test recorded after the lock was set (Runs FR-C9). | The run that failed is already held by Runs FR-C4; the lock extends protection to other open and later runs. |
+| FR-E3 | A lock lifts automatically when a control for that test passes on this instrument in a later run (for a periodic-check lock: when the next periodic check passes). The passing run is not held by the lock it lifts. Rows already held by the lock in other runs stay held until a user dispositions them (Retest, Reject or Accept despite), because they were produced while the instrument was unfit. | D-364. Same principle as Runs FR-C6: a later pass does not release earlier results. |
+| FR-E4 | A lock cannot be released by hand. The only override is per result, through Runs' **Accept despite QC failure** with its mandatory NCE. | Keeps "run controls until one passes" and "release the lock to get the morning out" from being paths. |
+| FR-E5 | Results already accepted before the lock was set are not changed. The NCE that a failed control opens (Runs FR-C5, QA NCE trigger) is where the lab assesses earlier results. | Look-back stays with NCE and the Westgard affected-samples window (OGC-728). |
 
-No hard-delete option exists in v1. If a row was created in error and must be removed entirely, that's a database-level operation outside this UI (and Envers still preserves the history).
+### F. What other features read from service status (consumption contracts)
 
-### 4.3 Alert pathway for due dates
-
-**FR-ALERT-001 — Reminder Alerts.** New `AlertType` enum value: `EQUIPMENT_MAINTENANCE_DUE`. When an `EquipmentMaintenanceLog.nextDueDate` is reached or approaches:
-
-- **7 days before:** Alert with `severity = WARNING`, `alertType = EQUIPMENT_MAINTENANCE_DUE`, `alertEntityType = "Analyzer"`, `alertEntityId = analyzerId`, `contextData = {logId, eventType, nextDueDate, daysUntilDue}`, `message = "Calibration due in 7 days: {analyzer name}"`
-- **On / past due date:** Alert severity escalates to `CRITICAL`; same record, status remains `OPEN` until acknowledged or until a new event with matching `eventTypeId` is logged for that analyzer (which auto-resolves the alert)
-
-A scheduled job (`@Scheduled` in Spring) runs daily to evaluate due dates and emit / update Alerts. Uses the existing Alert dedup mechanism.
-
-**FR-ALERT-002 — Downstream consumer wiring.** OGC-897 Management Dashboard equipment cards subscribe to Alerts with `alertType = EQUIPMENT_MAINTENANCE_DUE`. OGC-896 Home Attention feed gets an equipment-due row when these Alerts exist. Neither needs to know about `EquipmentMaintenanceLog` directly — they only consume Alerts.
+| ID | Requirement | Notes |
+|---|---|---|
+| FR-F1 | **Runs.** At run creation and whenever the status changes, Runs reads the instrument's status and locks for the run's tests and applies the holds of Runs FR-C8 and FR-C9. Runs owns the hold, its tag, its actions and its audit events. | |
+| FR-F2 | **Results Entry instrument field.** The Analyzer field on a result row (and the run header's instrument field) is a search over active instruments used for the row's test, each shown with its service status Tag. An Out-of-service or locked instrument stays selectable, because the result may still need recording, and selecting it shows one inline warning that the result will be held, with the reason. | Results Entry v4 D4 (Method and Analyzer split). |
+| FR-F3 | **Instrument required per test.** Where the test's QC section says the instrument used must be recorded (Runs FR-H1), a result cannot be saved without naming an instrument. Otherwise naming one stays optional, and a result with no instrument named is not affected by service status. | Without this setting a technician could avoid a hold by leaving the field empty; the setting is per test so labs turn it on where it matters (gravimetric and volumetric methods, manual photometry). |
+| FR-F4 | **Alerts, Home attention feed and Management Dashboard** read the two alert types (FR-C4) and the status; the Dashboard's equipment cards show status, next due check and last service. | OGC-897, OGC-896. |
+| FR-F5 | **QC dashboard** shows open locks per instrument and test and links to the instrument's status panel. | Quality › Quality Control. |
 
 ---
 
-## 5. Data Model
+## Information & Data
 
-### 5.1 Reused entities
+Described as information, not storage. Items marked **new** are listed in Dependencies.
 
-| Entity (Java path) | Used by | Notes |
-|---|---|---|
-| `Analyzer` (`org.openelisglobal.analyzer.valueholder.Analyzer`) | FK target from `EquipmentMaintenanceLog.analyzerId`; display uses `Analyzer.name` (lab-given designation) AND `Analyzer.type` / `analyzer_type_id` (model identifier, e.g., "Sysmex XN-550") as separate display elements — never collapse the two. Multiple analyzers can share a type; name disambiguates. | Existing entity. Existing `Analyzer.location` is a free-text varchar(60) that this epic does NOT remove — coexists with the new `storageRoomId` FK. Future enhancement: add `serialNumber`, `assetTag`, `installationDate` (see §11 Open questions). Adding `storageRoomId` is a small schema extension on this existing entity. |
-| `StorageRoom` (`org.openelisglobal.storage.valueholder.StorageRoom`) | FK target for analyzer location | Reused at room level only. The hierarchy below Room (StorageDevice / StorageShelf / StorageRack / StorageBox) is for sample storage, not analyzer placement |
-| `SystemUser` (`org.openelisglobal.systemuser.valueholder.SystemUser`) | FK targets for `performedBy` and `verifiedBy` | Existing |
-| `Dictionary` (`org.openelisglobal.dictionary.valueholder.Dictionary`) | FK target for `eventTypeId` | New Dictionary category `EQUIPMENT_MAINTENANCE_TYPE` seeded with: Service, Calibration, Repair, Inspection, Cleaning. Labs extend via existing Dictionary admin UI |
-| `Alert` (`org.openelisglobal.alert.valueholder.Alert`) | Receives `EQUIPMENT_MAINTENANCE_DUE` Alert records | Existing polymorphic alert pathway; reuse-as-is |
-| `Analysis` (`org.openelisglobal.analysis.valueholder.Analysis`) | Read for "department / use" derivation and last-activity calculation | Existing; uses `analyzerId` field already on Analysis |
+- **Instrument (existing record, extended).** The `Analyzer` record: name, active flag, lab units (`test_unit_ids`), connection (`bridge_connection_id`, mapping, connection state). **New attributes:** kind (Dictionary `INSTRUMENT_KIND`), manufacturer and model text, serial number, asset tag, location (room), Used for tests (for not-connected instruments; derived from the mapping for connected ones).
+- **Maintenance event (new, specified in v1.0 and not yet built).** Instrument, event type (Dictionary `EQUIPMENT_MAINTENANCE_TYPE`), date performed, performed by or vendor, outcome, downtime, cost, parts replaced, notes, valid until or next due, verified by and when, archived by and when. **New in v2.0:** certificate number, issued by, certificate file (attachment pattern, D-086), corrects-event link, linked required check.
+- **Required check (new).** Instrument, event type, due-by rule (certificate validity, or interval in days or months), out of service when overdue, verification required, optional first due date, active flag. State is derived (FR-C3).
+- **Service status (derived, never stored as an editable field).** Status plus its list of reasons, each pointing to a check, an event, a lock, or a manual decision. The manual out-of-service decision is new information: who, when, note.
+- **Instrument-test lock (new).** Instrument, test (or all tests, for a periodic-check failure), set by (control on a run, statistical rule violation, or periodic check), set at, lifted by (the passing control or check), lifted at.
+- **Alerts (existing entity).** `EQUIPMENT_MAINTENANCE_DUE` (specified in v1.0) and `INSTRUMENT_OUT_OF_SERVICE` (new value).
+- **Audit events (existing audit trail, new vocabulary).** instrument added, updated, deactivated, reactivated; event logged, updated, verified, archived, unarchived; check added, updated, deactivated; status changed (with reason); taken out of service; returned to service; lock set; lock lifted.
+- **Uniqueness.** Instrument name unique among active instruments; serial number unique per kind when entered; one active required check per instrument and event type; at most one open lock per instrument and test.
 
-### 5.2 New entities
+---
 
-**`EquipmentMaintenanceLog`** — `@Audited` (Envers).
+## Access
 
-| Field | Type | Required | Notes |
+Who can do what, in user terms:
+
+- Anyone who can see the analyzer area today sees the Instruments list, the Maintenance page and every instrument's status panel, read-only.
+- Bench technicians (users with Results rights for at least one lab unit) can log maintenance events, attach certificates, and record a periodic check.
+- A different user with validation rights verifies an event; the performer and logger cannot verify their own event.
+- Lab supervisors and quality officers (validation rights or analyzer management) can take an instrument out of service and return it.
+- Analyzer administrators add, edit, deactivate and reactivate instruments, edit required checks, and archive events.
+- Nobody can release a lock or an out-of-service hold by hand. A user with Results rights for the lab unit can accept an individual held result with a mandatory NCE, through Runs.
+- A user without a privilege sees the related button disabled with a tooltip naming what is needed, not hidden, so the status panel reads the same for everyone.
+
+### Nominated privileges
+
+Codes follow the PR #3443 catalogue form (D-235). The `analyzer` category shows under **Results** (Users and Roles Appendix A). Codes marked NEW must be checked against the catalogue on `develop` before minting. Until #3443 merges, the stand-in check is named in the last column.
+
+| Capability | Privilege | Group | Default grant on upgrade |
 |---|---|---|---|
-| `id` | UUID | Yes | PK |
-| `analyzerId` | FK → `Analyzer.id` | Yes | Which analyzer this event is for |
-| `eventTypeId` | FK → `Dictionary.id` (category `EQUIPMENT_MAINTENANCE_TYPE`) | Yes | What kind of event |
-| `storageRoomId` | FK → `StorageRoom.id` | No | Where the analyzer is located; defaults from analyzer's current location at log time |
-| `performedDate` | timestamp | Yes | When the event happened |
-| `performedBy` | FK → `SystemUser.id` | Yes | Who performed it (in-house tech) |
-| `outcome` | enum (`COMPLETED`, `IN_PROGRESS`, `FAILED`, `NEEDS_FOLLOW_UP`) | Yes | Result of the event |
-| `downtimeHours` | numeric(5,2) | No | Instrument out of service for X hours |
-| `vendor` | varchar(255) | No | External service provider name; empty = in-house |
-| `cost` | numeric(10,2) | No | Cost for budget/accounting; currency from system config |
-| `partsReplaced` | text | No | Free text in v1 |
-| `notes` | text | No | Description, observations, follow-up actions |
-| `nextDueDate` | date | No | Next service/calibration due; drives reminder Alert |
-| `verifiedBy` | FK → `SystemUser.id` | No | Second-person verification (for ISO 15189 compliance) |
-| `verifiedAt` | timestamp | No | Set when verifiedBy is set |
-| `archivedAt` | timestamp | No | Soft-delete timestamp; null = active, non-null = archived |
-| `archivedBy` | FK → `SystemUser.id` | No | User who archived; null when row is active |
-| Standard audit columns | `createdAt`, `createdBy`, `modifiedAt`, `modifiedBy` | Yes (auto) | |
+| See Instruments list, Maintenance page, status panels | `analyzer:view` (confirm in catalogue) | Results | As today (analyzer area access) |
+| Add, edit, deactivate instruments; edit required checks; archive events | `analyzer:manage` (confirm in catalogue) | Results | As today (analyzer administration, Admin bundle) |
+| Log maintenance events, attach certificates, record periodic checks | `analyzer:log_maintenance` **NEW** | Results | Roles that hold `result:enter` for any lab unit, and roles that hold `analyzer:manage`. Stand-in: Results rights |
+| Verify a maintenance event | `analyzer:verify_maintenance` **NEW** | Results | Roles that hold `result:validate`. Stand-in: Validation rights |
+| Take an instrument out of service, return it to service | `analyzer:set_service_status` **NEW** | Results | Roles that hold `result:validate` or `analyzer:manage`. Stand-in: Validation rights or Admin |
+| Accept a held result despite an instrument hold | as Runs FR-C5 (`result:enter` per lab unit, with NCE) | Results | As Runs |
 
-**New `Analyzer.storageRoomId` field** (extends existing entity, no separate row in this table). FK → `StorageRoom.id`, optional. Lets the analyzer have a "home" location independent of any single maintenance event. Defaults the form's location field.
-
-**New `AlertType` enum value:** `EQUIPMENT_MAINTENANCE_DUE`. Added to existing `org.openelisglobal.alert.valueholder.AlertType` enum.
-
-**New Dictionary category** `EQUIPMENT_MAINTENANCE_TYPE` seeded with `Service`, `Calibration`, `Repair`, `Inspection`, `Cleaning` on initial migration.
+NEW codes: `analyzer:log_maintenance`, `analyzer:verify_maintenance`, `analyzer:set_service_status`. Each needs a translated label (Users and Roles N-UR-6) and a server-side check, not only a hidden control.
 
 ---
 
-## 6. Dependencies and adjacent epics
+## Localization
 
-### 6.1 Dependencies (in scope for this epic)
+Constitution Principle VII applies: search before minting (`npm run i18n:find`), reuse `common.*` where it exists (PR #3863). v1.0's keys are kept where the string survives. New keys are namespaced `analyzer.*`. The menu keys keep their names and change their English value; French, Spanish, Portuguese and Bahasa Indonesia values change with them.
 
-- New `EquipmentMaintenanceLog` entity with `@Audited`
-- New Dictionary category seed
-- New `AlertType` enum value + reminder service (`@Scheduled` daily evaluator)
-- `Analyzer.storageRoomId` field addition (small schema extension)
-- IA: new top-level `Analyzers` SideNav group + per-analyzer submenu pattern + old route redirects
-- All FR-LIST-*, FR-MAINT-*, FR-LOG-*, FR-ALERT-* requirements
-
-### 6.2 Adjacent epics and downstream consumers (waiting on this)
-
-- **OGC-897 Management Dashboard** equipment cards extend from last-activity-only to show last-service, next-calibration, and overdue states once `EquipmentMaintenanceLog` is populated.
-- **OGC-896 Home Page Redesign** Lab Snapshot analyzer connections cell similarly extends. Home Attention feed gets a new "Equipment maintenance overdue" row when `EQUIPMENT_MAINTENANCE_DUE` Alerts exist with status OPEN.
-- **Future QA Dashboard equipment status panel** consumes the same data.
-
-### 6.3 Out of OpenELIS scope
-
-- Non-analyzer equipment (microscopes, centrifuges, ambient labware) — separate future epic if a need surfaces.
-- Mobile / portable equipment tracking — separate future epic.
-
----
-
-## 7. Permissions, Audit, and Localization
-
-### 7.1 Role attachment
-
-| Surface | Role required | Notes |
+| UI text | Key | Status |
 |---|---|---|
-| Existing analyzer area (`All Analyzers`, `QC Dashboard`, `QC Alerts`, `Corrective Actions`, per-analyzer detail) | Existing analyzer-area permission (carries over unchanged) | No change — this epic doesn't alter access to the existing pages |
-| `Maintenance` page — view | Same as the existing analyzer area | Read access for anyone with access to the analyzer area |
-| `Maintenance` page — log / edit / archive | Existing Admin bundle | Same write permission as analyzer admin; no new grant needed |
-| `verifiedBy` field assignment | Existing Admin bundle | No new grant; some labs may want a separate "quality manager" sub-grant in future (v1.x consideration) |
+| Instruments (menu group, list title, breadcrumb) | `sidenav.analyzers`, `sidenav.analyzers.all`, `breadcrumb.analyzers` | REUSE key, value changes from "Analyzers" |
+| Maintenance | `sidenav.analyzers.maintenance`, `breadcrumb.analyzers.maintenance` | REUSE (v1.0) |
+| Add instrument / Connected analyzer / Not connected instrument | `analyzer.add.title`, `analyzer.add.connected`, `analyzer.add.notConnected` | NEW |
+| Kind, Manufacturer and model, Serial number, Asset tag, Location, Used for | `analyzer.field.kind`, `.makeModel`, `.serialNumber`, `.assetTag`, `.location`, `.usedFor` | NEW |
+| Connection: Connected / Not connected | `analyzer.connection.label`, `.connected`, `.notConnected` | NEW |
+| Service status | `analyzer.service.label` | NEW |
+| In service / Restricted / Out of service | `analyzer.service.inService`, `.restricted`, `.outOfService` | NEW |
+| Restricted: {tests} | `analyzer.service.restrictedTests` | NEW |
+| Take out of service / Return to service | `analyzer.service.takeOut`, `analyzer.service.return` | NEW |
+| Why is it out of service? (note label) | `analyzer.service.takeOutNote` | NEW |
+| Still out of service: {reason} | `analyzer.service.stillOut` | NEW |
+| Reasons: calibration certificate {number} expired {date}; {check} overdue since {date}; {check} in progress since {date}; {check} failed on {date}; taken out of service by {user} on {date}; {test} locked: {control} failed in {runId} at {time}; all tests locked: periodic check failed on {date} | `analyzer.service.reason.certExpired`, `.checkOverdue`, `.checkInProgress`, `.checkFailed`, `.manual`, `.testLocked`, `.periodicFailed` | NEW |
+| Next due | `label.analyzer.maintenance.column.nextDue` | REUSE (v1.0) |
+| Certificate, Certificate number, Issued by, Certificate file, Valid until, Has certificate | `analyzer.maintenance.certificate`, `.certificateNumber`, `.issuedBy`, `.certificateFile`, `.validUntil`, `.filter.hasCertificate` | NEW |
+| Corrects event of {date} | `analyzer.maintenance.corrects` | NEW |
+| Required checks, Add check, Event type, Due by, Certificate validity, Interval, Every {n} days / months, Out of service when overdue, Verification required, First due date | `analyzer.check.title`, `.add`, `.eventType`, `.dueBy`, `.certificateValidity`, `.interval`, `.everyDays`, `.everyMonths`, `.outOfServiceWhenOverdue`, `.verificationRequired`, `.firstDue` | NEW |
+| Current / Due soon / Overdue / Awaiting verification / In progress / Never done | `analyzer.check.state.current`, `.dueSoon`, `.overdue`, `.awaitingVerification`, `.inProgress`, `.neverDone` | NEW |
+| Verification and Performance check (seeded event types) | Dictionary entries in `EQUIPMENT_MAINTENANCE_TYPE` | NEW dictionary values |
+| Instrument kinds (seeded) | Dictionary entries in `INSTRUMENT_KIND` | NEW dictionary values |
+| Event outcomes, form labels, archive, show archived, summary strings, v1.0 validation messages | `label.analyzer.maintenance.*`, `validation.analyzer.maintenance.*` | REUSE (v1.0); "Filter by analyzer" and "All analyzers" values change to "instrument" |
+| {n} instruments out of service | `analyzer.maintenance.summary.outOfService` | NEW |
+| You cannot verify an event you performed or logged | `validation.analyzer.maintenance.selfVerify` | NEW |
+| A certificate-based check needs a certificate number and a valid-until date | `validation.analyzer.maintenance.certificateRequired` | NEW |
+| This instrument is {status}: results will be held ({reason}) | `analyzer.picker.willBeHeld` | NEW (shown in Results Entry and the run header) |
+| Show deactivated, Deactivate, Reactivate, Edit, Save, Cancel, Search | `common.*` | REUSE, PENDING #3863 |
+| Alert titles and messages: Instrument out of service; {instrument} is out of service: {reason} | `label.alert.instrumentOutOfService.title`, `.message` | NEW (alongside the v1.0 `label.alert.equipmentMaintenanceDue.*`) |
 
-Per the binary-admin + role-bundles convention, no new per-action permission keys are introduced.
+Audit events use the `analyzer.audit.*` namespace (instrumentAdded, instrumentUpdated, instrumentDeactivated, instrumentReactivated, eventLogged, eventUpdated, eventVerified, eventArchived, eventUnarchived, checkAdded, checkUpdated, checkDeactivated, statusChanged, takenOutOfService, returnedToService, lockSet, lockLifted).
 
-### 7.2 Audit events
+---
 
-| Event verb | Trigger | Target | Payload | Actor |
-|---|---|---|---|---|
-| `EQUIPMENT_MAINTENANCE_LOGGED` | New `EquipmentMaintenanceLog` row created | `EquipmentMaintenanceLog.id` | `{analyzerId, eventTypeId, performedDate, performedBy, outcome, downtimeHours, vendor, cost, nextDueDate}` | Spring Security current user |
-| `EQUIPMENT_MAINTENANCE_UPDATED` | Existing row edited | `EquipmentMaintenanceLog.id` | `{fieldsChanged: {field: {old, new}}, ...}` | Spring Security current user |
-| `EQUIPMENT_MAINTENANCE_ARCHIVED` | Row archived (soft-delete: `archived_at` set) | `EquipmentMaintenanceLog.id` | `{archivedRecord: {analyzerId, eventTypeId, performedDate}, archivedAt}` | Spring Security current user |
-| `EQUIPMENT_MAINTENANCE_UNARCHIVED` | Archived row restored (`archived_at` cleared) | `EquipmentMaintenanceLog.id` | `{restoredRecord: {analyzerId, eventTypeId, performedDate}}` | Spring Security current user |
-| `EQUIPMENT_MAINTENANCE_VERIFIED` | `verifiedBy` field newly set | `EquipmentMaintenanceLog.id` | `{verifiedBy, verifiedAt}` | Spring Security current user |
-| `ANALYZER_LOCATION_UPDATED` | `Analyzer.storageRoomId` updated | `Analyzer.id` | `{old: roomId, new: roomId}` | Spring Security current user |
+## Dependencies
 
-Payloads include only entity IDs and configuration data — no patient PII (analyzers don't carry patient data anyway).
+1. **Maintenance event record** (v1.0, not built) with the v2.0 certificate attributes. Storage is the implementing engineer's decision.
+2. **Instrument attributes** on the `Analyzer` record: kind, manufacturer and model, serial number, asset tag, location, Used for tests (not-connected instruments). The v1.0 spec referred to `Analyzer.type` and `Analyzer.location`; neither is on the entity at develop `965d6d1`, so all are new.
+3. **Required check** information (FR-C).
+4. **Instrument-test lock** information and the evaluator that sets and lifts it (FR-E), fed by run controls, `qc_rule_violation` (Westgard, existing) and Analyzer Manual QC (OGC-428, not built).
+5. **Runs** (OGC-1200, Backlog): every hold effect. Until Runs ships, service status and locks are visible (list, status panel, picker warning, alerts) but hold nothing. Declared so no slice promises a hold before Runs exists.
+6. **Attachment storage pattern** (OGC-811, D-086) for certificate files.
+7. **Dictionary categories** `INSTRUMENT_KIND` (new) and `EQUIPMENT_MAINTENANCE_TYPE` (v1.0, plus two seeded values).
+8. **Alert type** `INSTRUMENT_OUT_OF_SERVICE` (new value on the existing enum).
+9. **Privilege catalogue** PR #3443 (not merged) for the nominated codes.
+10. **Test Catalog QC section** (OGC-1148, In Review) for the "Record the instrument used" setting, owned by Runs FR-H1.
 
-### 7.3 Envers coverage
+Feature flags: none. A lab that defines no required checks and records no controls sees every instrument In service and no holds.
 
-| Entity | `@Audited` | Rationale |
+---
+
+## Out of Scope
+
+- What a hold does, how it renders on the worklist and in Validation, and its override actions: Runs owns them.
+- Cold-storage temperature monitoring (existing freezer alerts).
+- Asset procurement, depreciation, vendor contracts and a vendor master list (vendor stays text).
+- Reading a certificate PDF automatically (dates and numbers are typed).
+- Reminder delivery by email or SMS; Result Delivery's foundation can carry it later.
+- Parts inventory linkage (parts replaced stays text).
+- Pre- and post-calibration QC linkage beyond what the lock already does.
+- Equipment that never produces or supports a result and has no calibration (furniture, computers).
+
+Anything listed here is absent from `analyzer-maintenance-preview.html`; it has no stubbed sections.
+
+---
+
+## Acceptance Criteria
+
+Register
+
+- [ ] A not-connected instrument can be added from the Instruments list with Name, Kind, Used for and the optional fields; it appears in the same list as connected analyzers with Connection = Not connected (FR-A1, FR-A2).
+- [ ] Kind is a Dictionary category with the seeded values; a lab-added kind appears in the picker (FR-A3).
+- [ ] The list shows Service status and Next due per instrument, filters by Connection, Service status, Kind and Lab unit, searches name, serial number and asset tag, and hides deactivated instruments behind Show deactivated (FR-A4, FR-A5).
+- [ ] The menu reads Instruments, Analyzer Types, Import Issues, Maintenance; routes are unchanged; breadcrumbs read Home / Instruments / ... (Navigation & URL).
+
+Maintenance and certificates
+
+- [ ] An event linked to a certificate-based check cannot be saved as Completed without a certificate number and Valid until; the PDF uploads, views and downloads; it cannot be replaced after verification (FR-B3, FR-B4, FR-B8).
+- [ ] When verification is required, a completed event satisfies its check only once a different user verifies it; the performer and logger cannot verify (FR-B6).
+- [ ] Archiving an event that satisfied a check makes the check due again and recalculates status (FR-B7).
+
+Required checks and status
+
+- [ ] A check's next due date follows FR-C2 for both certificate-validity and interval checks; a new check with no event and no first due date is Never done and overdue (FR-C2, FR-C3).
+- [ ] 7 days before due a warning alert appears; on the due date it becomes critical; a satisfying event resolves it (FR-C4).
+- [ ] An instrument becomes Out of service the day an Out-of-service-when-overdue check lapses, while such a check's latest event is In progress or Failed, or when taken out manually; it lists every reason; it returns to In service only when no reason remains (FR-D2, FR-D3).
+- [ ] Return to service with an automatic reason still standing leaves the instrument Out of service and says which reason (FR-D3).
+- [ ] A connected analyzer that is Out of service keeps its connection state, and the two are shown separately (FR-D6).
+- [ ] Every status change appears in the audit trail with its cause (FR-D7).
+
+Locks
+
+- [ ] A failed control for potassium on a run on analyzer A sets a lock on (A, potassium); A shows Restricted: Potassium; glucose on A is unaffected (FR-E1, FR-E2).
+- [ ] A Westgard rejection on (A, potassium) sets the lock; a 1-2s warning does not (FR-E1).
+- [ ] A failed periodic check on A locks every test A is used for (FR-E1).
+- [ ] A later run on A whose own potassium control passes is not held and lifts the lock; potassium rows in other runs held during the lock stay held until dispositioned (FR-E3).
+- [ ] No screen offers a way to release a lock by hand (FR-E4).
+
+Consumers
+
+- [ ] With Runs built, a result on an Out-of-service instrument, or a locked test on a Restricted instrument, is held with the reason from the status panel (FR-F1; Runs FR-C8, FR-C9).
+- [ ] The Results Entry instrument field shows each instrument's status and warns inline before a held result is saved (FR-F2).
+- [ ] Where the test requires the instrument to be recorded, a result cannot be saved without one (FR-F3).
+- [ ] The Home attention feed and Management Dashboard show out-of-service instruments and due checks from the Alert table (FR-F4).
+
+Non-functional
+
+- [ ] Instruments list and Maintenance page load in under 1.5 s for 200 instruments and five years of events; status for one instrument is returned with its reasons in one request.
+- [ ] The daily recalculation completes in under 30 s for 500 instruments and 2,000 checks.
+- [ ] All visible strings use the Localization keys; status is always icon plus word, never colour alone; keyboard and screen reader access meets WCAG 2.1 AA.
+- [ ] Every write in the audit vocabulary appears in the audit trail with user and time.
+
+---
+
+## Decisions (provisional IDs; renumber from main's next free ID at registration)
+
+| ID | Decision | Scope |
 |---|---|---|
-| `EquipmentMaintenanceLog` | Yes | Configuration / compliance-grade record; ISO 15189 audit trail requires complete history. Archive (soft-delete) preserves rows in the table; Envers additionally tracks edit history |
-| `Analyzer` (existing, with new `storageRoomId` field) | Verify existing `@Audited` status; new field inherits whatever's there. Recommend Yes. | Equipment master data; changes are audit-worthy |
+| D-360 | **One instrument register on the `Analyzer` record, connected or not.** The UI noun is Instruments; routes stay `/analyzers`. Amends D-069: the group is labelled Instruments and gains Maintenance as its fourth child | GLOBAL |
+| D-361 | **Service status (In service, Restricted, Out of service) is derived on the server, once**, with its reasons, and is never the analyzer connection state | GLOBAL |
+| D-362 | **A certificate is a maintenance event** with a number, issuer, PDF and valid-until date; no separate certificate record | FEATURE |
+| D-363 | **An unfit instrument holds results through the Runs gate**; the only override is per result with an NCE. No hard block and no manual release | GLOBAL |
+| D-364 | **A failed control (or Westgard rejection, or failed periodic check) locks that test on that instrument across runs; the next passing control for that test on that instrument lifts it.** Reverses Analyzer Manual QC BR-AQC-005 (non-blocking) | GLOBAL |
+| D-368 | **Blank and duplicate failures never lock an instrument**; they hold their run only (Runs) | FEATURE |
 
-### 7.4 Localization
+## Supersession notes (add at the top of each affected spec)
 
-All visible strings use the i18n helper. Key naming follows `[category].[feature].[identifier]` convention.
+- **`analyzer-manual-qc.md` (OGC-428).** BR-AQC-005 is reversed: a failed periodic check locks every test the instrument is used for (this FRS FR-E1, D-364). Recording stays as specified.
+- **`runs.md` (OGC-1200).** Reads service status and locks (Runs FR-C8, FR-C9, FR-F1 here).
+- **Decision log D-069.** Labels and children amended by D-360.
+- **`lab-management-dashboard.md` (OGC-897) and Home redesign (OGC-896).** Equipment cards and the attention feed gain service status and the `INSTRUMENT_OUT_OF_SERVICE` alert.
 
-**SideNav and breadcrumbs (only the new keys added by this epic):**
+## Open questions
 
-| Key | Default English |
-|---|---|
-| `sidenav.analyzers.maintenance` | Maintenance |
-| `breadcrumb.analyzers.maintenance` | Maintenance |
-
-Existing keys for the analyzer area (`sidenav.analyzers`, `sidenav.analyzers.all`, `sidenav.analyzers.qcDashboard`, `sidenav.analyzers.qcAlerts`, `sidenav.analyzers.correctiveActions`, etc.) carry over unchanged from the existing analyzer pages.
-
-**Scope filter:**
-
-| Key | Default English |
-|---|---|
-| `label.analyzers.maintenance.scope.label` | Filter by analyzer |
-| `label.analyzers.maintenance.scope.allAnalyzers` | All analyzers |
-| `label.analyzers.maintenance.summary.allAnalyzers` | {0} events this period · {1} overdue · {2} due in next 30 days |
-
-**Maintenance page:**
-
-| Key | Default English |
-|---|---|
-| `label.analyzer.maintenance.title` | Maintenance |
-| `label.analyzer.maintenance.summary.lastService` | Last service: {0} |
-| `label.analyzer.maintenance.summary.nextDue` | Next due: {0} |
-| `label.analyzer.maintenance.summary.overdue` | Overdue: {0} |
-| `label.analyzer.maintenance.button.logNew` | + Log new event |
-| `label.analyzer.maintenance.column.analyzer` | Analyzer |
-| `label.analyzer.maintenance.column.date` | Date |
-| `label.analyzer.maintenance.column.type` | Type |
-| `label.analyzer.maintenance.column.performedBy` | Performed by |
-| `label.analyzer.maintenance.column.outcome` | Outcome |
-| `label.analyzer.maintenance.column.downtime` | Downtime |
-| `label.analyzer.maintenance.column.vendor` | Vendor |
-| `label.analyzer.maintenance.column.nextDue` | Next due |
-| `label.analyzer.maintenance.column.notes` | Notes |
-| `label.analyzer.maintenance.column.verified` | Verified |
-| `label.analyzer.maintenance.column.actions` | Actions |
-| `label.analyzer.maintenance.outcome.completed` | Completed |
-| `label.analyzer.maintenance.outcome.inProgress` | In Progress |
-| `label.analyzer.maintenance.outcome.failed` | Failed |
-| `label.analyzer.maintenance.outcome.needsFollowUp` | Needs Follow-up |
-| `label.analyzer.maintenance.vendor.inHouse` | In-house |
-| `label.analyzer.maintenance.form.analyzer` | Analyzer |
-| `label.analyzer.maintenance.form.eventType` | Event type |
-| `label.analyzer.maintenance.form.performedDate` | Date performed |
-| `label.analyzer.maintenance.form.performedBy` | Performed by |
-| `label.analyzer.maintenance.form.location` | Location |
-| `label.analyzer.maintenance.form.outcome` | Outcome |
-| `label.analyzer.maintenance.form.downtime` | Downtime (hours) |
-| `label.analyzer.maintenance.form.vendor` | Vendor (leave empty if in-house) |
-| `label.analyzer.maintenance.form.cost` | Cost |
-| `label.analyzer.maintenance.form.partsReplaced` | Parts replaced |
-| `label.analyzer.maintenance.form.notes` | Notes |
-| `label.analyzer.maintenance.form.nextDueDate` | Next due date |
-| `label.analyzer.maintenance.form.verifiedBy` | Verified by |
-| `label.analyzer.maintenance.form.save` | Save event |
-| `label.analyzer.maintenance.form.cancel` | Cancel |
-| `label.analyzer.maintenance.form.archive` | Archive event |
-| `label.analyzer.maintenance.form.unarchive` | Unarchive event |
-| `label.analyzer.maintenance.confirmArchive` | Archive this maintenance event? It will be hidden from the default view but preserved in the audit trail. |
-| `label.analyzer.maintenance.toolbar.showArchived` | Show archived |
-| `label.analyzer.maintenance.tag.archived` | Archived {0} by {1} |
-| `validation.analyzer.maintenance.nextDuePast` | Next due date is in the past — is that intentional? |
-| `validation.analyzer.maintenance.negativeCost` | Cost cannot be negative. |
-| `validation.analyzer.maintenance.negativeDowntime` | Downtime cannot be negative. |
-| `label.alert.equipmentMaintenanceDue.title` | Maintenance due |
-| `label.alert.equipmentMaintenanceDue.message` | {0}: {1} due in {2} days |
-| `label.alert.equipmentMaintenanceDue.messageOverdue` | {0}: {1} overdue by {2} days |
-
----
-
-## 8. Acceptance Criteria
-
-### 8.1 IA
-
-- [ ] `Maintenance` menu item appears in the existing analyzer area, after `Corrective Actions` and before per-analyzer detail
-- [ ] No new top-level SideNav group is introduced
-- [ ] Existing analyzer pages (`All Analyzers`, `QC Dashboard`, `QC Alerts`, `Corrective Actions`, per-analyzer detail) remain unchanged
-- [ ] Route `/analyzers/maintenance` is reachable; query param `?analyzerId={id}` pre-filters scope correctly
-- [ ] Breadcrumb chain renders `Home / Analyzers / Maintenance`
-- [ ] Deep-linking works — pasting `/analyzers/maintenance?analyzerId=X` into a new tab lands on the filtered view
-
-### 8.2 Maintenance page
-
-- [ ] Page renders at `/analyzers/maintenance` with the scope filter dropdown at the top
-- [ ] Scope filter defaults to `All analyzers` when no query param is supplied
-- [ ] When a specific analyzer is selected (via dropdown or query param), summary strip shows that analyzer's name, location, last service, next-due (with overdue red flag if applicable)
-- [ ] When `All analyzers` is selected, summary shows lab-wide event counts (X events this period · Y overdue · Z due in next 30 days)
-- [ ] DataTable shows `Analyzer` column when scope = `All analyzers`; hides it when filtered to a specific analyzer
-- [ ] `+ Log new event` button opens inline-expansion form at top of the table
-- [ ] Form has 13 fields per FR-MAINT-003 (including the new `Analyzer` field); required fields enforced; validation warnings/errors render correctly
-- [ ] When the scope filter has a specific analyzer selected, the form's `Analyzer` field defaults to that analyzer but stays editable
-- [ ] Save creates an `EquipmentMaintenanceLog` row and emits `EQUIPMENT_MAINTENANCE_LOGGED` audit event
-- [ ] If `nextDueDate` set, an `EQUIPMENT_MAINTENANCE_DUE` Alert is scheduled per FR-MAINT-004
-- [ ] Existing rows editable via inline row expansion; save emits `EQUIPMENT_MAINTENANCE_UPDATED`
-- [ ] Archive is allowed with confirmation modal; sets `archived_at` + `archived_by`; emits `EQUIPMENT_MAINTENANCE_ARCHIVED` audit event
-- [ ] Default table view excludes rows with `archived_at IS NOT NULL`
-- [ ] `Show archived` toolbar toggle reveals archived rows with muted styling and "Archived {date} by {user}" tag
-- [ ] When archived rows are visible, the action becomes `Unarchive`; restoring clears `archived_at` + `archived_by` and emits `EQUIPMENT_MAINTENANCE_UNARCHIVED`
-- [ ] Setting `verifiedBy` for the first time emits `EQUIPMENT_MAINTENANCE_VERIFIED` audit event
-- [ ] No hard-delete UI is exposed in v1
-- [ ] Envers preserves complete row edit history; archive state is captured via the entity's own `archived_at` field plus the audit event
-
-### 8.3 Alert pathway
-
-- [ ] New `EQUIPMENT_MAINTENANCE_DUE` AlertType added to enum
-- [ ] Daily `@Scheduled` job evaluates `EquipmentMaintenanceLog.nextDueDate` and emits Alerts:
-  - 7 days before due → Alert with `severity = WARNING`
-  - On / past due date → Alert escalates to `severity = CRITICAL` (existing record, status remains OPEN)
-- [ ] Logging a new event with matching `eventTypeId` for the same analyzer auto-resolves the prior due Alert
-- [ ] Alert message and contextData populated per FR-ALERT-001
-- [ ] Existing Alert dedup mechanism prevents duplicate Alerts within 30 minutes
-
-### 8.4 Cross-cutting
-
-- [ ] All visible strings localized; no hardcoded English
-- [ ] All tabular data uses Carbon `<DataTable>`
-- [ ] All inline styles use Carbon `--cds-*` tokens
-- [ ] All write actions audit_trail-logged with documented payloads
-- [ ] `@Audited` on `EquipmentMaintenanceLog`
-- [ ] WCAG 2.1 AA: keyboard navigation, sufficient contrast, ARIA roles
-
----
-
-## 9. Non-functional requirements
-
-- **Performance:** Maintenance page renders < 1.5s for a lab with 50 analyzers and 5 years of maintenance history (worst case = `All analyzers` scope with full year filter). Per-analyzer-filtered view renders < 1s for an analyzer with 200 historical events.
-- **Scheduled job:** Daily evaluator runs at 06:00 local time; takes < 30 seconds for a lab with 100 analyzers and 1,000 future-dated maintenance logs.
-- **Accessibility:** WCAG 2.1 AA. Severity in Alerts conveyed via color AND text.
-- **Localization:** English, French, Spanish, Portuguese, Bahasa Indonesia at launch; structure supports additional locales without code changes.
-- **Browser support:** Modern Chrome, Firefox, Safari, Edge. No IE11.
-- **Bandwidth:** Optimized for low-bandwidth deployments (PNG, Indonesia, Madagascar). Initial payload < 200KB JS + CSS.
-
----
-
-## 10. Out of scope (deferred)
-
-| Item | Reason | Lands in |
-|---|---|---|
-| Attachments (PDF service reports, vendor invoices) | Generic attachment model not in OpenELIS; standalone effort | Future epic |
-| Pre/post-QC auto-link (attaching QC runs to a calibration event) | Workflow complexity; not a v1 blocker | v1.x |
-| Parts inventory tracking (structured parts list with Inventory integration) | v1 uses free-text `partsReplaced`; structured needs inventory model extension | v1.x or separate |
-| Non-analyzer equipment (microscopes, centrifuges, etc.) | Different domain; analyzer-specific in v1 | Future epic |
-| Mobile / portable equipment tracking | Different domain | Future epic |
-| Reminder delivery via email/SMS (beyond in-app Alerts) | Requires notification infrastructure; in-app Alert is sufficient for v1 | v1.x |
-| Per-deployment "verifiedBy required" rule for specific event types | Some labs require it, others don't; default is optional in v1 | v1.x admin config |
-| Separate Quality Manager role with elevated verification permission | v1 reuses Admin bundle; new sub-grant if labs need it | v1.x |
-| Cost rollup dashboard (sum spend per quarter, per vendor) | Separate reporting concern | Future Reports work |
-| Vendor / external service provider master data (vs. free-text varchar) | v1 uses varchar; if labs want structured vendors with contact info, future enhancement | Future epic |
-| Auto-purge of archived maintenance events | **Never.** ISO 15189 and accreditation audits require a permanent service history. Archived rows are hidden from the default view but preserved indefinitely in the database (and tracked by Envers). No retention policy or auto-purge schedule exists. | Out of scope permanently |
-
----
-
-## 11. Open questions (TBD before /breakdown)
-
-1. **`Analyzer.storageRoomId` migration:** existing analyzer rows have no location. Migration sets it null; deployments can backfill via admin. Confirm this is acceptable vs. requiring an upfront assignment migration.
-2. **Existing analyzer-area permission name:** confirm exact permission/grant identifier in `system_role_module` so the new Maintenance page inherits the same access scope. (Possible names: `analyzerManagement`, `analyzers`, `analyzer_admin` — verify against live.)
-3. **`Analyzer.serialNumber` / `assetTag`:** worth adding for asset tracking and search? Low cost, high value for compliance. Recommended yes, but not strictly required.
-4. **Default value for `outcome` when logging a new event:** `Completed` (most common) or null (force selection)? Recommended `Completed` for ergonomic default.
-5. **Cost currency:** picked up from existing OpenELIS system config (which has a currency setting), or per-event override? Recommended single system-wide currency in v1.
-6. **Existing Alert page UI:** verify it can render `EQUIPMENT_MAINTENANCE_DUE` polymorphically; if not, scope a small extension to render analyzer-specific context.
-7. **`@Scheduled` job placement:** new dedicated component, or extend an existing scheduled-evaluator service (e.g., the freezer-temperature evaluator)? Recommended new component to keep ownership clean.
-
----
-
-*End of FRS — version-agnostic. Slicing into versions, story decomposition, and sprint capacity happen in `/breakdown`. Data model verified against `OpenELIS-Global-2/develop` SHA d7435687 on 2026-06-05.*
+1. Should an **overdue periodic check** (OGC-428 daily QC not done) restrict the instrument, or only raise an alert? Default: alert only; a failed check restricts, a missing one does not. A lab that wants stricter behaviour adds the periodic check as a required check with Out of service when overdue.
+2. Should a lab be able to set the 7-day warning lead time per check (a vendor visit needs weeks of notice)? Default: fixed at 7 days, plus the 30-day count in the summary strip.
+3. Does the user manual's analyzer chapter (OGC-1297 doc review) retitle to Instruments in the same release? Default: yes, flagged for the Feature Doc.
