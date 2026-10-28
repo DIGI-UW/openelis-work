@@ -4272,6 +4272,24 @@
   added: "2026-08-05"
   status: draft
 
+- id: analyzer-setup-from-traffic
+  type: jsx
+  path: designs/analyzer-integration/analyzer-setup-from-traffic.jsx
+  spec: designs/analyzer-integration/analyzer-setup-from-traffic.md
+  preview: designs/analyzer-integration/analyzer-setup-from-traffic-preview.html
+  paired_with: designs/analyzer-integration/analyzer-setup-from-traffic-preview.html
+  category: analyzer-integration
+  description: >
+    Analyzer setup from a real result: Instrument, Connect, Send a test result, Verify. Setup capture on the Bridge, parsed-message preview (read as number or text), three-field 'instrument not listed' with protocol starters, Start from a similar instrument with Keep or Clear, evidence-based test picker scoped to the analyzer's lab units, inline plain-language validation, fixes from Undelivered results, held rows and Alerts with 'also add to the analyzer type', catalog readiness lookups. No matching engine. Includes the QA defect register (27 to 28 Oct 2026). FRS v0.3 (analyzer identified from what it sends; connecting is an IT and lab job, with a sheet for IT). Mockup default export AnalyzerSetupFromTrafficMockup; named exports AnalyzerSetup, NewAnalyzerType, StartFromSimilar, MapThisCode, UndeliveredResults, CatalogReadiness. Epic OGC-1054.
+  links:
+    jira:
+      - OGC-1054
+      - OGC-1573
+    github_issue: 377
+    gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-setup-from-traffic
+    preview: https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-setup-from-traffic-preview.html
+  added: "2026-10-28"
+  status: draft
 - id: analyzer-maintenance
   type: jsx
   path: designs/analyzer-integration/analyzer-maintenance.jsx

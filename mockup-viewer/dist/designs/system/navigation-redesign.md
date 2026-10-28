@@ -4,6 +4,7 @@
 **Scope:** every entry in the main side menu (active, inactive, JSON-profile-only and runtime-generated) and every entry in the Admin sidebar
 **Inventory source:** `clinlims.menu` on the develop dev stack (image 2026-09-23, 196 rows) + changesets merged to `develop` after that image (QA menu `qa/001`, Batch Workplan `104`, Custom Data Export `3.6.x.x/003`) + `volume/menu/menu_config.json` + `AdminSideNav.jsx` / `Admin.jsx` at `develop` 3f8d526
 **Preview:** `navigation-redesign-preview.html`
+**Superseded (Admin sidebar):** The Admin sidebar parts of this FRS (FR-22 to FR-26, Appendix A.3 and A.4) are superseded by [`designs/admin-config/admin-redesign.md`](../admin-config/admin-redesign.md) Part A (2026-10-02). The main-menu parts of this FRS stand.
 
 ---
 

@@ -1,4 +1,7 @@
 # Analyzer Manual QC Recording
+
+> **Superseded in part (2026-10-26, OGC-1015 Instruments v2.0):** BR-AQC-005 (non-blocking) is reversed by D-364. A failed periodic check locks that instrument's tests until the next passing control. See `analyzer-maintenance.md`.
+
 ## Functional Requirements Specification — v1.0
 
 **Version:** 1.0
