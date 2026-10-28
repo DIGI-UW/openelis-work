@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-28T04:43:01.661Z",
+  "generated": "2026-10-28T04:44:36.203Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
   "totalDesigns": 247,
   "categories": [
@@ -1831,7 +1831,8 @@
         "qa-findings"
       ],
       "jira": [
-        "OGC-1054"
+        "OGC-1054",
+        "OGC-1573"
       ],
       "githubIssue": 377,
       "specPath": "designs/analyzer-integration/analyzer-setup-from-traffic.md",
@@ -1932,7 +1933,8 @@
         "Madagascar"
       ],
       "jira": [
-        "OGC-1054"
+        "OGC-1054",
+        "OGC-1573"
       ],
       "githubIssue": null,
       "specPath": "designs/analyzer-integration/analyzer-profile-mapping.md",
@@ -1960,7 +1962,8 @@
         "Madagascar"
       ],
       "jira": [
-        "OGC-1054"
+        "OGC-1054",
+        "OGC-1573"
       ],
       "githubIssue": null,
       "specPath": "designs/analyzer-integration/analyzer-profile-mapping-gap-analysis.md",

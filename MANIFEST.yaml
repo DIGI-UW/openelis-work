@@ -4284,6 +4284,7 @@
   links:
     jira:
       - OGC-1054
+      - OGC-1573
     github_issue: 377
     gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/analyzer-setup-from-traffic
     preview: https://digi-uw.github.io/openelis-work/designs/analyzer-integration/analyzer-setup-from-traffic-preview.html

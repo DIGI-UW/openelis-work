@@ -1,1 +1,0 @@
-import{j as t}from"./index-I_jJFcCX.js";function e(){return t.jsx("iframe",{src:"./designs/reports/custom-data-export.html",title:"Custom Data Export interactive design",style:{width:"100%",height:"80vh",border:0,background:"#f4f4f4"}})}export{e as default};

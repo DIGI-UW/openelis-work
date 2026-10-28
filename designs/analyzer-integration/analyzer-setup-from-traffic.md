@@ -9,7 +9,7 @@
 | **Extends** | `analyzer-profile-mapping.md` (Analyzer Types & Mapping, 17 Jun 2026), Epic OGC-1054, built as OGC-1055 to OGC-1058 |
 | **Front end** | Carbon React |
 | **Companion artifacts** | `analyzer-setup-from-traffic-preview.html` (clickable preview), `analyzer-setup-from-traffic-mockup.jsx` (handoff mockup), QA session notes `qa-session-2026-10-27-analyzers-testing.md` |
-| **Jira** | One Story under OGC-1054, assigned to Piotr |
+| **Jira** | OGC-1573 (Story under Epic OGC-1054, Piotr) |
 
 > This FRS is version-agnostic. It does not replace the June FRS; it changes the order of the setup flow, closes the gaps between that FRS and what shipped in OGC-1055 to 1058, and lists the defects QA found. Where it changes a June requirement it says so by ID.
 >
