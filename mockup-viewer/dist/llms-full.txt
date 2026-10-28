@@ -1,6 +1,6 @@
 # OpenELIS Design Gallery — Full Spec Content
 
-Generated: 2026-10-28T17:05:30.143Z
+Generated: 2026-10-28T18:36:07.961Z
 Total designs: 247
 
 ---
@@ -32591,7 +32591,7 @@ Jira: OGC-1054, OGC-1573
 
 | Field | Value |
 |-------|-------|
-| **Status** | Draft v0.2 for review (v0.2, 28 Oct: analyzer identified from what it sends, not a typed sender name; server address from a deployment setting; analyzers that act as the server) |
+| **Status** | Draft v0.3 for review (v0.3, 28 Oct: connecting is an IT and lab job, with a hand-off sheet for IT; v0.2, 28 Oct: analyzer identified from what it sends, not a typed sender name; server address from a deployment setting; analyzers that act as the server) |
 | **Module** | Analyzers (Analyzers list inline setup, Analyzer Types, Field Mappings, Undelivered results) |
 | **Author** | Casey Iiams-Hauser (QA findings from testing.openelis-global.org, 27 to 28 Oct 2026) |
 | **Date** | 2026-10-28 |
@@ -32661,12 +32661,18 @@ Each requirement is tagged with the QA finding it closes (P, R, B, X, L, H, D: s
 **FR-A2 Connect is never locked by mapping.** Connect is available as soon as the instrument and lab units are chosen. Unresolved or ambiguous test matches never disable Connect or Save (closes L2: today the page says "You can confirm and connect" while Connect is disabled).
 
 **FR-A3 Show exactly what to type into the instrument.** For an analyzer that connects to OpenELIS (the usual case), Connect shows, as copyable values, only what goes into the instrument's LIS or host settings: the **server address** and the **host-published port** for the type's protocol and framing. It does not ask for or show a sender name; instruments set that in firmware.
-- The server address comes from a deployment setting (DEP-8), because OpenELIS cannot know how the lab network reaches it (a public hostname on testing; a LAN IP, NAT or VPN address at most sites). A site can list more than one ("On the lab network: 192.168.10.5; over the VPN: 10.8.0.2"). When the setting is empty, Connect says "Ask your server administrator for the address analyzers use to reach OpenELIS" instead of guessing.
+- OpenELIS cannot know how the lab network reaches it (a public hostname on testing; a LAN IP, NAT or VPN address at most sites), so the server address is something the lab gets from its **IT person**. If IT recorded it at install time (optional setting, DEP-8), Connect shows it, and a site can list more than one ("On the lab network: 192.168.10.5; over the VPN: 10.8.0.2"). Otherwise Connect says "Ask your IT person for the address analyzers use to reach OpenELIS" and never guesses.
 - When the instrument talks through a vendor PC (for example GeneXpert Dx or EpiCenter software), the help text says these values go into that software, not the instrument.
 
-The port shown is the one reachable from outside the server (from the deployment's published port settings), never the Bridge's internal listener port (closes R4: setup showed internal 12011 while only 12000 was published). If the protocol's port is not published on this server, Connect says so in plain words and names who fixes it ("Ask your server administrator to open port 2575 for HL7"), instead of letting the instrument time out (H3).
+The port shown is the one reachable from outside the server (from the deployment's published port settings), never the Bridge's internal listener port (closes R4: setup showed internal 12011 while only 12000 was published). If the protocol's port is not published on this server, Connect says so in plain words and names who fixes it ("Ask your IT person to open port 2575 for HL7"), instead of letting the instrument time out (H3).
 
 **FR-A4 One connection status, not two.** "Test connection" and the readiness panel use one rule and one message. The panel never says "ready to activate" while a required connection value is empty or the connection test reports incomplete settings (closes B9, R10). Host and Instrument system name have help text that names this instrument, not other senders.
+
+**FR-A3b Connecting is an IT and lab job.** Connect says so plainly ("Connecting an analyzer needs your IT person: they make sure the analyzer and the OpenELIS server can reach each other") and offers **Share with IT**: a one-page connection sheet the lab person can copy, print or send, written for IT. It lists:
+- the analyzer (name, manufacturer and model, protocol and framing, lab, and whether it connects to OpenELIS or waits for OpenELIS to connect);
+- what IT needs to make work: the OpenELIS server address the analyzer (or vendor PC) should use, the port to allow through the server's firewall and any cloud security group or VPN, and that the analyzer needs a fixed IP on a network that can reach the server; for an analyzer that acts as the server, the analyzer's IP and port that OpenELIS must reach;
+- how IT can check: what Connect shows when a connection arrives (FR-A5 lists the source address, listener and time of anything received on the port), and what a timeout usually means (port closed or no route).
+The sheet uses only values OpenELIS already holds; blanks are shown as "to fill in" for IT, not hidden. No new storage: it is a printable view of the setup, like other printed views in OpenELIS.
 
 **FR-A3a Analyzers that act as the server.** Some instruments wait for the LIS to connect to them. When the type says so (a protocol-starter setting, DEP-4), Connect instead asks for the **analyzer's IP address and port**, with help text "Find these on the analyzer's network or LIS settings screen", and Test connection tries to reach it. This is the only case where the analyzer's own address is entered.
 
@@ -32861,7 +32867,11 @@ All strings use i18n keys. Search before minting (`npm run i18n:find`); generic 
 | `label.analyzer.setup.alsoImport` | Also import these results | Activate option |
 | `label.analyzer.connect.typeIntoAnalyzer` | Type these into the analyzer | Connect panel heading |
 | `label.analyzer.connect.serverAddress` | OpenELIS server address | Connect |
-| `label.analyzer.connect.serverAddressMissing` | Ask your server administrator for the address analyzers use to reach OpenELIS | Connect, setting empty |
+| `label.analyzer.connect.serverAddressMissing` | Ask your IT person for the address analyzers use to reach OpenELIS | Connect, address not recorded |
+| `label.analyzer.connect.itJob` | Connecting an analyzer needs your IT person: they make sure the analyzer and the OpenELIS server can reach each other. | Connect intro |
+| `label.analyzer.connect.shareWithIt` | Share with IT | Connect action |
+| `label.analyzer.connect.itSheet.title` | Analyzer connection: what IT needs to set up | Connection sheet heading |
+| `label.analyzer.connect.itSheet.toFill` | To fill in | Connection sheet blank value |
 | `label.analyzer.connect.vendorPc` | If the analyzer sends results through its own software on a PC, enter these in that software | Connect help |
 | `label.analyzer.connect.analyzerIsServer` | This analyzer waits for OpenELIS to connect. Enter its address and port from its network or LIS settings screen. | Connect, analyzer as server |
 | `label.analyzer.setup.unclaimed` | Messages from analyzers OpenELIS doesn't know yet | Waiting state list |
@@ -32870,7 +32880,7 @@ All strings use i18n keys. Search before minting (`npm run i18n:find`); generic 
 | `label.analyzer.identity.senderAndAddress` | Another analyzer sends the same name, so we'll also use the address it connects from: {address} | Identity notice |
 | `label.analyzer.identity.notUnique` | Two analyzers send the same name from the same address. Give this one its own port under Advanced. | Identity notice |
 | `label.analyzer.connect.port` | Port for {protocol} | Connect |
-| `label.analyzer.connect.portClosed` | Port {port} isn't open on this server. Ask your server administrator to open it. | Connect warning |
+| `label.analyzer.connect.portClosed` | Port {port} isn't open on this server. Ask your IT person to open it. | Connect warning |
 | `label.analyzer.connect.resultsOnly` | Results only | Data flow, while host query is absent |
 | `label.analyzer.verify.seenMapped` | Verified against a real result | Reconcile status |
 | `label.analyzer.verify.seenNewValue` | New value | Reconcile status |
@@ -32914,6 +32924,7 @@ All strings use i18n keys. Search before minting (`npm run i18n:find`); generic 
 - [ ] **AC-1** Adding an analyzer shows Instrument → Connect → Send a test result → Verify; Connect is enabled with unresolved matches present.
 - [ ] **AC-2** Connect shows the server address from the deployment setting (or the ask-your-administrator message when it is empty) and the outside port for the protocol (12000 for LIS01-A on testing, 12011 for E1381, 2575 for HL7), warns when the port isn't published, and never asks for a sender name.
 - [ ] **AC-3** A message from an instrument OpenELIS doesn't know appears in the waiting list within 10 seconds with time, source address, sender text and first result; it is acknowledged to the instrument and does **not** become a result.
+- [ ] **AC-2a** Connect says connecting needs the IT person; Share with IT produces a printable sheet with the analyzer, protocol, server address (or "To fill in"), port to open, and how to check, using only values OpenELIS holds.
 - [ ] **AC-3a** Choosing "This is my analyzer" attaches the message as the setup capture and stores the sender text as received; when a second analyzer already sends the same text, the stored identity also includes the source address and the screen says so.
 - [ ] **AC-3b** For a type whose analyzer acts as the server, Connect asks for the analyzer's IP and port and Test connection reaches it.
 - [ ] **AC-4** Verify marks each received code as verified, new value, not in this type, or not seen yet; nothing in the capture is dropped.
@@ -32947,7 +32958,7 @@ All strings use i18n keys. Search before minting (`npm run i18n:find`); generic 
 - **DEP-5 Published port settings.** OpenELIS needs the outside ports per protocol. Proposed: the `.env` values from the openelis-docker port change (`BRIDGE_ASTM_PORT`, `BRIDGE_ASTM_E1381_PORT`, `BRIDGE_HL7_MLLP_PORT`) passed to the webapp. Draft change exists locally (not pushed); distro template needs the current Bridge service.
 - **DEP-6 Alerts entry type.** Uses the existing Alerts page; the analyzer unknown-code alert type may need adding (June FR-G2).
 - **DEP-7 Import v2 and Runs.** FR-I2 follows Import v2 Keep/Replace (OGC-288) and the run model (OGC-1200, D-052, D-059); do not build a separate resend rule.
-- **DEP-8 Server address setting (NEW).** A deployment setting with the address (or addresses, labelled) analyzers use to reach OpenELIS, set at install time alongside the published ports (`.env` or Application Properties). Shown read-only in Connect.
+- **DEP-8 Server address setting (NEW, optional).** A deployment setting where IT can record the address (or addresses, labelled) analyzers use to reach OpenELIS, alongside the published ports (`.env` or Application Properties). Shown read-only in Connect and on the IT sheet when set; when empty, the lab asks IT (FR-A3, FR-A3b).
 
 ---
 
@@ -33013,6 +33024,7 @@ Severity as found. "Gap" means the June FRS asked for it and it did not ship.
 | R12 to R14, B12, D3, D4 | Low | Bug | Read-only default map looks editable; stale banner counts; menu collapse; label run-on; Needs attention 0; empty state | FR-G5, I8 |
 | H3 | Note | Gap | Closed cloud port looks like an instrument timeout | FR-A3 |
 | S1 | Medium | Gap (review, 28 Oct) | Setup assumed a typed sender name and an address OpenELIS can't know; instruments set the sender in firmware, and the reachable server address depends on the site network | FR-A3, A3a, A5, A8, DEP-1a, DEP-8 |
+| S2 | Medium | Gap (review, 28 Oct) | Setup treated connecting as a lab task; in practice the network side (addresses, firewall, VPN, fixed IP) is IT's, and the lab person needs a way to hand it over | FR-A3b |
 
 
 ---

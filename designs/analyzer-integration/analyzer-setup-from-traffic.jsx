@@ -93,6 +93,10 @@ export function AnalyzerSetup() {
       <Tile>
         <h4>2. {t('label.analyzer.setup.connect', 'Connect')}</h4>
         {/* FR-A2: never disabled by unresolved matches. FR-A3: outside port from deployment settings. */}
+        {/* FR-A3b: connecting is an IT and lab job; Share with IT opens a printable connection sheet. */}
+        <InlineNotification kind="info" lowContrast hideCloseButton
+          title={t('label.analyzer.connect.itJob', 'Connecting an analyzer needs your IT person: they make sure the analyzer and the OpenELIS server can reach each other.')} />
+        <Button kind="ghost" size="sm">{t('label.analyzer.connect.shareWithIt', 'Share with IT')}</Button>
         <h5>{t('label.analyzer.connect.typeIntoAnalyzer', 'Type these into the analyzer')}</h5>
         {[
           // FR-A3: address comes from the deployment setting (DEP-8); no sender name is asked for or shown.
@@ -106,7 +110,7 @@ export function AnalyzerSetup() {
           </div>
         ))}
         <InlineNotification kind="warning" lowContrast hideCloseButton
-          title={t('label.analyzer.connect.portClosed', "Port {port} isn't open on this server. Ask your server administrator to open it.", { port: 12011 })} />
+          title={t('label.analyzer.connect.portClosed', "Port {port} isn't open on this server. Ask your IT person to open it.", { port: 12011 })} />
         <p>{t('label.analyzer.connect.vendorPc', 'If the analyzer sends results through its own software on a PC, enter these in that software')}</p>
         <p>{t('label.analyzer.connect.dataflow', 'Data flow')}: <strong>{t('label.analyzer.connect.resultsOnly', 'Results only')}</strong></p>
       </Tile>

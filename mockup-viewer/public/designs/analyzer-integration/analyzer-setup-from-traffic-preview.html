@@ -113,6 +113,7 @@
       const [view, setView] = useState('reconcile');
       const [asServer, setAsServer] = useState(false);
       const [dup, setDup] = useState(false);
+      const [sheet, setSheet] = useState(false);
       const counts = { mapped: 2, new: 3, unreadable: 1, notSeen: NOT_SEEN.length };
       return (
         <div>
@@ -127,6 +128,17 @@
             <div className="sec-head"><span className="num done">2</span><h3 style={{margin:0}}>Connect</h3>
               <span className="summary">Connection saved. Results only.</span></div>
             <div className="sec-body">
+              <Note kind="info" title="Connecting an analyzer needs your IT person.">They make sure the analyzer and the OpenELIS server can reach each other: the address, the port through any firewall or VPN, and a fixed IP for the analyzer. <a href="#" onClick={e=>{e.preventDefault();setSheet(!sheet);}}>{sheet ? 'Hide the sheet for IT' : 'Share with IT'}</a></Note>
+              {sheet && (<div className="sec" style={{marginBottom:'1rem'}}><div className="sec-body">
+                <div style={{display:'flex',justifyContent:'space-between'}}><h3>Analyzer connection: what IT needs to set up</h3><span><Btn kind="ghost" size="sm">Copy</Btn><Btn kind="ghost" size="sm">Print</Btn></span></div>
+                <div className="cds--data-table-container"><table className="cds--data-table cds--data-table--sm"><tbody>
+                  <tr><td style={{width:260}}><b>Analyzer</b></td><td>QA BX-3010 02 · Sysmex BX-3010 · Biochemistry, Central Public Health Laboratory</td></tr>
+                  <tr><td><b>Protocol</b></td><td>ASTM, E1381 framing. The analyzer connects to OpenELIS.</td></tr>
+                  <tr><td><b>Address the analyzer should use</b></td><td>192.168.10.5 (lab network) or 10.8.0.2 (VPN)</td></tr>
+                  <tr><td><b>Port to allow</b></td><td>TCP 12011 inbound on the OpenELIS server, its firewall, and any cloud security group or VPN</td></tr>
+                  <tr><td><b>Analyzer network</b></td><td>Needs a fixed IP on a network that can reach the server. Analyzer IP: <i>to fill in</i></td></tr>
+                  <tr><td><b>How to check</b></td><td>When the analyzer sends, setup lists the message with the address it came from and the time. A timeout on the analyzer usually means the port is closed or there is no route.</td></tr>
+                </tbody></table></div></div></div>)}
               <label className="toggle" style={{float:'right'}}><input type="checkbox" checked={asServer} onChange={e=>setAsServer(e.target.checked)} /> Example: an analyzer that waits for OpenELIS to connect</label>
               {!asServer ? (<>
               <h3>Type these into the analyzer's LIS settings</h3>
@@ -135,7 +147,7 @@
                 <span></span><code>10.8.0.2 (VPN)</code><Btn kind="ghost" size="sm">Copy</Btn>
                 <span>Port for ASTM (E1381)</span><code>12011</code><Btn kind="ghost" size="sm">Copy</Btn>
               </div>
-              <p className="muted" style={{marginTop:'.5rem'}}>The address is set by your server administrator at install time. If the analyzer sends results through its own software on a PC, enter these in that software. You don't need to set a sender name: we'll recognise the analyzer from the first message it sends.</p>
+              <p className="muted" style={{marginTop:'.5rem'}}>Recorded by your IT person. If you don't see an address here, ask them for the one analyzers use to reach OpenELIS. If the analyzer sends results through its own software on a PC, enter these in that software. You don't need to set a sender name: we'll recognise the analyzer from the first message it sends.</p>
               </>) : (<>
               <h3>Where OpenELIS should connect</h3>
               <p className="muted">This analyzer waits for OpenELIS to connect. Find its address and port on the analyzer's network or LIS settings screen.</p>
@@ -146,7 +158,7 @@
               <Btn kind="tertiary" size="sm">Test connection</Btn>
               </>)}
               <div style={{marginTop:'1rem'}}>
-                <Note kind="warning" title="Port 12011 isn't open on this server.">The analyzer will time out until it is. Ask your server administrator to open port 12011, or choose LIS01-A framing (port 12000, open) if the analyzer's manual allows it.</Note>
+                <Note kind="warning" title="Port 12011 isn't open on this server.">The analyzer will time out until it is. Ask your IT person to open port 12011, or choose LIS01-A framing (port 12000, open) if the analyzer's manual allows it.</Note>
               </div>
               <div className="muted">Data flow: <b>Results only</b>. Sending orders to the analyzer will be offered once OpenELIS can answer the analyzer's order queries.</div>
               <div className="muted" style={{marginTop:'.5rem'}}>3 tests still need a catalog match. You can connect now and match them from a real result.</div>
