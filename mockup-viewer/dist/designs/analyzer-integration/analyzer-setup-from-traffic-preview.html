@@ -111,6 +111,8 @@
       const [stage, setStage] = useState('waiting'); // waiting | received
       const [showRaw, setShowRaw] = useState(false);
       const [view, setView] = useState('reconcile');
+      const [asServer, setAsServer] = useState(false);
+      const [dup, setDup] = useState(false);
       const counts = { mapped: 2, new: 3, unreadable: 1, notSeen: NOT_SEEN.length };
       return (
         <div>
@@ -125,12 +127,24 @@
             <div className="sec-head"><span className="num done">2</span><h3 style={{margin:0}}>Connect</h3>
               <span className="summary">Connection saved. Results only.</span></div>
             <div className="sec-body">
-              <h3>Type these into the analyzer</h3>
+              <label className="toggle" style={{float:'right'}}><input type="checkbox" checked={asServer} onChange={e=>setAsServer(e.target.checked)} /> Example: an analyzer that waits for OpenELIS to connect</label>
+              {!asServer ? (<>
+              <h3>Type these into the analyzer's LIS settings</h3>
               <div className="kv">
-                <span>Server address</span><code>testing.openelis-global.org</code><Btn kind="ghost" size="sm">Copy</Btn>
+                <span>OpenELIS server address</span><code>192.168.10.5 (lab network)</code><Btn kind="ghost" size="sm">Copy</Btn>
+                <span></span><code>10.8.0.2 (VPN)</code><Btn kind="ghost" size="sm">Copy</Btn>
                 <span>Port for ASTM (E1381)</span><code>12011</code><Btn kind="ghost" size="sm">Copy</Btn>
-                <span>Sender name</span><code>BX-T2</code><Btn kind="ghost" size="sm">Copy</Btn>
               </div>
+              <p className="muted" style={{marginTop:'.5rem'}}>The address is set by your server administrator at install time. If the analyzer sends results through its own software on a PC, enter these in that software. You don't need to set a sender name: we'll recognise the analyzer from the first message it sends.</p>
+              </>) : (<>
+              <h3>Where OpenELIS should connect</h3>
+              <p className="muted">This analyzer waits for OpenELIS to connect. Find its address and port on the analyzer's network or LIS settings screen.</p>
+              <div className="row">
+                <div className="grow field"><label>Analyzer IP address <span className="req">*</span></label><input className="cds--text-input" defaultValue="192.168.10.41" /></div>
+                <div className="grow field"><label>Analyzer port <span className="req">*</span></label><input className="cds--text-input" defaultValue="5100" /></div>
+              </div>
+              <Btn kind="tertiary" size="sm">Test connection</Btn>
+              </>)}
               <div style={{marginTop:'1rem'}}>
                 <Note kind="warning" title="Port 12011 isn't open on this server.">The analyzer will time out until it is. Ask your server administrator to open port 12011, or choose LIS01-A framing (port 12000, open) if the analyzer's manual allows it.</Note>
               </div>
@@ -140,13 +154,25 @@
           </div>
           <div className="sec">
             <div className="sec-head"><span className={`num ${stage === 'received' ? 'done' : ''}`}>3</span><h3 style={{margin:0}}>Send a test result</h3>
-              <span className="summary">{stage === 'received' ? '1 message received 10:42 · QA-T2-0001 · 6 results' : 'Waiting'}</span></div>
+              <span className="summary">{stage === 'received' ? '1 message received 10:42 · QA-T2-0001 · 6 results' : stage === 'arrived' ? '2 messages from unknown analyzers' : 'Waiting'}</span></div>
             <div className="sec-body">
               {stage === 'waiting' ? (
                 <div>
                   <p style={{fontSize:16}}><span className="pulse"></span>Run a control or one patient sample on the analyzer and send it. We'll show what arrives here.</p>
-                  <p className="muted">Last received from this sender: never. This is a setup capture: nothing here becomes a patient or QC result.</p>
-                  <div className="actions"><Btn kind="tertiary" size="sm" onClick={() => setStage('received')}>Simulate: analyzer sends QA-T2-0001</Btn><Btn kind="ghost" size="sm">Skip for now</Btn></div>
+                  <p className="muted">Nothing here becomes a patient or QC result.</p>
+                  <div className="actions"><Btn kind="tertiary" size="sm" onClick={() => setStage('arrived')}>Simulate: analyzer sends QA-T2-0001</Btn><Btn kind="ghost" size="sm">Skip for now</Btn></div>
+                </div>
+              ) : stage === 'arrived' ? (
+                <div>
+                  <h3>Messages from analyzers OpenELIS doesn't know yet</h3>
+                  <p className="muted">Pick the one you just sent. Last 24 hours, newest first.</p>
+                  <div className="cds--data-table-container"><table className="cds--data-table cds--data-table--sm">
+                    <thead><tr><th>Received</th><th>From address</th><th>Listener</th><th>Sender (as sent)</th><th>Specimen</th><th>First result</th><th></th></tr></thead>
+                    <tbody>
+                      <tr><td>10:42:07</td><td className="mono">192.168.10.41</td><td>ASTM E1381 · 12011</td><td className="mono">BX-3010^1.0</td><td>QA-T2-0001</td><td>GLU 132 mg/dL</td><td><Btn kind="tertiary" size="sm" onClick={() => setStage('received')}>This is my analyzer</Btn></td></tr>
+                      <tr><td>09:58:30</td><td className="mono">192.168.10.77</td><td>ASTM LIS01-A · 12000</td><td className="mono">GeneXpert PC^GeneXpert^6.4</td><td>TB-26-00412</td><td>MTB DETECTED LOW</td><td><Btn kind="ghost" size="sm">This is my analyzer</Btn></td></tr>
+                    </tbody></table></div>
+                  <p className="muted"><span className="pulse"></span>Still listening.</p>
                 </div>
               ) : (
                 <div>
@@ -154,6 +180,11 @@
                     <thead><tr><th>Received</th><th>Accession</th><th>Results</th><th>Patient sent</th><th></th></tr></thead>
                     <tbody><tr><td>10:42:07</td><td>QA-T2-0001</td><td>6</td><td>PID-88213 · Wibowo, Adi · 1978-04-12 · M</td><td><Btn kind="ghost" size="sm">Discard</Btn></td></tr></tbody>
                   </table></div>
+                  <div className="note">
+                    <b>Recognised by:</b> sender <span className="mono">BX-3010^1.0</span>{dup && <> and address <span className="mono">192.168.10.41</span></>} <a href="#">Change (Advanced)</a>
+                    {dup && <div style={{marginTop:'.25rem'}}>Another analyzer (QA BX-3010 01) sends the same name, so we'll also use the address it connects from.</div>}
+                  </div>
+                  <label className="toggle" style={{marginTop:'.5rem'}}><input type="checkbox" checked={dup} onChange={e=>setDup(e.target.checked)} /> Example: a second BX-3010 already sends the same name</label>
                   <p className="muted"><span className="pulse"></span>Still listening. Send another sample or a control to add it here.</p>
                 </div>
               )}

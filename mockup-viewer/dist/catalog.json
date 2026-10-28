@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-28T04:44:36.203Z",
+  "generated": "2026-10-28T17:05:30.138Z",
   "galleryUrl": "https://digi-uw.github.io/openelis-work/",
   "totalDesigns": 247,
   "categories": [
@@ -1814,7 +1814,7 @@
       "name": "Analyzer Setup From Traffic",
       "slug": "analyzer-setup-from-traffic",
       "category": "analyzer-integration",
-      "description": "Analyzer setup from a real result: Instrument, Connect, Send a test result, Verify. Setup capture on the Bridge, parsed-message preview (read as number or text), three-field 'instrument not listed' with protocol starters, Start from a similar instrument with Keep or Clear, evidence-based test picker scoped to the analyzer's lab units, inline plain-language validation, fixes from Undelivered results, held rows and Alerts with 'also add to the analyzer type', catalog readiness lookups. No matching engine. Includes the QA defect register (27 to 28 Oct 2026). FRS v0.1. Mockup default export AnalyzerSetupFromTrafficMockup; named exports AnalyzerSetup, NewAnalyzerType, StartFromSimilar, MapThisCode, UndeliveredResults, CatalogReadiness. Epic OGC-1054.",
+      "description": "Analyzer setup from a real result: Instrument, Connect, Send a test result, Verify. Setup capture on the Bridge, parsed-message preview (read as number or text), three-field 'instrument not listed' with protocol starters, Start from a similar instrument with Keep or Clear, evidence-based test picker scoped to the analyzer's lab units, inline plain-language validation, fixes from Undelivered results, held rows and Alerts with 'also add to the analyzer type', catalog readiness lookups. No matching engine. Includes the QA defect register (27 to 28 Oct 2026). FRS v0.2 (analyzer identified from what it sends; server address from a deployment setting). Mockup default export AnalyzerSetupFromTrafficMockup; named exports AnalyzerSetup, NewAnalyzerType, StartFromSimilar, MapThisCode, UndeliveredResults, CatalogReadiness. Epic OGC-1054.",
       "type": "jsx",
       "added": "2026-10-28",
       "status": "draft",

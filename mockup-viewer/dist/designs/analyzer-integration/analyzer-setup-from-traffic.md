@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Draft v0.1 for review |
+| **Status** | Draft v0.2 for review (v0.2, 28 Oct: analyzer identified from what it sends, not a typed sender name; server address from a deployment setting; analyzers that act as the server) |
 | **Module** | Analyzers (Analyzers list inline setup, Analyzer Types, Field Mappings, Undelivered results) |
 | **Author** | Casey Iiams-Hauser (QA findings from testing.openelis-global.org, 27 to 28 Oct 2026) |
 | **Date** | 2026-10-28 |
@@ -29,7 +29,7 @@ In QA on 27 and 28 October, building one new Analyzer Type took about 20 minutes
 
 ### What Changes
 
-The administrator connects first. They pick the instrument (or say it isn't listed, giving just a name, maker and protocol), and OpenELIS shows exactly what to type into the instrument: the server address, the port for that protocol, and the sender name. They run one sample or a control on the instrument and send it. OpenELIS holds that message as a setup capture, not as a patient result, and shows it back in plain terms: "GLU, 132 mg/dL, read as a number; NA, 141 mmol/L, not in this type yet". Each line is ticked against the type. For a code that isn't mapped, the test picker shows the received value, unit and sample type beside the search, searches only the analyzer's own lab units first, and for a shared LOINC lists only the few tests that carry it. Mistakes are caught as they are typed, in plain words. When a result later arrives with a new code, the fix starts from the result itself and can be saved to the Analyzer Type so the next analyzer of that kind never asks again.
+The administrator connects first. They pick the instrument (or say it isn't listed, giving just a name, maker and protocol), and OpenELIS shows exactly what to type into the instrument's LIS settings: the address of the OpenELIS server as the lab network sees it, and the port for that protocol. Nobody types a sender name: instruments set that themselves. They run one sample or a control and send it. OpenELIS lists messages that have arrived from instruments it doesn't know yet, with the time, where each came from and its first result; the administrator picks the one they just sent ("This is my analyzer"), and from then on OpenELIS recognises the analyzer by what it actually sends. The message is held as a setup capture, not as a patient result, and shown back in plain terms: "GLU, 132 mg/dL, read as a number; NA, 141 mmol/L, not in this type yet". Each line is ticked against the type. For a code that isn't mapped, the test picker shows the received value, unit and sample type beside the search, searches only the analyzer's own lab units first, and for a shared LOINC lists only the few tests that carry it. Mistakes are caught as they are typed, in plain words. When a result later arrives with a new code, the fix starts from the result itself and can be saved to the Analyzer Type so the next analyzer of that kind never asks again.
 
 ---
 
@@ -71,13 +71,25 @@ Each requirement is tagged with the QA finding it closes (P, R, B, X, L, H, D: s
 
 **FR-A2 Connect is never locked by mapping.** Connect is available as soon as the instrument and lab units are chosen. Unresolved or ambiguous test matches never disable Connect or Save (closes L2: today the page says "You can confirm and connect" while Connect is disabled).
 
-**FR-A3 Show exactly what to type into the instrument.** Connect shows, as copyable values: the server address, the **host-published** port for the type's protocol and framing, and the sender name the analyzer must send. The port shown is the one reachable from outside the server (from the deployment's published port settings), never the Bridge's internal listener port (closes R4: setup showed internal 12011 while only 12000 was published). If the protocol's port is not published on this server, Connect says so in plain words and names who fixes it ("Ask your server administrator to open port 2575 for HL7"), instead of letting the instrument time out (H3).
+**FR-A3 Show exactly what to type into the instrument.** For an analyzer that connects to OpenELIS (the usual case), Connect shows, as copyable values, only what goes into the instrument's LIS or host settings: the **server address** and the **host-published port** for the type's protocol and framing. It does not ask for or show a sender name; instruments set that in firmware.
+- The server address comes from a deployment setting (DEP-8), because OpenELIS cannot know how the lab network reaches it (a public hostname on testing; a LAN IP, NAT or VPN address at most sites). A site can list more than one ("On the lab network: 192.168.10.5; over the VPN: 10.8.0.2"). When the setting is empty, Connect says "Ask your server administrator for the address analyzers use to reach OpenELIS" instead of guessing.
+- When the instrument talks through a vendor PC (for example GeneXpert Dx or EpiCenter software), the help text says these values go into that software, not the instrument.
+
+The port shown is the one reachable from outside the server (from the deployment's published port settings), never the Bridge's internal listener port (closes R4: setup showed internal 12011 while only 12000 was published). If the protocol's port is not published on this server, Connect says so in plain words and names who fixes it ("Ask your server administrator to open port 2575 for HL7"), instead of letting the instrument time out (H3).
 
 **FR-A4 One connection status, not two.** "Test connection" and the readiness panel use one rule and one message. The panel never says "ready to activate" while a required connection value is empty or the connection test reports incomplete settings (closes B9, R10). Host and Instrument system name have help text that names this instrument, not other senders.
 
-**FR-A5 Waiting for a test result.** After Connect, the "Send a test result" section shows a waiting state ("Run a control or one patient sample on the analyzer and send it. We'll show what arrives here.") and refreshes on its own. It shows the last time anything was received from this sender. A **Skip for now** link moves to Verify without a capture (a profile-matched analyzer can still be verified the June way).
+**FR-A3a Analyzers that act as the server.** Some instruments wait for the LIS to connect to them. When the type says so (a protocol-starter setting, DEP-4), Connect instead asks for the **analyzer's IP address and port**, with help text "Find these on the analyzer's network or LIS settings screen", and Test connection tries to reach it. This is the only case where the analyzer's own address is entered.
 
-**FR-A6 Setup capture, not results.** While an analyzer is in setup, messages from its sender are accepted by the Bridge as a **setup capture**: acknowledged to the instrument, shown in Verify, and **not** delivered as patient or QC results. They are never shown as `UNREGISTERED_SOURCE` on Undelivered results (closes L1). A capture is kept until setup finishes or the administrator discards it. When the analyzer is activated, captured messages are not replayed as results unless the administrator chooses "Also import these results" (default off).
+**FR-A5 Waiting for a test result.** After Connect, the "Send a test result" section shows a waiting state ("Run a control or one patient sample on the analyzer and send it. We'll show what arrives here.") and refreshes on its own. Until the analyzer is identified (FR-A8) it lists **messages from instruments OpenELIS doesn't know yet**, received in the last 24 hours on this server, newest first: time received, the address it came from, the listener (protocol and port), the sender text exactly as received, the specimen ID and the first result. Rows already claimed by another analyzer are not listed. A **Skip for now** link moves to Verify without a capture (a profile-matched analyzer can still be verified the June way).
+
+**FR-A8 "This is my analyzer".** The administrator picks the row whose time and first result match the sample they just ran. Picking it:
+- attaches that message (and any earlier unclaimed ones with the same identity) to this analyzer as its setup capture;
+- stores the analyzer's **identity** from what arrived, by exact value: the sender text as received (ASTM header H.5; HL7 MSH-3 and MSH-4). If another analyzer, active or in setup, already has the same sender text (two identical instruments with no serial number in the header), the identity becomes **sender text plus source address**, and the screen says why ("Another analyzer sends the same name, so we'll also use the address it connects from: 192.168.10.41");
+- shows the stored identity read-only on the analyzer, with "Change" for IT under Advanced (for example after the instrument's IP changes).
+If neither the sender text nor the source address tells two analyzers apart (identical instruments behind one NAT address or one vendor PC), the screen says so and the fallback is a separate port per analyzer (DEP-5), set under Advanced. Nothing is matched by similarity; the person chooses the message and OpenELIS stores what it carried.
+
+**FR-A6 Setup capture, not results.** Messages from an instrument OpenELIS doesn't know yet are acknowledged and held by the Bridge, as today, and listed for claiming (FR-A5). Once claimed, and while the analyzer is in setup, its messages are accepted by the Bridge as a **setup capture**: acknowledged to the instrument, shown in Verify, and **not** delivered as patient or QC results. They are never shown as `UNREGISTERED_SOURCE` on Undelivered results (closes L1). A capture is kept until setup finishes or the administrator discards it. When the analyzer is activated, captured messages are not replayed as results unless the administrator chooses "Also import these results" (default off).
 
 **FR-A7 Several messages.** Each new message adds to the capture list (newest first, timestamp, accession, record count). The administrator can capture more than one (for example a control and a patient) before verifying.
 
@@ -104,7 +116,7 @@ Nothing in the capture is dropped.
 
 **FR-C2 Protocol starter.** Choosing a protocol applies a shipped **protocol starter**: the standard connection fields with their help text, the default framing, the default record layout and standard control rules (ASTM action code `Q` in order field 12; prefixes QC- and CTRL-). Labs never author connection fields, setting keys, translation keys or visibility rules (closes P3, R10).
 
-**FR-C3 Fill only exact facts from the capture.** When a capture exists, the listener that received it sets the framing, and the message header sets the sender name and the manufacturer/model text if present. Nothing else is inferred.
+**FR-C3 Fill only exact facts from the capture.** When a capture exists, the listener that received it sets the framing, the claimed message sets the analyzer's identity (FR-A8), and the header's manufacturer and model text, if present, pre-fills "Manufacturer and model" for the administrator to confirm. Nothing else is inferred.
 
 **FR-C4 Advanced, for IT.** Everything else (framing override, record layout parts, identifier pattern, decimal separator, character set) sits in a collapsed **Advanced, for IT** area with plain labels and the starter's values shown (June AC-19). Required items inside it are marked required.
 
@@ -164,7 +176,7 @@ Nothing in the capture is dropped.
 
 ### G. Fix where the problem shows (delivers June FR-G2, FR-G3, AC-15; closes L5, L6, L7, R11, B10, H1)
 
-**FR-G1 Set up from an unknown sender.** On Undelivered results, a row rejected for an unknown sender offers **Set up an analyzer from this result**, which opens inline setup with the capture attached and the sender filled in. If the sender belongs to an analyzer still in setup, the row says "This analyzer is still in setup" and links to it (closes L7 wording, L1).
+**FR-G1 Set up from an unknown sender.** On Undelivered results, a row rejected for an unknown sender offers **Set up an analyzer from this result**, which opens inline setup with that message already claimed (the same as FR-A8). If the message belongs to an analyzer still in setup, the row says "This analyzer is still in setup" and links to it (closes L7 wording, L1).
 
 **FR-G2 Map this code from a held row.** A result held for an unknown code or value has **Map this code**, which opens the analyzer's mapping at that code with the evidence (FR-E1) shown.
 
@@ -256,11 +268,18 @@ All strings use i18n keys. Search before minting (`npm run i18n:find`); generic 
 |---|---|---|
 | `label.analyzer.setup.sendTest` | Send a test result | Setup section 3 title |
 | `label.analyzer.setup.waiting` | Run a control or one patient sample on the analyzer and send it. We'll show what arrives here. | Waiting state |
-| `label.analyzer.setup.lastReceived` | Last received from this sender: {time} | Waiting state |
 | `label.analyzer.setup.skip` | Skip for now | Waiting state |
 | `label.analyzer.setup.alsoImport` | Also import these results | Activate option |
 | `label.analyzer.connect.typeIntoAnalyzer` | Type these into the analyzer | Connect panel heading |
-| `label.analyzer.connect.serverAddress` | Server address | Connect |
+| `label.analyzer.connect.serverAddress` | OpenELIS server address | Connect |
+| `label.analyzer.connect.serverAddressMissing` | Ask your server administrator for the address analyzers use to reach OpenELIS | Connect, setting empty |
+| `label.analyzer.connect.vendorPc` | If the analyzer sends results through its own software on a PC, enter these in that software | Connect help |
+| `label.analyzer.connect.analyzerIsServer` | This analyzer waits for OpenELIS to connect. Enter its address and port from its network or LIS settings screen. | Connect, analyzer as server |
+| `label.analyzer.setup.unclaimed` | Messages from analyzers OpenELIS doesn't know yet | Waiting state list |
+| `label.analyzer.setup.thisIsMine` | This is my analyzer | Waiting state row action |
+| `label.analyzer.identity.sender` | Recognised by: sender "{sender}" | Identity, read-only |
+| `label.analyzer.identity.senderAndAddress` | Another analyzer sends the same name, so we'll also use the address it connects from: {address} | Identity notice |
+| `label.analyzer.identity.notUnique` | Two analyzers send the same name from the same address. Give this one its own port under Advanced. | Identity notice |
 | `label.analyzer.connect.port` | Port for {protocol} | Connect |
 | `label.analyzer.connect.portClosed` | Port {port} isn't open on this server. Ask your server administrator to open it. | Connect warning |
 | `label.analyzer.connect.resultsOnly` | Results only | Data flow, while host query is absent |
@@ -304,8 +323,10 @@ All strings use i18n keys. Search before minting (`npm run i18n:find`); generic 
 ## Acceptance Criteria
 
 - [ ] **AC-1** Adding an analyzer shows Instrument → Connect → Send a test result → Verify; Connect is enabled with unresolved matches present.
-- [ ] **AC-2** Connect shows the outside port for the protocol (12000 for LIS01-A on testing, 12011 for E1381, 2575 for HL7) and warns when the port isn't published.
-- [ ] **AC-3** A message sent by an analyzer in setup appears in its Send a test result section within 10 seconds, is acknowledged to the instrument, and does **not** appear on Undelivered results or as a result.
+- [ ] **AC-2** Connect shows the server address from the deployment setting (or the ask-your-administrator message when it is empty) and the outside port for the protocol (12000 for LIS01-A on testing, 12011 for E1381, 2575 for HL7), warns when the port isn't published, and never asks for a sender name.
+- [ ] **AC-3** A message from an instrument OpenELIS doesn't know appears in the waiting list within 10 seconds with time, source address, sender text and first result; it is acknowledged to the instrument and does **not** become a result.
+- [ ] **AC-3a** Choosing "This is my analyzer" attaches the message as the setup capture and stores the sender text as received; when a second analyzer already sends the same text, the stored identity also includes the source address and the screen says so.
+- [ ] **AC-3b** For a type whose analyzer acts as the server, Connect asks for the analyzer's IP and port and Test connection reaches it.
 - [ ] **AC-4** Verify marks each received code as verified, new value, not in this type, or not seen yet; nothing in the capture is dropped.
 - [ ] **AC-5** Sending CREA 1.17 through a type with GeneXpert's record layout shows "read as text" with the layout warning in How we read it.
 - [ ] **AC-6** "My instrument isn't listed" asks only name, manufacturer and model, and protocol; publishing it needs nothing else; Advanced is collapsed; no raw enum values and no Evidence confidence appear.
@@ -329,13 +350,15 @@ All strings use i18n keys. Search before minting (`npm run i18n:find`); generic 
 
 ## Dependencies
 
-- **DEP-1 Bridge setup capture (NEW).** The Bridge accepts and acknowledges messages from a sender registered to an analyzer in SETUP, stores them as a setup capture, and exposes them (raw and parsed) to OpenELIS. Today such traffic is rejected as `UNREGISTERED_SOURCE`.
+- **DEP-1 Bridge setup capture (NEW).** The Bridge exposes messages from unknown senders (today held as `UNREGISTERED_SOURCE`) as a claimable list with time, source address, listener, sender text and first record; on claim it binds them to the analyzer, and while that analyzer is in SETUP it holds its traffic as a setup capture (raw and parsed) instead of delivering results.
+- **DEP-1a Source address and identity (to confirm).** QA could not confirm in the Bridge source on GitHub that the remote address of each connection is recorded. FR-A8 needs it stored with each message, and needs analyzer identity matching on sender text, or sender text plus source address. Note that NAT, VPNs and vendor PCs can make several analyzers share one address.
 - **DEP-2 Parsed-message preview from the Bridge (NEW).** An endpoint that runs the type's own parser over a captured message and returns per-record code, value, value-read-as, unit, flag, specimen ID and the field each came from. Reuses `ASTMResultParser` and the HL7 parser; no new parsing logic.
 - **DEP-3 Host query (not built).** `AstmHostQuery` answers every query with no information. Two-way is hidden until it exists (FR-C7). Building host query is out of scope here.
 - **DEP-4 Protocol starters (NEW shipped data).** One starter per protocol and framing (ASTM LIS01-A, ASTM E1381, HL7 MLLP, flat file) with connection fields, help text and default control rules, shipped with the Bridge types.
 - **DEP-5 Published port settings.** OpenELIS needs the outside ports per protocol. Proposed: the `.env` values from the openelis-docker port change (`BRIDGE_ASTM_PORT`, `BRIDGE_ASTM_E1381_PORT`, `BRIDGE_HL7_MLLP_PORT`) passed to the webapp. Draft change exists locally (not pushed); distro template needs the current Bridge service.
 - **DEP-6 Alerts entry type.** Uses the existing Alerts page; the analyzer unknown-code alert type may need adding (June FR-G2).
 - **DEP-7 Import v2 and Runs.** FR-I2 follows Import v2 Keep/Replace (OGC-288) and the run model (OGC-1200, D-052, D-059); do not build a separate resend rule.
+- **DEP-8 Server address setting (NEW).** A deployment setting with the address (or addresses, labelled) analyzers use to reach OpenELIS, set at install time alongside the published ports (`.env` or Application Properties). Shown read-only in Connect.
 
 ---
 
@@ -400,3 +423,4 @@ Severity as found. "Gap" means the June FRS asked for it and it did not ship.
 | X10 | Low | Bug | Update shared doesn't mention open draft | FR-F5 |
 | R12 to R14, B12, D3, D4 | Low | Bug | Read-only default map looks editable; stale banner counts; menu collapse; label run-on; Needs attention 0; empty state | FR-G5, I8 |
 | H3 | Note | Gap | Closed cloud port looks like an instrument timeout | FR-A3 |
+| S1 | Medium | Gap (review, 28 Oct) | Setup assumed a typed sender name and an address OpenELIS can't know; instruments set the sender in firmware, and the reachable server address depends on the site network | FR-A3, A3a, A5, A8, DEP-1a, DEP-8 |

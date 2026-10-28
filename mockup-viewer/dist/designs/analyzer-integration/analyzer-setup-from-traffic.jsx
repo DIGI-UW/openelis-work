@@ -95,9 +95,10 @@ export function AnalyzerSetup() {
         {/* FR-A2: never disabled by unresolved matches. FR-A3: outside port from deployment settings. */}
         <h5>{t('label.analyzer.connect.typeIntoAnalyzer', 'Type these into the analyzer')}</h5>
         {[
-          [t('label.analyzer.connect.serverAddress', 'Server address'), 'testing.openelis-global.org'],
+          // FR-A3: address comes from the deployment setting (DEP-8); no sender name is asked for or shown.
+          [t('label.analyzer.connect.serverAddress', 'OpenELIS server address'), '192.168.10.5 (lab network)'],
+          ['', '10.8.0.2 (VPN)'],
           [t('label.analyzer.connect.port', 'Port for {protocol}', { protocol: 'ASTM (E1381)' }), '12011'],
-          [t('label.analyzer.connect.sender', 'Sender name'), 'BX-T2'],
         ].map(([label, value]) => (
           <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <span style={{ width: 200 }}>{label}</span><code>{value}</code>
@@ -106,6 +107,7 @@ export function AnalyzerSetup() {
         ))}
         <InlineNotification kind="warning" lowContrast hideCloseButton
           title={t('label.analyzer.connect.portClosed', "Port {port} isn't open on this server. Ask your server administrator to open it.", { port: 12011 })} />
+        <p>{t('label.analyzer.connect.vendorPc', 'If the analyzer sends results through its own software on a PC, enter these in that software')}</p>
         <p>{t('label.analyzer.connect.dataflow', 'Data flow')}: <strong>{t('label.analyzer.connect.resultsOnly', 'Results only')}</strong></p>
       </Tile>
 
@@ -114,17 +116,30 @@ export function AnalyzerSetup() {
         {!received ? (
           <>
             <p>{t('label.analyzer.setup.waiting', "Run a control or one patient sample on the analyzer and send it. We'll show what arrives here.")}</p>
-            <p>{t('label.analyzer.setup.lastReceived', 'Last received from this sender: {time}', { time: '-' })}</p>
-            <Button kind="tertiary" size="sm" onClick={() => setReceived(true)}>Mock: receive QA-T2-0001</Button>
+                        {/* FR-A5, FR-A8: unclaimed messages; the admin picks theirs. Identity = sender as received (+ source address if not unique). */}
+            <TableContainer title={t('label.analyzer.setup.unclaimed', "Messages from analyzers OpenELIS doesn't know yet")}>
+              <Table size="sm">
+                <TableHead><TableRow><TableHeader>Received</TableHeader><TableHeader>From address</TableHeader><TableHeader>Listener</TableHeader><TableHeader>Sender (as sent)</TableHeader><TableHeader>Specimen</TableHeader><TableHeader>First result</TableHeader><TableHeader /></TableRow></TableHead>
+                <TableBody>
+                  <TableRow><TableCell>10:42:07</TableCell><TableCell>192.168.10.41</TableCell><TableCell>ASTM E1381 · 12011</TableCell><TableCell>BX-3010^1.0</TableCell><TableCell>QA-T2-0001</TableCell><TableCell>GLU 132 mg/dL</TableCell>
+                    <TableCell><Button kind="tertiary" size="sm" onClick={() => setReceived(true)}>{t('label.analyzer.setup.thisIsMine', 'This is my analyzer')}</Button></TableCell></TableRow>
+                  <TableRow><TableCell>09:58:30</TableCell><TableCell>192.168.10.77</TableCell><TableCell>ASTM LIS01-A · 12000</TableCell><TableCell>GeneXpert PC^GeneXpert^6.4</TableCell><TableCell>TB-26-00412</TableCell><TableCell>MTB DETECTED LOW</TableCell>
+                    <TableCell><Button kind="ghost" size="sm">{t('label.analyzer.setup.thisIsMine', 'This is my analyzer')}</Button></TableCell></TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
             <Button kind="ghost" size="sm">{t('label.analyzer.setup.skip', 'Skip for now')}</Button>
           </>
         ) : (
+          <>
+          <p>{t('label.analyzer.identity.sender', 'Recognised by: sender "{sender}"', { sender: 'BX-3010^1.0' })}</p>
           <TableContainer>
             <Table size="sm">
               <TableHead><TableRow><TableHeader>Received</TableHeader><TableHeader>Accession</TableHeader><TableHeader>Results</TableHeader><TableHeader>Patient sent</TableHeader><TableHeader /></TableRow></TableHead>
               <TableBody><TableRow><TableCell>10:42:07</TableCell><TableCell>QA-T2-0001</TableCell><TableCell>6</TableCell><TableCell>PID-88213 · Wibowo, Adi · 1978-04-12 · M</TableCell><TableCell><Button kind="ghost" size="sm">Discard</Button></TableCell></TableRow></TableBody>
             </Table>
           </TableContainer>
+          </>
         )}
       </Tile>
 
