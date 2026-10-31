@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-24T08:41:46.189Z",
+  "generatedAt": "2026-10-31T23:28:46.898Z",
   "sections": [
     {
       "id": "add-patient",
@@ -11,7 +11,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:33:22.499Z",
+      "checkedAt": "2026-10-31T23:18:43.495Z",
       "codeChanged": {
         "count": 22,
         "since": "2026-06-24",
@@ -39,7 +39,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:35:18.744Z",
+      "checkedAt": "2026-10-31T23:21:11.768Z",
       "codeChanged": {
         "count": 6,
         "since": "2026-06-24",
@@ -68,7 +68,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:35:21.832Z",
+      "checkedAt": "2026-10-31T23:21:15.684Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-10-12",
@@ -93,7 +93,7 @@
       "routeErrors": [
         "/MasterListsPage/vectorSurveillanceSetup/sampling-sites :: redirected to /MasterListsPage/locations/sites"
       ],
-      "checkedAt": "2026-10-24T08:35:02.742Z",
+      "checkedAt": "2026-10-31T23:20:52.265Z",
       "codeChanged": {
         "count": 3,
         "since": "2026-06-24",
@@ -123,7 +123,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:39:57.640Z"
+      "checkedAt": "2026-10-31T23:27:01.594Z"
     },
     {
       "id": "aliquot",
@@ -135,7 +135,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:36:48.576Z"
+      "checkedAt": "2026-10-31T23:22:58.397Z"
     },
     {
       "id": "analyzer-bridge-install",
@@ -147,18 +147,23 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:39:54.505Z",
+      "checkedAt": "2026-10-31T23:26:57.774Z",
       "codeChanged": {
-        "count": 0,
+        "count": 9,
         "since": "2026-10-13",
         "paths": [
           "frontend/src/components/analyzers"
         ],
         "branches": {
-          "develop": 0,
+          "develop": 9,
           "demo-silnas": 0
         },
-        "latest": null
+        "latest": {
+          "sha": "78fd082",
+          "date": "2026-10-27",
+          "msg": "fix(reports): the unprinted tile counts the queue it opens (OGC-431) (#4844)",
+          "branch": "develop"
+        }
       }
     },
     {
@@ -171,22 +176,22 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:33:25.674Z",
+      "checkedAt": "2026-10-31T23:18:47.281Z",
       "codeChanged": {
-        "count": 32,
+        "count": 35,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/analyzers",
           "frontend/src/components/genericSample"
         ],
         "branches": {
-          "develop": 31,
+          "develop": 34,
           "demo-silnas": 1
         },
         "latest": {
-          "sha": "ee5d92c",
-          "date": "2026-10-20",
-          "msg": "fix: upgrade and loader defects found by the 3.2.3.0 -> develop release-readiness run (OGC-1508, OGC-1509, OGC-1510, OGC",
+          "sha": "78fd082",
+          "date": "2026-10-27",
+          "msg": "fix(reports): the unprinted tile counts the queue it opens (OGC-431) (#4844)",
           "branch": "develop"
         }
       }
@@ -200,21 +205,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:33:28.885Z",
+      "checkedAt": "2026-10-31T23:18:52.962Z",
       "codeChanged": {
-        "count": 28,
+        "count": 31,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/analyzers"
         ],
         "branches": {
-          "develop": 27,
+          "develop": 30,
           "demo-silnas": 1
         },
         "latest": {
-          "sha": "1369f4c",
-          "date": "2026-10-12",
-          "msg": "feat(analyzers): resolve analyzer defaults by exact standard-code match (OGC-1054) (#4580)",
+          "sha": "78fd082",
+          "date": "2026-10-27",
+          "msg": "fix(reports): the unprinted tile counts the queue it opens (OGC-431) (#4844)",
           "branch": "develop"
         }
       }
@@ -226,22 +231,29 @@
       "instanceVersion": "3.4.0",
       "capturedVersion": "3.3.0",
       "manualDoc": "Confluence 1648590851 (draft under 1189609473)",
-      "status": "review",
-      "missingAnchors": [],
+      "status": "drift",
+      "missingAnchors": [
+        "/analyzers/6/mapping :: Control result recognition"
+      ],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:37:40.436Z",
+      "checkedAt": "2026-10-31T23:24:09.493Z",
       "codeChanged": {
-        "count": 0,
+        "count": 10,
         "since": "2026-10-13",
         "paths": [
           "frontend/src/components/qc",
           "frontend/src/components/analyzers"
         ],
         "branches": {
-          "develop": 0,
+          "develop": 10,
           "demo-silnas": 0
         },
-        "latest": null
+        "latest": {
+          "sha": "5f2808b",
+          "date": "2026-10-28",
+          "msg": "feat(workplan): batch reagent lot, QC check and override release (OGC-427) (#4858)",
+          "branch": "develop"
+        }
       }
     },
     {
@@ -254,18 +266,23 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:37:27.559Z",
+      "checkedAt": "2026-10-31T23:23:53.220Z",
       "codeChanged": {
-        "count": 0,
+        "count": 9,
         "since": "2026-10-13",
         "paths": [
           "frontend/src/components/analyzers"
         ],
         "branches": {
-          "develop": 0,
+          "develop": 9,
           "demo-silnas": 0
         },
-        "latest": null
+        "latest": {
+          "sha": "78fd082",
+          "date": "2026-10-27",
+          "msg": "fix(reports): the unprinted tile counts the queue it opens (OGC-431) (#4844)",
+          "branch": "develop"
+        }
       }
     },
     {
@@ -278,7 +295,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:35:34.304Z"
+      "checkedAt": "2026-10-31T23:21:30.752Z"
     },
     {
       "id": "barcode-labels",
@@ -289,22 +306,22 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:33:31.983Z",
+      "checkedAt": "2026-10-31T23:18:56.740Z",
       "codeChanged": {
-        "count": 7,
+        "count": 8,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/printBarcode",
           "frontend/src/components/barcodeWorkflow"
         ],
         "branches": {
-          "develop": 7,
+          "develop": 8,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "ad2f2c9",
-          "date": "2026-10-19",
-          "msg": "fix: component validation, lab-unit order scope, rule types, range ages, FHIR component codes (#4757)",
+          "sha": "d8bec2b",
+          "date": "2026-10-27",
+          "msg": "feat(deploy): keep non-standard ports behind a reverse proxy (OGC-1198) (#4841)",
           "branch": "develop"
         }
       }
@@ -319,7 +336,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:36:11.126Z"
+      "checkedAt": "2026-10-31T23:22:12.304Z"
     },
     {
       "id": "calendar-management",
@@ -331,7 +348,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:36:36.171Z"
+      "checkedAt": "2026-10-31T23:22:43.269Z"
     },
     {
       "id": "capa-register",
@@ -343,7 +360,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:41:24.374Z"
+      "checkedAt": "2026-10-31T23:28:20.348Z"
     },
     {
       "id": "catalog-import-csv",
@@ -355,7 +372,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:38:20.882Z",
+      "checkedAt": "2026-10-31T23:24:59.517Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-09-22",
@@ -384,7 +401,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:37:07.644Z"
+      "checkedAt": "2026-10-31T23:23:22.964Z"
     },
     {
       "id": "clinical-order-enter",
@@ -396,7 +413,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:38:05.347Z",
+      "checkedAt": "2026-10-31T23:24:40.466Z",
       "codeChanged": {
         "count": 16,
         "since": "2026-10-09",
@@ -426,7 +443,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:39:26.362Z"
+      "checkedAt": "2026-10-31T23:26:21.990Z"
     },
     {
       "id": "custom-data-export",
@@ -438,7 +455,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:39:51.344Z"
+      "checkedAt": "2026-10-31T23:26:52.695Z"
     },
     {
       "id": "dictionary-menu",
@@ -450,7 +467,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:36:04.900Z"
+      "checkedAt": "2026-10-31T23:22:04.268Z"
     },
     {
       "id": "electronic-lab-notebook",
@@ -461,21 +478,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:33:35.078Z",
+      "checkedAt": "2026-10-31T23:19:00.708Z",
       "codeChanged": {
-        "count": 12,
+        "count": 13,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/notebook"
         ],
         "branches": {
-          "develop": 12,
+          "develop": 13,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "ad2f2c9",
-          "date": "2026-10-19",
-          "msg": "fix: component validation, lab-unit order scope, rule types, range ages, FHIR component codes (#4757)",
+          "sha": "78fd082",
+          "date": "2026-10-27",
+          "msg": "fix(reports): the unprinted tile counts the queue it opens (OGC-431) (#4844)",
           "branch": "develop"
         }
       }
@@ -489,22 +506,22 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:33:41.443Z",
+      "checkedAt": "2026-10-31T23:19:08.301Z",
       "codeChanged": {
-        "count": 1,
+        "count": 2,
         "since": "2026-10-12",
         "paths": [
           "frontend/src/components/esignature",
           "frontend/src/components/validation"
         ],
         "branches": {
-          "develop": 1,
+          "develop": 2,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "21385e9",
-          "date": "2026-10-13",
-          "msg": "fix(test-catalog): Sample & Results keeps what the admin configured (OGC-1458) (#4704)",
+          "sha": "31cc26c",
+          "date": "2026-10-26",
+          "msg": "fix(results): report rounded values, keep the entered result (OGC-1544) (#4824)",
           "branch": "develop"
         }
       }
@@ -519,7 +536,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:33:50.821Z",
+      "checkedAt": "2026-10-31T23:19:20.729Z",
       "codeChanged": {
         "count": 52,
         "since": "2026-09-22",
@@ -552,7 +569,7 @@
         "/LogbookResults?type= :: redirected to /Results",
         "/ResultValidation?type=&test= :: redirected to /validation"
       ],
-      "checkedAt": "2026-10-24T08:34:53.363Z",
+      "checkedAt": "2026-10-31T23:20:40.915Z",
       "codeChanged": {
         "count": 110,
         "since": "2026-06-24",
@@ -566,9 +583,9 @@
           "demo-silnas": 20
         },
         "latest": {
-          "sha": "350cbc8",
-          "date": "2026-10-22",
-          "msg": "feat(i18n): shipped NCE and dictionary values read through Transifex keys (OGC-1507) (#4800)",
+          "sha": "5f2808b",
+          "date": "2026-10-28",
+          "msg": "feat(workplan): batch reagent lot, QC check and override release (OGC-427) (#4858)",
           "branch": "develop"
         }
       }
@@ -583,7 +600,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:41:30.595Z"
+      "checkedAt": "2026-10-31T23:28:28.019Z"
     },
     {
       "id": "eqa-participant",
@@ -595,21 +612,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:39:01.349Z",
+      "checkedAt": "2026-10-31T23:25:50.704Z",
       "codeChanged": {
-        "count": 1,
+        "count": 2,
         "since": "2026-10-12",
         "paths": [
           "frontend/src/components/eqa"
         ],
         "branches": {
-          "develop": 1,
+          "develop": 2,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "c37745d",
-          "date": "2026-10-15",
-          "msg": "fix: EQA order entry, EQA sample rejection and patient form messages (OGC-1483, OGC-1488, OGC-1497) (#4731)",
+          "sha": "26979a6",
+          "date": "2026-10-28",
+          "msg": "feat(dashboards): export the Management Overview as PDF or CSV (OGC-897) (#4705)",
           "branch": "develop"
         }
       }
@@ -624,21 +641,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:38:45.808Z",
+      "checkedAt": "2026-10-31T23:25:30.974Z",
       "codeChanged": {
-        "count": 1,
+        "count": 2,
         "since": "2026-10-12",
         "paths": [
           "frontend/src/components/eqa"
         ],
         "branches": {
-          "develop": 1,
+          "develop": 2,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "c37745d",
-          "date": "2026-10-15",
-          "msg": "fix: EQA order entry, EQA sample rejection and patient form messages (OGC-1483, OGC-1488, OGC-1497) (#4731)",
+          "sha": "26979a6",
+          "date": "2026-10-28",
+          "msg": "feat(dashboards): export the Management Overview as PDF or CSV (OGC-897) (#4705)",
           "branch": "develop"
         }
       }
@@ -653,21 +670,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:38:02.189Z",
+      "checkedAt": "2026-10-31T23:24:35.983Z",
       "codeChanged": {
-        "count": 21,
+        "count": 26,
         "since": "2026-10-12",
         "paths": [
           "frontend/src/components/admin"
         ],
         "branches": {
-          "develop": 21,
+          "develop": 26,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "350cbc8",
-          "date": "2026-10-22",
-          "msg": "feat(i18n): shipped NCE and dictionary values read through Transifex keys (OGC-1507) (#4800)",
+          "sha": "d1d5caf",
+          "date": "2026-10-27",
+          "msg": "fix(users): allow two people with the same name; refused saves say why (OGC-1545) (#4833)",
           "branch": "develop"
         }
       }
@@ -682,7 +699,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:39:41.965Z"
+      "checkedAt": "2026-10-31T23:26:41.038Z"
     },
     {
       "id": "inventory-items",
@@ -694,7 +711,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:40:38.145Z"
+      "checkedAt": "2026-10-31T23:27:52.860Z"
     },
     {
       "id": "inventory-receive-reports",
@@ -706,7 +723,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:40:44.350Z"
+      "checkedAt": "2026-10-31T23:28:00.453Z"
     },
     {
       "id": "lab-number-management",
@@ -718,7 +735,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:35:31.180Z"
+      "checkedAt": "2026-10-31T23:21:27.081Z"
     },
     {
       "id": "lab-unit-add",
@@ -730,7 +747,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:38:17.801Z",
+      "checkedAt": "2026-10-31T23:24:55.708Z",
       "codeChanged": {
         "count": 6,
         "since": "2026-09-15",
@@ -759,7 +776,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:38:27.110Z",
+      "checkedAt": "2026-10-31T23:25:07.138Z",
       "codeChanged": {
         "count": 6,
         "since": "2026-09-21",
@@ -788,7 +805,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:39:35.724Z",
+      "checkedAt": "2026-10-31T23:26:33.469Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-10-12",
@@ -812,7 +829,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:37:10.757Z"
+      "checkedAt": "2026-10-31T23:23:27.117Z"
     },
     {
       "id": "laporan-hasil-report",
@@ -824,7 +841,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:37:00.983Z",
+      "checkedAt": "2026-10-31T23:23:13.536Z",
       "codeChanged": {
         "count": 2,
         "since": "2026-09-22",
@@ -853,7 +870,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:39:38.871Z"
+      "checkedAt": "2026-10-31T23:26:37.262Z"
     },
     {
       "id": "logging-configuration",
@@ -865,7 +882,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:35:58.683Z"
+      "checkedAt": "2026-10-31T23:21:56.657Z"
     },
     {
       "id": "menu-configuration",
@@ -877,7 +894,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:36:33.069Z"
+      "checkedAt": "2026-10-31T23:22:39.489Z"
     },
     {
       "id": "microbiology-v2",
@@ -901,7 +918,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:40:28.827Z"
+      "checkedAt": "2026-10-31T23:27:41.087Z"
     },
     {
       "id": "nce-capa",
@@ -912,7 +929,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:34:00.118Z",
+      "checkedAt": "2026-10-31T23:19:32.077Z",
       "codeChanged": {
         "count": 10,
         "since": "2026-06-24",
@@ -941,7 +958,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:39:23.182Z"
+      "checkedAt": "2026-10-31T23:26:17.682Z"
     },
     {
       "id": "notifications-admin",
@@ -953,7 +970,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:41:43.055Z"
+      "checkedAt": "2026-10-31T23:28:43.102Z"
     },
     {
       "id": "order-entry",
@@ -965,7 +982,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:34:03.236Z",
+      "checkedAt": "2026-10-31T23:19:35.858Z",
       "codeChanged": {
         "count": 76,
         "since": "2026-06-30",
@@ -996,7 +1013,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:36:42.363Z"
+      "checkedAt": "2026-10-31T23:22:50.825Z"
     },
     {
       "id": "organization-management-330",
@@ -1008,7 +1025,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:39:32.617Z"
+      "checkedAt": "2026-10-31T23:26:29.679Z"
     },
     {
       "id": "organizations-management",
@@ -1019,7 +1036,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:34:06.356Z",
+      "checkedAt": "2026-10-31T23:19:39.364Z",
       "codeChanged": {
         "count": 47,
         "since": "2026-06-24",
@@ -1031,9 +1048,9 @@
           "demo-silnas": 17
         },
         "latest": {
-          "sha": "350cbc8",
-          "date": "2026-10-22",
-          "msg": "feat(i18n): shipped NCE and dictionary values read through Transifex keys (OGC-1507) (#4800)",
+          "sha": "d1d5caf",
+          "date": "2026-10-27",
+          "msg": "fix(users): allow two people with the same name; refused saves say why (OGC-1545) (#4833)",
           "branch": "develop"
         }
       }
@@ -1048,21 +1065,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:38:14.702Z",
+      "checkedAt": "2026-10-31T23:24:51.909Z",
       "codeChanged": {
-        "count": 27,
+        "count": 28,
         "since": "2026-09-15",
         "paths": [
           "frontend/src/components/admin/testCatalog"
         ],
         "branches": {
-          "develop": 27,
+          "develop": 28,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "4909f67",
-          "date": "2026-10-20",
-          "msg": "ci(deploy): gate retries, never fail a ready deploy on pruning; fix the inline panel create race (#4783)",
+          "sha": "860fd4c",
+          "date": "2026-10-25",
+          "msg": "feat(analyzers): one coding shape; tests resolve by any shared coding, any source (OGC-1519) (#4770)",
           "branch": "develop"
         }
       }
@@ -1077,7 +1094,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:40:31.926Z"
+      "checkedAt": "2026-10-31T23:27:45.029Z"
     },
     {
       "id": "patient-management",
@@ -1089,7 +1106,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:36:26.638Z"
+      "checkedAt": "2026-10-31T23:22:31.550Z"
     },
     {
       "id": "patient-merge",
@@ -1101,7 +1118,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:36:51.680Z"
+      "checkedAt": "2026-10-31T23:23:02.214Z"
     },
     {
       "id": "patient-order-enhancements",
@@ -1112,7 +1129,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:34:12.591Z",
+      "checkedAt": "2026-10-31T23:19:47.000Z",
       "codeChanged": {
         "count": 22,
         "since": "2026-06-24",
@@ -1141,7 +1158,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:41:46.183Z"
+      "checkedAt": "2026-10-31T23:28:46.890Z"
     },
     {
       "id": "programs-v2",
@@ -1153,7 +1170,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:39:04.452Z"
+      "checkedAt": "2026-10-31T23:25:54.471Z"
     },
     {
       "id": "provider-management",
@@ -1165,7 +1182,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:35:28.052Z",
+      "checkedAt": "2026-10-31T23:21:23.249Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-30",
@@ -1189,7 +1206,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:41:18.136Z"
+      "checkedAt": "2026-10-31T23:28:12.725Z"
     },
     {
       "id": "qa-review-shared",
@@ -1201,7 +1218,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:37:13.849Z"
+      "checkedAt": "2026-10-31T23:23:31.006Z"
     },
     {
       "id": "qc-control-lot",
@@ -1213,7 +1230,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:39:10.673Z"
+      "checkedAt": "2026-10-31T23:26:02.172Z"
     },
     {
       "id": "qc-overview",
@@ -1225,7 +1242,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:39:16.895Z"
+      "checkedAt": "2026-10-31T23:26:09.930Z"
     },
     {
       "id": "reference-lab-results",
@@ -1237,7 +1254,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:37:04.141Z",
+      "checkedAt": "2026-10-31T23:23:17.320Z",
       "codeChanged": {
         "count": 2,
         "since": "2026-09-22",
@@ -1266,7 +1283,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:36:07.985Z"
+      "checkedAt": "2026-10-31T23:22:08.373Z"
     },
     {
       "id": "register-new-patient",
@@ -1278,7 +1295,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:36:54.769Z"
+      "checkedAt": "2026-10-31T23:23:06.012Z"
     },
     {
       "id": "report-print-queue",
@@ -1290,7 +1307,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:40:13.271Z"
+      "checkedAt": "2026-10-31T23:27:21.586Z"
     },
     {
       "id": "result-reporting-configuration",
@@ -1302,7 +1319,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:36:39.263Z"
+      "checkedAt": "2026-10-31T23:22:47.047Z"
     },
     {
       "id": "result-validation",
@@ -1317,7 +1334,7 @@
         "/AccessionValidation :: redirected to /validation",
         "/ResultValidationByTestDate :: redirected to /validation"
       ],
-      "checkedAt": "2026-10-24T08:34:21.923Z",
+      "checkedAt": "2026-10-31T23:19:58.407Z",
       "codeChanged": {
         "count": 34,
         "since": "2026-06-24",
@@ -1329,9 +1346,9 @@
           "demo-silnas": 4
         },
         "latest": {
-          "sha": "21385e9",
-          "date": "2026-10-13",
-          "msg": "fix(test-catalog): Sample & Results keeps what the admin configured (OGC-1458) (#4704)",
+          "sha": "31cc26c",
+          "date": "2026-10-26",
+          "msg": "fix(results): report rounded values, keep the entered result (OGC-1544) (#4824)",
           "branch": "develop"
         }
       }
@@ -1346,7 +1363,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:36:14.234Z"
+      "checkedAt": "2026-10-31T23:22:16.284Z"
     },
     {
       "id": "results-entry-legacy",
@@ -1360,7 +1377,7 @@
       "routeErrors": [
         "/LogbookResults?type= :: redirected to /Results"
       ],
-      "checkedAt": "2026-10-24T08:36:17.330Z"
+      "checkedAt": "2026-10-31T23:22:20.233Z"
     },
     {
       "id": "running-reports",
@@ -1372,7 +1389,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:36:23.528Z"
+      "checkedAt": "2026-10-31T23:22:27.777Z"
     },
     {
       "id": "sample-acceptance-checklist",
@@ -1384,7 +1401,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:35:24.911Z",
+      "checkedAt": "2026-10-31T23:21:19.462Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-09-22",
@@ -1410,21 +1427,21 @@
         "/SampleShipment :: redirected to /SampleShipment/boxes",
         "/ReferredOutTests :: redirected to /api/OpenELIS-Global/ReferredOutTests"
       ],
-      "checkedAt": "2026-10-24T08:34:28.466Z",
+      "checkedAt": "2026-10-31T23:20:08.078Z",
       "codeChanged": {
-        "count": 9,
+        "count": 10,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/shipment"
         ],
         "branches": {
-          "develop": 7,
+          "develop": 8,
           "demo-silnas": 2
         },
         "latest": {
-          "sha": "5572716",
-          "date": "2026-10-05",
-          "msg": "fix(test-catalog): restore pages without a replacement, add the retired editor's missing fields, route links in-app (#45",
+          "sha": "2eae502",
+          "date": "2026-10-28",
+          "msg": "fix(shipment): Create Box opened from Add to Box prefills the destination and sample (OGC-1368) (#4849)",
           "branch": "develop"
         }
       }
@@ -1439,7 +1456,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:36:45.467Z"
+      "checkedAt": "2026-10-31T23:22:54.624Z"
     },
     {
       "id": "sample-storage-management",
@@ -1450,7 +1467,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:34:37.792Z",
+      "checkedAt": "2026-10-31T23:20:20.394Z",
       "codeChanged": {
         "count": 13,
         "since": "2026-06-24",
@@ -1480,7 +1497,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:38:08.485Z",
+      "checkedAt": "2026-10-31T23:24:44.279Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-09-15",
@@ -1504,7 +1521,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:39:45.099Z"
+      "checkedAt": "2026-10-31T23:26:44.824Z"
     },
     {
       "id": "search-index-management",
@@ -1516,7 +1533,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:35:40.529Z"
+      "checkedAt": "2026-10-31T23:21:38.341Z"
     },
     {
       "id": "sent-messages",
@@ -1528,7 +1545,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:40:19.516Z"
+      "checkedAt": "2026-10-31T23:27:29.135Z"
     },
     {
       "id": "site-information",
@@ -1540,7 +1557,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:36:29.768Z"
+      "checkedAt": "2026-10-31T23:22:35.333Z"
     },
     {
       "id": "test-accreditation",
@@ -1552,7 +1569,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:39:48.239Z"
+      "checkedAt": "2026-10-31T23:26:48.925Z"
     },
     {
       "id": "test-catalog-editor",
@@ -1564,21 +1581,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:38:23.988Z",
+      "checkedAt": "2026-10-31T23:25:03.334Z",
       "codeChanged": {
-        "count": 25,
+        "count": 26,
         "since": "2026-09-21",
         "paths": [
           "frontend/src/components/admin/testCatalog"
         ],
         "branches": {
-          "develop": 25,
+          "develop": 26,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "4909f67",
-          "date": "2026-10-20",
-          "msg": "ci(deploy): gate retries, never fail a ready deploy on pruning; fix the inline panel create race (#4783)",
+          "sha": "860fd4c",
+          "date": "2026-10-25",
+          "msg": "feat(analyzers): one coding shape; tests resolve by any shared coding, any source (OGC-1519) (#4770)",
           "branch": "develop"
         }
       }
@@ -1593,21 +1610,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:38:11.594Z",
+      "checkedAt": "2026-10-31T23:24:48.106Z",
       "codeChanged": {
-        "count": 27,
+        "count": 28,
         "since": "2026-09-15",
         "paths": [
           "frontend/src/components/admin/testCatalog"
         ],
         "branches": {
-          "develop": 27,
+          "develop": 28,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "4909f67",
-          "date": "2026-10-20",
-          "msg": "ci(deploy): gate retries, never fail a ready deploy on pruning; fix the inline panel create race (#4783)",
+          "sha": "860fd4c",
+          "date": "2026-10-25",
+          "msg": "feat(analyzers): one coding shape; tests resolve by any shared coding, any source (OGC-1519) (#4770)",
           "branch": "develop"
         }
       }
@@ -1622,7 +1639,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:35:37.419Z"
+      "checkedAt": "2026-10-31T23:21:34.768Z"
     },
     {
       "id": "user-management",
@@ -1634,7 +1651,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:36:01.799Z"
+      "checkedAt": "2026-10-31T23:22:00.472Z"
     },
     {
       "id": "validation",
@@ -1648,7 +1665,7 @@
       "routeErrors": [
         "/ResultValidation?type=&test= :: redirected to /validation"
       ],
-      "checkedAt": "2026-10-24T08:36:20.421Z"
+      "checkedAt": "2026-10-31T23:22:24.005Z"
     },
     {
       "id": "validation-v4",
@@ -1660,7 +1677,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:37:16.965Z"
+      "checkedAt": "2026-10-31T23:23:34.787Z"
     },
     {
       "id": "vector-surveillance",
@@ -1676,7 +1693,7 @@
         "/vector/identification :: Split"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:34:44.022Z",
+      "checkedAt": "2026-10-31T23:20:28.834Z",
       "codeChanged": {
         "count": 39,
         "since": "2026-06-24",
@@ -1706,7 +1723,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:36:57.887Z",
+      "checkedAt": "2026-10-31T23:23:09.775Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-09-22",
@@ -1735,7 +1752,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-10-24T08:40:10.096Z"
+      "checkedAt": "2026-10-31T23:27:17.261Z"
     }
   ],
   "note": "indonesiademo unreachable (auth setup failed all retries) on 2026-09-23; its sections carried over from previous published report",
