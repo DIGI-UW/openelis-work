@@ -80,6 +80,11 @@ this FRS fixes the **functional model and the mapping granularity**, which is th
   **blank/absent Cq = no amplification / negative** for that channel (per the CFX spec), and qualitative
   calls map to dictionary/qualitative components.
 
+- **FR-B3. One record, several parts (2026-10-06).** A reported record can carry a qualitative call and a
+  quantity in one field, an off-scale flag, and complementary values it names (LOG, Ct, EndPt). Each
+  part maps to its own (test, component) by the same rule as FR-A3; a log value never lands on the
+  quantity's component. Grounded in Cepheid 301-2002 Rev E §6.3.4.1.6 and 303-0251 §2.1.1.
+
 ### C. Per-assay modeling choice (additive, no forced merge)
 - **FR-C1.** A multiplex assay may map either to **separate tests** (today) or to **one multi-component
   test**; this is a per-assay deployment decision. The mapping supports both.
@@ -147,7 +152,10 @@ reuses the existing import-exception strings (+ one "unmapped analyzer target" k
 
 ## Open Questions
 - Where the component reference lives in the profile/connection-spec format (extend `default_test_mappings`
-  with a `component_code`, or a separate per-target map?) — engineering call.
+  with a `component_code`, or a separate per-target map?) — engineering call. *Resolved 2026-10-06:*
+  the profile declares the instrument's components and where each result part sits; the component
+  reference lives in each analyzer's mapping row, keyed by (analyzer code, part) (OpenELIS analyzer
+  baseline roadmap, rules 3 and 17, step 2b).
 - Auto-suggest a component mapping when both the test and the component carry LOINC and the analyzer sends
   a LOINC-coded target? (Nice-to-have.)
 - For CFX-style channel-only exports (blank `Target`), confirm the channel→component mapping is as
