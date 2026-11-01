@@ -1,5 +1,14 @@
 # analyzer-mapping-spec — Changelog
 
+## 2026-11-01: monthly consolidation
+
+- The canonical profile-home question stays answered (Analyzer Bridge, since 2026-10-01); nothing to
+  decide this cycle.
+- Re-checked the Bridge's shipped set (`main` at `5a3b8a3`, 2026-10-30): five profiles now
+  (`cepheid-genexpert-astm`, `hain-fluorocycler-xt`, `hain-fluorocycler-xt-madagascar`,
+  `mindray-bc5380`, `thermo-quantstudio`), file names without `-vN`. Updated "Where profiles live"
+  in `references/profile-reuse.md`. Distro role and the other 12 older profiles stay UNVERIFIED.
+
 ## 2026-10-01: monthly consolidation
 
 **The profile home moved again: the Analyzer Bridge now owns profiles.** The monthly roster check
