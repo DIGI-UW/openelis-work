@@ -156,11 +156,12 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 
 | Feature | Mockup | Spec |
 |---------|--------|------|
-| Validation Page v2 (Full Redesign) | [validation-page-mockup-v2.jsx](designs/validation-page/validation-page-mockup-v2.jsx) | [validation-page-requirements-v2.md](designs/validation-page/validation-page-requirements-v2.md) |
-| Validation Page v2.1 (Stage 1) | [validation-page-stage1-mockup.jsx](designs/validation-page/validation-page-stage1-mockup.jsx) | [validation-page-requirements-v2.1-stage1.md](designs/validation-page/validation-page-requirements-v2.1-stage1.md) |
-| Validation Page v3 (Demographics) | [validation-page-mockup-v3-demographics.jsx](designs/validation-page/validation-page-mockup-v3-demographics.jsx) | [validation-patient-demographics-frs-v1.md](designs/validation-page/validation-patient-demographics-frs-v1.md) |
-| Patient Demographics Mockup | [validation-patient-demographics-mockup.jsx](designs/validation-page/validation-patient-demographics-mockup.jsx) | [validation-patient-demographics-frs-v1.md](designs/validation-page/validation-patient-demographics-frs-v1.md) |
-| Patient Demographics FRS | — | [validation-patient-demographics-frs-v1.md](designs/validation-page/validation-patient-demographics-frs-v1.md) |
+| Validation Page v2 (Full Redesign) [Superseded] | [validation-page-mockup-v2.jsx](designs/validation-page/validation-page-mockup-v2.jsx) | [validation-page-requirements-v2.md](designs/validation-page/validation-page-requirements-v2.md) |
+| Validation Page v2.1 (Stage 1) [Superseded] | [validation-page-stage1-mockup.jsx](designs/validation-page/validation-page-stage1-mockup.jsx) | [validation-page-requirements-v2.1-stage1.md](designs/validation-page/validation-page-requirements-v2.1-stage1.md) |
+| Validation Page v3 (Demographics) [Completed] | [validation-page-mockup-v3-demographics.jsx](designs/validation-page/validation-page-mockup-v3-demographics.jsx) | [validation-patient-demographics-frs-v1.md](designs/validation-page/validation-patient-demographics-frs-v1.md) |
+| Patient Demographics Mockup [Completed] | [validation-patient-demographics-mockup.jsx](designs/validation-page/validation-patient-demographics-mockup.jsx) | [validation-patient-demographics-frs-v1.md](designs/validation-page/validation-patient-demographics-frs-v1.md) |
+| Patient Demographics FRS [Completed] | — | [validation-patient-demographics-frs-v1.md](designs/validation-page/validation-patient-demographics-frs-v1.md) |
+| Multi-Level Validation (OGC-1364) | [preview](designs/results-validation/multi-level-validation-preview.html) | (FRS v5.0 not yet in repo) |
 | Validation Clearance Rule & Empty-State | [validation-clearance-rule.jsx](designs/results-validation/validation-clearance-rule.jsx) · [preview](designs/results-validation/validation-clearance-rule.html) | [validation-clearance-rule.md](designs/results-validation/validation-clearance-rule.md) |
 | Compliance Evaluation Engine [Completed] | [compliance-evaluation-engine.jsx](designs/results-validation/compliance-evaluation-engine.jsx) | [compliance-evaluation-engine.md](designs/results-validation/compliance-evaluation-engine.md) |
 | HIL Specimen Quality | [hil-specimen-quality.jsx](designs/results-validation/hil-specimen-quality.jsx) · [preview](designs/results-validation/hil-specimen-quality-preview.html) | [hil-specimen-quality.md](designs/results-validation/hil-specimen-quality.md) |
@@ -169,8 +170,8 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Results Entry — Multi-Component (integrated) | — | [results-entry-multicomponent.md](designs/results-validation/results-entry-multicomponent.md) |
 | Validation Page — Multi-Component (integrated) | — | [validation-multicomponent.md](designs/results-validation/validation-multicomponent.md) |
 | Analyzer Ingestion — Multi-Component Results | — | [analyzer-multicomponent-ingestion.md](designs/results-validation/analyzer-multicomponent-ingestion.md) |
-| Reagent Usage on Result Entry v1 | [results-page-reagent-usage-v1.jsx](designs/results-validation/results-page-reagent-usage-v1.jsx) · [preview](designs/results-validation/results-page-reagent-usage-v1-preview.html) | [results-page-reagent-usage-v1.md](designs/results-validation/results-page-reagent-usage-v1.md) · [checklist](designs/results-validation/results-page-reagent-usage-v1-checklist.md) · [bahasa](designs/results-validation/results-page-reagent-usage-v1-bahasa.md) |
-| Reagent Usage on Result Entry v2.1 | [results-page-reagent-usage-v2.1.jsx](designs/results-validation/results-page-reagent-usage-v2.1.jsx) · [preview](designs/results-validation/results-page-reagent-usage-v2.1-preview.html) | — |
+| Reagent Usage on Result Entry v1 [Completed] | [results-page-reagent-usage-v1.jsx](designs/results-validation/results-page-reagent-usage-v1.jsx) · [preview](designs/results-validation/results-page-reagent-usage-v1-preview.html) | [results-page-reagent-usage-v1.md](designs/results-validation/results-page-reagent-usage-v1.md) · [checklist](designs/results-validation/results-page-reagent-usage-v1-checklist.md) · [bahasa](designs/results-validation/results-page-reagent-usage-v1-bahasa.md) |
+| Reagent Usage on Result Entry v2.1 [Completed] | [results-page-reagent-usage-v2.1.jsx](designs/results-validation/results-page-reagent-usage-v2.1.jsx) · [preview](designs/results-validation/results-page-reagent-usage-v2.1-preview.html) | — |
 
 ## Reports
 
