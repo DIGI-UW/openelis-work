@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Level Validation, OpenELIS Preview</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans','Helvetica Neue',Arial,sans-serif; }
+  .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:monospace; display:flex; gap:.75rem; align-items:center; flex-wrap:wrap; }
+  .preview-banner button { background:transparent; color:#fff; border:1px solid #fff; padding:2px 10px; cursor:pointer; font-family:monospace; font-size:12px; }
+  .preview-banner button.on { background:#fff; color:#0f62fe; }
+  .wrap { padding:1rem 2rem; max-width:1440px; margin:0 auto; }
+  .crumbs { font-size:12px; color:#525252; margin-bottom:.5rem; }
+  .crumbs a { color:#0f62fe; }
+  h1 { font-size:28px; font-weight:400; margin:.25rem 0 1rem; }
+  h2 { font-size:20px; font-weight:400; margin:0 0 .75rem; }
+  h3 { font-size:14px; font-weight:600; margin:0 0 .5rem; }
+  .layout { display:grid; grid-template-columns:220px 1fr 320px; gap:1rem; align-items:start; }
+  .snav { background:#fff; }
+  .snav a { display:block; padding:.75rem 1rem; font-size:14px; color:#161616; border-left:3px solid transparent; cursor:pointer; }
+  .snav a.on { border-left-color:#0f62fe; background:#e8e8e8; font-weight:600; }
+  .tile { background:#fff; padding:1rem; margin-bottom:1rem; }
+  .key { font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6f6f6f; }
+  .row { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; padding:.75rem 0; border-bottom:1px solid #e0e0e0; }
+  .row:last-of-type { border-bottom:0; }
+  .indent { padding-left:2rem; }
+  .muted { color:#6f6f6f; font-size:12px; }
+  .tgl { position:relative; width:48px; height:24px; border-radius:12px; background:#8d8d8d; border:0; cursor:pointer; flex-shrink:0; }
+  .tgl.on { background:#24a148; }
+  .tgl::after { content:''; position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:#fff; transition:left .1s; }
+  .tgl.on::after { left:27px; }
+  .tgl:disabled { opacity:.4; cursor:not-allowed; }
+  .radio { display:flex; gap:1.25rem; flex-wrap:wrap; font-size:14px; }
+  .radio label { display:flex; gap:.35rem; align-items:center; cursor:pointer; }
+  .stepper { display:inline-flex; align-items:center; border-bottom:1px solid #8d8d8d; background:#f4f4f4; }
+  .stepper button { width:32px; height:32px; border:0; background:transparent; cursor:pointer; font-size:16px; }
+  .stepper span { width:32px; text-align:center; }
+  .field { margin:.75rem 0; }
+  .field > label { display:block; font-size:12px; color:#525252; margin-bottom:.35rem; }
+  select.cds--select-input { min-width:220px; }
+  .err { color:#da1e28; font-size:12px; margin-top:.35rem; }
+  .note { padding:.6rem .75rem; font-size:13px; margin:.5rem 0; border-left:3px solid; }
+  .warn { background:#fcf4d6; border-color:#f1c21b; }
+  .info { background:#edf5ff; border-color:#0f62fe; }
+  .ok { background:#defbe6; border-color:#24a148; }
+  table.cds--data-table { width:100%; }
+  tr.exp td { background:#f4f4f4; }
+  tr.deact td { color:#8d8d8d; }
+  .pv { font-size:13px; padding:.5rem 0; border-bottom:1px solid #e0e0e0; }
+  .toolbar { display:flex; gap:.75rem; align-items:center; flex-wrap:wrap; background:#fff; padding:.75rem 1rem; }
+  .lane { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.3px; padding:.5rem 1rem; background:#e0e0e0; }
+  .ref { display:grid; grid-template-columns:1fr 1fr; gap:1rem; padding:.5rem; }
+  .btnrow { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; }
+  .reason { font-size:12px; color:#6f6f6f; font-style:italic; }
+  .hist { font-size:12px; border-left:2px solid #c6c6c6; padding-left:.75rem; }
+  .hist div { margin-bottom:.35rem; }
+  .strike { text-decoration:line-through; color:#8d8d8d; font-size:13px; }
+  .modal-bg { position:fixed; inset:0; background:rgba(22,22,22,.5); display:flex; align-items:center; justify-content:center; z-index:10; }
+  .modal { background:#fff; width:480px; max-width:92vw; padding:1.25rem; }
+  @media (max-width:1100px){ .layout { grid-template-columns:1fr; } .ref { grid-template-columns:1fr; } }
+</style>
+</head>
+<body class="cds--white">
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useRef } = React;
+
+const ROLES = ['Validation', 'Pathologist', 'QA Officer', 'Global Administrator'];
+const TRIG = { all: 'All results', needs: 'Only results that need review', none: 'No review' };
+const Toggle = ({ on, onClick, disabled }) => (
+  <button className={'tgl' + (on ? ' on' : '')} onClick={onClick} disabled={disabled} aria-pressed={on}></button>
+);
+
+function policyError(p) {
+  if (p.levels === 0 && p.trigger !== 'none') return 'With 0 reviews, choose No review.';
+  if (p.levels > 0 && p.trigger === 'none') return 'No review cannot have reviews configured.';
+  return null;
+}
+function describe(p) {
+  const chain = p.roles.slice(0, p.levels).join(' then ');
+  const n = p.levels === 1 ? '1 review' : p.levels + ' reviews';
+  if (p.trigger === 'none') return { clean: 'released at entry', flagged: 'released at entry' };
+  if (p.trigger === 'needs') return { clean: 'released at entry', flagged: n + ', ' + chain };
+  return { clean: n + ', ' + chain, flagged: n + ', ' + chain };
+}
+
+function PolicyEditor({ p, setP, unit }) {
+  const err = policyError(p);
+  const setLevels = (n) => {
+    n = Math.max(0, Math.min(5, n));
+    const roles = [...p.roles];
+    while (roles.length < n) roles.push('Validation');
+    setP({ ...p, levels: n, roles, trigger: n === 0 ? 'none' : (p.trigger === 'none' ? 'all' : p.trigger) });
+  };
+  const setTrigger = (k) => {
+    const levels = k === 'none' ? 0 : Math.max(1, p.levels);
+    const roles = [...p.roles]; while (roles.length < levels) roles.push('Validation');
+    setP({ ...p, trigger: k, levels, roles });
+  };
+  return (<div>
+    <div className="field"><label>Which results need review</label>
+      <div className="radio">{Object.entries(TRIG).map(([k, v]) => (
+        <label key={k}><input type="radio" checked={p.trigger === k} onChange={() => setTrigger(k)} />{v}</label>))}</div>
+      {p.trigger === 'needs' && <div className="muted" style={{ marginTop: '.35rem' }}>Uses the same clearance rule as the Clear lane on the Validation page.</div>}
+    </div>
+    <div className="field"><label>Number of reviews</label>
+      <div className="stepper"><button onClick={() => setLevels(p.levels - 1)}>-</button><span>{p.levels}</span><button onClick={() => setLevels(p.levels + 1)}>+</button></div>
+    </div>
+    {Array.from({ length: p.levels }).map((_, i) => (
+      <div className="field" key={i}><label>Level {i + 1} role</label>
+        <div className="cds--select"><select className="cds--select-input" value={p.roles[i]}
+          onChange={(e) => { const r = [...p.roles]; r[i] = e.target.value; setP({ ...p, roles: r }); }}>
+          {ROLES.map((r) => <option key={r}>{r}</option>)}</select></div>
+        {unit === 'Histopathology' && p.roles[i] === 'Pathologist' &&
+          <div className="note warn">No active user holds Pathologist with Validation rights for Histopathology.</div>}
+      </div>))}
+    {p.levels >= 2 && <div className="muted">Each level must be signed by a different person, even when two levels share a role.</div>}
+    {err && <div className="err">{err}</div>}
+  </div>);
+}
+
+/* ================= Result & Validation Configuration ================= */
+const SEED = [
+  { id: 1, unit: 'Hematology', domain: 'Clinical', trigger: 'all', levels: 2, roles: ['Validation', 'Validation'], active: true },
+  { id: 2, unit: 'Histopathology', domain: 'Clinical', trigger: 'all', levels: 2, roles: ['Validation', 'Pathologist'], active: true },
+  { id: 3, unit: 'Water Quality', domain: 'Environmental', trigger: 'needs', levels: 1, roles: ['Validation'], active: true },
+  { id: 4, unit: 'Entomology', domain: 'Vector', trigger: 'all', levels: 1, roles: ['Validation'], active: true },
+  { id: 5, unit: 'Serology', domain: 'Clinical', trigger: 'all', levels: 2, roles: ['Validation', 'Validation'], active: false },
+];
+
+function AdminPage() {
+  const [sec, setSec] = useState('policy');
+  const [def, setDef] = useState({ trigger: 'needs', levels: 1, roles: ['Validation'] });
+  const [ovr, setOvr] = useState(SEED);
+  const [open, setOpen] = useState(null);
+  const [showDeact, setShowDeact] = useState(false);
+  const [savedSec, setSavedSec] = useState(null);
+  const [msg, setMsg] = useState('Critical value. Notify the requesting clinician by phone and record who took the call.');
+  const [flags, setFlags] = useState({
+    allowSelfValidation: true, ResultTechnicianName: true, autoFillTechNameBox: true, autoFillTechNameUser: false,
+    alertWhenInvalidResult: true, allowResultRejection: true, validateTechnicalRejection: true, modifyNote: true,
+    modifyRole: false, retestNoteRequired: true, qcFailBlocksValidation: true, allowBulkReleaseClear: true,
+    showValidationFailureIcon: true, roleForPatientOnResults: false,
+  });
+  const flip = (k) => () => setFlags({ ...flags, [k]: !flags[k] });
+  const tagKind = { Clinical: 'blue', Environmental: 'teal', Vector: 'purple' };
+  const units = ['Biochemistry', 'Microbiology', 'Hematology', 'Histopathology', 'Water Quality', 'Entomology'];
+  const effective = units.map((u) => { const o = ovr.find((x) => x.unit === u && x.active); return { unit: u, p: o || def, override: !!o }; });
+  const turnedOff = ovr.filter((o) => o.active && o.trigger === 'none' && SEED.find((s) => s.id === o.id).trigger !== 'none');
+  const sections = [['policy', 'Validation policy'], ['signers', 'Who can sign'], ['entry', 'Result entry'],
+    ['mod', 'Modification, rejection and retest'], ['release', 'Release and display'], ['access', 'Access and PII']];
+
+  const Setting = ({ k, label, help, keyName, indent, disabled }) => (
+    <div className={'row' + (indent ? ' indent' : '')}>
+      <div><div style={{ fontSize: 14 }}>{label}</div>{help && <div className="muted">{help}</div>}<div className="key">{keyName}</div></div>
+      <Toggle on={flags[k]} onClick={flip(k)} disabled={disabled} />
+    </div>);
+  const SaveBar = () => (
+    <div className="btnrow" style={{ marginTop: '.75rem' }}>
+      <button className="cds--btn cds--btn--primary cds--btn--sm" disabled={sec === 'policy' && !!policyError(def)} onClick={() => setSavedSec(sec)}>Save section</button>
+      <button className="cds--btn cds--btn--ghost cds--btn--sm">Cancel</button>
+      {savedSec === sec && <span className="muted">Saved. Change recorded in the audit trail.</span>}
+    </div>);
+
+  return (<div className="wrap">
+    <div className="crumbs"><a>Home</a> / <a>Admin Management</a> / Result &amp; Validation Configuration</div>
+    <h1>Result &amp; Validation Configuration</h1>
+    <div className="layout">
+      <nav className="snav">{sections.map(([k, v]) => <a key={k} className={sec === k ? 'on' : ''} onClick={() => setSec(k)}>{v}</a>)}</nav>
+      <div>
+        {sec === 'policy' && (<>
+          <div className="tile"><h2>Lab-wide default</h2>
+            <div className="muted">Every lab unit without an override follows this policy.</div>
+            <PolicyEditor p={def} setP={setDef} />
+            <SaveBar /></div>
+          <div className="tile">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '.5rem', flexWrap: 'wrap', gap: '.5rem' }}>
+              <h2 style={{ margin: 0 }}>Lab unit overrides</h2>
+              <div className="btnrow"><span className="muted">Show deactivated</span><Toggle on={showDeact} onClick={() => setShowDeact(!showDeact)} />
+                <button className="cds--btn cds--btn--tertiary cds--btn--sm">Add lab unit override</button></div>
+            </div>
+            <div className="cds--data-table-container"><table className="cds--data-table cds--data-table--sm">
+              <thead><tr><th>Lab unit</th><th>Domain</th><th>Which results</th><th>Reviews</th><th>Roles</th><th>Status</th><th></th></tr></thead>
+              <tbody>{ovr.filter((o) => showDeact || o.active).map((o) => (<React.Fragment key={o.id}>
+                <tr className={o.active ? '' : 'deact'} style={{ cursor: o.active ? 'pointer' : 'default' }} onClick={() => o.active && setOpen(open === o.id ? null : o.id)}>
+                  <td>{o.unit}</td><td><span className={'cds--tag cds--tag--' + tagKind[o.domain]}>{o.domain}</span></td>
+                  <td>{TRIG[o.trigger]}</td><td>{o.levels}</td>
+                  <td>{o.levels ? o.roles.slice(0, o.levels).join(' then ') : 'None'}
+                    {o.unit === 'Histopathology' && o.roles.slice(0, o.levels).includes('Pathologist') && <span className="cds--tag cds--tag--warm-gray">No signer</span>}</td>
+                  <td>{o.active ? <span className="cds--tag cds--tag--green">Active</span> : <span className="cds--tag cds--tag--gray">Deactivated</span>}</td>
+                  <td><button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={(e) => { e.stopPropagation(); setOvr(ovr.map((x) => x.id === o.id ? { ...x, active: !x.active } : x)); setOpen(null); }}>{o.active ? 'Deactivate' : 'Reactivate'}</button></td>
+                </tr>
+                {open === o.id && (<tr className="exp"><td colSpan="7">
+                  <PolicyEditor p={o} unit={o.unit} setP={(np) => setOvr(ovr.map((x) => x.id === o.id ? np : x))} />
+                  <div className="btnrow"><button className="cds--btn cds--btn--primary cds--btn--sm" disabled={!!policyError(o)} onClick={() => setOpen(null)}>Save row</button>
+                    <button className="cds--btn cds--btn--ghost cds--btn--sm" onClick={() => setOpen(null)}>Cancel</button></div>
+                </td></tr>)}
+              </React.Fragment>))}</tbody>
+            </table></div>
+            <div className="muted" style={{ marginTop: '.5rem' }}>Changes apply to results saved afterwards. Results already in review keep the number of reviews they started with.</div>
+          </div></>)}
+        {sec === 'signers' && (<div className="tile"><h2>Who can sign</h2>
+          <div className="row"><div><div style={{ fontSize: 14 }}>A person can sign only one level of the same result</div>
+            <div className="muted">Always enforced. This is what makes two reviews two people.</div></div><span className="cds--tag cds--tag--gray">Always on</span></div>
+          <Setting k="allowSelfValidation" label="Allow validators to sign results they entered" help="Off: the person who last saved a result's value cannot sign any level of it." keyName="allowSelfValidation" />
+          <div className="note info">A validator also needs the level's role and Validation rights for the result's lab unit.</div>
+          <SaveBar /></div>)}
+        {sec === 'entry' && (<div className="tile"><h2>Result entry</h2>
+          <Setting k="ResultTechnicianName" label="Require technician name on results" keyName="ResultTechnicianName" />
+          <Setting k="autoFillTechNameBox" label="Show an autofill box for the tech name" keyName="autoFillTechNameBox" indent disabled={!flags.ResultTechnicianName} />
+          <Setting k="autoFillTechNameUser" label="Autofill with the logged-in user" keyName="autoFillTechNameUser" indent disabled={!flags.ResultTechnicianName} />
+          <Setting k="alertWhenInvalidResult" label="Alert when a result is outside the valid range" keyName="alertWhenInvalidResult" />
+          <div className="row" style={{ display: 'block' }}><div style={{ fontSize: 14 }}>Critical result message</div><div className="key">customCriticalMessage</div>
+            <textarea className="cds--text-area" rows="2" style={{ width: '100%', marginTop: '.5rem' }} value={msg} onChange={(e) => setMsg(e.target.value)} /></div>
+          <SaveBar /></div>)}
+        {sec === 'mod' && (<div className="tile"><h2>Modification, rejection and retest</h2>
+          <Setting k="allowResultRejection" label="Allow result rejection" help="Rejection files a non-conformity event." keyName="allowResultRejection" />
+          <Setting k="validateTechnicalRejection" label="Send tech-rejected results to validation" help="Off: a test the technician rejects is cancelled." keyName="validateTechnicalRejection" />
+          <Setting k="modifyNote" label="Require a note when results are modified" keyName="modify results note required" />
+          <Setting k="modifyRole" label="Require a separate role to modify results" keyName="modify results role" />
+          {flags.modifyRole && <div className="indent field"><label>Role allowed to modify</label><div className="cds--select"><select className="cds--select-input"><option>Validation</option><option>QA Officer</option></select></div></div>}
+          <Setting k="retestNoteRequired" label="Require a note when sending for retest" keyName="retestNoteRequired" />
+          <Setting k="qcFailBlocksValidation" label="Block validation when QC fails" help="A known quality-control failure holds the result in review." keyName="qcFailBlocksValidation" />
+          <div className="note info">Modifying a value or sending for retest at any level restarts review at level 1.</div>
+          <SaveBar /></div>)}
+        {sec === 'release' && (<div className="tile"><h2>Release and display</h2>
+          <Setting k="allowBulkReleaseClear" label="Allow bulk release of clear results" help="Enables Release all clear, and Sign level k for all clear at earlier levels." keyName="allowBulkReleaseClear" />
+          <Setting k="showValidationFailureIcon" label="Show validation-failure icon on the Results page" keyName="showValidationFailureIcon" />
+          <SaveBar /></div>)}
+        {sec === 'access' && (<div className="tile"><h2>Access and PII</h2>
+          <Setting k="roleForPatientOnResults" label="Mask patient identity for users without Patient Results access" help="Lab number and test still show. Site-wide Show Patient Name takes precedence." keyName="roleForPatientOnResults" />
+          <SaveBar /></div>)}
+      </div>
+      <aside className="tile"><h3>Effective policy</h3>
+        <div className="muted" style={{ marginBottom: '.5rem' }}>Reflects unsaved changes. Try setting Water Quality to No review.</div>
+        {turnedOff.map((o) => <div key={o.id} className="note warn">This turns review off for {o.unit}. Results will be released without a validator.</div>)}
+        {effective.map(({ unit, p, override }) => { const d = describe(p); return (
+          <div className="pv" key={unit}><strong>{unit}</strong> <span className="muted">{override ? 'override' : 'lab-wide default'}</span>
+            <div>Clean result: {d.clean}</div><div>Flagged result: {d.flagged}</div></div>); })}
+        <div className="muted" style={{ marginTop: '.5rem' }}>A result whose limit is marked "always validate" gets at least one review in every unit.</div>
+      </aside>
+    </div>
+  </div>);
+}
+
+/* ================= Validation page ================= */
+const USERS = { tau: { name: 'M. Tau', role: 'Validation' }, kila: { name: 'A. Kila', role: 'Validation' }, osei: { name: 'Dr. K. Osei', role: 'Pathologist' } };
+const ROWS = [
+  { id: 1, lab: '26-CPHL-004812', test: 'Hemoglobin', unit: 'Hematology', value: '13.8 g/dL', range: '12.0 to 16.0', levels: 2, current: 0, clear: true, enteredBy: 'J. Wari', signs: [], hist: ['Entered by J. Wari at 08:14'] },
+  { id: 2, lab: '26-CPHL-004812', test: 'Platelet count', unit: 'Hematology', value: '42 x10^9/L', range: '150 to 400', levels: 2, current: 0, clear: false, signal: 'Critical, not acknowledged', enteredBy: 'J. Wari', signs: [], hist: ['Entered by J. Wari at 08:14'] },
+  { id: 3, lab: '26-CPHL-004790', test: 'WBC count', unit: 'Hematology', value: '7.1 x10^9/L', range: '4.0 to 11.0', levels: 2, current: 1, clear: true, enteredBy: 'J. Wari', signs: [{ lvl: 1, name: 'A. Kila', role: 'Validation', at: '09:02' }], hist: ['Entered by J. Wari at 07:51', 'Level 1 signed by A. Kila (Validation) at 09:02, e-signed: Reviewed, level 1 of 2'] },
+  { id: 4, lab: '26-CPHL-004771', test: 'Hemoglobin', unit: 'Hematology', value: '11.2 g/dL', range: '12.0 to 16.0', levels: 2, current: 0, clear: false, signal: 'Out of range', enteredBy: 'A. Kila', signs: [], hist: ['Entered by A. Kila at 07:40'] },
+  { id: 5, lab: '26-CPHL-004655', test: 'Tissue biopsy, final report', unit: 'Histopathology', value: 'Narrative report', range: '', levels: 2, current: 1, clear: false, signal: 'Narrative result', enteredBy: 'L. Mek', signs: [{ lvl: 1, name: 'M. Tau', role: 'Validation', at: '08:30' }], hist: ['Entered by L. Mek at 08:05', 'Level 1 signed by M. Tau (Validation) at 08:30, e-signed: Reviewed, level 1 of 2'] },
+  { id: 6, lab: '26-CPHL-004799', test: 'Glucose, fasting', unit: 'Biochemistry', value: '5.1 mmol/L', range: '3.9 to 5.5', levels: 1, current: 0, clear: false, signal: 'Modified after save', enteredBy: 'P. Ruma', signs: [], hist: ['Entered by P. Ruma at 08:40', 'Value corrected by P. Ruma at 08:52'] },
+];
+const AUTO = [{ lab: '26-CPHL-004801', test: 'Free chlorine', unit: 'Water Quality', value: '0.6 mg/L', note: 'Released at entry by policy, 0 reviews, 08:22' },
+  { lab: '26-CPHL-004803', test: 'Glucose, random', unit: 'Biochemistry', value: '6.2 mmol/L', note: 'Released at entry by policy, 0 reviews, 08:31' }];
+const LEVEL_ROLES = { Histopathology: ['Validation', 'Pathologist'], Hematology: ['Validation', 'Validation'], Biochemistry: ['Validation'] };
+
+function ValidationPage({ user }) {
+  const [rows, setRows] = useState(ROWS);
+  const [others, setOthers] = useState(false);
+  const [auto, setAuto] = useState(false);
+  const [open, setOpen] = useState(null);
+  const [sig, setSig] = useState(null);
+  const [selfVal, setSelfVal] = useState(true);
+  const me = USERS[user];
+
+  const reason = (r) => {
+    const s = r.signs.find((x) => x.name === me.name);
+    if (s) return 'You signed level ' + s.lvl;
+    if (!selfVal && r.enteredBy === me.name) return 'You entered this result';
+    const need = LEVEL_ROLES[r.unit][r.current];
+    if (need !== me.role) return 'Level ' + (r.current + 1) + ' requires ' + need;
+    return null;
+  };
+  const live = rows.filter((r) => r.current < r.levels);
+  const shown = others ? live : live.filter((r) => !reason(r));
+  const clearMine = shown.filter((r) => r.clear && !reason(r));
+  const finalClear = clearMine.filter((r) => r.current === r.levels - 1);
+  const midClear = clearMine.filter((r) => r.current < r.levels - 1);
+  const released = rows.filter((r) => r.current >= r.levels);
+
+  const sign = (ids) => {
+    setRows(rows.map((r) => {
+      if (!ids.includes(r.id)) return r;
+      const lvl = r.current + 1, fin = lvl === r.levels;
+      return { ...r, current: lvl, signs: [...r.signs, { lvl, name: me.name, role: me.role, at: '10:42' }],
+        hist: [...r.hist, (fin ? 'Validated and released by ' : 'Level ' + lvl + ' signed by ') + me.name + ' (' + me.role + ') at 10:42, e-signed: ' + (fin ? 'Validated and released' : 'Reviewed, level ' + lvl + ' of ' + r.levels)] };
+    }));
+    setSig(null); setOpen(null);
+  };
+  const modify = (id) => setRows(rows.map((r) => r.id !== id ? r : { ...r, current: 0, superseded: [...(r.superseded || []), ...r.signs], signs: [],
+    hist: [...r.hist, 'Value modified by ' + me.name + ' at 10:45', 'Review restarted at level 1 after modification by ' + me.name] }));
+
+  const sigMeaning = (s) => {
+    const r = rows.find((x) => x.id === s.ids[0]);
+    return r.current === r.levels - 1 ? 'Validated and released' : 'Reviewed, level ' + (r.current + 1) + ' of ' + r.levels;
+  };
+
+  return (<div className="wrap">
+    <div className="crumbs"><a>Home</a> / Validation</div>
+    <h1>Validation</h1>
+    <div className="note info">Preview: viewing as <strong>{me.name}</strong> ({me.role}). Switch user in the blue banner.
+      Preview-only control: allowSelfValidation <Toggle on={selfVal} onClick={() => setSelfVal(!selfVal)} /></div>
+    <div className="toolbar">
+      <div className="cds--select"><select className="cds--select-input" defaultValue="all"><option value="all">All lab units</option><option>Hematology</option><option>Histopathology</option><option>Biochemistry</option></select></div>
+      <span className="muted">Show results waiting for others</span><Toggle on={others} onClick={() => setOthers(!others)} />
+      <span className="muted">Include auto-validated</span><Toggle on={auto} onClick={() => setAuto(!auto)} />
+      <div className="btnrow" style={{ marginLeft: 'auto' }}>
+        {midClear.length > 0 && <button className="cds--btn cds--btn--tertiary cds--btn--sm" onClick={() => setSig({ ids: midClear.map((r) => r.id), bulk: true })}>Sign level 1 for all clear ({midClear.length})</button>}
+        {finalClear.length > 0 && <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={() => setSig({ ids: finalClear.map((r) => r.id), bulk: true })}>Release all clear ({finalClear.length})</button>}
+      </div>
+    </div>
+    <div style={{ background: '#fff' }}>
+      {['Needs review', 'Clear'].map((lane) => { const set = shown.filter((r) => (lane === 'Clear') === r.clear); return (
+        <div key={lane}><div className="lane">{lane} ({set.length})</div>
+          {set.length === 0 ? <div className="muted" style={{ padding: '1rem' }}>Nothing here for you to sign right now.</div> :
+          <div className="cds--data-table-container"><table className="cds--data-table cds--data-table--sm">
+            <thead><tr><th>Lab number</th><th>Test</th><th>Lab unit</th><th>Result</th><th>Normal range</th><th>Level</th><th>Check before release</th><th></th></tr></thead>
+            <tbody>{set.map((r) => { const why = reason(r), fin = r.current === r.levels - 1; return (<React.Fragment key={r.id}>
+              <tr style={{ cursor: 'pointer', opacity: why ? .7 : 1 }} onClick={() => setOpen(open === r.id ? null : r.id)}>
+                <td>{r.lab}</td><td>{r.test}</td><td>{r.unit}</td><td>{r.value}</td><td>{r.range}</td>
+                <td>{r.levels > 1 && <span className={'cds--tag cds--tag--' + (fin ? 'purple' : 'blue')}>Level {r.current + 1} of {r.levels}</span>}</td>
+                <td>{r.signal ? <span className="cds--tag cds--tag--red">{r.signal}</span> : <span className="cds--tag cds--tag--green">Clear</span>}</td>
+                <td>{why ? <span className="reason">{why}</span> :
+                  <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={(e) => { e.stopPropagation(); setSig({ ids: [r.id] }); }}>
+                    {fin ? 'Validate & release' : 'Sign level ' + (r.current + 1) + ' of ' + r.levels}</button>}</td>
+              </tr>
+              {open === r.id && (<tr className="exp"><td colSpan="8"><div className="ref">
+                <div><h3>Sign-offs</h3>
+                  {r.signs.length === 0 && <div className="muted">No levels signed in this pass.</div>}
+                  {r.signs.map((s) => <div key={s.lvl} style={{ fontSize: 13 }}>Level {s.lvl}: {s.name}, {s.role}, {s.at}</div>)}
+                  {(r.superseded || []).map((s, i) => <div key={'x' + i} className="strike">Level {s.lvl}: {s.name}, {s.at} (superseded)</div>)}
+                  <div className="btnrow" style={{ marginTop: '.75rem' }}>
+                    <button className="cds--btn cds--btn--secondary cds--btn--sm" disabled={!!why} onClick={() => modify(r.id)}>Modify result</button>
+                    <button className="cds--btn cds--btn--secondary cds--btn--sm" disabled={!!why}>Send for retest</button>
+                    <button className="cds--btn cds--btn--danger cds--btn--sm" disabled={!!why}>Reject</button>
+                    <button className="cds--btn cds--btn--ghost cds--btn--sm">Add note</button>
+                  </div>
+                  {why && <div className="reason" style={{ marginTop: '.35rem' }}>{why}</div>}
+                </div>
+                <div><h3>History</h3><div className="hist">{r.hist.map((h, i) => <div key={i}>{h}</div>)}</div></div>
+              </div></td></tr>)}
+            </React.Fragment>); })}</tbody></table></div>}
+        </div>); })}
+      {auto && (<div><div className="lane">Auto-validated, already released ({AUTO.length})</div>
+        <div className="cds--data-table-container"><table className="cds--data-table cds--data-table--sm">
+          <thead><tr><th>Lab number</th><th>Test</th><th>Lab unit</th><th>Result</th><th>Recorded</th></tr></thead>
+          <tbody>{AUTO.map((a) => <tr key={a.lab}><td>{a.lab}</td><td>{a.test}</td><td>{a.unit}</td><td>{a.value}</td><td>{a.note}</td></tr>)}</tbody></table></div>
+        <div className="muted" style={{ padding: '.5rem 1rem' }}>Only results released by the policy appear here. Results a validator released never do, with or without e-signatures.</div></div>)}
+    </div>
+    {released.length > 0 && <div className="note ok">Released this session: {released.map((r) => r.test + ' (' + r.lab + ')').join(', ')}.</div>}
+    {sig && (<div className="modal-bg"><div className="modal">
+      <h2>Electronic signature</h2>
+      <div style={{ fontSize: 14 }}>Meaning: <strong>{sigMeaning(sig)}</strong></div>
+      <div className="muted" style={{ marginBottom: '.5rem' }}>{sig.ids.length} result(s). One signature record per result.</div>
+      {sig.bulk && <ul style={{ fontSize: 12, paddingLeft: '1rem', listStyle: 'disc', marginBottom: '.75rem' }}>
+        {sig.ids.map((id) => { const r = rows.find((x) => x.id === id); return <li key={id}>{r.lab}, {r.test}, {r.value}</li>; })}</ul>}
+      <div className="cds--text-input-wrapper"><label className="cds--label">Password for {me.name}</label><input className="cds--text-input" type="password" defaultValue="preview" /></div>
+      <div className="btnrow" style={{ marginTop: '1rem', justifyContent: 'flex-end' }}>
+        <button className="cds--btn cds--btn--secondary cds--btn--sm" onClick={() => setSig(null)}>Cancel</button>
+        <button className="cds--btn cds--btn--primary cds--btn--sm" onClick={() => sign(sig.ids)}>Sign</button></div>
+    </div></div>)}
+  </div>);
+}
+
+function App() {
+  const [view, setView] = useState('admin');
+  const [user, setUser] = useState('tau');
+  return (<div>
+    <div className="preview-banner">
+      <span>Visual Preview: Multi-Level Validation v5.0 | Not a live application</span>
+      <span>Route: {view === 'admin' ? '/MasterListsPage/ResultConfigurationMenu' : '/validation'}</span>
+      <span>Surface:</span>
+      <button className={view === 'admin' ? 'on' : ''} onClick={() => setView('admin')}>Result &amp; Validation Configuration</button>
+      <button className={view === 'val' ? 'on' : ''} onClick={() => setView('val')}>Validation page</button>
+      {view === 'val' && <><span>View as:</span>{Object.entries(USERS).map(([k, u]) => (
+        <button key={k} className={user === k ? 'on' : ''} onClick={() => setUser(k)}>{u.name} ({u.role})</button>))}</>}
+    </div>
+    {view === 'admin' ? <AdminPage /> : <ValidationPage user={user} />}
+  </div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

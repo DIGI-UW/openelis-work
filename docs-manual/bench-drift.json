@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-10-24T08:42:26Z",
-  "reportAt": "2026-10-24T08:41:46.189Z",
+  "generatedAt": "2026-10-31T23:29:40Z",
+  "reportAt": "2026-10-31T23:28:46.898Z",
   "sections": 91,
   "contracts": 91,
   "ok": 0,
-  "review": 84,
+  "review": 83,
   "errors": 6,
   "stale": [
     "add-patient",
@@ -116,14 +116,22 @@
       "contracts": 90,
       "checked": 90,
       "ok": 0,
-      "review": 83,
-      "drift": 1,
+      "review": 82,
+      "drift": 2,
       "error": 6,
       "version": "3.4.0",
-      "checkedAt": "2026-10-24T08:41:46.183Z"
+      "checkedAt": "2026-10-31T23:28:46.890Z"
     }
   },
   "drift": [
+    {
+      "id": "analyzer-mapping-qc",
+      "base": "testing.openelis-global.org",
+      "missing": [
+        "/analyzers/6/mapping :: Control result recognition"
+      ],
+      "page": "1648590851"
+    },
     {
       "id": "vector-surveillance",
       "base": "testing.openelis-global.org",
@@ -190,5 +198,5 @@
       "page": null
     }
   ],
-  "summary": "91 of 91 contracts checked: 0 ok, 84 review, 1 drift, 6 route errors."
+  "summary": "91 of 91 contracts checked: 0 ok, 83 review, 2 drift, 6 route errors."
 }

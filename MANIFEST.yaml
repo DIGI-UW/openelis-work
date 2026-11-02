@@ -1500,71 +1500,99 @@
 
 # ─── Validation Page (v2 Redesign) ────────────────────────────
 
+- id: multi-level-validation-preview
+  type: html
+  path: designs/results-validation/multi-level-validation-preview.html
+  category: results-validation
+  description: >
+    Multi-Level Validation interactive preview (OGC-1364): per-lab-unit review policy
+    (which results need review, 0 to 5 sequential reviews, role per level) and the
+    level-aware Validation page. Supersedes validation-page-v2, validation-page-stage1 and
+    results-validation-config-v4. The FRS v5.0, slicing guide and JSX mockups named in the
+    epic are not yet in the repo.
+  links:
+    jira: ["OGC-1364"]
+    gallery: "https://digi-uw.github.io/openelis-work/#/results-validation/multi-level-validation"
+    preview: "https://digi-uw.github.io/openelis-work/designs/results-validation/multi-level-validation-preview.html"
+  added: "2026-11-02"
+  status: draft
+
 - id: validation-page-v2-mockup
   type: mockup
   path: designs/validation-page/validation-page-mockup-v2.jsx
   category: results-validation
-  description: Full v2 validation page redesign — multi-level validation pipeline, admin configuration, role-based levels, auto-validation
+  description: [Superseded] Full v2 validation page redesign — multi-level validation pipeline, admin configuration, role-based levels, auto-validation
   paired_with: validation-page-v2-spec
+  superseded_by: multi-level-validation-preview
   links: {}
   added: "2026-03-04"
+  updated: "2026-11-02"
 
 - id: validation-page-v2-spec
   type: spec
   path: designs/validation-page/validation-page-requirements-v2.md
   category: results-validation
-  description: Result Validation Page FRS v2.0 — multi-level validation pipeline, per-lab-unit overrides, auto-validation for normal results
+  description: [Superseded] Result Validation Page FRS v2.0 — multi-level validation pipeline, per-lab-unit overrides, auto-validation for normal results
   paired_with: validation-page-v2-mockup
+  superseded_by: multi-level-validation-preview
   links: {}
   added: "2026-03-04"
+  updated: "2026-11-02"
 
 - id: validation-page-stage1-mockup
   type: mockup
   path: designs/validation-page/validation-page-stage1-mockup.jsx
   category: results-validation
-  description: Stage 1 validation page mockup — multi-signature pipeline with minimal UI changes
+  description: [Superseded] Stage 1 validation page mockup — multi-signature pipeline with minimal UI changes
   paired_with: validation-page-stage1-spec
+  superseded_by: multi-level-validation-preview
   links: {}
   added: "2026-03-04"
+  updated: "2026-11-02"
 
 - id: validation-page-stage1-spec
   type: spec
   path: designs/validation-page/validation-page-requirements-v2.1-stage1.md
   category: results-validation
-  description: Result Validation Page FRS v2.1 Stage 1 — scoped multi-level validation with minimal UI footprint
+  description: [Superseded] Result Validation Page FRS v2.1 Stage 1 — scoped multi-level validation with minimal UI footprint
   paired_with: validation-page-stage1-mockup
+  superseded_by: multi-level-validation-preview
   links: {}
   added: "2026-03-04"
+  updated: "2026-11-02"
 
 - id: validation-page-v3-demographics-mockup
   type: mockup
   path: designs/validation-page/validation-page-mockup-v3-demographics.jsx
   category: results-validation
-  description: Validation page v3 mockup — adds patient sex and age (D-M-Y) columns for demographic-aware reference range verification
+  description: [Completed] Validation page v3 mockup — adds patient sex and age (D-M-Y) columns for demographic-aware reference range verification
   paired_with: validation-patient-demographics-frs
   links:
     jira: ["OGC-817", "OGC-291", "OGC-343"]
   added: "2026-03-09"
+  updated: "2026-11-02"
 
 - id: validation-patient-demographics-mockup
   type: mockup
   path: designs/validation-page/validation-patient-demographics-mockup.jsx
   category: results-validation
-  description: Patient demographics display mockup — sex tag, age calculation, patient info header with Carbon components
+  description: [Completed] Patient demographics display mockup — sex tag, age calculation, patient info header with Carbon components
   paired_with: validation-patient-demographics-frs
   links:
     jira: ["OGC-817", "OGC-291", "OGC-343"]
   added: "2026-03-09"
+  updated: "2026-11-02"
 
 - id: validation-patient-demographics-frs
   type: spec
   path: designs/validation-page/validation-patient-demographics-frs-v1.md
   category: results-validation
-  description: Patient Sex & Age Display on Validation Screen FRS v1.0 — D-M-Y age format, sex normalization, all validation levels
+  description: [Completed] Patient Sex & Age Display on Validation Screen FRS v1.0 — D-M-Y age format, sex normalization, all validation levels
   paired_with: validation-page-v3-demographics-mockup
   links:
     jira: ["OGC-817", "OGC-291", "OGC-343"]
   added: "2026-03-09"
+  updated: "2026-11-02"
 
 - id: report-print-queue
   type: mockup
@@ -3404,12 +3432,13 @@
   path: designs/results-validation/results-page-reagent-usage-v1-preview.html
   spec: designs/results-validation/results-page-reagent-usage-v1.md
   category: results-validation
-  description: "Reagent lot usage capture at result entry — Method & Reagents tab with lot selection, expiry display, and usage logging. Interim v1."
+  description: [Completed] "Reagent lot usage capture at result entry — Method & Reagents tab with lot selection, expiry display, and usage logging. Interim v1."
   links:
     github: null
     jira: null
     gallery: "https://digi-uw.github.io/openelis-work/#/results-validation/results-page-reagent-usage-v1"
   added: "2026-04-27"
+  updated: "2026-11-02"
   status: draft
 
 - id: results-page-reagent-usage-v2-1
@@ -3417,12 +3446,13 @@
   path: designs/results-validation/results-page-reagent-usage-v2.1-preview.html
   spec: designs/results-validation/results-page-reagent-usage-v1.md
   category: results-validation
-  description: "Reagent usage v2.1 — drop-in replacement for ReagentLotSelection block with refined lot picker UX and inline expiry warnings."
+  description: [Completed] "Reagent usage v2.1 — drop-in replacement for ReagentLotSelection block with refined lot picker UX and inline expiry warnings."
   links:
     github: null
     jira: null
     gallery: "https://digi-uw.github.io/openelis-work/#/results-validation/results-page-reagent-usage-v2-1"
   added: "2026-04-27"
+  updated: "2026-11-02"
   status: draft
 
 - id: environmental-lhu
@@ -3537,13 +3567,14 @@
   path: designs/admin-config/results-validation-config-v4.html
   spec: designs/admin-config/results-validation-config-v4.md
   category: admin-config
-  description: >
+  description: [Superseded] >
     Consolidated admin page (v4) replacing the flat Result Entry Configuration table
     and the binary validate-all-results toggle. Plain-language grouped toggles panel
     (13 legacy settings across 4 groups), multi-level validation policy panel
     (lab-wide default + per-lab-unit overrides, 0–5 levels, trigger modes, role selects),
     effective-config preview, and policy sentence. Route: /admin/results-validation-configuration.
     Drives Results Entry v4 and Validation Page v4. Indonesia / SILNAS PNG deliverable.
+  superseded_by: multi-level-validation-preview
   links:
     jira: ["OGC-1016", "OGC-343"]
     gallery: https://digi-uw.github.io/openelis-work/#/admin-config/results-validation-config-v4
@@ -3560,6 +3591,7 @@
     - SILNAS
     - png-deliverable
   added: "2026-06-10"
+  updated: "2026-11-02"
   status: draft
 
 - id: results-entry-expanded-uncertainty
@@ -3649,7 +3681,7 @@
   type: html
   path: designs/results-validation/results-validation-v4-dependency-map.html
   category: results-validation
-  description: >
+  description: [Completed] >
     Interactive Mermaid dependency map for the v4 Results & Validation redesign —
     build order across Configuration (C1–C3), Results Entry (RE1–RE7), and
     Validation (V1–V4) slices. Green nodes ready; red nodes gated on unbuilt
@@ -3666,13 +3698,14 @@
     - build-order
     - diagram
   added: "2026-06-10"
+  updated: "2026-11-02"
   status: draft
 
 - id: results-entry-v4-decisions
   type: spec
   path: designs/results-validation/results-entry-v4-decisions.md
   category: results-validation
-  description: >
+  description: [Completed] >
     Cross-surface design decisions log (D1–D22) for the v4 Results & Validation
     redesign. Covers edit-state machine, inline NCE, Method/Analyzer split,
     reagent capture, dual-axis notes, critical flags, bulk-release, rejection,
@@ -3682,13 +3715,14 @@
     jira: ["OGC-811", "OGC-817", "OGC-343"]
     gallery: https://digi-uw.github.io/openelis-work/#/results-validation/results-entry-v4-design-decisions
   added: "2026-06-10"
+  updated: "2026-11-02"
   status: draft
 
 - id: results-validation-v4-breakdown
   type: spec
   path: designs/results-validation/results-validation-v4-breakdown.md
   category: results-validation
-  description: >
+  description: [Completed] >
     PR-sized story breakdown for the v4 Results & Validation redesign. 14 slices
     across Configuration (C1–C3), Results Entry (RE1–RE7), and Validation (V1–V4),
     dependency-ordered with Jira key map (OGC-1016–1030), story points, covered
@@ -3697,6 +3731,7 @@
     jira: ["OGC-811", "OGC-817", "OGC-1016"]
     gallery: https://digi-uw.github.io/openelis-work/#/results-validation/results-validation-v4-story-breakdown
   added: "2026-06-10"
+  updated: "2026-11-02"
   status: draft
 
 - id: collection-lot-trap-details
