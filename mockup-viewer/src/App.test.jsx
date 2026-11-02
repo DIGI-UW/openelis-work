@@ -456,14 +456,14 @@ describe('App component', () => {
     render(<App />);
 
     const searchInput = screen.getByPlaceholderText('Search by name, tag, Jira key\u2026');
-    await user.type(searchInput, 'OGC-291');
+    await user.type(searchInput, 'OGC-1364');
 
     const titles = screen.getAllByRole('heading', { level: 3 });
     expect(titles.length).toBeGreaterThanOrEqual(1);
-    // All results should have OGC-291 in their jira array
+    // All results should have OGC-1364 in their jira array
     titles.forEach((h3) => {
       const entry = MOCKUP_REGISTRY.find(m => m.name === h3.textContent);
-      expect(entry.jira).toContain('OGC-291');
+      expect(entry.jira).toContain('OGC-1364');
     });
   });
 
@@ -712,7 +712,7 @@ describe('status filter', () => {
     const user = userEvent.setup();
     render(<App />);
 
-    const reviewCount = MOCKUP_REGISTRY.filter(m => (m.status || STATUS_DEFAULT) === 'review').length;
+    const reviewCount = MOCKUP_REGISTRY.filter(m => !m.archived && (m.status || STATUS_DEFAULT) === 'review').length;
     if (reviewCount === 0) return; // skip if no review entries
 
     const select = screen.getByRole('combobox', { name: /filter by status/i });
