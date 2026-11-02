@@ -469,7 +469,6 @@ consolidation task promotes stable decisions out of memory into this log. Re-con
   skill-src and are re-homed: skill-src **D-218 → D-369** and **D-219 → D-370** (Microbiology v2 draft
   10.6, received sentinel-site isolates; D-369's reception path is partly amended for v3 by D-324) and
   **D-234 → D-371** (search, not manual select; tightens D-007). Skill-src text that cites "D-234" for
-  the search rule means D-371. **This repo copy is now the de facto home**: every design PR since
-  2026-10-15 numbered from it, and skill-src is behind. **Provisional rows:** the 2026-10 FRS work left
+  the search rule means D-371. **This repo copy is the only home** (Casey, 2026-11-02); skill-src is retired. **Provisional rows:** the 2026-10 FRS work left
   many rows `provisional` pending their FRS reviews; none was re-confirmed unattended. D-Q1 to D-Q7
   (AMR v3) still need numeric IDs. **Next ID: D-372.**

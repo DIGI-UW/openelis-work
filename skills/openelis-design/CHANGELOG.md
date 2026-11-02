@@ -16,16 +16,19 @@ v3.29 below) and minted D-218 to D-234 on its own numbering.
 - Decision IDs: three skill-src-only decisions re-homed: skill-src D-218 → **D-369**, D-219 →
   **D-370** (Microbiology v2 draft 10.6, received sentinel-site isolates), D-234 → **D-371**
   (search, not manual select; tightens D-007). Next ID **D-372**.
-- Registry upkeep section: the repo copy on `main` is now named primary (where every design PR since
-  2026-10-15 has numbered); number after the highest ID in either copy. Pending Casey's confirmation.
+- Registry upkeep section: the repo copy on `main` is the only home (confirmed by Casey 2026-11-02);
+  skill-src is retired and archived. Number after the highest ID on `origin/main`.
 - `spec-registry.md`: Microbiology v2 row to draft 10.6; Jira cells filled for Test Catalog Alerts
   (OGC-763) and Analyzer Types & Mapping (OGC-1054).
 - Constitution pointer: upstream still **1.12.0** (last amended 2026-09-29), no re-sync needed.
 - Memory promotion: nothing new and stable since 2026-10-07; every candidate memory was already in a
   reference.
 
-**Needs Casey:** confirm the repo copy as the single home and retire skill-src (or rebuild the
-installed skill from `skills/openelis-design/`; the installed copy is still at D-112). Admin Redesign
+**Done 2026-11-02:** Casey confirmed the repo copy as the single home; skill-src retired. Before
+retiring it, a regression check compared the installed skill (SKILL.md v3.29 with references from
+September, decision log to D-112) and skill-src against this branch: no installed or skill-src content
+is missing here; every difference is a newer or amended version, and the three skill-src-only
+decisions are re-homed as D-369 to D-371. Reinstall the skill from `openelis-design.skill`. Admin Redesign
 D-190 to D-202 and Users and Roles D-203 to D-206 still collide with ledger IDs; AMR v3 D-Q1 to D-Q7
 still need numbers.
 

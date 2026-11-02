@@ -1043,18 +1043,15 @@ gives false confidence, which is worse than no registry.
 
 ### Where the writable copies live
 
-Two copies exist; update both until Casey retires one:
+One home: `skills/openelis-design/` in `DIGI-UW/openelis-work`, branch `main`. Write registry and
+decision-log updates there (on a branch, with the design PR), then rebuild `openelis-design.skill`
+at the repo root from that directory.
 
-- `skills/openelis-design/references/` in `DIGI-UW/openelis-work` (branch `main`) — the **primary**
-  copy. Every design PR since 2026-10-15 (#365, #373 to #376) wrote its decisions here, and it holds
-  the highest IDs.
-- `OpenELIS Feature Design/openelis-design-skill-src/references/` — the untracked local copy the
-  installed skill used to be built from. It fell behind on 2026-10-20 and minted three IDs the repo
-  did not have (re-homed as D-369 to D-371 on 2026-11-01). Keep it in step, or retire it.
-
-> **Fork history (2026-10-01, 10-06, 11-01).** The two copies split four times because sessions
-> numbered from whichever copy they were told was newest. Set 2026-11-01 by the monthly
-> consolidation, pending Casey's confirmation: the repo copy on `main` is primary.
+> **Fork history (2026-10-01, 10-06, 11-01).** The skill used to have a second, untracked copy,
+> `OpenELIS Feature Design/openelis-design-skill-src/`. Sessions numbered from whichever copy they
+> were told was newest, so the two split four times. Casey confirmed the repo copy as the only home
+> on 2026-11-02 and skill-src was retired (archived under `OpenELIS Feature Design/_archive/2026-11-02/`;
+> a README pointer stays at the old path). Do not write to it.
 
 **Do NOT create a top-level `openelis-work/references/`** — that path was tried and reverted on
 2026-08-12; these two are the real homes.
@@ -1065,12 +1062,11 @@ The three copies have drifted before — on 2026-08-11 the synced cache stopped 
 in-repo mirror at **D-027**, and `openelis-design-skill-src` at **D-042**. A decision drafted as
 D-035 against the synced copy would have collided head-on with the Inventory decisions. **Read the
 highest `D-` ID in `skills/openelis-design/references/decision-log.md` on `origin/main` (fetch first:
-open design PRs may already hold the next IDs), compare it with skill-src, and number after the
-higher of the two.** Then record the new "Next ID" in the log's Maintenance notes.
+open design PRs may already hold the next IDs) and number after it.** Then record the new "Next ID" in the log's Maintenance notes.
 
 ### The two-step close
 
-1. **Write the authoritative copies** to both paths above, then commit them with the design.
+1. **Write the authoritative copy** at the path above (on a branch), then commit it with the design.
 2. **Propose the SKILL.md change to the account copy** with the `propose_skills` tool (kind
    `improvement`, target `openelis-design`, the complete updated SKILL.md). Casey saves it from the
    review card. Do not send a zipped `.skill` package. A proposal carries SKILL.md only, so changes to
