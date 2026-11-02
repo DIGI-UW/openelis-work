@@ -17,7 +17,7 @@ Each Table 1 page covers one organism group and has four tier columns:
 | Tier 1 | Test and report routinely | Report |
 | Tier 2 | Test routinely, report by your cascade rules | Cascade |
 | Tier 3 | Test routinely only if you serve patients at high risk of MDROs, report by cascade | Cascade, or leave out of the panel |
-| Tier 4 | Test and report only when a clinician asks | Don't report |
+| Tier 4 | Test and report only when a clinician asks | Don't report, shown as "On request" on the case |
 
 Three things on the page change how you enter a row:
 
@@ -27,17 +27,11 @@ Three things on the page change how you enter a row:
 
 Below the band marked **Urine Only** are agents for urinary isolates only. Read every footnote: they carry species restrictions, specimen exclusions and "MIC only" notes.
 
-## 2. Set the tier on each AST panel agent
-
-1. Open Admin › Microbiology reference data › AST panels and choose the panel for the organism group.
-2. For each antibiotic, set **Tier** to the M100 tier (1 to 4; Tier 4 is "On request").
-3. Save. The panel is now ordered by tier on the AST run.
-
-## 3. Build the reporting rules
+## 2. Build the reporting rules
 
 1. Open Admin › Microbiology reference data › AST rules and choose **Export** to get the reporting rules workbook.
 2. On the Reporting rules sheet, add one row per agent for the organism group:
-   - **Tier** column: the M100 tier. Import turns it into the report default from the table above.
+   - **Tier** column: the M100 tier. Import turns it into the report default from the table above, and the rule keeps the tier. You do not set tiers on the AST panels.
    - **Trigger agents**: for Tier 2 and Tier 3 agents, the codes of the agents in the same box that release them, separated by semicolons. Usually these are the Tier 1 agents; a Tier 3 agent next to Tier 2 agents (the carbapenem combinations) cascades on those Tier 2 agents. OpenELIS turns the list into "any of these is R".
    - **Sample types**: Urine for agents under Urine Only.
 3. Turn footnotes into extra rows:
@@ -48,12 +42,12 @@ Below the band marked **Urine Only** are agents for urinary isolates only. Read 
    - "Confirm before reporting": add a rule note so the tech sees it.
 4. Choose **Import** and review the preview. Check the **Needs a condition** group and any warnings about trigger agents that have no row, then apply it.
 
-## 4. Check it
+## 3. Check it
 
 1. In the Preview at the bottom of AST rules, pick the organism, a sample type, and resistant results for the Tier 1 agents.
 2. Confirm the Tier 2 agents in the same box are suggested and ticked, and the Tier 4 agents are not.
 3. Repeat for a urine sample.
 
-## 5. Each new M100 edition
+## 4. Each new M100 edition
 
 Check the edition's "Overview of Changes" and the agents in bold in Table 1 (new or changed). Change only those rows, and record the edition in **Written for**.
