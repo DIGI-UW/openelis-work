@@ -16,7 +16,7 @@
 frontend data-fetching stack corrected; v1.11.2 2026-09-25: branch strategy corrected; v1.12.0 2026-09-29:
 Principle V.7 Test Isolation)
 **Last synced into this skill:** 2026-10-06
-**Last verified against upstream:** 2026-10-06 (see the 2026-10-06 note below).
+**Last verified against upstream:** 2026-11-01 (still 1.12.0; see the 2026-11-01 note below).
 
 **2026-08-01 verification:** upstream footer then read
 `**Version**: 1.11.0 | **Ratified**: 2025-10-30 | **Last Amended**: 2026-07-15`. The
@@ -72,6 +72,11 @@ One MINOR amendment:
 > design-relevant principles), and reconcile `design-addendum.md` against it. Do not edit
 > the upstream constitution from this skill — propose changes via the repo's amendment
 > process (see its Governance section).
+
+**2026-11-01 verification: no re-sync.** Upstream footer on `develop` still reads
+`**Version**: 1.12.0 | **Ratified**: 2025-10-30 | **Last Amended**: 2026-09-29`. The file was touched
+since (#4586 on 2026-10-06, #4748 on 2026-10-15: dev-stack and CI setup wording) without a version bump;
+by their commit titles, both are dev-stack and CI setup changes, not design-facing principles.
 
 ## Constitution structure (upstream, v1.12.0: Principle V gained V.7 Test Isolation; others unchanged since v1.11.0)
 

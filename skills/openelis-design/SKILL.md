@@ -3,7 +3,7 @@ name: openelis-design
 description: "Expert assistant for designing features in OpenELIS Global, an open-source laboratory information management system (LIMS). Use this skill whenever the user asks to design, specify, mockup, or document any feature for OpenELIS Global — including new modules, admin configuration pages, workflow improvements, analyzer integrations, or clinical data views. Also triggers for Jira story creation, FRS documents, React/Carbon mockups, or any request involving lab informatics design for OpenELIS. If the user mentions lab workflows, LIMS features, clinical lab software, or says anything about \"OpenELIS\", use this skill immediately. Also use for design critique, crosswalk analysis, harmonization reviews, or when the user asks to review, improve, or validate an existing mockup or spec."
 ---
 
-# OpenELIS Global Design Skill v3.27
+# OpenELIS Global Design Skill v3.30
 
 OpenELIS Global is an open-source LIMS used in clinical laboratories worldwide.
 
@@ -126,7 +126,7 @@ pass inside `/analyze` (see Pass M) for the final gate.
    path, shared SideNav slot, shared model to render identically).
 3. **Contradiction scan.** For each design choice, check `decision-log.md` for an `active` decision
    it violates. Report the decision ID, what the design does, and the conflict. (e.g. a Delete action
-   → D-002; a long Select over tests → D-007; a `?type=` route → D-012; a site filter → D-001.)
+   → D-002; a Select, Dropdown or paged checkbox list over site data with no search → D-007/D-371; a `?type=` route → D-012; a site filter → D-001.)
 4. **Dependency scan.**
    - *Upstream:* does the footprint require something `current-state-gotchas.md` says isn't built
      (EQA V2 controller, Test↔Reagent linkage, configurable label presets)? Flag as a required
@@ -238,7 +238,9 @@ Constitution Principle 7 mandates this. Commit in writing to:
   1. **SideNav placement** — the full menu path: top-level group → parent → sibling order (e.g. `Admin → Configuration → Application Properties`, listed after `Print Layout`)
   2. **Breadcrumb trail** — the exact crumb chain rendered at the top of the page, including the active leaf (e.g. `Home / Admin / Configuration / Application Properties`)
   3. **URL route** — the stable, well-formed URL the dev should wire up. Must match an existing pattern (see conventions). Call out the route in `code formatting`, e.g. `/MasterListsPage/commonproperties`. If extending an existing page, reuse its URL; if new, pick the pattern that fits the closest neighbor.
-- **Access:** *(see `references/permissions-and-audit.md`)* describe who can use the feature in terms of existing user roles — which role(s) can see it, and for each action which role can perform it (view vs. change). Default to existing roles (Reception / Analyst / Validator / Provider / Admin / Test Catalog Manager / EQA Provider). Describe access as user capability ("a Validator can release results; an Analyst cannot"), not as an enforcement mechanism, and say what a user without access sees (item hidden, action disabled). If the feature lives entirely inside one role's existing workflow, state that: "Accessible via the existing `[Role]` role."
+- **Access:** *(see `references/permissions-and-audit.md`; where it says not to name permissions, this bullet wins)* two parts, both required for every new feature:
+  1. **Who, in user terms:** which role(s) can see the feature and, for each action, which role can perform it (view vs. change), and what a user without access sees (item hidden, action disabled). Describe capability ("a Validator can release results; an Analyst cannot"), not the enforcement mechanism.
+  2. **Nominated privileges, for the role builder:** a table of every capability the feature adds, each with a privilege code, its display group, and its default grant on upgrade. See **Nominating privileges** below. This is required even when the feature sits inside one role's workflow; in that case the table is short and mostly reuses existing codes.
 - **Reuse inventory:** *(design-addendum MUST F)* for each thing the design needs to store, list, configure, edit, print or export, name the built OpenELIS mechanism it reuses (with the code reference checked) or say why none fits. New mechanisms are the exception and are listed as such.
 
 Share the brief. Adjust on feedback. Then produce the deliverables.
@@ -308,6 +310,18 @@ Writing rules for Lab Context:
 
 This section is the developer's onboarding to the feature. Everything below — User Stories, Functional Requirements, Data Model — assumes the reader has read and understood Lab Context first.
 
+**Access section (MUST):** every FRS has an `## Access` section with the two parts from the Stage 2 brief: who can do what in user terms, then the **nominated privileges** table. Casey's standing rule (2026-10-15): nominate privileges for every new feature, so the eventual role builder can offer them.
+
+**Nominating privileges.** The catalogue is the one in PR #3443 (`specs/012-privilege-based-rbac`), shown in the role builder in the display groups of the Users and Roles FRS Appendix A.
+- **Code format** `category:action`, lower case, matching the catalogue (`result:validate`, `report:run`, `organization:manage`). **Reuse an existing code** when it already means the right thing; mark new codes **NEW**. Before minting one, check the catalogue in #3443 (or on `develop` once merged) for an existing code.
+- **Split a capability out as its own code** when a lab could reasonably want to give it separately (send vs. print, see vs. change a secret, disclose a result to a patient), even if every role gets both by default.
+- **Display group**: Basic access, Orders samples and patients, Results, Quality, Reports, Storage and inventory, Test catalog and reference data, Administration, Other. A new category needs a group. **Do not put a non-administrative capability in Administration**: Users and Roles UR-F5 treats any privilege in that group as administrator power.
+- **Default grant on upgrade** is stated as "roles that already hold `<code>`", not as shipped role names, because labs rename and copy roles. Say "As today" when the code exists.
+- Each new code needs a translated label (Users and Roles N-UR-6) and is checked on the server, not only by hiding controls.
+- Until #3443 merges, say what today's role check stands in for each new code.
+
+Table columns: **Capability | Privilege | Group | Default grant on upgrade**. End with a one-line list of the NEW codes.
+
 **User Stories:** Immediately after Overview and before Functional Requirements, include a **User Stories** section listing 2–5 "As a [role], I want to [action] so that [outcome]" statements that frame the feature from the user's perspective. User Stories complement Lab Context — Lab Context is the workflow narrative; User Stories are the per-role goals.
 
 **FRS stays version-agnostic.** The FRS describes the full feature. Version boundaries (v1, v2, v3) are decided downstream in `/breakdown`, not in the FRS. This lets the breakdown plan re-slice without rewriting the spec.
@@ -358,9 +372,9 @@ All Jira creation happens in `/breakdown`, which creates **exactly one ticket** 
 
 **D. Constitution Alignment** (upstream Principles I–X + design-addendum MUSTs)
 - Any requirement or design element conflicting with a MUST?
-- Write actions described in terms of which existing role can perform them, not new permission mechanisms (Principle VIII)?
+- Write actions described in terms of which role can perform them, with a nominated privilege code (see Access), and no invented enforcement mechanism (Principle VIII)?
 - Design brief produced before code (Principle IX / Stage 2)?
-- **Design-addendum MUSTs** (see `memory/design-addendum.md`): hard "Delete" on a domain record → CRITICAL; domain-record list with no show/hide-deactivated affordance → MEDIUM (No-Hard-Delete). Static dropdown over a large/growing set → MEDIUM; inline "create heavy entity" flow → MEDIUM (Design-for-Large-Catalogs).
+- **Design-addendum MUSTs** (see `memory/design-addendum.md`): hard "Delete" on a domain record → CRITICAL; domain-record list with no show/hide-deactivated affordance → MEDIUM (No-Hard-Delete). A `Select`, non-filterable `Dropdown` or paged checkbox list over site data with no search, at any size and in add-to-existing flows too → MEDIUM; inline "create heavy entity" flow → MEDIUM (Design-for-Large-Catalogs, D-371: search, not manual select).
 
 > The No-Hard-Delete, Design-for-Large-Catalogs and Reuse-Built-Mechanisms principles, plus data-reuse, no-multitenancy, and shipped-app-as-style-source, are defined in `memory/design-addendum.md`. They are candidates to upstream into the engineering constitution via the repo's amendment process; until then the addendum is this skill's authority and its MUST violations are CRITICAL here.
 
@@ -392,12 +406,16 @@ All Jira creation happens in `/breakdown`, which creates **exactly one ticket** 
 - If a section is genuinely out of scope, is it declared out of scope in the FRS *and* removed from the preview (not left as a stub)?
 - Auto-CRITICAL: any stubbed section in the preview that isn't declared out of scope.
 
-**J. Access / Roles** (see `references/permissions-and-audit.md`)
-- Does the FRS say who can use the feature, in terms of existing user roles?
-- For each action, is it clear which role can perform it (view vs. change) and what a user without access sees?
+**J. Access / Roles** (see Stage 2 **Access** and **Nominating privileges**)
+- Does the FRS say who can use the feature, in terms of user roles, and what a user without access sees?
+- For each action, is it clear which role can perform it (view vs. change)?
 - Is access described as user capability rather than an enforcement mechanism?
-- Is access over-specified — e.g. a per-role matrix for a feature that lives wholly inside one role's existing workflow? (Unnecessary.)
+- Does the FRS have the **nominated privileges** table, covering every capability the feature adds, with code, display group and default grant on upgrade?
+- Are existing catalogue codes reused where they fit, and are NEW codes marked and in `category:action` form?
+- Is any non-administrative capability placed in the Administration group? (HIGH: it would make holders administrators under UR-F5.)
+- Are default grants stated by held privilege, not by shipped role name?
 - Auto-CRITICAL: a write action with no stated role that can perform it.
+- HIGH: no nominated privileges table.
 
 **K. Slicing Guide Coverage** (only if a `[feature-name]-breakdown.md` exists — remember this
 artifact is a *non-binding suggestion* for the developer, so grade coverage strictly but treat
@@ -520,6 +538,8 @@ and implementation begins. This is NOT a QA/testing checklist.
 - [ ] Is it clear which existing role can perform each action (view vs. change)?
 - [ ] Is it specified what a user without access sees (item hidden, action disabled)?
 - [ ] Is access described as user capability, not an enforcement mechanism?
+- [ ] Is there a nominated privileges table (capability, code, group, default grant on upgrade), with NEW codes marked?
+- [ ] Is every new capability kept out of the Administration group unless it is truly administrative?
 
 ### Carbon Design System
 - [ ] Are all status indicators mapped to Carbon Tag kinds?
@@ -721,7 +741,7 @@ Produce a markdown file named `[feature-name]-breakdown.md` with this structure:
 - Every story is titled and scoped around user value, not a technical layer: ✅ / ❌
 - Cross-cutting concerns folded into their user-facing story:
   - Localization: ✅ (per-story)
-  - Access / roles: ✅ (which role can act, on each story that changes data)
+  - Access / roles: ✅ (which role can act, and which nominated privilege it checks, on each story that changes data)
 ````
 
 Save the plan to the workspace folder and share a `computer://` link in your reply. The plan
@@ -1023,36 +1043,35 @@ gives false confidence, which is worse than no registry.
 
 ### Where the writable copies live
 
-Two in-repo copies, both of which must be updated:
+One home: `skills/openelis-design/` in `DIGI-UW/openelis-work`, branch `main`. Write registry and
+decision-log updates there (on a branch, with the design PR), then rebuild `openelis-design.skill`
+at the repo root from that directory.
 
-- `OpenELIS Feature Design/openelis-design-skill-src/references/` — the **newest** copy; treat as
-  source of truth.
-- `skills/openelis-design/references/` — the in-repo skill mirror.
+> **Fork history (2026-10-01, 10-06, 11-01).** The skill used to have a second, untracked copy,
+> `OpenELIS Feature Design/openelis-design-skill-src/`. Sessions numbered from whichever copy they
+> were told was newest, so the two split four times. Casey confirmed the repo copy as the only home
+> on 2026-11-02 and skill-src was retired (archived under `OpenELIS Feature Design/_archive/2026-11-02/`;
+> a README pointer stays at the old path). Do not write to it.
 
 **Do NOT create a top-level `openelis-work/references/`** — that path was tried and reverted on
 2026-08-12; these two are the real homes.
-
-> **Re-merges (2026-10-01, 2026-10-06).** The two copies keep splitting: sessions write skill-src
-> (below says to number from it), while the repo copy is what gets committed. They were re-merged on
-> branch `skill/consolidation-2026-10`: skill-src numbering kept; the four repo-only decisions now sit
-> at D-218 to D-221 (map in `decision-log.md`, 2026-10-01 and 2026-10-06 notes). Until Casey picks a
-> single home, keep writing **both** copies and number after the **highest ID in either**
-> (next: D-222).
 
 ### Before minting a decision ID: check the REPO, not the synced copy
 
 The three copies have drifted before — on 2026-08-11 the synced cache stopped at **D-034**, the
 in-repo mirror at **D-027**, and `openelis-design-skill-src` at **D-042**. A decision drafted as
-D-035 against the synced copy would have collided head-on with the Inventory decisions. **Always
-read the highest `D-0xx` from `openelis-design-skill-src` and number after that.**
+D-035 against the synced copy would have collided head-on with the Inventory decisions. **Read the
+highest `D-` ID in `skills/openelis-design/references/decision-log.md` on `origin/main` (fetch first:
+open design PRs may already hold the next IDs) and number after it.** Then record the new "Next ID" in the log's Maintenance notes.
 
 ### The two-step close
 
-1. **Write the authoritative copies** to both paths above, then commit them with the design.
-2. **Emit a re-installable skill package.** Copy this skill directory, apply the same edits, zip it
-   as `openelis-design.skill`, and send it with `SendUserFile` so Casey can click to install and
-   fold the change into the account copy. Report it as *delivered*, never as *saved* — you get no
-   signal either way.
+1. **Write the authoritative copy** at the path above (on a branch), then commit it with the design.
+2. **Propose the SKILL.md change to the account copy** with the `propose_skills` tool (kind
+   `improvement`, target `openelis-design`, the complete updated SKILL.md). Casey saves it from the
+   review card. Do not send a zipped `.skill` package. A proposal carries SKILL.md only, so changes to
+   `references/` reach the account only through the repo copies in step 1; say so when a reference
+   changed. Report it as *proposed*, never as *saved*.
 
 If the workspace isn't reachable, do step 2 alone and say plainly that step 1 is outstanding,
 naming the rows that still need to land.
@@ -1088,7 +1107,7 @@ what produced two competing registrations of one feature.
 | `memory/constitution.md` | **Always first** — pointer to the upstream engineering constitution (synced version + design-relevant summary + raw URL + re-sync trigger) |
 | `memory/design-addendum.md` | **Always first** — skill-specific design MUSTs (data reuse, no multitenancy, shipped-app style source, no-hard-delete, large-catalogs, reuse built mechanisms) + standing UI/IA conventions |
 | `references/current-state-gotchas.md` | During `/specify` Stage 1 and `/analyze` cross-module pass — what's built vs not built; required Dependency/Feature-Flag declarations |
-| `references/permissions-and-audit.md` | During `/specify` Stage 2 (Access brief item) and `/analyze` Pass J — describing who can use a feature in terms of existing roles |
+| `references/permissions-and-audit.md` | During `/specify` Stage 2 (Access brief item) and `/analyze` Pass J — describing who can use a feature in terms of roles. Its "don't name permissions" rule is superseded by **Nominating privileges** in SKILL.md (v3.28) |
 | `references/frs-template.md` | When writing any FRS document |
 | `references/jira-template.md` | **Read every time `/breakdown` creates the ticket** — Epic-vs-Story rule, the ≤350-word body (Form A with a narrative link, Form B without), and what must never go in the body |
 | `references/carbon-anti-patterns.md` | During `/analyze` Carbon fidelity pass, or self-critique before delivery |

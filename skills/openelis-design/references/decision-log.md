@@ -20,7 +20,7 @@
 | D-004 | Domain enum is strictly CLINICAL / ENVIRONMENTAL / VECTOR — no BOTH | no escape-hatch value anywhere (catalog and orders) | any Domain field/filter | GLOBAL | active | feedback_domain_enum_no_both |
 | D-005 | Inline row expansion for edits; modals only for destructive confirms or 5+ section forms | keeps editing in context; avoids modal overload | any edit form | GLOBAL | active | design-addendum / carbon-anti-patterns B1–B2 |
 | D-006 | Binary admin + per-module role bundles; no invented per-action permission keys | matches OpenELIS auth model | any permissions design | GLOBAL | superseded by D-235 | permissions-and-audit |
-| D-007 | Large-set pickers are ComboBox/typeahead; link out for heavy-entity create | catalogs run to 500+; long dropdowns/inline mega-forms don't scale | any picker over tests/orgs/providers/panels | GLOBAL | active | design-addendum MUST E |
+| D-007 | Large-set pickers are ComboBox/typeahead; link out for heavy-entity create | catalogs run to 500+; long dropdowns/inline mega-forms don't scale | any picker over tests/orgs/providers/panels | GLOBAL | active (tightened by D-371: search at any size) | design-addendum MUST E |
 | D-008 | Shipped app (live + repo) is the style/IA/URL source of truth, not Figma | Figma is exploratory; running app is canonical | any style/IA/route claim | GLOBAL | active | design-addendum MUST C |
 | D-009 | Reuse existing data elements; declare genuinely-new data as a named Dependency | invented fields produce unbuildable specs | every mockup field/column/badge | GLOBAL | active | design-addendum MUST A / verified-data-models |
 | D-010 | Global admin SideNav buckets = Config / Organization / Resources / Automation / Compliance (global grouping, NOT editor-internal) | one consistent admin IA; don't confuse with sections inside a record editor | any new admin page placement | GLOBAL | active | feedback_admin_ia_vs_editor_ia |
@@ -386,6 +386,9 @@
 | D-366 | **A lab duplicate is an aliquot of its parent** (`{labNo}-{n}.{m}`, D-082) with its own label; its result is QC and never reportable (D-099) | the bench needs a tube and a label; reports must never show it | Runs, labels, reports | FEATURE | provisional | Runs FR-C11, FR-I3, FR-G8 |
 | D-367 | **QC placement is configured per test** (rules in the Test Catalog QC section, and D-054's policy extended to blanks and duplicates with a Hold or Warn failure policy) **with optional named layouts on Workplan Configuration** that override positions. **Reverses S-08's "no per-batch QC frequency rules" for runs**; opt-in per test | SENAITE worksheet-template parity; same home as control policy (D-054) | Test Catalog QC section, Workplan, Runs | FEATURE | provisional | Casey 2026-10-21; Runs FR-H1, FR-I |
 | D-368 | **Blank and duplicate failures hold their run (or warn) but never lock the instrument** | they point at contamination or precision of a batch, not at the instrument | Runs, instruments | FEATURE | provisional | Instruments FR-E1, Runs FR-C14 |
+| D-369 | **The sender's AST is a Tested elsewhere panel on the received isolate**: per agent the interpretation as reported (MIC or zone optional), an external run with no recalculation, never counted in surveillance, unticked in Report choices, shown in a Sender column beside the local AST. Sentinel site isolates are entered from the line list at order entry (no import), with Received at {sending laboratory}, the date it received the specimen, beside the built received date | sentinel sites send isolates with a line list only; CPHL confirms their results | micro, order entry, AST | FEATURE | active | Karen (CPHL) note on sentinel site isolates; Casey 2026-10-08; Microbiology v2 draft 10.6; skill-src D-218, re-homed 2026-11-01; reception path partly amended for v3 by D-324 |
+| D-370 | **A local AST interpretation that differs from the sender's is flagged at validation** ("Susceptibility differs from the sender's") and acknowledged by the validator, as for a different identification; agents tested by one laboratory only are not compared | confirmatory testing must surface disagreement | micro, validation | FEATURE | active | Karen (CPHL) note on sentinel site isolates; Casey 2026-10-08; Microbiology v2 draft 10.6; skill-src D-219, re-homed 2026-11-01 |
+| D-371 | **Search, not manual select: every list over site data is searchable, whatever its size, including add-to-existing flows** (tightens D-007's "large/growing" threshold) | Edit Order's add-test list was a paged checkbox table with no search; a national catalog grows | any picker, checkbox list or table of tests, panels, sample types, labs, orgs, units, dictionary values | GLOBAL | active | Casey 2026-10-19; design-addendum MUST E; OGC-1514, OGC-1515; skill-src D-234, re-homed 2026-11-01 |
 
 ---
 
@@ -458,3 +461,14 @@ consolidation task promotes stable decisions out of memory into this log. Re-con
 
 - **2026-10-26 (AMR v3.2 R-38).** Appended D-359 (default breakpoint standard or a choice at entry). **Next ID: D-360.**
 - **2026-10-26 (QC parity: Instruments v2.0 and Runs v0.5).** Appended D-360 to D-368 (staged as D-335 to D-343, renumbered from main's next free ID; the FRS Decisions tables carry the new numbers). D-069 amended by D-360. **Next ID: D-369.**
+- **2026-11-01 (monthly consolidation: fork check).** After the 2026-10-15 merge (#362), design PRs
+  (#365, #373 to #376) wrote decisions straight to this repo copy and ran it to D-368, while the
+  untracked skill-src copy (last written 2026-10-20) independently minted D-218 to D-234. Most of those
+  are the Result Delivery decisions this log already holds as D-222 to D-235 (renumbered by #365;
+  wording evolved for skill-src D-228/D-229/D-230, here D-230/D-231/D-232). Three exist only in
+  skill-src and are re-homed: skill-src **D-218 → D-369** and **D-219 → D-370** (Microbiology v2 draft
+  10.6, received sentinel-site isolates; D-369's reception path is partly amended for v3 by D-324) and
+  **D-234 → D-371** (search, not manual select; tightens D-007). Skill-src text that cites "D-234" for
+  the search rule means D-371. **This repo copy is the only home** (Casey, 2026-11-02); skill-src is retired. **Provisional rows:** the 2026-10 FRS work left
+  many rows `provisional` pending their FRS reviews; none was re-confirmed unattended. D-Q1 to D-Q7
+  (AMR v3) still need numeric IDs. **Next ID: D-372.**

@@ -66,17 +66,28 @@ Domain records in a LIMS are never destroyed; they are deactivated and can be re
 Designs must scale to real deployment data volumes, especially the test catalog (assume
 ~500+ tests in production).
 
-- Any picker over a large/growing set (tests, **sample types**, organizations, providers, panels)
-  MUST be **search/typeahead** based (Carbon `ComboBox`/filterable), never a long static `Select`.
-  Sample Type counts in the hundreds in a real deployment and has been creeping into designs as a
-  static `Select`; treat it, and any controlled vocabulary (compliance standard, collection method),
-  as a large set. In XLSX/CSV templates, do not enumerate Sample Type as a data-validation dropdown;
-  resolve it in the app by typeahead. (Promoted from memory 2026-10-01; extends D-007.)
+- **Search, not manual select (D-371, tightens D-007).** Any list whose contents come from site
+  data (tests, panels, sample types, lab units, organizations, facilities, reference labs, providers,
+  units of measure, dictionary categories and values) MUST offer **search/typeahead**, whatever its
+  length today: Carbon `ComboBox`, `FilterableMultiSelect`, or a `Search` / `TableToolbarSearch`
+  over a checkbox list or table. Never a long static `Select`, a non-filterable `Dropdown`, or
+  a paged checkbox table the user has to page through. Short fixed enums (yes/no, priority,
+  status) MAY stay plain dropdowns. (Casey, 2026-10-19: "there should always be a search
+  option rather than a manual select.")
+- The rule holds in every place the same set is picked, including **add-to-existing flows**
+  (adding a test to an existing order or sample, editing a saved selection): reuse the search
+  component of the create flow. Selected items stay visible as removable tags (see "Selected
+  items show their labels").
+- Sample Type counts in the hundreds in a real deployment and kept creeping into designs as a
+  static `Select`; treat it, and any controlled vocabulary (compliance standard, collection
+  method), as site data. In XLSX/CSV templates, do not enumerate Sample Type as a data-validation
+  dropdown; resolve it in the app by typeahead. (Promoted from memory 2026-10-01.)
 - Designs SHOULD prefer **mapping/linking to an existing record** over creating a new one.
 - Designs MUST NOT embed a multi-step "create heavy entity" flow (e.g. creating a Test)
   inside another workflow; link out to the dedicated admin page, then return.
-- `/analyze` detection (Pass B): static dropdown bound to a large/growing set → MEDIUM;
-  inline create-flow for a heavy entity → MEDIUM.
+- `/analyze` detection (Pass B): a static `Select`, non-filterable `Dropdown`, or paged or
+  long checkbox list bound to site data → MEDIUM; an add-to-existing flow without the search
+  its create flow has → MEDIUM; inline create-flow for a heavy entity → MEDIUM.
 
 ## MUST F: Reuse built OpenELIS mechanisms; no parallel implementation
 

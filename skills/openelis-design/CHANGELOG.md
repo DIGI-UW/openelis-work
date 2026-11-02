@@ -1,5 +1,69 @@
 # openelis-design — Changelog
 
+## v3.30 (2026-11-01): monthly consolidation
+
+**What happened since the 2026-10-15 merge (#362).** Design PRs wrote decisions straight to this
+repo copy (#365 Result Delivery D-222 to D-249; #373 to #376 AMR v3.2, Reference search, Import
+Review, QC parity to D-368). The untracked skill-src copy kept its own line until 2026-10-20 (v3.28,
+v3.29 below) and minted D-218 to D-234 on its own numbering.
+
+**What this pass did (branch `skill/consolidation-2026-11`):**
+- `SKILL.md` re-based on skill-src v3.29, which carries v3.28 (nominate privileges for every new
+  feature; `propose_skills` instead of a zipped package) and v3.29 (search, not manual select).
+  `permissions-and-audit.md` taken from skill-src (v3.28 superset). `design-addendum.md` MUST E and
+  `carbon-anti-patterns.md` C1 updated for the search rule, keeping the repo's Sample Type and
+  XLSX-template guidance.
+- Decision IDs: three skill-src-only decisions re-homed: skill-src D-218 → **D-369**, D-219 →
+  **D-370** (Microbiology v2 draft 10.6, received sentinel-site isolates), D-234 → **D-371**
+  (search, not manual select; tightens D-007). Next ID **D-372**.
+- Registry upkeep section: the repo copy on `main` is the only home (confirmed by Casey 2026-11-02);
+  skill-src is retired and archived. Number after the highest ID on `origin/main`.
+- `spec-registry.md`: Microbiology v2 row to draft 10.6; Jira cells filled for Test Catalog Alerts
+  (OGC-763) and Analyzer Types & Mapping (OGC-1054).
+- Constitution pointer: upstream still **1.12.0** (last amended 2026-09-29), no re-sync needed.
+- Memory promotion: nothing new and stable since 2026-10-07; every candidate memory was already in a
+  reference.
+
+**Done 2026-11-02:** Casey confirmed the repo copy as the single home; skill-src retired. Before
+retiring it, a regression check compared the installed skill (SKILL.md v3.29 with references from
+September, decision log to D-112) and skill-src against this branch: no installed or skill-src content
+is missing here; every difference is a newer or amended version, and the three skill-src-only
+decisions are re-homed as D-369 to D-371. Reinstall the skill from `openelis-design.skill`. Admin Redesign
+D-190 to D-202 and Users and Roles D-203 to D-206 still collide with ledger IDs; AMR v3 D-Q1 to D-Q7
+still need numbers.
+
+---
+
+## v3.29 (2026-10-19, skill-src line; imported 2026-11-01)
+
+- **Search, not manual select** (Casey's standing rule, 19 Oct). Design-addendum MUST E now requires
+  search/typeahead on every list over site data whatever its length, not only "large/growing" sets, and
+  in add-to-existing flows (adding a test to an existing order) as well as create flows. New decision
+  **D-234** (now **D-371**; tightens D-007); `carbon-anti-patterns.md` C1 and the `/analyze` Pass D and `/crosscheck`
+  examples updated to match. Driven by OGC-1514 (Modify Order add-test is a paged checkbox table) and
+  the app-wide sweep OGC-1515.
+
+## v3.28 (2026-10-15, skill-src line; imported 2026-11-01)
+
+- **Nominate privileges for every new feature** (Casey's standing rule). The Stage 2 Access brief and
+  every FRS `## Access` section now end with a nominated privileges table (capability, `category:action`
+  code from the PR #3443 catalogue, display group from Users and Roles Appendix A, default grant on
+  upgrade stated by held privilege). New subsection **Nominating privileges** in Stage 3; `/analyze`
+  Pass J, `/checklist` Access & Roles and the `/breakdown` coverage line check it. Supersedes the
+  "don't invent fine-grained permission names" line in `references/permissions-and-audit.md`, which is
+  updated to match. Worked example: Result Delivery critique §8.
+- SKILL.md header version brought in line with the changelog (was still v3.12).
+- Registry upkeep step 2 now proposes the SKILL.md change with `propose_skills` instead of sending a
+  zipped `.skill` package, which the app no longer accepts as the way to save a skill.
+
+## v3.27-src (2026-10-08, skill-src line; imported 2026-11-01)
+
+- **Microbiology v2 draft 10.6** (Karen, CPHL: isolates from the AMR sentinel sites). D-218 (now **D-369**): the sender's AST is a Tested
+  elsewhere panel on ISO-1, shown in a Sender column beside the local AST; isolates are entered from the line list with
+  Received at {sending laboratory}. D-219 (now **D-370**): a local interpretation that differs from the sender's is acknowledged at validation.
+
+---
+
 ## v3.27 (2026-10-06): monthly consolidation top-up
 
 **What happened since 2026-10-01.** Design sessions kept writing skill-src, as its SKILL.md tells

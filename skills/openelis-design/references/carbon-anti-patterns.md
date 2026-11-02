@@ -53,7 +53,7 @@ Inventing a new color or reusing a kind for an off-list status is an anti-patter
 
 | # | Anti-pattern | Correct pattern | Severity |
 |---|---|---|---|
-| C1 | Long static `Select` over a large/growing set (tests ~500+, **sample types (hundreds)**, orgs, providers, panels, any controlled vocabulary) | Search / typeahead `ComboBox` (filterable) | MEDIUM |
+| C1 | Static `Select`, non-filterable `Dropdown`, or paged checkbox list over site data (tests, panels, sample types, orgs, labs, units, dictionary values), at any size, including add-to-existing flows (D-371) | Search / typeahead: `ComboBox`, `FilterableMultiSelect`, or `Search` over the list, with selections as removable tags | MEDIUM |
 | C2 | Embedding a multi-step "create heavy entity" flow (e.g. create a Test) inside another workflow | Link out to the dedicated admin page, then return | MEDIUM |
 | C3 | Creating a new record where linking to an existing one would do | Prefer mapping/linking to an existing record | LOW |
 

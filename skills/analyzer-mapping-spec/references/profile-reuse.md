@@ -19,15 +19,19 @@ Bridge** (`DIGI-UW/openelis-analyzer-bridge`), neither of the two original candi
 
 | What | Where (verified 2026-10-01) | Role |
 |---|---|---|
-| **Shipped profiles** | bridge repo `src/main/resources/analyzer-profiles/*.json` (classpath pattern `bridge.profile-catalog.shipped-pattern`) | packaged with each Bridge release; revisioned files (`genexpert-astm.json` … `-v7`, `fluorocycler-xt` … `-v4`, `quantstudio` … `-v3`) |
+| **Shipped profiles** | bridge repo `src/main/resources/analyzer-profiles/*.json` (classpath pattern `bridge.profile-catalog.shipped-pattern`) | packaged with each Bridge release; five files as of 2026-11-01 (named `<vendor>-<model>.json`; the 2026-10-01 names carried `-vN` revisions). Revisions are read from the catalog |
 | **Site profiles** | the Bridge's durable store `bridge.profile-catalog.directory` (default `/data/openelis-analyzer-bridge/profile-catalog`) | revisions authored for one deployment |
 | **Contract** | bridge repo `contracts/analyzer/v1/analyzer-profile.schema.json` ("OpenELIS Analyzer Bridge profile revision v1") | required: `schemaVersion`, `profileMeta`, `category`, `protocol`, `capabilities`, `configDefaults`, `connectionFields`, `controlResultRecognition`, `catalog` |
 | **OpenELIS side** | `BridgeProfileCatalogService` reads `GET {bridge}/api/profiles` (schema 1.0, `sha256:` fingerprints); `AnalyzerProfileBinding` pins an analyzer to a profile **revision**; drafts are authored in-app (Analyzer Types, `ProfileDraftEditor`, route `/analyzers/types/:profileId/mapping`) | OpenELIS consumes a pinned profile; the Bridge normalizes results |
 
 What this means for specs:
 - **The `projects/analyzer-profiles/` mirror is gone from `develop`**, and with it the 13-profile
-  roster listed below (Sysmex XN, Mindray BC/BS, Horiba, Stago, Abbott Architect). Only three
-  analyzers ship built-in today. Where those older profiles went (distro, a Bridge branch, or
+  roster listed below (Sysmex XN, Mindray BC/BS, Horiba, Stago, Abbott Architect). **Shipped set
+  re-checked 2026-11-01** (bridge `main` at `5a3b8a3`, 2026-10-30): five profile files,
+  `cepheid-genexpert-astm`, `hain-fluorocycler-xt`, `hain-fluorocycler-xt-madagascar` (a
+  site-flavoured variant shipped in the shared set), `mindray-bc5380` (the first of the 13 older
+  profiles to come back) and `thermo-quantstudio`. File names now carry the vendor prefix and no
+  `-vN` suffix; read the revision from the catalog (`GET {bridge}/api/profiles`), not the file name. Where those older profiles went (distro, a Bridge branch, or
   dropped) is **UNVERIFIED**; don't cite them as existing without checking.
 - A spec names a **profile id and revision**, not a file path. A new analyzer's deliverable is a
   profile revision that validates against the v1 contract, contributed to the Bridge's shipped set
@@ -206,3 +210,10 @@ longer exists on `develop`. Profiles moved to the Analyzer Bridge (shipped set i
 site revisions in the Bridge's store, OpenELIS pins a revision through `AnalyzerProfileBinding`).
 "Where profiles live" rewritten; the 2026-08-01 answer kept as history. Distro role and the fate
 of the 13 older profiles are unverified.
+
+**2026-11-01 (monthly consolidation):** the canonical-home question stays answered (the Analyzer
+Bridge, 2026-10-01). Re-checked the Bridge's shipped set: five profiles (list under "Where profiles
+live"); `mindray-bc5380` returned from the old roster, the other 12 older profiles are still absent.
+Still **UNVERIFIED**: the distro's role (whether it seeds site profiles) and where the remaining
+older profiles went. Related design: Analyzer Setup From Traffic v0.3 (#378, OGC-1573) relies on
+Bridge protocol starters and a setup capture (its DEP-1, DEP-4), both not built yet.
