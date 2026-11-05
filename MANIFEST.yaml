@@ -4178,13 +4178,14 @@
   preview: designs/sample-collection/env-vector-order-entry-v4.html
   category: vector-surveillance
   description: >
-    Environmental and Vector Order Entry v4 (FRS v0.5, follows Clinical Order Entry v4): one FRS for both domains. Enter Order plus an optional Sample check, every save all-or-nothing; container types from the test catalog applied to environmental bottles (existing environmental container dictionary imported under the Environmental domain) and vector pools; one container numbering scheme across domains (-1, -1.1) with vector pools keeping group labels; vector intake as collection rows with the catch as the parent sample; field QC entered at intake; compliance standard required only to complete; client bottle ID, sampling point, cooler temperature and routine/repeat captured. Fixes site overwrite, half-way saves, wrong default times and lost trap data. Keeps every capability from the develop audit. Supersedes the env/vector alignment note, Environmental Order Entry v2 three-step wizard and the vector Label and Complete steps. Companion critique, clarify log, crosscheck, research and design briefs.
+    Environmental and Vector Order Entry v4 (FRS v0.6, synced 2026-11-05 to Clinical Order Entry v4 v0.20 and Microbiology v2 draft 10.6: micro and case tests open one Case per order, sample type, lab unit and site; Entered, order date and Required by; Received by with Change; possible-match check before creating a site or requester; Handling group on each row; four open questions): one FRS for both domains. Enter Order plus an optional Sample check, every save all-or-nothing; container types from the test catalog applied to environmental bottles (existing environmental container dictionary imported under the Environmental domain) and vector pools; one container numbering scheme across domains (-1, -1.1) with vector pools keeping group labels; vector intake as collection rows with the catch as the parent sample; field QC entered at intake; compliance standard required only to complete; client bottle ID, sampling point, cooler temperature and routine/repeat captured. Fixes site overwrite, half-way saves, wrong default times and lost trap data. Keeps every capability from the develop audit. Supersedes the env/vector alignment note, Environmental Order Entry v2 three-step wizard and the vector Label and Complete steps. Companion critique, clarify log, crosscheck, research and design briefs.
   links:
     jira: [OGC-527, OGC-1266, OGC-1068]
     github: https://github.com/DIGI-UW/openelis-work/issues/385
     gallery: https://digi-uw.github.io/openelis-work/#/vector-surveillance/environmental-and-vector-order-entry-v4
     preview: https://digi-uw.github.io/openelis-work/designs/sample-collection/env-vector-order-entry-v4.html
   added: "2026-11-05"
+  updated: "2026-11-05"
 - id: environmental-order-entry-v2
   type: mockup
   path: designs/sample-collection/environmental-order-entry-v2.html
