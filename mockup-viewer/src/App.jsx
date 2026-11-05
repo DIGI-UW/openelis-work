@@ -983,6 +983,17 @@ export const MOCKUP_REGISTRY = [
     tags: ['analyzer', 'BD', 'EpiCenter', 'microbiology', 'AMR', 'AST', 'ASTM', 'PNG'],
   },
   {
+    name: 'RADIONE RP033 Ebola/Marburg Integration Spec',
+    category: 'analyzer-integration',
+    component: null,
+    description: 'KH Medical RADIONE (KM010) with the RP033 Ebola/Marburg kit, read from its per-run ZIP export (XLSX + JSON) through a built-in Analyzer Bridge profile; companion Ebola and Marburg PCR catalog metadata. DRC Ebola response.',
+    specPath: 'designs/analyzer-integration/radione-rp033-integration-spec-v0.3.md',
+    added: '2026-11-05',
+    status: 'draft',
+    jira: ['OGC-1610'],
+    tags: ['analyzer', 'RADIONE', 'KH Medical', 'Ebola', 'Marburg', 'PCR', 'molecular', 'file-import', 'DRC'],
+  },
+  {
     name: 'BioRad CFX Opus Connection Spec',
     category: 'analyzer-integration',
     component: null,
