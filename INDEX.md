@@ -68,6 +68,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | DNA Technology DT-Prime Field Mapping | — | [dna-technology-dtprime-field-mapping-v0.2.md](designs/analyzer-integration/dna-technology-dtprime-field-mapping-v0.2.md) |
 | Tecan Infinite F50 Connection Spec | — | [tecan-infinite-f50-analyzer-connection-spec.md](designs/analyzer-integration/tecan-infinite-f50-analyzer-connection-spec.md) |
 | Thermo Multiskan FC Connection Spec | — | [thermo-multiskan-fc-analyzer-connection-spec.md](designs/analyzer-integration/thermo-multiskan-fc-analyzer-connection-spec.md) |
+| RADIONE RP033 Ebola/Marburg Integration Spec | — | [radione-rp033-integration-spec-v0.3.md](designs/analyzer-integration/radione-rp033-integration-spec-v0.3.md) · [catalog metadata](designs/analyzer-integration/radione-rp033-ebola-marburg-catalog-metadata.md) |
 | QuantStudio 5/7 Flex Field Mapping [Completed] | — | [quantstudio-field-mapping-spec-v131.md](designs/analyzer-integration/quantstudio-field-mapping-spec-v131.md) |
 | QuantStudio 5/7 Flex Companion Guide [Completed] | — | [quantstudio-companion-guide-v10.md](designs/analyzer-integration/quantstudio-companion-guide-v10.md) |
 | FluoroCycler XT Integration Spec | — | [fluorocycler-xt-integration-spec-v1.0.md](designs/analyzer-integration/fluorocycler-xt-integration-spec-v1.0.md) |

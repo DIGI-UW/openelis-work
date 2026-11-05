@@ -3832,6 +3832,29 @@
     jira: ["OGC-434"]
     gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/bd-epicenter-integration-spec
   added: "2026-06-12"
+- id: radione-rp033-ebola-marburg-integration-spec
+  type: spec
+  path: designs/analyzer-integration/radione-rp033-integration-spec-v0.3.md
+  category: analyzer-integration
+  description: >
+    KH Medical RADIONE (KM010) with the RP033 Ebola/Marburg kit: per-run ZIP export (XLSX + JSON)
+    read through a built-in Analyzer Bridge profile. DRC Ebola response.
+  paired_with: radione-rp033-ebola-marburg-catalog-metadata
+  links:
+    jira: ["OGC-1610"]
+    gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/radione-rp033-ebola-marburg-integration-spec
+  added: "2026-11-05"
+- id: radione-rp033-ebola-marburg-catalog-metadata
+  type: reference-data
+  path: designs/analyzer-integration/radione-rp033-ebola-marburg-catalog-metadata.md
+  category: analyzer-integration
+  description: >
+    Ebola PCR and Marburg PCR test catalog metadata (tests, components, result options in en/fr/es,
+    panel, interpretation, QC) for the RADIONE RP033 kit.
+  paired_with: radione-rp033-ebola-marburg-integration-spec
+  links:
+    jira: ["OGC-1610"]
+  added: "2026-11-05"
 - id: inventory-item-type-management
   type: mockup
   path: designs/inventory/inventory-item-type-management.jsx
