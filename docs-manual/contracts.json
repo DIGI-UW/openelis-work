@@ -476,8 +476,8 @@
   },
   {
    "id": "admin-vector-reference-data",
-   "title": "Admin — Vector Surveillance Reference Data",
-   "confluencePageId": "1420460034",
+   "title": "Admin: Vector Surveillance Reference Data",
+   "confluencePageId": "1427144728",
    "base": "https://testing.openelis-global.org",
    "capturedVersion": "3.2.1.10",
    "routes": [
@@ -495,12 +495,6 @@
      "anchors": [
       "Add trap type"
      ]
-    },
-    {
-     "path": "/MasterListsPage/vectorSurveillanceSetup/sampling-sites",
-     "anchors": [
-      "Sampling Site Registry"
-     ]
     }
    ],
    "uiPaths": [
@@ -508,7 +502,7 @@
     "frontend/src/components/admin/sampleType"
    ],
    "capturedDate": "2026-06-24",
-   "notes": "Re-pointed to testing 2026-09-22. 'Sampling Sites' -> 'Sampling Site Registry' (verified on screen). All three routes now pass their anchors, but note the registries are empty on testing (0 species, 0 sampling sites; trap types are seeded), so the figures in the manual showing populated tables will not match. capturedVersion left at 3.2.1.10 until the figures are re-shot."
+   "notes": "Re-pointed to testing 2026-09-22. 'Sampling Sites' -> 'Sampling Site Registry' (verified on screen). All three routes now pass their anchors, but note the registries are empty on testing (0 species, 0 sampling sites; trap types are seeded), so the figures in the manual showing populated tables will not match. capturedVersion left at 3.2.1.10 until the figures are re-shot. 2026-11-06: dropped /MasterListsPage/vectorSurveillanceSetup/sampling-sites (redirects to /MasterListsPage/locations/sites, watched by the sampling-sites section) and re-pointed from the trashed draft 1420460034 to 1427144728."
   },
   {
    "id": "admin-compliance-standards",
