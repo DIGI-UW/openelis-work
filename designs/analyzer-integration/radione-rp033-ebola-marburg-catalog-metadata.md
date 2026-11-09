@@ -1,6 +1,6 @@
 # Ebola and Marburg PCR: test catalog metadata
 
-**For:** OGC-1610 | **Spec:** [RADIONE RP033 integration spec](radione-rp033-integration-spec-v0.3.md) | **Kit:** RADIONE Ebola/Marburg Detection Kit (RP033), IFU Rev.03 | **Date:** 2026-11-05
+**For:** OGC-1610 | **Kit:** RADIONE Ebola/Marburg Detection Kit (RP033), IFU Rev.03 | **Date:** 2026-11-05
 
 This is the metadata the DRC labs need. How it is added to OpenELIS is decided by Piotr's reference data rework (OGC-1530 import engine, OGC-1531 Import Review). Items marked **Confirm** are listed at the end.
 
@@ -26,17 +26,21 @@ Both are qualitative. Each runs in its own well with its own internal control, s
 
 ## 2. Result components (same shape for both tests)
 
-| Code | Label (en) | Label (fr) | Type | Primary | On report | Ebola source | Marburg source |
-|---|---|---|---|---|---|---|---|
-| RESULT | Result | Résultat | Select list (§3) | Yes | Yes | Derived (§5) | Derived (§5) |
-| EBOV_CT / MARV_CT | Ebola Ct / Marburg Ct | Ct Ebola / Ct Marburg | Numeric, 2 decimals, unit Ct | No | No (**Confirm**) | Well A, CH1 (FAM) | Well B, CH1 (FAM) |
-| IC_CT | Internal control Ct | Ct contrôle interne | Numeric, 2 decimals, unit Ct | No | No | Well A, CH4 (Cy5) | Well B, CH4 (Cy5) |
+Every component is filled first; the primary `RESULT` is then **calculated** from the two calls and is **required** (the test cannot be resulted, validated or released without it).
+
+| Code | Label (en) | Label (fr) | Type | Primary | Required | On report | Ebola source | Marburg source |
+|---|---|---|---|---|---|---|---|---|
+| EBOV / MARV | Ebola target / Marburg target | Cible Ebola / Cible Marburg | Select list: Detected, Not detected | No | No | No | Well A, CH1 (FAM) call | Well B, CH1 (FAM) call |
+| EBOV_CT / MARV_CT | Ebola Ct / Marburg Ct | Ct Ebola / Ct Marburg | Numeric, 2 decimals, unit Ct | No | No | No (**Confirm**) | Well A, CH1 Ct | Well B, CH1 Ct |
+| IC | Internal control | Contrôle interne | Select list: Detected, Not detected | No | No | No | Well A, CH4 (Cy5) call | Well B, CH4 (Cy5) call |
+| IC_CT | Internal control Ct | Ct contrôle interne | Numeric, 2 decimals, unit Ct | No | No | No | Well A, CH4 Ct | Well B, CH4 Ct |
+| RESULT | Result | Résultat | Select list: Detected, Not detected, Invalid | **Yes** | **Yes** | Yes | **Calculated** (§5) | **Calculated** (§5) |
 
 No unit "Ct" exists in the shipped catalog; add one or leave the unit blank.
 
 ## 3. Result options for RESULT
 
-One shared list, used by both tests.
+One shared list, used by both tests. The call components use Detected and Not detected; RESULT uses all three.
 
 | Value | English | French | Spanish | Normal | Significance | LOINC answer |
 |---|---|---|---|---|---|---|
@@ -52,13 +56,17 @@ French wording to be confirmed by the DRC labs.
 |---|---|---|---|---|---|
 | Ebola Marburg PCR | PCR Ebola Marburg | PCR Ébola Marburgo | Ebola PCR, Marburg PCR | Plasma | 88186-2 |
 
-## 5. Interpretation (from the IFU, per test)
+## 5. RESULT calculation (from the IFU, per test)
 
-| Target (CH1) | Internal control (CH4) | RESULT |
+Calculated from the **calls**, not the Ct values, and recalculated whenever a call changes:
+
+| Target call (EBOV / MARV) | Internal control call (IC) | RESULT |
 |---|---|---|
-| Positive (Ct ≤ 40) | Positive or negative | Detected |
-| Negative | Positive | Not detected |
-| Negative | Negative | Invalid |
+| Detected (Ct ≤ 40) | Detected or Not detected | Detected |
+| Not detected | Detected | Not detected |
+| Not detected | Not detected | Invalid |
+
+Incomplete calls leave RESULT empty, so the test stays unresulted.
 
 ## 6. Quality control (from the IFU)
 
@@ -88,6 +96,7 @@ Read from openelis-docker `200a538` and OpenELIS-Global-2 `develop` `3aca57f`. T
 | Sample type | Do the DRC sites spell it "Plasma", or should an EDTA plasma type be added? |
 | Notify on result | Should a Detected result trigger notification? |
 | Ct on report | Should Ct values stay off the patient report? |
+| Override | May a technician override RESULT, or only correct a call so it recalculates? (Recommended: correct the call, audited) |
 | French wording | Confirm the French result options with the labs |
 
 ## Sources
