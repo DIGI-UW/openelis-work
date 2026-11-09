@@ -3834,7 +3834,7 @@
   added: "2026-06-12"
 - id: radione-rp033-ebola-marburg-integration-spec
   type: spec
-  path: designs/analyzer-integration/radione-rp033-integration-spec-v0.3.md
+  path: designs/analyzer-integration/radione-rp033-integration-spec-v0.4.md
   category: analyzer-integration
   description: >
     KH Medical RADIONE (KM010) with the RP033 Ebola/Marburg kit: per-run ZIP export (XLSX + JSON)
@@ -3844,6 +3844,7 @@
     jira: ["OGC-1610"]
     gallery: https://digi-uw.github.io/openelis-work/#/analyzer-integration/radione-rp033-ebola-marburg-integration-spec
   added: "2026-11-05"
+  updated: "2026-11-05"
 - id: radione-rp033-ebola-marburg-catalog-metadata
   type: reference-data
   path: designs/analyzer-integration/radione-rp033-ebola-marburg-catalog-metadata.md

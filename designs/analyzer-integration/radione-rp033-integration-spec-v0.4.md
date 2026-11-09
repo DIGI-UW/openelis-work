@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| Version | v0.3 |
+| Version | v0.4 |
 | Date | 2026-11-05 |
 | Protocol | **File export**: one ZIP per run, containing an Excel workbook and a JSON file. No ASTM or HL7 output seen |
 | Integration | **Built-in Analyzer Bridge profile** `kh-medical-radione-rp033` (FILE), plus the Bridge changes in §14 |
@@ -75,7 +75,7 @@ RadioOne data Export_676_RP033_2026-10-10-00-22-19_2_0027/
 
 RADIONE RP033 ships as a **built-in Bridge profile** (shipped set, `catalog.source` SHIPPED), so no site authors it. It follows `docs/profile-authoring.md`:
 
-- Tests Ebola and Marburg, qualitative, LOINC 86518-8 and 86574-1; raw values `P` and `N` with answer codes LA11882-0 and LA11883-8; the internal control as a sample flag raised on `N`. Standard coding systems only.
+- Tests Ebola and Marburg, qualitative, LOINC 86518-8 and 86574-1; raw values `P` and `N` with answer codes LA11882-0 and LA11883-8. Each channel maps to its call component (§5.4): CH1 to the target, CH4 to `IC`. The profile does not produce `RESULT`; OpenELIS calculates it. Standard coding systems only.
 - Sources: the RP033 IFU Rev.03 for targets, wells, values and cut-off; this spec and the captured export (filed as a fixture in analyzer-mock-server) for the file layout. The shipped Madagascar FluoroCycler profile uses the same basis. A vendor interface document, if KH Medical sends one, becomes the source in a later revision.
 - An evidence note `docs/profiles/kh-medical-radione-rp033.md` with a Not verified section, and a replay test like the GeneXpert and Mindray baseline tests.
 
@@ -181,36 +181,43 @@ RP033 runs **two independent assays**, each in its own well with its own interna
 
 A positive target is valid even without the IC. The export has no overall call, so OpenELIS must apply this table. It is deterministic and uses only the exported P/N values.
 
-### 5.4 Proposed OpenELIS model: decision needed (Q13)
+### 5.4 OpenELIS model: calculated components, required primary
 
-**Recommended: two tests, ordered together as a panel "Ebola/Marburg PCR (RADIONE)".** This keeps each assay's validity separate, so an invalid Marburg well does not hide a valid Ebola result.
+**Two tests, ordered together as the panel "Ebola Marburg PCR".** This keeps each assay's validity separate, so an invalid Marburg well does not hide a valid Ebola result. (Q13: one test with two results remains the alternative.)
 
-| Test | Component code | Meaning | Type | On report |
-|---|---|---|---|---|
-| Ebola PCR | `RESULT` (PRIMARY) | Ebola Positive / Negative / Invalid | Coded | Yes |
-| | `EBOV_CT` | Well A CH1 Ct | Numeric, unit Ct | Lab decides (Q6) |
-| | `IC_CT` | Well A CH4 Ct | Numeric, unit Ct | No |
-| Marburg PCR | `RESULT` (PRIMARY) | Marburg Positive / Negative / Invalid | Coded | Yes |
-| | `MARV_CT` | Well B CH1 Ct | Numeric, unit Ct | Lab decides |
-| | `IC_CT` | Well B CH4 Ct | Numeric, unit Ct | No |
+Within each test, **every component is filled first, and the primary `RESULT` is then calculated from them.** `RESULT` is **required**: the test cannot be saved as resulted, validated or released without it.
 
-Alternative: one test with two coded result components. Simpler to order, but needs a rule for the single PRIMARY component when only one assay is invalid.
+| Test | Component code | Meaning | Type | Filled from | On report |
+|---|---|---|---|---|---|
+| Ebola PCR | `EBOV` | Ebola target call, Well A CH1 | Coded: Detected / Not detected | Analyzer P/N, or entered | No |
+| | `EBOV_CT` | Ebola target Ct, Well A CH1 | Numeric, unit Ct | Analyzer Ct, or entered | Lab decides (Q6) |
+| | `IC` | Internal control call, Well A CH4 | Coded: Detected / Not detected | Analyzer P/N, or entered | No |
+| | `IC_CT` | Internal control Ct, Well A CH4 | Numeric, unit Ct | Analyzer Ct, or entered | No |
+| | `RESULT` (PRIMARY, required) | Ebola result | Coded: Detected / Not detected / Invalid | **Calculated** from `EBOV` and `IC` (§5.3) | Yes |
+| Marburg PCR | `MARV`, `MARV_CT`, `IC`, `IC_CT` | Same shape, Well B | as above | as above | as above |
+| | `RESULT` (PRIMARY, required) | Marburg result | Coded: Detected / Not detected / Invalid | **Calculated** from `MARV` and `IC` | Yes |
 
-### 5.5 Result options (French and English required)
+The calculation is the §5.3 table and uses the **calls**, not the Ct values: `EBOV` Detected gives Detected; `EBOV` Not detected and `IC` Detected gives Not detected; both Not detected gives Invalid. Because it reads the calls, it works the same whether the components came from the RADIONE export or were typed in by a technician, and it works in V1 even though the Bridge carries one value per row (the calls arrive; the Ct values can follow later).
 
-| Derived value | English | French |
-|---|---|---|
-| Ebola Positive | Ebola virus RNA detected | ARN du virus Ebola détecté |
-| Ebola Negative | Ebola virus RNA not detected | ARN du virus Ebola non détecté |
-| Marburg Positive | Marburg virus RNA detected | ARN du virus Marburg détecté |
-| Marburg Negative | Marburg virus RNA not detected | ARN du virus Marburg non détecté |
-| Invalid | Invalid, retest | Invalide, à refaire |
+This removes the need for any separate internal-control warning: a failed control can only produce Invalid, never Not detected.
+
+### 5.5 Result options (English, French and Spanish required)
+
+One shared list. The call components use Detected and Not detected; `RESULT` uses all three.
+
+| Value | English | French | Spanish |
+|---|---|---|---|
+| Detected | Detected | Détecté | Detectado |
+| Not detected | Not detected | Non détecté | No detectado |
+| Invalid | Invalid, retest | Invalide, à refaire | Inválido, repetir |
 
 Labs should confirm the French wording (Q14).
 
 ### 5.6 Rules
 
 - `NA` in the sheet, and `0.0` in the JSON, mean no amplification.
+- `RESULT` is recalculated whenever a call component changes, so a corrected call always flows through to the result.
+- A test whose calls are incomplete has no `RESULT` and stays unresulted; it is never released with a blank or guessed result.
 - Invalid is stored and routed for retest, never dropped or treated as an error.
 - A used channel with an unexpected Target name (for example, a different kit's layout) is an unmapped-result exception, shown for review.
 - A ZIP whose kit code has no mapping is held for review, not dropped.
@@ -298,11 +305,12 @@ No new privileges. Existing `analyzer:view` and `analyzer:manage`; `result:enter
 | Q13 | Two tests in a panel, or one test with two coded components? | **Decision needed** | Casey |
 | Q14 | French result wording | Open | DRC labs |
 | Q15 | Can the Sample No. hold the OpenELIS lab number (letters, length, barcode scanner)? Matching depends on it | **Open, critical** | DRC lab |
+| Q16 | May a technician override the calculated `RESULT`, or only correct a call component so it recalculates? Recommended: correct the call only, with the change audited | Open | Casey |
 
 ## 14. Dependencies
 
 - **Import of a ZIP containing JSON and XLSX**, with the sample number taken from outside the result table. No generic plugin does this today; the profile contract, schema and validator gain what the built-in profile needs to describe it.
-- **Derived result**: OpenELIS must apply the §5.3 table to produce the call. Engineering chooses the mechanism.
+- **Calculated primary component**: OpenELIS calculates `RESULT` from the call components (§5.4). Read from develop `3aca57f`: the existing calculated values can already write into a chosen component and read other components (`Calculation.componentId`, `Operation.componentId`), but their operands are evaluated as numbers, so comparing coded Detected / Not detected values is not confirmed. Engineering decides whether to extend calculated values or use another mechanism.
 - Multi-component ingestion (OGC-1129): done.
 - Runs (OGC-1200) and instrument locks: not built. PC and NTC go through Analyzer Manual QC meanwhile.
 
@@ -312,7 +320,7 @@ No new privileges. Existing `analyzer:view` and `analyzer:manage`; `result:enter
 |---|---|
 | Grounding | One real export + IFU. MEDIUM |
 | Field coverage | Done for patient runs |
-| Multi-component decision | Recommended, needs Casey (Q13) |
+| Multi-component decision | Done: calls and Ct as components, `RESULT` calculated and required (§5.4); two tests vs one still Q13 |
 | QC acceptance | Done. Identification unconfirmed |
 | Value map | Done, French wording to confirm |
 | Connectivity | Partial (Q11) |
@@ -338,3 +346,4 @@ The captured file contains no patient identifiers, only sample number `676` and 
 | v0.1 | 2026-11-04 | Skeleton before the format was known |
 | v0.2 | 2026-11-05 | Format identified from a real RP033 export: field map, RP033 layout and interpretation from the IFU, trace of the sample file, new questions Q10 to Q15 |
 | v0.3 | 2026-11-05 | Story OGC-1610; decided a built-in Bridge profile (§2.3); Bridge gap from code (§2.2); catalog moved to the companion metadata doc (§11) |
+| v0.4 | 2026-11-05 | Every component filled first, then the primary `RESULT` calculated from the calls and required (§5.4 to §5.6); call components added; internal control is a component, not a warning; Q16 |
