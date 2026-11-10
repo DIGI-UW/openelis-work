@@ -172,6 +172,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/admin-config/data-dictionary.md',
     githubIssue: 1,
     tags: ['lookup-tables', 'reference-data', 'admin', 'configuration'],
+    jira: ['OGC-243'],
   },
   {
     name: 'Lab Units Management [Completed]',
@@ -195,6 +196,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/admin-config/methods.md',
     githubIssue: 3,
     tags: ['test-methods', 'admin', 'configuration'],
+    jira: ['OGC-214'],
   },
   {
     name: 'Organizations Management',
@@ -230,6 +232,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/admin-config/reference-data-config-frs.md',
     added: '2026-10-20',
     status: 'draft',
+    jira: ['OGC-1530'],
     relatedTo: ['Import Review'],
     tags: ['admin', 'reference-data', 'configuration', 'import', 'csv', 'architecture', 'roadmap'],
   },
@@ -242,6 +245,7 @@ export const MOCKUP_REGISTRY = [
     htmlUrl: 'designs/admin-config/import-review-preview.html',
     added: '2026-10-20',
     status: 'draft',
+    jira: ['OGC-1531'],
     relatedTo: ['Reference Data as Configuration'],
     tags: ['admin', 'reference-data', 'import', 'import-review', 'csv', 'configuration'],
   },
@@ -310,6 +314,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/admin-config/range-editor.md',
     githubIssue: 6,
     tags: ['reference-ranges', 'normal-values', 'age-sex', 'admin'],
+    jira: ['OGC-758'],
   },
   {
     name: 'Result Options',
@@ -319,6 +324,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/admin-config/result-options.md',
     githubIssue: 7,
     tags: ['result-codes', 'dropdowns', 'admin', 'configuration'],
+    jira: ['OGC-206'],
   },
   {
     name: 'Test Catalog [Completed]',
@@ -576,6 +582,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-03-04',
     githubIssue: 9,
     tags: ['roles', 'permissions', 'access-control', 'security'],
+    jira: ['OGC-383'],
   },
   {
     name: 'Password Policy Enhancements',
@@ -585,6 +592,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/admin-config/password-enhancements.md',
     added: '2026-03-15',
     status: 'draft',
+    jira: ['OGC-425'],
     githubIssue: 51,
     tags: ['security', 'authentication', 'password', 'admin'],
   },
@@ -682,6 +690,7 @@ export const MOCKUP_REGISTRY = [
     htmlUrl: 'designs/admin-config/user-management.html',
     added: '2026-04-24',
     status: 'draft',
+    jira: ['OGC-425', 'OGC-394'],
     githubIssue: 96,
     tags: ['admin', 'users', 'roles', 'permissions', 'access-control', 'phase-5'],
   },
@@ -694,6 +703,7 @@ export const MOCKUP_REGISTRY = [
     htmlUrl: 'designs/admin-config/test-accreditation.html',
     added: '2026-04-24',
     status: 'draft',
+    jira: ['OGC-686'],
     githubIssue: 97,
     relatedTo: ['Test Catalog [Completed]', 'Report Print Queue', 'Patient Report Redesign'],
     tags: ['admin', 'accreditation', 'test-catalog', 'reports', 'logo', 'iso-15189'],
@@ -707,6 +717,7 @@ export const MOCKUP_REGISTRY = [
     htmlUrl: 'designs/admin-config/reporting-ranges-by-method.html',
     added: '2026-04-24',
     status: 'draft',
+    jira: ['OGC-1625'],
     githubIssue: 98,
     relatedTo: ['Test Catalog [Completed]', 'Range Editor'],
     tags: ['admin', 'test-catalog', 'ranges', 'methods', 'reference-ranges', 'CSV'],
@@ -772,7 +783,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-05-12',
     status: 'draft',
     githubIssue: null,
-    jira: [],
+    jira: ['OGC-730'],
     tags: ['admin', 'test-rules', 'reflex', 'calculated-values', 'decision-table', 'formula-bar', 'analyzer-parameters', 'predicate-vocabulary', 'MVP', 'global'],
   },
   {
@@ -1004,6 +1015,7 @@ export const MOCKUP_REGISTRY = [
     updated: '2026-06-18',
     githubIssue: 11,
     tags: ['analyzer', 'BioRad', 'PCR', 'qPCR', 'connection-spec'],
+    jira: ['OGC-416'],
   },
   {
     name: 'Sysmex XN-L Series Field Mapping',
@@ -1014,6 +1026,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-03-06',
     githubIssue: 12,
     tags: ['analyzer', 'Sysmex', 'hematology', 'field-mapping'],
+    jira: ['OGC-381'],
   },
   {
     name: 'DNA Technology DT-Prime Field Mapping',
@@ -1024,6 +1037,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-03-06',
     githubIssue: 13,
     tags: ['analyzer', 'PCR', 'HIV', 'viral-load', 'field-mapping'],
+    jira: ['OGC-419'],
   },
   {
     name: 'Tecan Infinite F50 Connection Spec',
@@ -1035,6 +1049,7 @@ export const MOCKUP_REGISTRY = [
     relatedTo: ['Tecan Infinite F50 Companion Guide'],
     githubIssue: 14,
     tags: ['analyzer', 'Tecan', 'ELISA', 'connection-spec'],
+    jira: ['OGC-417'],
   },
   {
     name: 'Thermo Multiskan FC Connection Spec',
@@ -1046,6 +1061,7 @@ export const MOCKUP_REGISTRY = [
     relatedTo: ['Thermo Multiskan FC Companion Guide'],
     githubIssue: 15,
     tags: ['analyzer', 'Thermo', 'ELISA', 'connection-spec'],
+    jira: ['OGC-418'],
   },
   {
     name: 'QuantStudio 5/7 Flex Field Mapping [Completed]',
@@ -1083,6 +1099,7 @@ export const MOCKUP_REGISTRY = [
     relatedTo: ['FluoroCycler XT Companion Guide'],
     githubIssue: 18,
     tags: ['analyzer', 'FluoroCycler', 'PCR', 'ASTM'],
+    jira: ['OGC-420'],
   },
   {
     name: 'FluoroCycler XT Companion Guide',
@@ -1094,6 +1111,7 @@ export const MOCKUP_REGISTRY = [
     relatedTo: ['FluoroCycler XT Integration Spec'],
     githubIssue: 19,
     tags: ['analyzer', 'FluoroCycler', 'PCR', 'setup-guide'],
+    jira: ['OGC-420'],
   },
   {
     name: 'Tecan Infinite F50 Companion Guide',
@@ -1105,6 +1123,7 @@ export const MOCKUP_REGISTRY = [
     relatedTo: ['Tecan Infinite F50 Connection Spec'],
     githubIssue: 20,
     tags: ['analyzer', 'Tecan', 'ELISA', 'setup-guide'],
+    jira: ['OGC-417'],
   },
   {
     name: 'Thermo Multiskan FC Companion Guide',
@@ -1116,6 +1135,7 @@ export const MOCKUP_REGISTRY = [
     relatedTo: ['Thermo Multiskan FC Connection Spec'],
     githubIssue: 21,
     tags: ['analyzer', 'Thermo', 'ELISA', 'setup-guide'],
+    jira: ['OGC-418'],
   },
   {
     name: 'Analyzer File Upload',
@@ -1567,6 +1587,19 @@ export const MOCKUP_REGISTRY = [
   },
 
   {
+    name: 'Pathogen Whole Genome Sequencing',
+    category: 'microbiology',
+    component: null,
+    description: 'Pathogen WGS FRS v0.1: genomic targets library loaded from reference catalogues (WHO TB, AMRFinderPlus, Nextclade), WGS tests with headline calls as result components, sequencing runs with barcodes, pipeline import through analyzer profiles, one genomic result detail with QC holds and heteroresistance, provenance on every result.',
+    specPath: 'designs/microbiology/pathogen-wgs.md',
+    htmlUrl: 'designs/microbiology/pathogen-wgs.html',
+    added: '2026-11-10',
+    status: 'draft',
+    jira: ['OGC-1624'],
+    githubIssue: 392,
+    tags: ['wgs', 'genomics', 'tb', 'amr', 'sequencing'],
+  },
+  {
     name: 'M-16 Cluster Detection & Outbreak Signals',
     category: 'microbiology',
     component: null,
@@ -1576,6 +1609,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-09-04',
     updated: '2026-09-04',
     status: 'draft',
+    jira: ['OGC-1618'],
     tags: ['microbiology', 'surveillance', 'cluster-detection', 'outbreak', 'scan-statistic', 'glass', 'phase-2'],
   },
 
@@ -1655,6 +1689,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/nce/nce-analytics.md',
     githubIssue: 27,
     tags: ['NCE', 'non-conforming', 'quality', 'analytics'],
+    jira: ['OGC-315'],
   },
   {
     name: 'NCE Dashboard & CAPA',
@@ -1665,6 +1700,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-04-24',
     githubIssue: 28,
     tags: ['NCE', 'CAPA', 'corrective-action', 'quality', 'dashboard'],
+    jira: ['OGC-313', 'OGC-707'],
   },
   {
     name: 'NCE Results Entry',
@@ -1674,6 +1710,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/nce/nce-results-entry.md',
     githubIssue: 29,
     tags: ['NCE', 'non-conforming', 'results-entry', 'quality'],
+    jira: ['OGC-314'],
   },
   {
     name: 'NCE Report',
@@ -1683,6 +1720,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/nce/nce-report.md',
     githubIssue: 30,
     tags: ['NCE', 'quality', 'report', 'non-conforming'],
+    jira: ['OGC-312'],
   },
 
   // ─── Pathology ───
@@ -1694,6 +1732,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/pathology/pathology-case-view.md',
     githubIssue: 31,
     tags: ['pathology', 'histology', 'biopsy', 'case-management'],
+    jira: ['OGC-264'],
   },
   {
     name: 'IHC Case View',
@@ -1703,6 +1742,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/pathology/ihc-case-view.md',
     githubIssue: 32,
     tags: ['pathology', 'IHC', 'immunohistochemistry', 'staining'],
+    jira: ['OGC-265'],
   },
 
   {
@@ -1715,6 +1755,7 @@ export const MOCKUP_REGISTRY = [
     githubIssue: 33,
     updated: '2026-05-27',
     tags: ['pathology', 'cytology', 'Bethesda', 'PAP-smear', 'ASCCP', 'critical-results', 'v2'],
+    jira: ['OGC-266'],
   },
 
   {
@@ -1726,6 +1767,7 @@ export const MOCKUP_REGISTRY = [
     githubIssue: 295,
     added: '2026-09-04',
     status: 'draft',
+    jira: ['OGC-264', 'OGC-265', 'OGC-266'],
     tags: ['pathology', 'cytology', 'IHC', 'shell', 'shared-contract', 'cross-cutting', 'v2'],
   },
   {
@@ -1738,6 +1780,7 @@ export const MOCKUP_REGISTRY = [
     githubIssue: 296,
     added: '2026-09-04',
     status: 'draft',
+    jira: ['OGC-264'],
     tags: ['pathology', 'histology', 'biopsy', 'case-management', 'traceability', 'barcode', 'ISO-15189', 'v2'],
   },
   {
@@ -1750,6 +1793,7 @@ export const MOCKUP_REGISTRY = [
     githubIssue: 297,
     added: '2026-09-04',
     status: 'draft',
+    jira: ['OGC-292'],
     tags: ['pathology', 'IHC', 'immunohistochemistry', 'HER2', 'ER-PgR', 'Ki-67', 'thresholds', 'reference-data', 'held', 'v2'],
   },
   {
@@ -1761,6 +1805,7 @@ export const MOCKUP_REGISTRY = [
     githubIssue: 298,
     added: '2026-09-04',
     status: 'draft',
+    jira: ['OGC-264', 'OGC-265', 'OGC-266'],
     tags: ['pathology', 'cytology', 'IHC', 'orientation', 'onboarding', 'diagrams', 'developer-guide'],
   },
 
@@ -1773,6 +1818,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/quality/eqa-enrollment-addendum.md',
     githubIssue: 34,
     tags: ['quality', 'EQA', 'proficiency-testing', 'external-QA'],
+    jira: ['OGC-608'],
   },
   {
     name: 'EQA V1 ↔ V2 Crosswalk',
@@ -1782,6 +1828,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/quality/eqa-v1-crosswalk.md',
     added: '2026-04-24',
     status: 'draft',
+    jira: ['OGC-608'],
     githubIssue: 93,
     relatedTo: ['EQA Enrollment', 'EQA V2 Epic & Stories', 'EQA V2 Design Critique'],
     tags: ['quality', 'EQA', 'iso-15189', 'proficiency-testing', 'crosswalk', 'planning'],
@@ -1794,6 +1841,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/quality/eqa-v2-ept-platform-crosswalk.md',
     added: '2026-04-24',
     status: 'draft',
+    jira: ['OGC-608'],
     githubIssue: 94,
     relatedTo: ['EQA Enrollment', 'EQA V2 Epic & Stories'],
     tags: ['quality', 'EQA', 'proficiency-testing', 'ePT', 'APHL', 'crosswalk', 'planning'],
@@ -1807,6 +1855,7 @@ export const MOCKUP_REGISTRY = [
     htmlUrl: 'designs/quality/eqa-v2-preview.html',
     added: '2026-04-24',
     status: 'draft',
+    jira: ['OGC-608'],
     githubIssue: 95,
     relatedTo: ['EQA Enrollment', 'EQA V1 ↔ V2 Crosswalk', 'EQA V2 ↔ APHL ePT Platform Crosswalk', 'EQA V2 Design Critique'],
     tags: ['quality', 'EQA', 'iso-15189', 'iso-17043', 'proficiency-testing', 'epic', 'planning', 'jira'],
@@ -1819,6 +1868,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/quality/eqa-v2-critique.md',
     added: '2026-04-24',
     status: 'draft',
+    jira: ['OGC-608'],
     githubIssue: 103,
     relatedTo: ['EQA V2 Epic & Stories', 'EQA V1 ↔ V2 Crosswalk'],
     tags: ['quality', 'EQA', 'design-critique', 'analyze', 'iso-15189', 'planning'],
@@ -1832,6 +1882,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/quality/westgard-rules.md',
     githubIssue: 35,
     tags: ['quality', 'Westgard', 'QC-rules', 'IQC', 'dashboard'],
+    jira: ['OGC-41', 'OGC-684'],
   },
   {
     name: 'Batch Workplan Reagent QC',
@@ -1883,7 +1934,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-05-01',
     status: 'draft',
     githubIssue: null,
-    jira: [],
+    jira: ['OGC-683'],
     tags: ['quality', 'QA-menu', 'IA', 'rehome', 'tech-debt', 'QC', 'EQA', 'NCE', 'audit-trail', 'Madagascar', 'GRIST'],
   },
   {
@@ -1896,7 +1947,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-05-04',
     status: 'draft',
     githubIssue: null,
-    jira: [],
+    jira: ['OGC-683'],
     tags: ['quality', 'QA-menu', 'QI-dashboard', 'TAT', 'rejection-rate', 'amendment-rate', 'NCE-pulse', 'MVP', 'KPI'],
   },
   {
@@ -1909,7 +1960,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-05-04',
     status: 'draft',
     githubIssue: null,
-    jira: [],
+    jira: ['OGC-684', 'OGC-686'],
     tags: ['quality', 'QA-menu', 'e-sig', 'electronic-signature', 'accreditation', 'IA', 'v2'],
   },
   {
@@ -1922,7 +1973,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-05-04',
     status: 'draft',
     githubIssue: null,
-    jira: [],
+    jira: ['OGC-682'],
     tags: ['quality', 'QA-menu', 'end-state', 'full-vision', 'QI-dashboard', 'NCE', 'CAPA', 'EQA', 'accreditation', 'heatmap', 'Pareto'],
   },
   {
@@ -1935,7 +1986,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-05-04',
     status: 'draft',
     githubIssue: null,
-    jira: [],
+    jira: ['OGC-685'],
     tags: ['quality', 'westgard', 'QC', 'NCE', 'sigma-metrics', 'alert-banner', 'export', 'Phase-2'],
   },
   {
@@ -1960,7 +2011,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-05-04',
     status: 'draft',
     githubIssue: null,
-    jira: [],
+    jira: ['OGC-682'],
     tags: ['quality', 'planning', 'budget', 'effort-estimate', 'release-plan', 'interactive'],
   },
 
@@ -2155,6 +2206,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/analyzer-integration/validation-page.md',
     githubIssue: 38,
     tags: ['validation', 'analyzer', 'results', 'review'],
+    jira: ['OGC-1364'],
   },
 
   {
@@ -2242,7 +2294,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-04-27',
     status: 'draft',
     githubIssue: null,
-    jira: [],
+    jira: ['OGC-1628'],
     tags: ['HIL', 'hemolysis', 'icterus', 'lipemia', 'specimen-quality', 'results', 'validation', 'analyzer', 'ASTM'],
   },
   {
@@ -2473,6 +2525,7 @@ export const MOCKUP_REGISTRY = [
     added: '2026-03-19',
     updated: '2026-09-10',
     status: 'draft',
+    jira: ['OGC-433'],
     githubIssue: 55,
     tags: ['reports', 'positivity', 'HIV', 'malaria', 'dashboard-widget'],
   },
@@ -2511,6 +2564,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/reports/disease-surveillance-dashboard.md',
     added: '2026-03-23',
     status: 'draft',
+    jira: ['OGC-435'],
     githubIssue: 57,
     tags: ['reports', 'surveillance', 'public-health', 'FHIR', 'dashboard'],
   },
@@ -2549,6 +2603,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/notifications/email-notification-integration.md',
     added: '2026-03-23',
     status: 'draft',
+    jira: ['OGC-1506', 'OGC-439'],
     githubIssue: 58,
     relatedTo: ['TextIt SMS Integration'],
     tags: ['notifications', 'email', 'SMS', 'alerts', 'admin'],
@@ -2561,6 +2616,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/notifications/textit-sms-integration.md',
     added: '2026-03-23',
     status: 'draft',
+    jira: ['OGC-1506', 'OGC-437'],
     githubIssue: 59,
     relatedTo: ['Notification Admin'],
     tags: ['notifications', 'SMS', 'TextIt', 'messaging'],
@@ -2642,6 +2698,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/system/audit-trail.md',
     githubIssue: 43,
     tags: ['audit', 'logging', 'compliance', 'security', 'system'],
+    jira: ['OGC-253'],
   },
   {
     name: 'In-App Help System',
@@ -2713,6 +2770,7 @@ export const MOCKUP_REGISTRY = [
     description: 'Admin configuration page for FHIR R4 outbound publication — endpoint URL, per-resource toggles (DiagnosticReport, Observation, ServiceRequest, Device, Organization), authentication modes (API key, OAuth 2.0, Basic auth, Private Key JWT with public key upload), DHIS2 push URL, and live connection test. Companion admin UI for the FHIR Outbound Push pipeline (OGC-446).',
     added: '2026-04-27',
     status: 'draft',
+    jira: ['OGC-446', 'OGC-435'],
     relatedTo: ['FHIR Outbound Push'],
     tags: ['FHIR', 'interoperability', 'outbound', 'admin', 'configuration', 'integration'],
   },
@@ -2983,6 +3041,7 @@ export const MOCKUP_REGISTRY = [
     htmlUrl: 'designs/sample-collection/required-by-field.html',
     added: '2026-04-27',
     status: 'draft',
+    jira: ['OGC-625'],
     relatedTo: ['SOP Deadline Calculation'],
     tags: ['sample-collection', 'order-entry', 'clinical', 'environmental', 'vector', 'EQA', 'deadline'],
   },
@@ -3218,6 +3277,45 @@ export const MOCKUP_REGISTRY = [
 
   // ─── Figma-only entries (no JSX mockup) ───
   {
+    name: 'Billing (S-13)',
+    category: 'system',
+    component: null,
+    description: 'Billing FRS v0.4.1 (S-13): native billing core with price lists per payer, a charge for every billable test, cash desk with receipts and shifts, statements and quotes for institutions and clients, electronic insurer claims and remittances (FHIR, Kenya eClaims first adapter), payment gate, revenue integrity reports; Odoo optional as accounting backend. Three suggested releases.',
+    specPath: 'designs/system/billing.md',
+    htmlUrl: 'designs/system/billing.html',
+    added: '2026-11-10',
+    status: 'draft',
+    jira: ['OGC-1621'],
+    githubIssue: 389,
+    tags: ['billing', 'payments', 'claims', 'odoo', 'cash-desk', 'price-lists'],
+  },
+  {
+    name: 'EHR Lab Interface',
+    category: 'system',
+    component: null,
+    description: 'EHR Lab Interface FRS v0.2: HL7 v2 orders in from Epic, Oracle Health, athenahealth, eClinicalWorks, NextGen, MEDITECH and OpenEMR, results back per report version with the PDF. One engine with EHR profiles as data, per-client code maps, incoming orders on the order dashboard, CLIA verification records. First deployment SolAura (California).',
+    specPath: 'designs/system/ehr-lab-interface.md',
+    htmlUrl: 'designs/system/ehr-lab-interface.html',
+    added: '2026-11-10',
+    status: 'draft',
+    jira: ['OGC-1622'],
+    githubIssue: 390,
+    tags: ['hl7', 'ehr', 'interfaces', 'orders', 'results', 'us'],
+  },
+  {
+    name: 'Public Health Reporting (State ELR)',
+    category: 'system',
+    component: null,
+    description: 'Public Health Reporting FRS v0.2: reportable results sent automatically on release to public health jurisdictions as HL7 v2.5.1 ELR (CalREDIE first; LA County, Texas, New York, Florida, Washington, APHL AIMS profiles), imported code lists, routing rules, phone reporting prompts and follow-up of refused, missing-data and unrouted reports. Reuses the EHR Lab Interface engine.',
+    specPath: 'designs/system/state-elr.md',
+    htmlUrl: 'designs/system/state-elr.html',
+    added: '2026-11-10',
+    status: 'draft',
+    jira: ['OGC-1623'],
+    githubIssue: 391,
+    tags: ['hl7', 'elr', 'public-health', 'calredie', 'surveillance', 'us'],
+  },
+  {
     name: 'Catalyst Lab Data Assistant',
     category: 'system',
     component: null,
@@ -3226,6 +3324,7 @@ export const MOCKUP_REGISTRY = [
     figmaUrl: 'https://www.figma.com/make/poDXKSr2IBgKbbjB1Fh9Sj/OpenELIS-Global-Template--Copy-?node-id=0-1',
     githubIssue: 49,
     tags: ['AI', 'assistant', 'natural-language', 'reporting', 'chatbot'],
+    jira: ['OGC-70'],
   },
   // ─── Results Portal ───
   {
@@ -3237,6 +3336,7 @@ export const MOCKUP_REGISTRY = [
     htmlUrl: 'designs/portal/facility-results-portal-preview.html',
     added: '2026-07-27',
     status: 'draft',
+    jira: ['OGC-1626'],
     tags: ['portal', 'results-delivery', 'fhir', 'facility', 'requester', 'mobile-first', 'keycloak'],
   },
   {
@@ -3248,6 +3348,7 @@ export const MOCKUP_REGISTRY = [
     htmlUrl: 'designs/portal/patient-self-registration-preview.html',
     added: '2026-07-27',
     status: 'draft',
+    jira: ['OGC-1627'],
     tags: ['portal', 'patient', 'self-registration', 'kiosk', 'fhir', 'candidate-record', 'client-registry'],
   },
   {
@@ -3258,6 +3359,7 @@ export const MOCKUP_REGISTRY = [
     specPath: 'designs/portal/results-portal-c0-discovery-brief.md',
     added: '2026-07-27',
     status: 'draft',
+    jira: ['OGC-1626', 'OGC-1627'],
     tags: ['portal', 'discovery', 'strategy', 'fhir', 'sequencing', 'readiness-checklist'],
   },
 ];

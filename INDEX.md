@@ -109,6 +109,7 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Reference Search (shared picker) | n/a | [reference-search-frs.md](designs/microbiology/reference-search-frs.md) |
 | CLSI Reporting Rules Setup Guide | n/a | [clsi-reporting-rules-setup-guide.md](designs/microbiology/clsi-reporting-rules-setup-guide.md) |
 | M-18 Environmental Microbiology (v0.9) | [m-18-environmental-microbiology.jsx](designs/microbiology/m-18-environmental-microbiology.jsx) · [preview](designs/microbiology/m-18-environmental-microbiology.html) | [m-18-environmental-microbiology.md](designs/microbiology/m-18-environmental-microbiology.md) |
+| Pathogen Whole Genome Sequencing | [pathogen-wgs.html](designs/microbiology/pathogen-wgs.html) | [pathogen-wgs.md](designs/microbiology/pathogen-wgs.md) |
 
 ## Non-Conforming Events (NCE)
 
@@ -224,6 +225,9 @@ Master index of all designs. Each feature has a co-located `.jsx` mockup and `.m
 | Catalyst Lab Data Assistant | [Figma](https://www.figma.com/make/poDXKSr2IBgKbbjB1Fh9Sj/OpenELIS-Global-Template--Copy-?node-id=0-1) | — |
 | Navigation Redesign | [preview](designs/system/navigation-redesign-preview.html) · [navigation-redesign-mockup.jsx](designs/system/navigation-redesign-mockup.jsx) | [navigation-redesign.md](designs/system/navigation-redesign.md) · [inventory data](designs/system/navigation-redesign-data/) |
 | Electronic Signature | [electronic-signature.jsx](designs/system/electronic-signature.jsx) | [electronic-signature.md](designs/system/electronic-signature.md) |
+| Billing (S-13) | [billing.html](designs/system/billing.html) | [billing.md](designs/system/billing.md) |
+| EHR Lab Interface | [ehr-lab-interface.html](designs/system/ehr-lab-interface.html) | [ehr-lab-interface.md](designs/system/ehr-lab-interface.md) |
+| Public Health Reporting (State ELR) | [state-elr.html](designs/system/state-elr.html) | [state-elr.md](designs/system/state-elr.md) |
 
 ## Patient
 

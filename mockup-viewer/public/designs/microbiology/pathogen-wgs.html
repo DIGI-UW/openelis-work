@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pathogen WGS: OpenELIS Preview</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  body { background: #f4f4f4; margin: 0; font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif; color: #161616; }
+  .preview-banner { background: #0f62fe; color: #fff; padding: 6px 1rem; font-size: 12px; font-family: 'IBM Plex Mono', monospace; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+  .preview-banner label { display: inline-flex; gap: 4px; align-items: center; cursor: pointer; }
+  .topbar { background: #161616; color: #f4f4f4; height: 48px; display: flex; align-items: center; padding: 0 1rem; font-size: 14px; gap: .5rem; }
+  .topbar b { font-weight: 600; }
+  .shell { display: flex; min-height: calc(100vh - 80px); }
+  .sidenav { width: 256px; background: #fff; border-right: 1px solid #e0e0e0; padding: 1rem 0; flex-shrink: 0; }
+  .sidenav .grp { font-size: 12px; color: #525252; padding: .75rem 1rem .25rem; text-transform: none; letter-spacing: .32px; }
+  .sidenav button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: .5rem 1rem .5rem 1.5rem; font-size: 14px; cursor: pointer; color: #161616; border-left: 3px solid transparent; }
+  .sidenav button.on { background: #e8e8e8; border-left-color: #0f62fe; font-weight: 600; }
+  .sidenav button:hover { background: #e8e8e8; }
+  .content { flex: 1; padding: 1.5rem 2rem 4rem; max-width: 1360px; min-width: 0; }
+  .route { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #525252; margin-bottom: .25rem; }
+  .crumbs { font-size: 14px; color: #0f62fe; margin-bottom: .5rem; }
+  .crumbs span.cur { color: #161616; }
+  h1.pt { font-size: 28px; font-weight: 400; margin: 0 0 .25rem; }
+  .sub { color: #525252; font-size: 14px; margin: 0 0 1rem; }
+  h2.sec { font-size: 20px; font-weight: 400; margin: 1.5rem 0 .5rem; }
+  h3.sec3 { font-size: 16px; font-weight: 600; margin: 1rem 0 .5rem; }
+  .tile { background: #fff; padding: 1rem; margin-bottom: 1rem; }
+  .row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end; }
+  .field { display: flex; flex-direction: column; gap: 4px; min-width: 180px; }
+  .field > span { font-size: 12px; color: #525252; }
+  .field input, .field select, .field textarea { height: 40px; border: 0; border-bottom: 1px solid #8d8d8d; background: #f4f4f4; padding: 0 .75rem; font-size: 14px; font-family: inherit; }
+  .field textarea { height: 64px; padding: .5rem .75rem; }
+  .field .helper { font-size: 12px; color: #6f6f6f; }
+  .ro { height: 40px; display: flex; align-items: center; font-size: 14px; }
+  table.t { width: 100%; border-collapse: collapse; background: #fff; font-size: 14px; }
+  table.t th { background: #e0e0e0; text-align: left; font-weight: 600; padding: .75rem .5rem; font-size: 14px; }
+  table.t td { padding: .6rem .5rem; border-bottom: 1px solid #e0e0e0; vertical-align: top; }
+  table.t tr.exp > td { background: #f4f4f4; padding: 0; }
+  table.t tr.click { cursor: pointer; }
+  table.t tr.click:hover td { background: #e8e8e8; }
+  table.t tr.inactive td { color: #6f6f6f; }
+  .toolbar { display: flex; gap: .5rem; align-items: center; background: #fff; padding: .5rem; border-bottom: 1px solid #e0e0e0; flex-wrap: wrap; }
+  .toolbar input[type=search] { height: 40px; border: 0; background: #f4f4f4; padding: 0 .75rem; min-width: 260px; font-size: 14px; }
+  .btnrow { display: flex; gap: .5rem; margin-top: 1rem; flex-wrap: wrap; }
+  .cds--btn { min-height: 40px; padding-top: 10px; padding-bottom: 10px; }
+  .cds--tag { margin: 0 4px 2px 0; white-space: nowrap; }
+  .fence { border: 2px dashed #8d8d8d; padding: .75rem; position: relative; margin-bottom: 1rem; background: #fff; }
+  .fence .fl { position: absolute; top: -11px; left: 8px; background: #8d8d8d; color: #fff; font-size: 11px; padding: 1px 6px; font-family: 'IBM Plex Mono', monospace; }
+  .newmark { border-left: 4px solid #0f62fe; }
+  .anno { background: #edf5ff; border-left: 3px solid #0f62fe; font-size: 12px; color: #002d9c; padding: .4rem .6rem; margin: .5rem 0; }
+  .hide-anno .anno, .hide-anno .fence .fl { display: none; }
+  .hide-anno .fence { border-color: transparent; padding: 0; }
+  .kv { display: grid; grid-template-columns: max-content 1fr; gap: .25rem 1rem; font-size: 14px; }
+  .kv dt { color: #525252; }
+  .kv dd { margin: 0; }
+  .qcstrip { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .qcm { background: #fff; border: 1px solid #e0e0e0; padding: .5rem .75rem; min-width: 150px; font-size: 13px; }
+  .qcm .v { font-size: 18px; margin: 2px 0; }
+  .qcm .r { color: #6f6f6f; font-size: 12px; }
+  .detail { padding: 1rem; border-top: 1px solid #c6c6c6; }
+  .detail h4 { font-size: 14px; font-weight: 600; margin: 1rem 0 .5rem; }
+  .mono { font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
+  .muted { color: #6f6f6f; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+  .notif { display: flex; gap: .75rem; padding: .75rem 1rem; margin-bottom: .5rem; font-size: 14px; border-left: 3px solid; }
+  .notif.err { background: #fff1f1; border-color: #da1e28; }
+  .notif.warn { background: #fcf4d6; border-color: #f1c21b; }
+  .notif.info { background: #edf5ff; border-color: #0f62fe; }
+  .notif.ok { background: #defbe6; border-color: #24a148; }
+  .notif b { font-weight: 600; }
+  .combo { position: relative; }
+  .combo ul { position: absolute; z-index: 5; top: 100%; left: 0; right: 0; background: #fff; list-style: none; margin: 0; padding: 0; box-shadow: 0 2px 6px rgba(0,0,0,.3); max-height: 220px; overflow: auto; }
+  .combo li { padding: .5rem .75rem; font-size: 14px; cursor: pointer; }
+  .combo li:hover { background: #e8e8e8; }
+  .chiprow { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .report { background: #fff; max-width: 820px; padding: 2rem 2.5rem; font-family: 'IBM Plex Serif', Georgia, serif; box-shadow: 0 1px 4px rgba(0,0,0,.15); }
+  .report table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .report td, .report th { padding: 4px 6px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+  .report h5 { font-size: 13px; margin: 1rem 0 .25rem; text-transform: uppercase; letter-spacing: .5px; font-family: 'IBM Plex Sans', sans-serif; }
+  .toggle { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; }
+  .toggle i { width: 32px; height: 16px; border-radius: 8px; background: #8d8d8d; position: relative; display: inline-block; }
+  .toggle i::after { content: ''; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #fff; transition: left .1s; }
+  .toggle.on i { background: #24a148; }
+  .toggle.on i::after { left: 18px; }
+  input.bc { height: 32px; width: 90px; border: 0; border-bottom: 1px solid #8d8d8d; background: #f4f4f4; padding: 0 .5rem; font-family: 'IBM Plex Mono', monospace; }
+  input.bc.bad { border-bottom: 2px solid #da1e28; }
+  @media (max-width: 900px) { .shell { flex-direction: column; } .sidenav { width: auto; } .grid3 { grid-template-columns: 1fr; } .content { padding: 1rem; } }
+</style>
+</head>
+<body class="cds--white">
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useMemo } = React;
+const t = (key, fallback) => fallback || key;
+
+/* ---------- Mock reference data (realistic, CPHL Papua New Guinea flavoured) ---------- */
+const WHO = 'WHO M. tuberculosis mutation catalogue';
+const AFP = 'NCBI AMRFinderPlus reference gene catalogue';
+const NXC = 'Nextclade SARS-CoV-2 dataset';
+
+const TARGETS0 = [
+  { id: 1, org: 'Mycobacterium tuberculosis complex', name: 'rpoB', display: '', type: 'Gene', cat: 'Drug resistance', informs: ['Rifampicin'], aliases: ['Rv0667'], src: WHO, ver: '2023 (2nd ed.)', ref: 'NC_000962.3: 759807-763325', used: ['MTB WGS (isolate)', 'MTB WGS (sputum, direct)'], active: true },
+  { id: 2, org: 'Mycobacterium tuberculosis complex', name: 'katG', display: '', type: 'Gene', cat: 'Drug resistance', informs: ['Isoniazid'], aliases: ['Rv1908c'], src: WHO, ver: '2023 (2nd ed.)', ref: 'NC_000962.3: 2153889-2156111', used: ['MTB WGS (isolate)', 'MTB WGS (sputum, direct)'], active: true },
+  { id: 3, org: 'Mycobacterium tuberculosis complex', name: 'fabG1-inhA promoter', display: 'inhA promoter', type: 'Promoter or regulatory region', cat: 'Drug resistance', informs: ['Isoniazid', 'Ethionamide'], aliases: ['inhA_promoter'], src: WHO, ver: '2023 (2nd ed.)', ref: 'NC_000962.3: 1673300-1673440', used: ['MTB WGS (isolate)', 'MTB WGS (sputum, direct)'], active: true },
+  { id: 4, org: 'Mycobacterium tuberculosis complex', name: 'embB', display: '', type: 'Gene', cat: 'Drug resistance', informs: ['Ethambutol'], aliases: ['Rv3795'], src: WHO, ver: '2023 (2nd ed.)', ref: 'NC_000962.3: 4246514-4249810', used: ['MTB WGS (isolate)', 'MTB WGS (sputum, direct)'], active: true },
+  { id: 5, org: 'Mycobacterium tuberculosis complex', name: 'pncA', display: '', type: 'Gene', cat: 'Drug resistance', informs: ['Pyrazinamide'], aliases: ['Rv2043c'], src: WHO, ver: '2023 (2nd ed.)', ref: 'NC_000962.3: 2288681-2289241', used: ['MTB WGS (isolate)', 'MTB WGS (sputum, direct)'], active: true },
+  { id: 6, org: 'Mycobacterium tuberculosis complex', name: 'gyrA', display: '', type: 'Gene', cat: 'Drug resistance', informs: ['Fluoroquinolones (class)'], aliases: ['Rv0006'], src: WHO, ver: '2023 (2nd ed.)', ref: 'NC_000962.3: 7302-9818', used: ['MTB WGS (isolate)', 'MTB WGS (sputum, direct)'], active: true },
+  { id: 7, org: 'Mycobacterium tuberculosis complex', name: 'rrs', display: '', type: 'rRNA gene', cat: 'Drug resistance', informs: ['Amikacin', 'Kanamycin', 'Capreomycin'], aliases: ['MTB000019'], src: WHO, ver: '2023 (2nd ed.)', ref: 'NC_000962.3: 1471846-1473382', used: ['MTB WGS (isolate)'], active: true },
+  { id: 8, org: 'Mycobacterium tuberculosis complex', name: 'Rv0678', display: 'mmpR5', type: 'Gene', cat: 'Drug resistance', informs: ['Bedaquiline', 'Clofazimine'], aliases: ['mmpR5'], src: WHO, ver: '2023 (2nd ed.)', ref: 'NC_000962.3: 778990-779487', used: ['MTB WGS (isolate)'], active: true },
+  { id: 9, org: 'Mycobacterium tuberculosis complex', name: 'rplC', display: '', type: 'Gene', cat: 'Drug resistance', informs: ['Linezolid'], aliases: ['Rv0701'], src: WHO, ver: '2023 (2nd ed.)', ref: 'NC_000962.3: 800809-801462', used: ['MTB WGS (isolate)'], active: true },
+  { id: 10, org: 'Mycobacterium tuberculosis complex', name: 'rpsL', display: '', type: 'Gene', cat: 'Drug resistance', informs: ['Streptomycin'], aliases: ['Rv0682'], src: WHO, ver: '2021 (1st ed.)', ref: 'NC_000962.3: 781560-781934', used: [], active: false },
+  { id: 11, org: 'Enterobacterales (group)', name: 'blaKPC', display: '', type: 'Gene', cat: 'Drug resistance', informs: ['Carbapenems (class)'], aliases: [], family: 'blaKPC-', src: AFP, ver: '2024-12-18.1', ref: '', used: ['Bacterial WGS (isolate)'], active: true },
+  { id: 12, org: 'Enterobacterales (group)', name: 'blaNDM', display: '', type: 'Gene', cat: 'Drug resistance', informs: ['Carbapenems (class)'], aliases: [], family: 'blaNDM-', src: AFP, ver: '2024-12-18.1', ref: '', used: ['Bacterial WGS (isolate)'], active: true },
+  { id: 13, org: 'Enterobacterales (group)', name: 'blaOXA-48', display: '', type: 'Gene', cat: 'Drug resistance', informs: ['Carbapenems (class)'], aliases: ['OXA-48-like'], family: 'blaOXA-48', src: AFP, ver: '2024-12-18.1', ref: '', used: ['Bacterial WGS (isolate)'], active: true },
+  { id: 14, org: 'Enterobacterales (group)', name: 'blaCTX-M', display: '', type: 'Gene', cat: 'Drug resistance', informs: ['Cephalosporins, 3rd generation (class)'], aliases: [], family: 'blaCTX-M-', src: AFP, ver: '2024-12-18.1', ref: '', used: [], active: true },
+  { id: 15, org: 'Enterobacterales (group)', name: 'mcr-1', display: '', type: 'Gene', cat: 'Drug resistance', informs: ['Colistin'], aliases: [], family: 'mcr-1', src: AFP, ver: '2024-12-18.1', ref: '', used: ['Bacterial WGS (isolate)'], active: true },
+  { id: 16, org: 'Salmonella enterica serovar Typhi', name: 'gyrA', display: '', type: 'Gene', cat: 'Drug resistance', informs: ['Fluoroquinolones (class)'], aliases: [], src: AFP, ver: '2024-12-18.1', ref: '', used: [], active: true },
+  { id: 17, org: 'SARS-CoV-2', name: 'S', display: 'Spike (S)', type: 'Gene', cat: 'Lineage marker', informs: [], aliases: ['spike'], src: NXC, ver: '2026-09-15', ref: 'MN908947.3: 21563-25384', used: ['SARS-CoV-2 WGS (swab)'], active: true },
+  { id: 18, org: 'SARS-CoV-2', name: 'ORF1ab', display: '', type: 'Gene', cat: 'Lineage marker', informs: [], aliases: [], src: NXC, ver: '2026-09-15', ref: 'MN908947.3: 266-21555', used: ['SARS-CoV-2 WGS (swab)'], active: true },
+  { id: 19, org: 'Klebsiella pneumoniae', name: 'ybt', display: 'Yersiniabactin locus', type: 'Genome position or region', cat: 'Virulence', informs: [], aliases: ['ybtS'], src: 'Added by this lab', ver: '', ref: '', used: [], active: true },
+];
+
+const ORGANISMS = ['Mycobacterium tuberculosis complex', 'Enterobacterales (group)', 'Klebsiella pneumoniae', 'Salmonella enterica serovar Typhi', 'Vibrio cholerae O1', 'SARS-CoV-2', 'Monkeypox virus (mpox)', 'Neisseria gonorrhoeae', 'Staphylococcus aureus'];
+const ANTIBIOTICS = ['Rifampicin', 'Isoniazid', 'Ethambutol', 'Pyrazinamide', 'Ethionamide', 'Fluoroquinolones (class)', 'Amikacin', 'Kanamycin', 'Capreomycin', 'Bedaquiline', 'Clofazimine', 'Linezolid', 'Delamanid', 'Streptomycin', 'Carbapenems (class)', 'Cephalosporins, 3rd generation (class)', 'Colistin', 'Aminoglycosides (class)', 'Ciprofloxacin', 'Azithromycin'];
+const TYPES = ['Gene', 'Promoter or regulatory region', 'rRNA gene', 'Genome position or region'];
+const CATS = ['Drug resistance', 'Virulence', 'Toxin', 'Typing', 'Species marker', 'Lineage marker'];
+
+/* ---------- Small UI helpers (preview approximations of @carbon/react) ---------- */
+const Tag = ({ kind = 'gray', children }) => <span className={`cds--tag cds--tag--${kind}`}>{children}</span>;
+const Btn = ({ kind = 'primary', size, children, ...p }) => <button className={`cds--btn cds--btn--${kind}${size === 'sm' ? ' cds--btn--sm' : ''}`} {...p}>{children}</button>;
+const Toggle = ({ on, onChange, label }) => <span className={`toggle${on ? ' on' : ''}`} role="switch" aria-checked={on} tabIndex={0} onClick={() => onChange(!on)} onKeyDown={e => (e.key === ' ' || e.key === 'Enter') && onChange(!on)}><i />{label}</span>;
+const Field = ({ label, helper, children }) => <label className="field"><span>{label}</span>{children}{helper && <span className="helper">{helper}</span>}</label>;
+const Notif = ({ kind = 'info', title, children }) => <div className={`notif ${kind}`} role={kind === 'err' ? 'alert' : 'status'}><div><b>{title}</b> {children}</div></div>;
+const Fence = ({ label, children }) => <div className="fence"><span className="fl">{label}</span>{children}</div>;
+const Anno = ({ children }) => <div className="anno">{children}</div>;
+const Crumbs = ({ items }) => <div className="crumbs">{items.map((c, i) => <span key={i} className={i === items.length - 1 ? 'cur' : ''}>{c}{i < items.length - 1 ? ' / ' : ''}</span>)}</div>;
+
+function Combo({ label, options, value, onChange, placeholder, helper, extra }) {
+  const [q, setQ] = useState(value || '');
+  const [open, setOpen] = useState(false);
+  const list = options.filter(o => o.toLowerCase().includes(q.toLowerCase())).slice(0, 8);
+  return (
+    <label className="field combo" style={{ minWidth: 260 }}>
+      <span>{label}</span>
+      <input value={q} placeholder={placeholder} onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)}
+        onChange={e => { setQ(e.target.value); setOpen(true); if (!e.target.value) onChange(''); }} aria-label={label} />
+      {open && <ul role="listbox">{list.map(o => <li key={o} role="option" onMouseDown={() => { setQ(o); onChange(o); setOpen(false); }}>{o}</li>)}{extra && <li className="muted" onMouseDown={e => e.preventDefault()}>{extra}</li>}</ul>}
+      {helper && <span className="helper">{helper}</span>}
+    </label>
+  );
+}
+
+const callKind = c => ({ 'Mutation detected': 'red', 'Gene detected': 'red', 'Wild type': 'green', 'Not detected': 'green', 'Insufficient coverage': 'gray', 'Below threshold': 'warm-gray', 'No finding': 'cool-gray' }[c] || 'gray');
+const resKind = v => /^Resistant|detected$/i.test(v) && !/not detected/i.test(v) ? 'red' : /Susceptible|not detected/i.test(v) ? 'green' : /Insufficient|No interpretation/i.test(v) ? 'gray' : 'blue';
+const verdictKind = v => ({ Pass: 'green', Warn: 'warm-gray', Fail: 'red', 'Not reported': 'cool-gray' }[v]);
+
+/* ---------- Mock genomic results ---------- */
+const RES_MTB = {
+  id: 'r1', lab: 'CPHL26-005120', patient: 'Kila, Joseph (M, 34)', test: 'MTB WGS (sputum, direct)', unit: 'TB', sample: 'Sputum', run: 'RUN-2026-0412', barcode: 'NB07',
+  components: [
+    ['Species', 'Mycobacterium tuberculosis complex', 'blue'], ['Lineage', 'Lineage 2.2.1 (Beijing)', 'blue'],
+    ['Rifampicin', 'Resistant', 'red'], ['Isoniazid', 'Resistant', 'red'], ['Ethambutol', 'Resistance not detected', 'green'],
+    ['Pyrazinamide', 'Insufficient coverage', 'gray'], ['Fluoroquinolones', 'Resistance not detected', 'green'],
+    ['Bedaquiline', 'Resistance not detected', 'green'], ['Linezolid', 'Resistance not detected', 'green'],
+    ['Resistance classification', 'MDR-TB', 'red']],
+  holds: [], warns: [
+    ['Pipeline classification', 'Pipeline says MDR-TB; OpenELIS derives MDR-TB. They agree.', 'ok'],
+    ['Insufficient coverage', 'Pyrazinamide: pncA 8x (rule: at least 30x). Pyrazinamide reads Insufficient coverage, not Susceptible.', 'warn']],
+  qc: [['Reads', '245,678', 'at least 50,000', 'Pass'], ['Reads mapped', '95.5%', 'at least 90%', 'Pass'], ['Median depth', '87x', 'at least 30x', 'Pass'],
+    ['Genome covered at 30x', '96.2%', 'at least 90%', 'Pass'], ['Lowest target depth', 'pncA 8x', 'at least 30x per target', 'Warn'], ['Species', 'M. tuberculosis complex', 'expected M. tuberculosis complex', 'Pass']],
+  reported: [
+    { target: 'rpoB', informs: 'Rifampicin', call: 'Mutation detected', nt: 'c.1349C>T', aa: 'p.Ser450Leu', freq: 1.0, depth: 145, grade: '1) Assoc w R', report: true },
+    { target: 'katG', informs: 'Isoniazid', call: 'Mutation detected', nt: 'c.944G>C', aa: 'p.Ser315Thr', freq: 0.99, depth: 132, grade: '1) Assoc w R', report: true },
+    { target: 'inhA promoter', informs: 'Isoniazid, Ethionamide', call: 'Wild type', nt: '', aa: '', freq: null, depth: 118, grade: '', report: true },
+    { target: 'embB', informs: 'Ethambutol', call: 'Wild type', nt: '', aa: '', freq: null, depth: 101, grade: '', report: true },
+    { target: 'pncA', informs: 'Pyrazinamide', call: 'Insufficient coverage', nt: '', aa: '', freq: null, depth: 8, grade: '', report: true },
+    { target: 'gyrA', informs: 'Fluoroquinolones', call: 'Wild type', nt: '', aa: '', freq: null, depth: 96, grade: '', report: true },
+    { target: 'Rv0678 (mmpR5)', informs: 'Bedaquiline, Clofazimine', call: 'Wild type', nt: '', aa: '', freq: null, depth: 77, grade: '', report: true },
+    { target: 'rplC', informs: 'Linezolid', call: 'Wild type', nt: '', aa: '', freq: null, depth: 83, grade: '', report: true }],
+  other: [
+    { target: 'Rv1979c', informs: 'Clofazimine (pipeline)', call: 'Mutation detected', nt: 'c.-129A>G', aa: '', freq: 1.0, depth: 64, grade: '3) Uncertain significance', notInLib: true, report: false }],
+  sub: [
+    { target: 'rpoB', informs: 'Rifampicin', call: 'Below threshold', nt: 'c.1333C>G', aa: 'p.His445Asp', freq: 0.23, depth: 95, grade: '1) Assoc w R', report: false }],
+  prov: { pipeline: 'TB-Profiler 6.3.0', catalogue: 'WHO-UCN-TB-2023.5 (WHO catalogue, 2nd ed.)', analysed: '14 Oct 2026 09:45', runbc: 'RUN-2026-0412, barcode NB07', instr: 'MinION Mk1C MN42781, flowcell FLO-MIN114 lot 2026-0912-A', basecaller: 'Dorado 0.8.1, sup model', raw: 'ena:ERR13579246', status: 'Accepted 14 Oct 10:02 by R. Opa' },
+};
+
+const RES_COV = {
+  id: 'r2', lab: 'CPHL26-005033', patient: 'Wari, Grace (F, 52)', test: 'SARS-CoV-2 WGS (swab)', unit: 'Molecular Biology', sample: 'Nasopharyngeal swab', run: 'RUN-2026-0408', barcode: 'NB02',
+  components: [['Species', 'SARS-CoV-2', 'blue'], ['Clade (Nextstrain)', '24F', 'blue'], ['Pango lineage', 'XEC.4', 'blue'], ['Overall interpretation', 'Recombinant lineage XEC.4; no mutations of concern beyond the lineage definition.', 'blue']],
+  holds: [], warns: [],
+  qc: [['Reads', '1,204,550', 'at least 100,000', 'Pass'], ['Genome covered at 20x', '98.9%', 'at least 90%', 'Pass'], ['Median depth', '1,840x', 'at least 100x', 'Pass'], ['Lowest target depth', 'Not reported', 'at least 20x per target', 'Not reported']],
+  reported: [
+    { target: 'Spike (S)', informs: 'Lineage marker', call: 'Mutation detected', nt: 'c.1774G>A', aa: 'p.Thr22Asn', freq: 1.0, depth: null, grade: 'Lineage-defining (XEC)', report: true },
+    { target: 'Spike (S)', informs: 'Lineage marker', call: 'Mutation detected', nt: 'c.177C>T', aa: 'p.Phe59Ser', freq: 1.0, depth: null, grade: 'Lineage-defining (XEC)', report: true },
+    { target: 'ORF1ab', informs: 'Lineage marker', call: 'No finding', nt: '', aa: '', freq: null, depth: null, grade: '', report: false }],
+  other: [], sub: [],
+  prov: { pipeline: 'Nextclade 3.9.1', catalogue: 'sars-cov-2 dataset 2026-09-15', analysed: '09 Oct 2026 16:20', runbc: 'RUN-2026-0408, barcode NB02', instr: 'MinION Mk1C MN42781, flowcell FLO-MIN114 lot 2026-0912-A', basecaller: 'Dorado 0.8.1, hac model', raw: 'file://seqshare/2026/RUN-0408/NB02', status: 'Accepted 09 Oct 16:41 by L. Morea' },
+};
+
+const RES_MPX = {
+  id: 'r3', lab: 'CPHL26-005061', patient: 'Pomat, Daniel (M, 27)', test: 'Mpox WGS (lesion swab)', unit: 'Molecular Biology', sample: 'Lesion swab', run: 'RUN-2026-0408', barcode: 'NB05',
+  components: [['Species', 'Monkeypox virus (mpox)', 'blue'], ['Clade', 'Clade Ib', 'blue'], ['Lineage', 'No interpretation', 'gray']],
+  holds: [['Genome covered at 20x', '71.4% (rule: at least 90%)']], warns: [],
+  qc: [['Reads', '412,008', 'at least 100,000', 'Pass'], ['Genome covered at 20x', '71.4%', 'at least 90%', 'Fail'], ['Median depth', '44x', 'at least 20x', 'Pass']],
+  reported: [{ target: 'OPG032 (C3L)', informs: 'Clade marker', call: 'Gene detected', nt: '', aa: '', freq: 1.0, depth: 52, grade: 'Clade I marker', report: true }],
+  other: [], sub: [],
+  prov: { pipeline: 'Nextclade 3.9.1', catalogue: 'mpox all-clades dataset 2026-08-02', analysed: '09 Oct 2026 16:22', runbc: 'RUN-2026-0408, barcode NB05', instr: 'MinION Mk1C MN42781, flowcell FLO-MIN114 lot 2026-0912-A', basecaller: 'Dorado 0.8.1, hac model', raw: 'file://seqshare/2026/RUN-0408/NB05', status: 'Accepted 09 Oct 16:41 by L. Morea' },
+};
+
+const RES_KP = {
+  id: 'r4', lab: 'CPHL26-004831-2.1', patient: 'Kaia, Ruth (F, 61)', test: 'Bacterial WGS (isolate)', unit: 'Microbiology', sample: 'Isolate (ISO-1)', run: 'RUN-2026-0412', barcode: 'NB09',
+  components: [['Species', 'Klebsiella pneumoniae', 'blue'], ['Sequence type (MLST)', 'ST307', 'blue'], ['Carbapenems', 'Resistance not detected', 'green'], ['Cephalosporins, 3rd generation', 'Resistant', 'red'], ['Colistin', 'Resistance not detected', 'green']],
+  holds: [], warns: [],
+  qc: [['Reads', '389,114', 'at least 50,000', 'Pass'], ['Median depth', '64x', 'at least 30x', 'Pass'], ['Genome covered at 30x', '97.8%', 'at least 90%', 'Pass'], ['Species', 'Klebsiella pneumoniae', 'expected Enterobacterales', 'Pass']],
+  reported: [
+    { target: 'blaKPC', informs: 'Carbapenems', call: 'Not detected', nt: '', aa: '', freq: null, depth: null, grade: '', report: true },
+    { target: 'blaNDM', informs: 'Carbapenems', call: 'Not detected', nt: '', aa: '', freq: null, depth: null, grade: '', report: true },
+    { target: 'blaOXA-48', informs: 'Carbapenems', call: 'Not detected', nt: '', aa: '', freq: null, depth: null, grade: '', report: true },
+    { target: 'mcr-1', informs: 'Colistin', call: 'Not detected', nt: '', aa: '', freq: null, depth: null, grade: '', report: true }],
+  other: [
+    { target: 'blaCTX-M-15', informs: 'Cephalosporins, 3rd generation', call: 'Gene detected', nt: '', aa: '100% identity, 100% coverage', freq: null, depth: 61, grade: 'AMRFinderPlus: ALLELEX', report: false },
+    { target: "aac(6')-Ib-cr5", informs: 'Aminoglycosides, Fluoroquinolones', call: 'Gene detected', nt: '', aa: '100% identity', freq: null, depth: 58, grade: 'AMRFinderPlus: EXACTX', report: false },
+    { target: 'qnrB1', informs: 'Fluoroquinolones', call: 'Gene detected', nt: '', aa: '99.8% identity', freq: null, depth: 66, grade: 'AMRFinderPlus: BLASTX', report: false },
+    { target: 'oqxA', informs: 'Phenicols, Quinolones', call: 'Gene detected', nt: '', aa: '98.9% identity', freq: null, depth: 70, grade: 'AMRFinderPlus: BLASTX', notInLib: true, report: false }],
+  sub: [],
+  prov: { pipeline: 'AMRFinderPlus 4.0.3 (with MLST 2.23.0)', catalogue: 'AMRFinderPlus database 2024-12-18.1', analysed: '15 Oct 2026 08:10', runbc: 'RUN-2026-0412, barcode NB09', instr: 'MinION Mk1C MN42781, flowcell FLO-MIN114 lot 2026-0912-A', basecaller: 'Dorado 0.8.1, sup model', raw: 'ena:ERR13579251', status: 'Accepted 15 Oct 08:31 by P. Hiri' },
+};
+
+/* ---------- The shared Genomic result detail (FR-G1) ---------- */
+function FindingsTable({ rows, setRows, editable }) {
+  const fmtF = f => f == null ? '' : (Math.round(f * 1000) / 10) + '%';
+  return (
+    <div style={{ overflowX: 'auto' }}>
+      <table className="t">
+        <thead><tr>
+          <th>{t('genomics.col.target', 'Target')}</th><th>{t('microbiology.admin.genomicTargets.col.informs', 'Informs')}</th>
+          <th>{t('genomics.col.call', 'Call')}</th><th>{t('genomics.col.change', 'Change')}</th>
+          <th>{t('genomics.col.frequency', 'Frequency')}</th><th>{t('genomics.col.depth', 'Depth')}</th>
+          <th>{t('genomics.col.grade', 'Grade')}</th><th>{t('genomics.col.report', 'Report')}</th>
+        </tr></thead>
+        <tbody>{rows.map((r, i) => (
+          <tr key={i}>
+            <td className="mono">{r.target}{r.notInLib && <><br /><Tag kind="cool-gray">{t('genomics.tag.notInLibrary', 'Not in library')}</Tag></>}</td>
+            <td>{r.informs}</td>
+            <td><Tag kind={callKind(r.call)}>{r.call}</Tag>{r.call === 'Below threshold' && <Tag kind="purple">{t('genomics.tag.heteroresistance', 'Possible heteroresistance')}</Tag>}</td>
+            <td className="mono">{[r.nt, r.aa].filter(Boolean).join('; ') || <span className="muted">none</span>}</td>
+            <td>{fmtF(r.freq)}</td>
+            <td>{r.depth == null ? '' : r.depth + 'x'}</td>
+            <td>{r.grade}</td>
+            <td><input type="checkbox" aria-label={`Report ${r.target}`} checked={r.report} disabled={!editable || r.call === 'No finding'}
+              onChange={e => setRows(rows.map((x, j) => j === i ? { ...x, report: e.target.checked } : x))} /></td>
+          </tr>))}</tbody>
+      </table>
+    </div>
+  );
+}
+
+function GenomicDetail({ res, editable = true }) {
+  const [reported, setReported] = useState(res.reported);
+  const [other, setOther] = useState(res.other);
+  const [sub, setSub] = useState(res.sub);
+  const [showOther, setShowOther] = useState(false);
+  const [showSub, setShowSub] = useState(res.sub.length > 0);
+  const firstNames = l => l.slice(0, 3).map(x => x.target + (x.aa ? ' ' + x.aa : '')).join(', ') + (l.length > 3 ? ', …' : '');
+  return (
+    <div className="detail newmark">
+      <Anno>New: Genomic result detail (FR-G1). The same panel opens on Results Entry, Validation and in the microbiology case. It is an inline row after the result components (D-011), not an accordion or modal.</Anno>
+      {res.holds.map(([m, v], i) => <Notif key={i} kind="err" title={t('run.state.held', 'Held')}>{t('genomics.hold.rule', `${m} ${v}`)}. Clear by retest, or Accept despite failure with a reason (Runs FR-C5).</Notif>)}
+      {res.warns.map(([title, msg, k], i) => <Notif key={i} kind={k} title={title}>{msg}</Notif>)}
+
+      <h4>{t('genomics.detail.qc', 'Sequencing quality')}</h4>
+      <div className="qcstrip">{res.qc.map(([m, v, r, verdict]) => (
+        <div className="qcm" key={m}><div>{m}</div><div className="v">{v}</div><div className="r">Rule: {r}</div><Tag kind={verdictKind(verdict)}>{verdict}</Tag></div>))}</div>
+
+      <h4>{t('genomics.detail.reported', 'Reported targets')} ({reported.length})</h4>
+      <FindingsTable rows={reported} setRows={setReported} editable={editable} />
+
+      <div className="btnrow">
+        {other.length > 0 && <Btn kind="ghost" size="sm" onClick={() => setShowOther(!showOther)} aria-expanded={showOther}>
+          {showOther ? 'Hide ' : ''}{t('genomics.detail.other', `Other findings (${other.length})`)}{!showOther && ': ' + firstNames(other)}</Btn>}
+        {sub.length > 0 && <Btn kind="ghost" size="sm" onClick={() => setShowSub(!showSub)} aria-expanded={showSub}>
+          {showSub ? 'Hide ' : ''}{t('genomics.detail.subThreshold', `Below threshold (${sub.length})`)}{!showSub && ': ' + firstNames(sub)}</Btn>}
+        {other.length === 0 && sub.length === 0 && <span className="muted" style={{ fontSize: 14 }}>No other findings and nothing below threshold.</span>}
+      </div>
+      {showOther && <><h4>Other findings <span className="muted" style={{ fontWeight: 400 }}>not linked to this test; unticked unless you choose to report them</span></h4><FindingsTable rows={other} setRows={setOther} editable={editable} /></>}
+      {showSub && <><h4>Below threshold <span className="muted" style={{ fontWeight: 400 }}>never change a drug call; always shown to the validator</span></h4><FindingsTable rows={sub} setRows={setSub} editable={editable} /></>}
+
+      <h4>{t('genomics.detail.provenance', 'Provenance')}</h4>
+      <div className="tile" style={{ marginBottom: 0 }}>
+        <dl className="kv">
+          <dt>{t('genomics.provenance.pipeline', 'Pipeline')}</dt><dd>{res.prov.pipeline}</dd>
+          <dt>{t('genomics.provenance.catalogue', 'Catalogue')}</dt><dd>{res.prov.catalogue}</dd>
+          <dt>{t('genomics.provenance.analysed', 'Analysed')}</dt><dd>{res.prov.analysed}</dd>
+          <dt>{t('genomics.provenance.run', 'Run and barcode')}</dt><dd><a href="#run">{res.prov.runbc}</a></dd>
+          <dt>Instrument</dt><dd>{res.prov.instr}</dd>
+          <dt>Basecaller</dt><dd>{res.prov.basecaller}</dd>
+          <dt>{t('genomics.provenance.rawData', 'Raw data')}</dt><dd className="mono">{res.prov.raw} <span className="muted">(reference only; reads are not stored in OpenELIS)</span></dd>
+          <dt>Import</dt><dd>{res.prov.status}</dd>
+        </dl>
+      </div>
+    </div>
+  );
+}
+
+function Components({ comps }) {
+  return (
+    <Fence label="Existing: multi-component result lines (OGC-949 M1, Multi-component Results V1). Reuse, do not re-implement.">
+      <table className="t"><thead><tr><th>Component</th><th>Result</th></tr></thead>
+        <tbody>{comps.map(([c, v, k]) => <tr key={c}><td>{c}</td><td>{k === 'blue' ? v : <Tag kind={k}>{v}</Tag>}</td></tr>)}</tbody></table>
+    </Fence>
+  );
+}
+
+/* ---------- View 1: Admin, Genomic targets (FR-A) ---------- */
+function TargetsView({ canEdit }) {
+  const [rows, setRows] = useState(TARGETS0);
+  const [org, setOrg] = useState('Mycobacterium tuberculosis complex');
+  const [cat, setCat] = useState('');
+  const [q, setQ] = useState('');
+  const [showInactive, setShowInactive] = useState(false);
+  const [open, setOpen] = useState(null);
+  const [adding, setAdding] = useState(false);
+  const [confirm, setConfirm] = useState(null);
+  const [draft, setDraft] = useState({ org: '', name: '', type: 'Gene', cat: 'Drug resistance', informs: [] });
+
+  const shown = rows.filter(r => (!org || r.org === org) && (!cat || r.cat === cat) && (showInactive || r.active)
+    && (!q || [r.name, r.display, ...r.aliases, ...r.informs].join(' ').toLowerCase().includes(q.toLowerCase())));
+  const managed = r => r.src !== 'Added by this lab';
+  const setActive = (id, active) => { setRows(rows.map(r => r.id === id ? { ...r, active } : r)); setConfirm(null); };
+
+  return (
+    <>
+      <div className="route">Route: /MasterListsPage/MicrobiologyReference/genomic-targets?organism=mtbc&amp;status=active</div>
+      <Crumbs items={['Home', 'Admin Management', 'Microbiology Reference', t('microbiology.admin.genomicTargets.title', 'Genomic targets')]} />
+      <h1 className="pt">{t('microbiology.admin.genomicTargets.title', 'Genomic targets')}</h1>
+      <p className="sub">{t('microbiology.admin.genomicTargets.subtitle', 'Genes and genome regions that sequencing tests examine, by organism')}</p>
+      <Anno>New section in the built Microbiology Reference admin (after Breakpoints). Record list page type (D-193). Loaded and updated through the shared Import Review (FR-A7, FR-A8); Import and Export open that component.</Anno>
+
+      <Notif kind="info" title="WHO M. tuberculosis mutation catalogue, version 2023 (2nd ed.)">is installed (42 targets). <a href="#import">Review an update</a> · NCBI AMRFinderPlus 2024-12-18.1 installed (Enterobacterales, Staphylococcus aureus, Salmonella) · Nextclade SARS-CoV-2 and mpox gene sets installed.</Notif>
+
+      <div className="toolbar">
+        <input type="search" placeholder={t('common.search', 'Search target, other name or antibiotic')} value={q} onChange={e => setQ(e.target.value)} aria-label="Search targets" />
+        <Combo label={t('microbiology.admin.genomicTargets.col.organism', 'Organism')} options={ORGANISMS} value={org} onChange={setOrg} placeholder="All organisms" />
+        <label className="field" style={{ minWidth: 180 }}><span>{t('microbiology.admin.genomicTargets.col.category', 'Category')}</span>
+          <select value={cat} onChange={e => setCat(e.target.value)}><option value="">All categories</option>{CATS.map(c => <option key={c}>{c}</option>)}</select></label>
+        <Toggle on={showInactive} onChange={setShowInactive} label={t('common.showDeactivated', 'Show deactivated')} />
+        <span style={{ flex: 1 }} />
+        <Btn kind="tertiary">Import</Btn><Btn kind="tertiary">Export</Btn>
+        {canEdit && <Btn kind="primary" onClick={() => { setAdding(true); setOpen(null); }}>{t('microbiology.admin.genomicTargets.add', 'Add target')} +</Btn>}
+      </div>
+
+      <table className="t">
+        <thead><tr><th>Target</th><th>Organism</th><th>Type</th><th>Category</th><th>Informs</th><th>Source</th><th>Used by</th><th>Status</th></tr></thead>
+        <tbody>
+          {adding && <tr className="exp"><td colSpan={8}><div className="detail newmark">
+            <h3 className="sec3">New target</h3>
+            <div className="row">
+              <Combo label="Organism" options={ORGANISMS} value={draft.org} onChange={v => setDraft({ ...draft, org: v })} placeholder="Search organisms"
+                extra={<a href="#organisms" target="_blank">{t('microbiology.admin.genomicTargets.addOrganism', 'Organism not listed? Add it in Organisms')}</a>} />
+              <Field label="Name (as the catalogue writes it)"><input value={draft.name} onChange={e => setDraft({ ...draft, name: e.target.value })} placeholder="for example blaVIM" /></Field>
+              <Field label="Type"><select value={draft.type} onChange={e => setDraft({ ...draft, type: e.target.value })}>{TYPES.map(x => <option key={x}>{x}</option>)}</select></Field>
+              <Field label="Category"><select value={draft.cat} onChange={e => setDraft({ ...draft, cat: e.target.value })}>{CATS.map(x => <option key={x}>{x}</option>)}</select></Field>
+            </div>
+            {draft.cat === 'Drug resistance' && <div className="row" style={{ marginTop: '1rem' }}>
+              <Combo label="Informs (antibiotic or class)" options={ANTIBIOTICS.filter(a => !draft.informs.includes(a))} value="" onChange={v => v && setDraft({ ...draft, informs: [...draft.informs, v] })} placeholder="Search the antibiotic list" />
+              <div className="chiprow">{draft.informs.map(a => <Tag key={a} kind="blue">{a} <button aria-label={`Remove ${a}`} style={{ border: 0, background: 'none', cursor: 'pointer' }} onClick={() => setDraft({ ...draft, informs: draft.informs.filter(x => x !== a) })}>×</button></Tag>)}</div>
+            </div>}
+            <div className="row" style={{ marginTop: '1rem' }}>
+              <Field label={t('microbiology.admin.genomicTargets.field.aliases', 'Other names')} helper="Names pipelines may use, separated by ;"><input placeholder="VIM" /></Field>
+              <Field label={t('microbiology.admin.genomicTargets.field.familyPrefix', 'Family prefix')} helper="Matches every allele, for example blaVIM- matches blaVIM-2"><input placeholder="blaVIM-" /></Field>
+              <Field label={t('microbiology.admin.genomicTargets.field.reference', 'Reference sequence and position')}><input placeholder="optional" /></Field>
+            </div>
+            <div className="btnrow"><Btn kind="primary" disabled={!draft.org || !draft.name} onClick={() => {
+              setRows([{ id: Date.now(), org: draft.org, name: draft.name, display: '', type: draft.type, cat: draft.cat, informs: draft.informs, aliases: [], src: 'Added by this lab', ver: '', ref: '', used: [], active: true }, ...rows]);
+              setOrg(draft.org); setAdding(false); setDraft({ org: '', name: '', type: 'Gene', cat: 'Drug resistance', informs: [] }); }}>{t('common.save', 'Save')}</Btn>
+              <Btn kind="ghost" onClick={() => setAdding(false)}>{t('common.cancel', 'Cancel')}</Btn></div>
+          </div></td></tr>}
+
+          {shown.length === 0 && <tr><td colSpan={8}><div style={{ padding: '1.5rem', textAlign: 'center' }}>
+            {t('microbiology.admin.genomicTargets.empty', `No targets for ${org || 'this filter'} yet.`)} Load them from a seed pack through <a href="#import">Import</a>, or add one by hand.</div></td></tr>}
+
+          {shown.map(r => (
+            <React.Fragment key={r.id}>
+              <tr className={`click${r.active ? '' : ' inactive'}`} onClick={() => setOpen(open === r.id ? null : r.id)} aria-expanded={open === r.id}>
+                <td className="mono">{r.name}{r.display && <div className="muted" style={{ fontFamily: 'inherit' }}>{r.display}</div>}</td>
+                <td>{r.org}</td><td>{r.type}</td><td>{r.cat}</td>
+                <td>{r.informs.length ? r.informs.map(a => <Tag key={a} kind="blue">{a}</Tag>) : <span className="muted">none</span>}</td>
+                <td>{r.src}{r.ver && <div className="muted">{r.ver}</div>}</td>
+                <td>{r.used.length ? r.used.join(', ') : <span className="muted">no tests</span>}</td>
+                <td>{r.active ? <Tag kind="green">{t('common.active', 'Active')}</Tag> : <Tag kind="gray">{t('common.inactive', 'Inactive')}</Tag>}</td>
+              </tr>
+              {open === r.id && <tr className="exp"><td colSpan={8}><div className="detail">
+                {managed(r) && <Notif kind="info" title={t('microbiology.admin.genomicTargets.managedBy', `Managed by ${r.src}`)}>Name, organism, type and informs come from the catalogue and are updated with it. Display name, notes and Active are this lab's settings and are kept.</Notif>}
+                <div className="row">
+                  <Field label="Organism"><div className="ro">{r.org}</div></Field>
+                  <Field label="Name"><div className="ro mono">{r.name}</div></Field>
+                  <Field label="Type">{managed(r) ? <div className="ro">{r.type}</div> : <select defaultValue={r.type} disabled={!canEdit}>{TYPES.map(x => <option key={x}>{x}</option>)}</select>}</Field>
+                  <Field label="Display name"><input defaultValue={r.display} disabled={!canEdit} /></Field>
+                </div>
+                <div className="row" style={{ marginTop: '1rem' }}>
+                  <Field label="Other names"><div className="ro mono">{r.aliases.join('; ') || 'none'}{r.family ? ` · family ${r.family}` : ''}</div></Field>
+                  <Field label="Reference sequence and position"><div className="ro mono">{r.ref || 'not given'}</div></Field>
+                  <Field label="Used by"><div className="ro">{r.used.length ? r.used.join(', ') : 'no tests'}</div></Field>
+                </div>
+                {confirm === r.id && <Notif kind="warn" title={`Deactivate ${r.name}?`}>
+                  {r.used.length ? t('microbiology.admin.genomicTargets.usedBy.confirm', `Linked to ${r.used.length} tests: ${r.used.join(', ')}. It stays on those tests and on past results, and can't be newly linked.`) : 'No tests use it. It stays on past results.'}
+                  <div className="btnrow"><Btn kind="danger" size="sm" onClick={() => setActive(r.id, false)}>{t('common.deactivate', 'Deactivate')}</Btn><Btn kind="ghost" size="sm" onClick={() => setConfirm(null)}>{t('common.cancel', 'Cancel')}</Btn></div></Notif>}
+                {canEdit && <div className="btnrow">
+                  <Btn kind="primary" size="sm" onClick={() => setOpen(null)}>{t('common.save', 'Save')}</Btn>
+                  <Btn kind="ghost" size="sm" onClick={() => setOpen(null)}>{t('common.cancel', 'Cancel')}</Btn>
+                  <span style={{ flex: 1 }} />
+                  {r.active ? <Btn kind="danger--ghost" size="sm" onClick={() => setConfirm(r.id)}>{t('common.deactivate', 'Deactivate')}</Btn>
+                    : <Btn kind="tertiary" size="sm" onClick={() => setActive(r.id, true)}>{t('common.reactivate', 'Reactivate')}</Btn>}
+                </div>}
+                {!canEdit && <p className="muted" style={{ marginTop: '1rem' }}>Read-only: editing targets needs the test:configure privilege.</p>}
+              </div></td></tr>}
+            </React.Fragment>))}
+        </tbody>
+      </table>
+      <p className="muted" style={{ fontSize: 12 }}>Showing {shown.length} of {rows.length}. Server-side paging; the AMRFinderPlus catalogue alone has several thousand targets (FR-I4).</p>
+    </>
+  );
+}
+
+/* ---------- View 2: Test catalog editor (FR-B) ---------- */
+function CatalogView({ canEdit }) {
+  const mtbTargets = TARGETS0.filter(x => x.org === 'Mycobacterium tuberculosis complex' && x.active);
+  const [links, setLinks] = useState([
+    ['rpoB', true, 'Rifampicin'], ['katG', true, 'Isoniazid'], ['fabG1-inhA promoter', true, 'Isoniazid'], ['pncA', true, 'Pyrazinamide'],
+    ['gyrA', true, 'Fluoroquinolones'], ['rrs', true, 'Amikacin'], ['Rv0678', true, 'Bedaquiline'], ['rplC', true, 'Linezolid']]
+    .map(([name, rep, ex]) => ({ name, rep, ex })));
+  const drugs = ['Rifampicin', 'Isoniazid', 'Ethambutol', 'Pyrazinamide', 'Fluoroquinolones', 'Amikacin', 'Bedaquiline', 'Linezolid'];
+  const missing = drugs.filter(d => !links.some(l => l.ex === d));
+  const [rules, setRules] = useState([
+    ['catalog.test.qc.seq.minReads', 'Minimum reads', '50000', 'Warn'], ['catalog.test.qc.seq.minMapped', 'Minimum reads mapped (%)', '90', 'Warn'],
+    ['catalog.test.qc.seq.minMedianDepth', 'Minimum median depth', '30', 'Hold'], ['catalog.test.qc.seq.minCoverage', 'Minimum genome covered (%) at 30x', '90', 'Hold'],
+    ['catalog.test.qc.seq.minTargetDepth', 'Minimum depth per reported target', '30', 'Warn'], ['catalog.test.qc.seq.maxNtcReads', 'Most reads allowed in the negative control', '1000', 'Hold'],
+    ['catalog.test.qc.seq.expectedSpecies', 'Expected species', 'Mycobacterium tuberculosis complex', 'Hold']]);
+  return (
+    <>
+      <div className="route">Route: /MasterListsPage/TestCatalogEditor/… (existing) · section #genomic-targets</div>
+      <Crumbs items={['Home', 'Admin Management', 'Test Catalog', 'MTB WGS (isolate)']} />
+      <h1 className="pt">MTB WGS (isolate)</h1>
+      <p className="sub">TB lab unit · Isolate · Clinical · Method: Sequencing, Nanopore · LOINC not assigned</p>
+
+      <h2 className="sec">Sample &amp; Results</h2>
+      <Fence label="Existing: Sample & Results section, result components (OGC-949). v3 adds 'Resistance for' (D-285). Reuse.">
+        <table className="t"><thead><tr><th>Component</th><th>Result type</th><th>Resistance for</th></tr></thead><tbody>
+          <tr><td>Species</td><td>Coded: M. tuberculosis complex, Non-tuberculous mycobacterium, Mixed or unclear</td><td className="muted">None</td></tr>
+          <tr><td>Lineage</td><td>Coded (Lineage 1 to 9, sublineages)</td><td className="muted">None</td></tr>
+          {drugs.map(d => <tr key={d}><td>{d}</td><td>Coded: Resistant, Resistance not detected, Insufficient coverage, No interpretation</td><td>{d === 'Fluoroquinolones' ? 'Fluoroquinolones (class)' : d}</td></tr>)}
+          <tr><td>Resistance classification</td><td>Coded: Susceptible, RR-TB, HR-TB, MDR-TB, pre-XDR-TB, XDR-TB</td><td className="muted">None</td></tr>
+        </tbody></table>
+      </Fence>
+
+      <h2 className="sec">{t('catalog.test.genomicTargets.title', 'Genomic targets')} <Tag kind="blue">new section</Tag></h2>
+      <div className="tile newmark">
+        <p className="sub" style={{ marginBottom: '.75rem' }}>{t('catalog.test.genomicTargets.help', 'Targets this test reports. Other findings are kept and shown to the validator.')}</p>
+        {missing.map(d => <Notif key={d} kind="warn" title="Hint">{t('catalog.test.genomicTargets.hint.noTarget', `${d} has no target: findings for it will appear under Other findings.`)}</Notif>)}
+        {canEdit && <Combo label="Add targets" options={mtbTargets.map(x => x.name).filter(n => !links.some(l => l.name === n))} value=""
+          onChange={v => v && setLinks([...links, { name: v, rep: true, ex: '' }])} placeholder="Search M. tuberculosis complex targets" helper="Only targets of this test's organism or group are listed" />}
+        <table className="t" style={{ marginTop: '1rem' }}><thead><tr><th>Order</th><th>Target</th><th>Informs</th><th>{t('catalog.test.genomicTargets.reportByDefault', 'Report by default')}</th><th>{t('catalog.test.genomicTargets.rollsUpTo', 'Explains')}</th><th></th></tr></thead>
+          <tbody>{links.map((l, i) => { const tg = TARGETS0.find(x => x.name === l.name); return (
+            <tr key={l.name}><td>{i + 1}</td><td className="mono">{l.name}</td><td>{tg ? tg.informs.join(', ') : ''}</td>
+              <td><Toggle on={l.rep} onChange={v => canEdit && setLinks(links.map((x, j) => j === i ? { ...x, rep: v } : x))} label={l.rep ? 'On' : 'Off'} /></td>
+              <td><select value={l.ex} disabled={!canEdit} aria-label={`Explains for ${l.name}`} onChange={e => setLinks(links.map((x, j) => j === i ? { ...x, ex: e.target.value } : x))} style={{ height: 32 }}>
+                <option value="">No component</option>{drugs.map(d => <option key={d}>{d}</option>)}</select></td>
+              <td>{canEdit && <Btn kind="ghost" size="sm" onClick={() => setLinks(links.filter((_, j) => j !== i))}>Unlink</Btn>}</td></tr>); })}</tbody></table>
+        <Anno>Unlinking a target only affects new results; findings already stored keep their target. "Explains" ties a target to the per-drug component it sets, which is how low coverage on pncA makes Pyrazinamide read Insufficient coverage (FR-G7).</Anno>
+      </div>
+
+      <h2 className="sec">QC Targets</h2>
+      <Fence label="Existing (specced): QC Targets section, one QC authoring section per test (D-058). New: sequencing rule types (FR-B5).">
+        <table className="t newmark"><thead><tr><th>Rule</th><th>Value</th><th>On failure</th></tr></thead>
+          <tbody>{rules.map(([k, label, v, o], i) => (
+            <tr key={k}><td>{t(k, label)}</td>
+              <td><input className="bc" style={{ width: k.endsWith('Species') ? 280 : 110, fontFamily: 'inherit' }} defaultValue={v} disabled={!canEdit} aria-label={label} /></td>
+              <td><select value={o} disabled={!canEdit} onChange={e => setRules(rules.map((x, j) => j === i ? [x[0], x[1], x[2], e.target.value] : x))} style={{ height: 32 }} aria-label={`On failure for ${label}`}>
+                <option>Hold</option><option>Warn</option></select></td></tr>))}</tbody></table>
+        <Anno>Values are this lab's. The ones shown follow TB-Profiler's published defaults as an example; nothing is seeded. A Hold follows Runs per-test hold rules (D-053, D-056).</Anno>
+      </Fence>
+      {canEdit && <div className="btnrow"><Btn kind="primary">{t('common.save', 'Save')}</Btn><Btn kind="ghost">{t('common.cancel', 'Cancel')}</Btn></div>}
+    </>
+  );
+}
+
+/* ---------- View 3: Sequencing run on the Results worklist (FR-D) ---------- */
+function RunView({ ntcFail }) {
+  const [rows, setRows] = useState([
+    { lab: 'CPHL26-005120', who: 'Kila, Joseph', sample: 'Sputum', test: 'MTB WGS (sputum, direct)', org: 'M. tuberculosis complex', bc: 'NB07', st: 'Waiting' },
+    { lab: 'CPHL26-004812-1.1', who: 'Tau, Michael (ISO-1)', sample: 'Isolate', test: 'MTB WGS (isolate)', org: 'M. tuberculosis complex', bc: 'NB08', st: 'Waiting' },
+    { lab: 'CPHL26-004977-1.1', who: 'Kerowa, Anna (ISO-1)', sample: 'Isolate', test: 'MTB WGS (isolate)', org: 'M. tuberculosis complex', bc: '', st: 'Awaiting sequencing' },
+    { lab: 'CPHL26-004831-2.1', who: 'Kaia, Ruth (ISO-1)', sample: 'Isolate', test: 'Bacterial WGS (isolate)', org: 'Enterobacterales', bc: 'NB09', st: 'Waiting' },
+    { lab: 'CPHL26-005002-1.1', who: 'Sere, Peter (ISO-2)', sample: 'Isolate', test: 'Bacterial WGS (isolate)', org: 'Enterobacterales', bc: '', st: 'Awaiting sequencing' },
+  ]);
+  const dup = bc => bc && rows.filter(r => r.bc.toUpperCase() === bc.toUpperCase()).length > 1;
+  const dups = rows.filter(r => dup(r.bc));
+  const assign = () => { const used = new Set(rows.map(r => r.bc.toUpperCase()).filter(Boolean)); let n = 1; const next = () => { while (used.has('NB' + String(n).padStart(2, '0'))) n++; const v = 'NB' + String(n).padStart(2, '0'); used.add(v); return v; }; setRows(rows.map(r => r.bc ? r : { ...r, bc: next() })); };
+  const held = ntcFail;
+  return (
+    <>
+      <div className="route">Route: /Results?run=RUN-2026-0412 (existing Runs route, no new parameter)</div>
+      <Crumbs items={['Home', 'Results']} />
+      <h1 className="pt">Results</h1>
+      <p className="sub">Run RUN-2026-0412 · Workplan batch · TB lab unit · opened 13 Oct 2026 08:40 by R. Opa</p>
+      <Anno>Existing Runs header (OGC-1200 FR-E1): three Tiles, QC, Run settings, Exceptions. New for sequencing: flowcell, library and barcode kit in Run settings, the Barcode column, Assign barcodes and Download sample sheet. This run mixes MTB WGS and Bacterial WGS, allowed because both tests use a Sequencing method (FR-D2, a Runs change).</Anno>
+
+      <div className="grid3">
+        <div className="tile">
+          <h3 className="sec3" style={{ marginTop: 0 }}>QC</h3>
+          <div style={{ fontSize: 14, marginBottom: 6 }}>{t('run.control.negative', 'Negative control')} NTC-1 · {held ? '48,210 reads' : '312 reads'} (rule: at most 1,000) <Tag kind={held ? 'red' : 'green'}>{held ? 'Fail' : 'Pass'}</Tag></div>
+          <div style={{ fontSize: 14 }}>{t('run.control.positive', 'Positive control')} H37Rv · species M. tuberculosis complex, all drugs susceptible <Tag kind="green">Pass</Tag></div>
+          <p className="muted" style={{ fontSize: 12, marginBottom: 0 }}>Verdicts per test within the run (D-053). Covers: MTB WGS (isolate), MTB WGS (sputum, direct), Bacterial WGS (isolate).</p>
+        </div>
+        <div className="tile">
+          <h3 className="sec3" style={{ marginTop: 0 }}>Run settings</h3>
+          <dl className="kv">
+            <dt>Method</dt><dd>Sequencing, Nanopore</dd>
+            <dt>Instrument</dt><dd>MinION Mk1C MN42781</dd>
+            <dt>{t('run.seq.flowcell', 'Flowcell')}</dt><dd>FLO-MIN114, lot 2026-0912-A</dd>
+            <dt>{t('run.seq.libraryKit', 'Library kit')}</dt><dd>SQK-NBD114.24, lot 26-118</dd>
+            <dt>{t('run.seq.barcodeKit', 'Barcode kit')}</dt><dd>Native Barcoding 24 (NB01 to NB24)</dd>
+            <dt>{t('run.seq.loaded', 'Loaded')}</dt><dd>13 Oct 2026 11:15</dd>
+          </dl>
+          <p className="muted" style={{ fontSize: 12, marginBottom: 0 }}>Lots picked from Inventory (Runs reagent-lot provenance).</p>
+        </div>
+        <div className="tile">
+          <h3 className="sec3" style={{ marginTop: 0 }}>Exceptions</h3>
+          {held ? <Notif kind="err" title="Held: 5 rows.">Negative control NTC-1 had 48,210 reads (rule: at most 1,000). Retest, or Accept despite failure with a reason.</Notif>
+            : <><div style={{ fontSize: 14 }}>CPHL26-005120: pncA 8x (rule: at least 30x per target) <Tag kind="warm-gray">Warn</Tag></div>
+              <div style={{ fontSize: 14, marginTop: 6 }}>1 file in Stuck analyzer events: {t('genomics.unmatched.barcode', 'Barcode NB10 in file, barcode NB11 on run row')} (CPHL26-004990)</div></>}
+          <p className="muted" style={{ fontSize: 12, marginBottom: 0 }}>3 of 5 rows have results waiting · 0 dispositioned</p>
+        </div>
+      </div>
+
+      {dups.length > 1 && <Notif kind="err" title="Duplicate barcode.">{t('run.seq.duplicateBarcode', `Rows ${dups[0].lab} and ${dups[1].lab} both have barcode ${dups[0].bc}.`)} Each barcode can be used once per run.</Notif>}
+
+      <div className="toolbar">
+        <Fence label="Existing worklist filter chips (Runs FR-E1a)"><span><Tag kind="high-contrast">All 5</Tag><Tag kind="gray">Needs review 3</Tag><Tag kind="gray">Held {held ? 5 : 0}</Tag><Tag kind="gray">Exceptions {held ? 5 : 1}</Tag></span></Fence>
+        <span style={{ flex: 1 }} />
+        <Btn kind="tertiary" onClick={assign}>{t('run.seq.assignBarcodes', 'Assign barcodes in order')}</Btn>
+        <Btn kind="secondary">{t('run.seq.sampleSheet', 'Download sample sheet')}</Btn>
+      </div>
+      <table className="t">
+        <thead><tr><th>Lab number</th><th>Patient / isolate</th><th>Sample</th><th>Test</th><th>Expected organism</th><th>{t('run.seq.barcode', 'Barcode')}</th><th>State</th></tr></thead>
+        <tbody>{rows.map((r, i) => (
+          <tr key={r.lab}><td className="mono">{r.lab}</td><td>{r.who}</td><td>{r.sample}</td><td>{r.test}</td><td>{r.org}</td>
+            <td><input className={`bc${dup(r.bc) ? ' bad' : ''}`} value={r.bc} aria-label={`Barcode for ${r.lab}`} aria-invalid={dup(r.bc)} onChange={e => setRows(rows.map((x, j) => j === i ? { ...x, bc: e.target.value } : x))} /></td>
+            <td>{held ? <Tag kind="red">Held</Tag> : r.st === 'Waiting' ? <Tag kind="purple">Waiting in RUN-2026-0412</Tag> : <Tag kind="blue">Awaiting sequencing</Tag>}</td></tr>))}</tbody>
+      </table>
+      <div className="tile" style={{ marginTop: '1rem' }}>
+        <h3 className="sec3" style={{ marginTop: 0 }}>Sample sheet (what Download gives the bioinformatician)</h3>
+        <pre className="mono" style={{ margin: 0, whiteSpace: 'pre-wrap' }}>barcode,lab_number,sample_item,test,expected_organism{'\n'}{rows.map(r => `${r.bc || '(none)'},${r.lab.split('-').slice(0, 2).join('-')},${r.lab},${r.test},${r.org}`).join('\n')}</pre>
+      </div>
+    </>
+  );
+}
+
+/* ---------- View 4: Validation worklist with the genomic detail (FR-G) ---------- */
+function ValidationView({ canValidate }) {
+  const [open, setOpen] = useState('r1');
+  const [done, setDone] = useState({});
+  const rows = [RES_MTB, RES_MPX, RES_COV];
+  return (
+    <>
+      <div className="route">Route: existing Validation worklist (no new route)</div>
+      <Crumbs items={['Home', 'Validation']} />
+      <h1 className="pt">Validation</h1>
+      <p className="sub">Tests on a primary specimen are validated here. Tests on an isolate are validated in the microbiology case with the same detail panel (D-136, AC-V2-57).</p>
+      <Fence label="Existing: Validation worklist rows, lanes and row QC slot (validation clearance rule, D-057, D-061). Abbreviated drawing; only the expanded genomic detail is new.">
+        <table className="t">
+          <thead><tr><th>Lab number</th><th>Patient</th><th>Test</th><th>Lab unit</th><th>Run</th><th>QC</th><th>State</th></tr></thead>
+          <tbody>{rows.map(r => (
+            <React.Fragment key={r.id}>
+              <tr className="click" onClick={() => setOpen(open === r.id ? null : r.id)} aria-expanded={open === r.id}>
+                <td className="mono">{r.lab}</td><td>{r.patient}</td><td>{r.test}</td><td>{r.unit}</td><td className="mono">{r.run} · {r.barcode}</td>
+                <td>{r.holds.length ? <Tag kind="red">Held</Tag> : r.warns.some(w => w[2] === 'warn') ? <Tag kind="warm-gray">Warning</Tag> : <Tag kind="green">No failure</Tag>}</td>
+                <td>{done[r.id] ? <Tag kind="teal">Validated</Tag> : <Tag kind="purple">Awaiting validation</Tag>}</td>
+              </tr>
+              {open === r.id && <tr className="exp"><td colSpan={7}>
+                <div style={{ padding: '1rem 1rem 0' }}><Components comps={r.components} /></div>
+                <GenomicDetail res={r} editable={canValidate && !done[r.id]} />
+                <div className="btnrow" style={{ padding: '0 1rem 1rem' }}>
+                  {canValidate ? <>
+                    <Btn kind="primary" disabled={r.holds.length > 0 || done[r.id]} onClick={() => setDone({ ...done, [r.id]: true })}>Validate</Btn>
+                    <Btn kind="secondary" disabled={done[r.id]}>Return with reason</Btn>
+                    {r.holds.length > 0 && <span className="muted" style={{ alignSelf: 'center', fontSize: 14 }}>Held rows can't be validated until the hold is cleared.</span>}
+                  </> : <span className="muted">Validating needs the result:validate privilege for this lab unit.</span>}
+                </div>
+              </td></tr>}
+            </React.Fragment>))}</tbody>
+        </table>
+      </Fence>
+    </>
+  );
+}
+
+/* ---------- View 5: Microbiology case, Additional testing (FR-C2, FR-G9) ---------- */
+function CaseView({ canValidate }) {
+  const [open, setOpen] = useState(true);
+  return (
+    <>
+      <div className="route">Route: existing microbiology case view (MicrobiologyCaseView.jsx), section 7 Additional testing</div>
+      <Crumbs items={['Home', 'Microbiology', 'Case CPHL26-004831']} />
+      <h1 className="pt">Case CPHL26-004831 <Tag kind="purple">Partial</Tag></h1>
+      <p className="sub">Kaia, Ruth (F, 61) · Blood culture, set 2 · Medical ward 3 · ISO-1 Klebsiella pneumoniae</p>
+      <Fence label="Existing (Micro v2 A-15): Additional testing section and its result rows. Only the expanded genomic detail is new.">
+        <h3 className="sec3" style={{ marginTop: 0 }}>7 Additional testing</h3>
+        <table className="t">
+          <thead><tr><th>Test</th><th>Result</th><th>Flag</th><th>Performed by</th><th>State</th></tr></thead>
+          <tbody>
+            <tr className="click" onClick={() => setOpen(!open)} aria-expanded={open}>
+              <td>Bacterial WGS (isolate) <span className="muted">· On ISO-1 (isolate sample CPHL26-004831-2.1)</span></td>
+              <td>K. pneumoniae ST307; 3rd-generation cephalosporins Resistant; carbapenems Resistance not detected</td>
+              <td><Tag kind="red">R</Tag></td><td>This laboratory, RUN-2026-0412</td><td><Tag kind="purple">Awaiting validation</Tag></td></tr>
+            {open && <tr className="exp"><td colSpan={5}>
+              <div style={{ padding: '1rem 1rem 0' }}><Components comps={RES_KP.components} /></div>
+              <GenomicDetail res={RES_KP} editable={canValidate} />
+            </td></tr>}
+          </tbody>
+        </table>
+      </Fence>
+      <Fence label="Existing (Micro v3 D-285): Molecular resistance table in the AST / DST section. WGS rows appear because their components carry a resistance mapping; no new screen.">
+        <h3 className="sec3" style={{ marginTop: 0 }}>Molecular resistance (ISO-1)</h3>
+        <table className="t"><thead><tr><th>Antibiotic or class</th><th>Result</th><th>Test</th><th>Method</th><th>Where and when</th><th>Phenotypic result</th><th>Agreement</th></tr></thead>
+          <tbody>
+            <tr><td>Cephalosporins, 3rd generation (class)</td><td><Tag kind="red">Resistant</Tag></td><td>Bacterial WGS (isolate)</td><td>Sequencing, Nanopore</td><td>This laboratory, 15 Oct 2026</td><td>Ceftriaxone R, ceftazidime R (VITEK 2, run 1)</td><td><Tag kind="green">Agree</Tag></td></tr>
+            <tr><td>Carbapenems (class)</td><td><Tag kind="green">Resistance not detected</Tag></td><td>Bacterial WGS (isolate)</td><td>Sequencing, Nanopore</td><td>This laboratory, 15 Oct 2026</td><td>Meropenem S, ertapenem S (VITEK 2, run 1)</td><td><Tag kind="green">Agree</Tag></td></tr>
+            <tr><td>Colistin</td><td><Tag kind="green">Resistance not detected</Tag></td><td>Bacterial WGS (isolate)</td><td>Sequencing, Nanopore</td><td>This laboratory, 15 Oct 2026</td><td>Not tested</td><td><span className="muted">n/a</span></td></tr>
+          </tbody></table>
+      </Fence>
+      <Anno>The 3rd-generation cephalosporin call comes from blaCTX-M-15, which this test does not link (it sits in Other findings). The profile maps AMRFinderPlus's class column to the component, so the call is still made; the validator decides whether the gene itself is printed.</Anno>
+    </>
+  );
+}
+
+/* ---------- View 6: Patient report excerpt (FR-H1) ---------- */
+function ReportView() {
+  return (
+    <>
+      <div className="route">Printed patient report (Patient Report v2.2 layout; genomic block new)</div>
+      <Crumbs items={['Home', 'Reports', 'Report Print Queue', 'CPHL26-005120']} />
+      <h1 className="pt">Report preview</h1>
+      <p className="sub">Multi-component lines are the existing layout; the Genomic findings block and the provenance line are new.</p>
+      <div className="report">
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'IBM Plex Sans, sans-serif', fontSize: 13 }}>
+          <div><b>Central Public Health Laboratory</b><br />Port Moresby, Papua New Guinea</div>
+          <div style={{ textAlign: 'right' }}>Lab number CPHL26-005120<br />Kila, Joseph · M · 34 y<br />Sputum · collected 06 Oct 2026</div>
+        </div>
+        <h5>TB laboratory</h5>
+        <table><tbody>
+          <tr><th colSpan={2}>MTB whole genome sequencing (sputum, direct)</th></tr>
+          {RES_MTB.components.map(([c, v]) => <tr key={c}><td style={{ paddingLeft: 16 }}>{c}</td><td><b>{v}</b></td></tr>)}
+        </tbody></table>
+        <h5>{t('report.genomics.findings', 'Genomic findings')}</h5>
+        <table>
+          <thead><tr><th>Target</th><th>Change</th><th>Call</th><th>Frequency</th><th>Grade</th></tr></thead>
+          <tbody>
+            <tr><td>rpoB</td><td>p.Ser450Leu (c.1349C&gt;T)</td><td>Mutation detected</td><td></td><td>Associated with resistance</td></tr>
+            <tr><td>katG</td><td>p.Ser315Thr (c.944G&gt;C)</td><td>Mutation detected</td><td></td><td>Associated with resistance</td></tr>
+            <tr><td>pncA</td><td></td><td>Insufficient coverage</td><td></td><td></td></tr>
+            <tr><td>rpoB</td><td>p.His445Asp (c.1333C&gt;G)</td><td>Detected below threshold (possible heteroresistance)</td><td>23%</td><td>Associated with resistance</td></tr>
+          </tbody>
+        </table>
+        <p style={{ fontSize: 12, marginTop: '.75rem' }}>Other targets examined had no mutation: inhA promoter, embB, gyrA, Rv0678, rplC.</p>
+        <p style={{ fontSize: 12, color: '#525252' }}>{t('report.genomics.provenance', 'Sequenced on MinION Mk1C MN42781, run RUN-2026-0412, 13 Oct 2026. Analysed with TB-Profiler 6.3.0 and WHO M. tuberculosis mutation catalogue 2023 (2nd ed.).')}</p>
+        <p style={{ fontSize: 12 }}>Validated by R. Opa, 14 Oct 2026 10:40.</p>
+      </div>
+      <Anno>Wild-type targets print as one summary line rather than rows. The 23% rpoB finding prints because the validator ticked it; it does not change the Rifampicin call. The pipeline's "Grade" is shown in words the catalogue uses.</Anno>
+    </>
+  );
+}
+
+/* ---------- App shell ---------- */
+const VIEWS = [
+  ['targets', 'Admin', 'Genomic targets'],
+  ['catalog', 'Admin', 'Test catalog: MTB WGS'],
+  ['run', 'Results', 'Sequencing run'],
+  ['validation', 'Results', 'Validation: WGS rows'],
+  ['case', 'Microbiology', 'Case: Additional testing'],
+  ['report', 'Reports', 'Patient report'],
+];
+
+function App() {
+  const [view, setView] = useState('targets');
+  const [notes, setNotes] = useState(true);
+  const [role, setRole] = useState('manager');
+  const [ntcFail, setNtcFail] = useState(false);
+  const canEdit = role === 'manager';
+  const canValidate = role !== 'reception';
+  let group = '';
+  return (
+    <div className={notes ? '' : 'hide-anno'}>
+      <div className="preview-banner">
+        <span>Visual Preview · Pathogen WGS · OpenELIS design mockup · not a live application</span>
+        <label><input type="checkbox" checked={notes} onChange={e => setNotes(e.target.checked)} /> Design notes</label>
+        <label>Signed in as <select value={role} onChange={e => setRole(e.target.value)} style={{ fontSize: 12 }}>
+          <option value="manager">Catalog manager + validator</option><option value="validator">Validator (no test:configure)</option><option value="reception">Reception (no result rights)</option></select></label>
+        <label><input type="checkbox" checked={ntcFail} onChange={e => setNtcFail(e.target.checked)} /> Scenario: negative control failed</label>
+      </div>
+      <div className="topbar"><b>OpenELIS Global</b><span className="muted">· Central Public Health Laboratory, Port Moresby</span></div>
+      <div className="shell">
+        <nav className="sidenav" aria-label="Preview views">
+          {VIEWS.map(([k, g, label]) => {
+            const head = g !== group ? <div className="grp">{g}</div> : null; group = g;
+            return <React.Fragment key={k}>{head}<button className={view === k ? 'on' : ''} onClick={() => setView(k)} aria-current={view === k ? 'page' : undefined}>{label}</button></React.Fragment>;
+          })}
+        </nav>
+        <main className="content">
+          {view === 'targets' && <TargetsView canEdit={canEdit} />}
+          {view === 'catalog' && <CatalogView canEdit={canEdit} />}
+          {view === 'run' && (role === 'reception' ? <Notif kind="info" title="No access.">Sequencing runs are on the Results worklist, which needs Results rights for the TB lab unit (D-043).</Notif> : <RunView ntcFail={ntcFail} />)}
+          {view === 'validation' && <ValidationView canValidate={canValidate} key={role} />}
+          {view === 'case' && <CaseView canValidate={canValidate} key={role} />}
+          {view === 'report' && <ReportView />}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
