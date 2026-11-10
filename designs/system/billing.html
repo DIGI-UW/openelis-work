@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Billing: OpenELIS Preview</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1/css/styles.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  body { background:#f4f4f4; margin:0; font-family:'IBM Plex Sans','Helvetica Neue',Arial,sans-serif; color:#161616; }
+  .preview-banner { background:#0f62fe; color:#fff; padding:6px 1rem; font-size:12px; font-family:'IBM Plex Mono',monospace; position:sticky; top:0; z-index:20; }
+  .shell { display:flex; min-height:calc(100vh - 28px); }
+  .nav { width:256px; background:#fff; border-right:1px solid #e0e0e0; flex-shrink:0; padding:8px 0; overflow-y:auto; }
+  .nav h6 { margin:16px 16px 4px; font-size:12px; letter-spacing:.32px; color:#525252; font-weight:600; text-transform:uppercase; }
+  .nav button { display:block; width:100%; text-align:left; background:none; border:0; padding:8px 16px 8px 24px; font-size:14px; color:#161616; cursor:pointer; border-left:3px solid transparent; }
+  .nav button:hover { background:#e8e8e8; }
+  .nav button.active { background:#e0e0e0; border-left-color:#0f62fe; font-weight:600; }
+  .nav .sub { padding-left:40px; }
+  .main { flex:1; padding:16px 32px 64px; max-width:1320px; }
+  .crumbs { font-size:12px; color:#525252; margin:4px 0 8px; }
+  .crumbs a { color:#0f62fe; text-decoration:none; }
+  h1.page { font-size:28px; font-weight:400; margin:0 0 4px; }
+  p.sub { color:#525252; margin:0 0 16px; font-size:14px; max-width:820px; }
+  .row { display:flex; gap:16px; flex-wrap:wrap; align-items:flex-start; }
+  .tile { background:#fff; padding:16px; border:1px solid #e0e0e0; }
+  .kpi { min-width:200px; flex:1; cursor:pointer; }
+  .kpi .v { font-size:28px; margin:8px 0 4px; }
+  .kpi .l { font-size:12px; color:#525252; }
+  .kpi .d { font-size:12px; color:#525252; }
+  table.cds--data-table td.num, table.cds--data-table th.num { text-align:right; font-variant-numeric:tabular-nums; }
+  .toolbar { display:flex; gap:8px; align-items:center; background:#fff; padding:8px; border:1px solid #e0e0e0; border-bottom:0; flex-wrap:wrap; }
+  .toolbar input, .toolbar select { height:32px; }
+  .search { flex:1; min-width:220px; border:0; border-bottom:1px solid #8d8d8d; background:#f4f4f4; padding:0 12px; font-size:14px; }
+  .sel { border:0; border-bottom:1px solid #8d8d8d; background:#f4f4f4; padding:0 8px; font-size:14px; }
+  .expand { background:#f4f4f4; padding:16px; }
+  .note { font-size:12px; color:#525252; }
+  .panel { background:#fff; border:1px solid #e0e0e0; padding:16px; width:520px; flex-shrink:0; }
+  .fieldrow { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+  .field { display:flex; flex-direction:column; min-width:160px; flex:1; }
+  .field label { font-size:12px; color:#525252; margin-bottom:4px; }
+  .field input, .field select, .field textarea { height:40px; border:0; border-bottom:1px solid #8d8d8d; background:#f4f4f4; padding:0 12px; font-size:14px; font-family:inherit; }
+  .field textarea { height:64px; padding:8px 12px; }
+  .field .helper { font-size:12px; color:#525252; margin-top:4px; }
+  .field .err { font-size:12px; color:#da1e28; margin-top:4px; }
+  .shiftbar { background:#e5f6ff; border-left:3px solid #0043ce; padding:8px 16px; display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; font-size:14px; }
+  .totals td { font-weight:600; }
+  .fence { border:2px dashed #8d8d8d; padding:12px; margin:12px 0; background:#fafafa; }
+  .fence .fl { font-size:11px; font-family:'IBM Plex Mono',monospace; color:#525252; margin-bottom:8px; }
+  .chip { display:inline-block; background:#e0e0e0; padding:2px 8px; margin:2px; font-size:12px; border-radius:12px; }
+  .rcpt { font-family:'IBM Plex Mono',monospace; font-size:12px; background:#fff; border:1px solid #c6c6c6; padding:12px; width:300px; white-space:pre; }
+  .area { display:flex; gap:24px; }
+  .area .left { width:220px; }
+  .area .left div { padding:6px 8px; font-size:14px; cursor:default; }
+  .area .left .on { background:#e0e0e0; font-weight:600; }
+  .setting { border-bottom:1px solid #e0e0e0; padding:12px 0; display:flex; justify-content:space-between; gap:16px; }
+  .setting .t { font-size:14px; }
+  .setting .ds { font-size:12px; color:#525252; max-width:620px; }
+  .mini { font-size:12px; }
+  .bar { height:8px; background:#e0e0e0; position:relative; }
+  .bar span { position:absolute; left:0; top:0; bottom:0; background:#0f62fe; }
+  .modal-back { position:fixed; inset:0; background:rgba(22,22,22,.5); display:flex; align-items:center; justify-content:center; z-index:50; }
+  .modal { background:#fff; width:520px; padding:16px 16px 0; }
+  .modal .ft { display:flex; margin:24px -16px 0; }
+  .modal .ft button { flex:1; height:64px; border:0; font-size:14px; text-align:left; padding:0 16px; cursor:pointer; }
+</style>
+</head>
+<body class="cds--white">
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo } = React;
+const t = (key, fallback) => fallback || key;
+const K = (n) => (n < 0 ? '-K' : 'K') + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+function Tag({ kind = 'gray', children }) { return <span className={`cds--tag cds--tag--${kind}`} style={{ margin: '0 4px 0 0' }}>{children}</span>; }
+function PaymentChip({ state, amount, payer, canSee = true, canCollect = true, labNo }) {
+  const m = { unpaid: ['red', canSee ? `Unpaid ${K(amount)}` : 'Unpaid'], partly: ['warm-gray', canSee ? `Partly paid, ${K(amount)} due` : 'Partly paid'], paid: ['green', 'Paid'], waived: ['teal', 'Waived'], payer: ['blue', `Billed to ${payer}`], emr: ['gray', 'Billed by EMR'], held: ['red', canSee ? `Held: unpaid ${K(amount)}` : 'Held: unpaid'] }[state];
+  const tag = <span className={`cds--tag cds--tag--${m[0]}`} style={{ margin: 0, cursor: canCollect ? 'pointer' : 'default' }} title={canCollect ? `Open ${labNo} at the Cash Desk` : 'Set by Billing'}>{m[1]}</span>;
+  return canCollect ? <a href="#" aria-label={`Open ${labNo} at the Cash Desk`} onClick={(e) => e.preventDefault()} style={{ textDecoration: 'none' }}>{tag}</a> : tag;
+}
+function Btn({ kind = 'primary', size = 'sm', onClick, children, disabled, aria }) {
+  return <button aria-label={aria} disabled={disabled} className={`cds--btn cds--btn--${kind} cds--btn--${size}`} style={{ marginRight: 8 }} onClick={onClick}>{children}</button>;
+}
+function Notice({ kind = 'info', title, children }) {
+  return (<div className={`cds--inline-notification cds--inline-notification--${kind} cds--inline-notification--low-contrast`} style={{ maxWidth: '100%', margin: '0 0 16px' }} role="status">
+    <div className="cds--inline-notification__details"><div className="cds--inline-notification__text-wrapper" style={{ padding: '12px 0' }}>
+      {title && <div className="cds--inline-notification__title">{title}</div>}<div className="cds--inline-notification__subtitle">{children}</div></div></div></div>);
+}
+function Table({ headers, rows, num = [], onRow, expanded, renderExpand, select }) {
+  return (<div className="cds--data-table-container"><table className="cds--data-table cds--data-table--sm" style={{ width: '100%' }}>
+    <thead><tr>{select && <th style={{ width: 32 }}></th>}{headers.map((h, i) => <th key={i} className={num.includes(i) ? 'num' : ''}><span className="cds--table-header-label">{h}</span></th>)}</tr></thead>
+    <tbody>{rows.map((r, ri) => (<React.Fragment key={ri}>
+      <tr onClick={onRow ? () => onRow(ri) : undefined} style={{ cursor: onRow ? 'pointer' : 'default' }}>
+        {select && <td><input type="checkbox" aria-label="Select row" /></td>}
+        {r.map((c, ci) => <td key={ci} className={num.includes(ci) ? 'num' : ''}>{c}</td>)}</tr>
+      {expanded === ri && renderExpand && <tr><td colSpan={headers.length + (select ? 1 : 0)} className="expand">{renderExpand(ri)}</td></tr>}
+    </React.Fragment>))}</tbody></table></div>);
+}
+function Field({ label, children, helper, err }) { return <div className="field"><label>{label}</label>{children}{helper && <div className="helper">{helper}</div>}{err && <div className="err">{err}</div>}</div>; }
+function Header({ crumbs, title, sub }) {
+  return (<div><div className="crumbs">{crumbs.map((c, i) => <span key={i}>{i > 0 && ' / '}{i < crumbs.length - 1 ? <a href="#">{c}</a> : c}</span>)}</div>
+    <h1 className="page">{title}</h1>{sub && <p className="sub">{sub}</p>}</div>);
+}
+function Fence({ owner, children }) { return <div className="fence"><div className="fl">EXISTING COMPONENT, reuse, do not re-implement: {owner}. Abbreviated drawing; not a specification of its contents.</div>{children}</div>; }
+function Toggle({ on, onChange, label }) {
+  return <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, cursor: 'pointer' }}><input type="checkbox" checked={on} onChange={(e) => onChange && onChange(e.target.checked)} />{label}</label>;
+}
+
+/* ---------------- Overview ---------------- */
+function Overview({ go }) {
+  const tiles = [
+    { l: t('billing.overview.collectedToday', 'Collected today'), v: K(3184.5), d: 'Cash K1,240.00 · Mobile money K1,594.50 · Card K350.00', to: 'reports' },
+    { l: t('billing.overview.collectedMonth', 'Collected this month'), v: K(61420), d: 'Includes statements K18,600.00 and applied remittances K4,275.00', to: 'reports' },
+    { l: t('billing.overview.unbilled', 'Unbilled work'), v: '7', d: '7 tests, K286.00 at list price', to: 'unbilled' },
+    { l: t('billing.overview.releasedUnpaid', 'Released while unpaid'), v: '4', d: 'Last 30 days', to: 'reports' },
+    { l: t('billing.overview.owed', 'Owed to the lab'), v: K(17339.5), d: 'K4,120.00 over 90 days · K787.00 from patients', to: 'reports' },
+    { l: t('billing.overview.claimsAttention', 'Claims needing attention'), v: '4', d: '1 rejected · 2 with denied or underpaid lines · 1 deadline in 6 days', to: 'claims' },
+    { l: t('billing.overview.denialRate', 'Claim denial rate (30 days)'), v: '6.8%', d: '14 of 206 claim lines denied', to: 'reports' },
+    { l: t('billing.overview.daysToClaim', 'Days from release to claim (median)'), v: '1.0', d: 'Daily batch to Kumul Health Cover', to: 'claims' },
+    { l: t('billing.overview.openShifts', 'Open shifts'), v: '2', d: 'J. Kaupa (Main reception) · R. Tau (Outpatients)', to: 'cash' },
+  ];
+  return (<div>
+    <Header crumbs={['Home', 'Billing', 'Overview']} title="Overview" sub={t('billing.overview.subtitle', 'What the lab has collected, what it is owed, and where money may be leaking.')} />
+    <Notice kind="warning" title="2 records not in Odoo yet">Statement ST-2026-0088 payment and receipt R-2026-004398: "Could not reach odoo.cphl.local". Retrying.</Notice>
+    <div className="row">{tiles.map((x, i) => (<div key={i} className="tile kpi" role="link" tabIndex={0} onClick={() => go(x.to)}>
+      <div className="l">{x.l}</div><div className="v">{x.v}</div><div className="d">{x.d}</div></div>))}</div>
+    <div className="tile" style={{ marginTop: 16 }}><h4 style={{ margin: '0 0 8px' }}>Periods</h4>
+      <div className="mini">September 2026 closed 03/10/2026 by L. Morea · August 2026 closed 02/09/2026 by L. Morea</div>
+      <div className="mini" style={{ margin: '8px 0' }}>Before closing October 2026: 3 items are still open (2 shifts not closed, 1 remittance in Review, 1 draft statement).</div>
+      <Btn kind="tertiary">Close October 2026</Btn><Btn kind="ghost">Reopen September 2026</Btn><span className="note">Billing managers only. Nothing dated in a closed month can be added or changed.</span></div>
+    <p className="note" style={{ marginTop: 16 }}>Built on the shared dashboard pattern (management dashboard). Tiles for parts of Billing a lab has not switched on are not shown.</p>
+  </div>);
+}
+
+
+/* ---------------- Cash Desk ---------------- */
+const deskOrders = [
+  { lab: 'CPHL-26-004188', name: 'Mary Kaupa', pid: 'PT-0041872', who: 'Female, 34 y', billTo: 'Patient', reg: '08:12',
+    lines: [['CBC', 25, 25, 25, 0, ''], ['Malaria RDT', 10, 10, 10, 0, ''], ['Urinalysis', 12, 12, 12, 0, ''], ['Culture & sensitivity (added at bench)', 45, 28, 28, 0, 'Override: Hardship'], ['Malaria RDT (rerun)', 0, 0, 0, 0, 'free:Rerun']] },
+  { lab: 'CPHL-26-004191', name: 'Peter Wari', pid: 'PT-0040356', who: 'Male, 51 y', billTo: 'Kumul Health Cover', reg: '08:31',
+    lines: [['HIV viral load', 70, 70, 7, 63, "Patient's share 10%"], ['CD4 count', 55, 55, 5.5, 49.5, "Patient's share 10%"]] },
+  { lab: 'CPHL-26-004195', name: 'Grace Lohia', pid: 'PT-0041990', who: 'Female, 27 y', billTo: 'Patient', reg: '08:44',
+    lines: [['LFT panel', 55, 55, 55, 0, ''], ['Lipid panel', 40, 40, 40, 0, 'Panel price']] },
+  { lab: 'CPHL-26-004199', name: 'John Oa', pid: 'PT-0042005', who: 'Male, 41 y', billTo: 'Patient', reg: '09:02',
+    lines: [['Malaria RDT', 10, 10, 10, 0, ''], ['Typhoid RDT', 25, 25, 25, 0, '']] },
+  { lab: 'CPHL-26-004203', name: 'Ruth Kila', pid: 'PT-0042011', who: 'Female, 66 y', billTo: 'Patient', reg: '09:10',
+    lines: [['HbA1c', 66, 66, 33, 0, 'Exemption: Pensioners (50%)'], ['Glucose fasting', 54, 54, 27, 0, 'Exemption: Pensioners (50%)']] },
+];
+function CashDesk() {
+  const [open, setOpen] = useState(0);
+  const [mode, setMode] = useState('Cash');
+  const [pay, setPay] = useState(false);
+  const [paid, setPaid] = useState({});
+  const [amount, setAmount] = useState('');
+  const [tendered, setTendered] = useState('100.00');
+  const [modal, setModal] = useState(null);
+  const [refund, setRefund] = useState(false);
+  const [pc, setPc] = useState(false);
+  const o = deskOrders[open];
+  const due = o.lines.reduce((a, l) => a + l[3], 0);
+  const isPaid = !!paid[open];
+  const amt = amount === '' ? due : parseFloat(amount) || 0;
+  const st = (l) => l[5].startsWith('free:') ? <Tag kind="gray">Not charged</Tag> : l[3] === 0 && l[2] === 0 ? <Tag kind="teal">Waived</Tag> : isPaid ? <Tag kind="green">Paid</Tag> : <Tag kind="red">Unpaid</Tag>;
+  const openOrder = (i) => { setOpen(i); setPay(false); setAmount(''); setRefund(false); };
+  return (<div>
+    <Header crumbs={['Home', 'Billing', 'Cash Desk']} title="Cash Desk" sub={t('billing.cashDesk.subtitle', 'Find an order, take the patient\'s payment and print the receipt.')} />
+    <div className="shiftbar"><span>{`Shift open since 07:42 at Main reception. 23 payments, ${K(1240)} cash.`}</span><Btn kind="tertiary" onClick={() => setModal('close')}>{t('billing.shift.close', 'Close shift')}</Btn></div>
+    <div className="row">
+      <div style={{ flex: 1, minWidth: 420 }}>
+        <div className="toolbar"><input className="search" placeholder={t('billing.cashDesk.search', 'Lab number, patient, patient ID, bill or quote number')} aria-label="Search" /><Btn kind="tertiary" onClick={() => setPc(!pc)}>{t('billing.cashDesk.priceCheck', 'Price check')}</Btn></div>
+        {pc && (<div className="tile" style={{ marginTop: 8 }}><h5 style={{ margin: '0 0 8px' }}>Price check</h5>
+          <div className="fieldrow"><Field label="Payer (search)"><input defaultValue="Kumul Health Cover" /></Field><Field label="Patient age (for exemptions)"><input defaultValue="58" /></Field><Field label="Tests, panels, services (search)"><div><span className="chip">HbA1c ×</span><span className="chip">Lipid panel ×</span></div></Field></div>
+          <Table headers={['Item', 'Price', 'Applies', 'Tax', 'Patient pays']} num={[1, 3, 4]} rows={[['HbA1c', K(63), '', 'Exempt', K(6.3)], ['Lipid panel', K(49.5), 'Panel price', 'Exempt', K(4.95)], ['Total', K(112.5), '', K(0), K(11.25)]]} />
+          <p className="note">Nothing is registered. From 01/11/2026 the Diabetes awareness month promotion halves HbA1c.</p><Btn kind="ghost">{t('billing.cashDesk.printEstimate', 'Print estimate')}</Btn></div>)}
+        <h4 style={{ margin: '16px 0 8px', fontSize: 16 }}>{t('billing.cashDesk.waiting', 'Waiting to pay')}</h4>
+        <Table headers={['Lab No', 'Patient', 'Bill to', 'Balance due', 'Registered']} num={[3]}
+          rows={deskOrders.map((d, i) => [<a href="#" onClick={(e) => { e.preventDefault(); openOrder(i); }}>{d.lab}</a>, d.name, d.billTo, K(paid[i] ? 0 : d.lines.reduce((a, l) => a + l[3], 0)), d.reg])} />
+        <p className="note">Peter Wari's row is his 10% share of an insured order. Orders billed to institutions, programs and clients are not listed here.</p>
+      </div>
+      <div className="panel" aria-label="Order panel">
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}><div><div className="mini">{o.lab}</div><h3 style={{ margin: '4px 0', fontWeight: 400 }}>{o.name}</h3>
+          <div className="mini">Patient ID {o.pid} · {o.who} · Bill to: {o.billTo}</div></div>
+          <div>{isPaid ? <Tag kind="green">Paid</Tag> : <Tag kind="red">Unpaid</Tag>}</div></div>
+        <Table headers={['Item', 'List price', 'Charged', 'Patient pays', 'Payer pays', 'Status']} num={[1, 2, 3, 4]}
+          rows={o.lines.map((l) => [<div>{l[0]}{l[5] && <div className="note">{l[5].replace('free:', '')}</div>}</div>, K(l[1]), K(l[2]), K(l[3]), K(l[4]), st(l)])} />
+        <table style={{ width: '100%', fontSize: 14, marginTop: 8 }}><tbody>
+          <tr><td>{t('billing.common.patientPays', 'Patient pays')}</td><td style={{ textAlign: 'right' }}>{K(due)}</td></tr>
+          <tr><td>{t('billing.common.alreadyPaid', 'Already paid')}</td><td style={{ textAlign: 'right' }}>{isPaid ? K(due) : K(0)}</td></tr>
+          <tr style={{ fontWeight: 600 }}><td>{t('billing.common.balanceDue', 'Balance due')}</td><td style={{ textAlign: 'right' }}>{isPaid ? K(0) : K(due)}</td></tr></tbody></table>
+        {!isPaid && !pay && <div style={{ marginTop: 16 }}><Btn onClick={() => setPay(true)} aria={`Take payment, ${o.lab}`}>{t('billing.cashDesk.takePayment', 'Take payment')}</Btn><Btn kind="tertiary">{t('billing.cashDesk.printBill', 'Print bill')}</Btn><Btn kind="ghost">{t('billing.cashDesk.overridePrice', 'Override price')}</Btn></div>}
+        {pay && !isPaid && (<div style={{ marginTop: 16, borderTop: '1px solid #e0e0e0', paddingTop: 12 }}>
+          {open === 2 && <div style={{ marginBottom: 8 }}><Toggle on={true} label="Use K15.00 credit from receipt R-2026-004102" /></div>}
+          <div className="fieldrow"><Field label={t('billing.cashDesk.amount', 'Amount')} helper={amt < due ? `Part payment. ${K(due - amt)} will still be due.` : amt > due ? `${K(amt - due)} more than due. It is kept as credit for this order.` : ''}><input value={amount === '' ? due.toFixed(2) : amount} onChange={(e) => setAmount(e.target.value)} /></Field>
+            <Field label={t('billing.cashDesk.mode', 'Payment mode')}><select value={mode} onChange={(e) => setMode(e.target.value)}><option>Cash</option><option>Mobile money</option><option>Card</option><option>Bank transfer</option></select></Field></div>
+          {mode === 'Cash' && <div className="fieldrow"><Field label={t('billing.cashDesk.tendered', 'Cash tendered')} helper={`Change due: ${K(Math.max(0, (parseFloat(tendered) || 0) - amt))}`}><input value={tendered} onChange={(e) => setTendered(e.target.value)} /></Field></div>}
+          {mode === 'Mobile money' && <><div className="fieldrow"><Field label="Phone number (required)"><input defaultValue="+675 7012 3456" /></Field><Field label="Transaction reference (required)"><input placeholder="for example MP261020.0912.H45" /></Field></div>
+            <div style={{ marginBottom: 12 }}><Btn kind="tertiary" onClick={() => setModal('mobile')}>{t('billing.cashDesk.mobile.request', 'Send payment request')}</Btn><span className="note">Uses the mobile money gateway when one is set up.</span></div></>}
+          {mode === 'Card' && <div className="fieldrow"><Field label="Last four digits (required)"><input /></Field><Field label="Approval code (required)"><input /></Field></div>}
+          {mode === 'Bank transfer' && <div className="fieldrow"><Field label="Reference (required)"><input placeholder="for example BSP-77120" /></Field></div>}
+          <Btn onClick={() => { setPaid({ ...paid, [open]: true }); setPay(false); }}>{t('billing.cashDesk.saveAndPrint', 'Save and print receipt')}</Btn><Btn kind="ghost" onClick={() => setPay(false)}>Cancel</Btn>
+        </div>)}
+        {isPaid && (<div style={{ marginTop: 16 }}>
+          <Notice kind="success">{`Payment saved. Receipt R-2026-0044${17 + open} printed.`}</Notice>
+          <div className="row"><div className="rcpt">{`CENTRAL PUBLIC HEALTH LABORATORY
+Results desk 325 6800
+RECEIPT            R-2026-0044${17 + open}
+20/10/2026 09:14   Main reception
+Cashier: J. Kaupa
+Patient: ${o.name}  ${o.pid}
+Lab no:  ${o.lab}
+-------------------------------
+${o.lines.filter((l) => !l[5].startsWith('free:')).map((l) => `${l[0].slice(0, 24).padEnd(24)}${K(l[1]).padStart(7)}${l[2] !== l[1] ? `\n  Discount: ${l[5].replace('Override: ', '').slice(0, 18).padEnd(18)}${('-' + K(l[1] - l[2])).padStart(9)}` : ''}${l[5].startsWith('Exemption') ? `\n  Exemption: Pensioners${('-' + K(l[2] - l[3])).padStart(10)}` : ''}${l[4] ? `\n  Paid by ${o.billTo.slice(0, 15).padEnd(15)}${('-' + K(l[4])).padStart(9)}` : ''}`).join('\n')}
+-------------------------------
+TOTAL                   ${K(due).padStart(7)}
+Paid  ${mode.padEnd(18)}${K(due).padStart(7)}
+Balance left              K0.00`}</div>
+            <div><h5 style={{ margin: '0 0 8px' }}>{t('billing.cashDesk.receipts', 'Receipts')}</h5>
+              <div className="mini">{`R-2026-0044${17 + open} · 09:14 · ${K(due)} · ${mode}`}</div>
+              <div style={{ marginTop: 8 }}><Btn kind="danger--tertiary" onClick={() => setModal('void')} aria={`Void receipt R-2026-0044${17 + open}`}>{t('billing.cashDesk.voidReceipt', 'Void receipt')}</Btn></div>
+              <div style={{ marginTop: 8 }}><Btn kind="tertiary">{t('billing.cashDesk.sendReceipt', 'Send receipt')}</Btn><Btn kind="ghost" onClick={() => setRefund(true)}>{t('billing.cashDesk.refundOrCredit', 'Refund or credit')}</Btn></div>
+              <p className="note">Send receipt: SMS to +675 7012 3456 with the receipt number and amount, no test names.</p>
+              <p className="note">Void is offered only during the shift that issued the receipt.</p></div></div>
+          {refund && (<div className="tile" style={{ marginTop: 12 }}><h5 style={{ margin: '0 0 8px' }}>Refund or credit</h5>
+            <div className="fieldrow"><Field label="Amount"><input defaultValue="28.00" /></Field><Field label="What to do"><select><option>Refund</option><option>Keep as credit</option></select></Field></div>
+            <div className="fieldrow"><Field label="Reason"><select><option>Test cancelled before testing</option><option>Wrong price list</option><option>Other</option></select></Field><Field label="Note"><input defaultValue="Culture cancelled: sample leaked" /></Field></div>
+            <p className="note">Original receipt R-2026-0044{17 + open}. Refunds over K100.00 need a billing manager's approval.</p>
+            <Btn onClick={() => setRefund(false)}>Save and print refund receipt</Btn><Btn kind="ghost" onClick={() => setRefund(false)}>Cancel</Btn></div>)}
+        </div>)}
+      </div>
+    </div>
+    {modal === 'void' && <div className="modal-back"><div className="modal" role="dialog" aria-modal="true">
+      <div className="mini">Cash Desk</div><h3 style={{ fontWeight: 400 }}>{`Void receipt R-2026-0044${17 + open}?`}</h3>
+      <p style={{ fontSize: 14 }}>The payment is reversed and the receipt is kept, marked Void. This cannot be undone.</p>
+      <Field label={t('billing.common.reason', 'Reason')}><select><option>Wrong patient</option><option>Wrong amount</option><option>Other</option></select></Field>
+      <div className="ft"><button style={{ background: '#393939', color: '#fff' }} onClick={() => setModal(null)}>Cancel</button><button style={{ background: '#da1e28', color: '#fff' }} onClick={() => { setModal(null); setPaid({ ...paid, [open]: false }); }}>Void receipt</button></div></div></div>}
+    {modal === 'close' && <div className="modal-back"><div className="modal" role="dialog" aria-modal="true">
+      <div className="mini">Cash Desk · Main reception</div><h3 style={{ fontWeight: 400 }}>Close shift?</h3>
+      <table style={{ width: '100%', fontSize: 14 }}><tbody><tr><td>Opening float</td><td style={{ textAlign: 'right' }}>{K(200)}</td></tr><tr><td>Cash payments (23)</td><td style={{ textAlign: 'right' }}>{K(1240)}</td></tr><tr><td>Cash refunds (1)</td><td style={{ textAlign: 'right' }}>{K(-60)}</td></tr><tr style={{ fontWeight: 600 }}><td>{t('billing.shift.expected', 'Expected in the drawer')}</td><td style={{ textAlign: 'right' }}>{K(1380)}</td></tr></tbody></table>
+      <div className="fieldrow" style={{ marginTop: 12 }}><Field label={t('billing.shift.counted', 'Counted')} helper="Difference: -K10.00"><input defaultValue="1,370.00" /></Field><Field label="Note"><input defaultValue="Short K10" /></Field></div>
+      <p className="note">Prints the shift summary: payments by mode, refunds, voids, receipts R-2026-004395 to R-2026-004417.</p>
+      <div className="ft"><button style={{ background: '#393939', color: '#fff' }} onClick={() => setModal(null)}>Cancel</button><button style={{ background: '#0f62fe', color: '#fff' }} onClick={() => setModal(null)}>Close shift and print summary</button></div></div></div>}
+    {modal === 'mobile' && <div className="modal-back"><div className="modal" role="dialog" aria-modal="true">
+      <div className="mini">Mobile money</div><h3 style={{ fontWeight: 400 }}>{t('billing.cashDesk.mobile.waiting', 'Waiting for the patient to approve on their phone')}</h3>
+      <p style={{ fontSize: 14 }}>{`Request for ${K(due)} sent to +675 7012 3456. The payment is recorded when the gateway confirms it.`}</p>
+      <div className="ft"><button style={{ background: '#393939', color: '#fff' }} onClick={() => setModal(null)}>Cancel request</button><button style={{ background: '#0f62fe', color: '#fff' }} onClick={() => { setModal(null); setPaid({ ...paid, [open]: true }); setPay(false); }}>Gateway confirmed (preview)</button></div></div></div>}
+  </div>);
+}
+
+/* ---------------- Bills & Statements ---------------- */
+const bills = [
+  ['ST-2026-0091', 'Statement', 'Port Moresby General Hospital', 'October 2026 (draft, made on demand)', '', '', 4980, 0, 'draft', ''],
+  ['ST-2026-0088', 'Statement', 'Port Moresby General Hospital', 'September 2026', '01/10/2026', '31/10/2026', 4200, 3000, 'open', ''],
+  ['ST-2026-0084', 'Statement', '9 Mile Urban Clinic', 'August 2026', '01/09/2026', '01/10/2026', 1860, 0, 'overdue', '08/10/2026 (1 of 3)'],
+  ['ST-2026-0080', 'Statement', 'National TB Program', 'September 2026', '01/10/2026', '31/10/2026', 2340, 2340, 'paid', ''],
+  ['BL-2026-0312', 'Bill', 'Highlands Water Authority', 'CPHL-26-E00871', '18/10/2026', '17/11/2026', 1800, 0, 'open', ''],
+  ['ST-2026-0072', 'Statement', 'Gerehu General Hospital', 'July 2026', '01/08/2026', '31/08/2026', 920, 0, 'void', ''],
+];
+const billLines = {
+  'ST-2026-0091': [['03/10/2026', 'CPHL-26-003911', 'D.M. · PT-0040719', 'CBC', 'PMGH-H01', K(20), '', K(20)], ['', '', '', '… 130 more lines', '', '', '', '']],
+  'ST-2026-0088': [['02/09/2026', 'CPHL-26-003311', 'B.T. · PT-0039920', 'CBC', 'PMGH-H01', K(20), '', K(20)], ['05/09/2026', 'CPHL-26-003402', 'S.N. · PT-0040117', 'HIV viral load', 'PMGH-V10', K(70), '', K(70)], ['11/09/2026', 'CPHL-26-003580', 'A.K. · PT-0040511', <span>Culture & sensitivity <span className="cds--tag cds--tag--warm-gray">Disputed</span><div className="note">Ward says sample was never sent (L. Morea, 14/10)</div></span>, 'PMGH-C05', K(40), 'Agreed with the client', K(32)], ['', '', '', '… 117 more lines', '', '', '', ''], ['', '', '', 'Credit: CPHL-26-003402 CD4 billed twice', '', '', '', K(-45)]],
+  'ST-2026-0084': [['04/08/2026', 'CPHL-26-002877', 'W.P. · PT-0038101', 'Malaria RDT', '9MC-02', K(8), '', K(8)], ['', '', '', '… 63 more lines', '', '', '', '']],
+  'ST-2026-0080': [['01/09/2026', 'CPHL-26-003290', 'K.S. · PT-0039870', 'GeneXpert MTB/RIF', 'NTP-GX', K(60), '', K(60)], ['', '', '', '… 38 more lines', '', '', '', '']],
+  'BL-2026-0312': [['18/10/2026', 'CPHL-26-E00871', 'Site HWA-07 Ela Beach intake', 'Water microbiology panel × 12 (GST 10%)', 'HWA-WMP', K(1800), 'Quote Q-2026-0042', K(1800)], ['', '', '', 'Prices include tax: taxable K1,636.36, GST 10% on K1,636.36: K163.64', '', '', '', '']],
+  'ST-2026-0072': [['', '', '', 'Voided 05/08/2026 by L. Morea: "Made for the wrong period". Its lines returned to the next statement.', '', '', '', '']],
+};
+const billHist = {
+  'ST-2026-0091': ['20/10/2026 Made on demand by L. Morea (Make statement now)', 'Over the K5,000.00 credit limit with ST-2026-0088'],
+  'ST-2026-0088': ['19/10/2026 Bank transfer, ref BSP-77120, K3,000.00 · recorded by L. Morea', '01/10/2026 Issued and sent to accounts@pmgh.health.gov.pg (Sent Messages: Billing)', 'Odoo: invoice INV/2026/0412, payment not in Odoo yet (retrying)'],
+  'ST-2026-0084': ['08/10/2026 Reminder 1 of 3 sent to accounts@9mileclinic.example', '01/09/2026 Issued and sent'],
+  'ST-2026-0080': ['12/10/2026 Bank transfer, ref NTP-2026-311, K2,340.00', '01/10/2026 Issued and sent to ntp.finance@health.gov.pg'],
+  'BL-2026-0312': ['18/10/2026 Bill made with order CPHL-26-E00871 (Per order only)'],
+  'ST-2026-0072': ['05/08/2026 Voided'],
+};
+const bst = { draft: ['gray', 'Draft'], open: ['blue', 'Open'], overdue: ['red', 'Overdue'], paid: ['green', 'Paid'], void: ['gray', 'Void'] };
+function Bills() {
+  const [exp, setExp] = useState(1);
+  const [filter, setFilter] = useState('all');
+  const [rec, setRec] = useState(false);
+  const rows = bills.filter((b) => filter === 'all' || b[8] === filter);
+  return (<div>
+    <Header crumbs={['Home', 'Billing', 'Bills & Statements']} title="Bills & Statements" sub={t('billing.bills.subtitle', 'What institutions, programs, clients and walk-in payers owe, by bill or monthly statement.')} />
+    <div className="toolbar"><input className="search" placeholder="Search number or payer" aria-label="Search" />
+      <select className="sel" value={filter} onChange={(e) => { setFilter(e.target.value); setExp(null); }} aria-label="Status"><option value="all">All statuses</option><option value="draft">Draft</option><option value="open">Open</option><option value="overdue">Overdue</option><option value="paid">Paid</option><option value="void">Void</option></select>
+      <select className="sel" aria-label="Kind"><option>All kinds</option><option>Bill</option><option>Statement</option></select>
+      <Btn kind="ghost">{t('billing.bills.importOpening', 'Import opening balances')}</Btn><Btn kind="tertiary">{t('billing.bills.issueAll', 'Issue all drafts')}</Btn><Btn kind="primary">{t('billing.bills.makeNow', 'Make statement now')}</Btn></div>
+    <Table headers={['Number', 'Kind', 'Payer', 'Period or order', 'Issued', 'Due', 'Total', 'Paid', 'Balance', 'Status', 'Last reminder']} num={[6, 7, 8]}
+      rows={rows.map((b) => [b[0], b[1], b[2], b[3], b[4] || '-', b[5] || '-', K(b[6]), K(b[7]), K(b[6] - b[7]), <Tag kind={bst[b[8]][0]}>{bst[b[8]][1]}</Tag>, b[9] || '-'])}
+      onRow={(i) => { setExp(exp === i ? null : i); setRec(false); }} expanded={exp}
+      renderExpand={(i) => { const b = rows[i]; return (<div className="row"><div style={{ flex: 2 }}>
+        <h5 style={{ margin: '0 0 8px' }}>Lines</h5>
+        <Table headers={['Released', 'Lab No', 'Patient or site', 'Test', 'Payer code', 'List price', 'Discount', 'Charged']} num={[5, 7]} rows={billLines[b[0]]} />
+        {b[1] === 'Statement' && <p className="note">Statements show initials and patient ID (setting: Statements show).</p>}</div>
+        <div style={{ flex: 1 }}><h5 style={{ margin: '0 0 8px' }}>Payments and history</h5>
+          {billHist[b[0]].map((h, k) => <div key={k} className="mini">{h}</div>)}
+          {b[8] === 'draft' && <div style={{ marginTop: 12 }}><Btn>{t('billing.bills.issue', 'Issue')}</Btn><Btn kind="danger--ghost">Void</Btn></div>}
+          {(b[8] === 'open' || b[8] === 'overdue') && <div style={{ marginTop: 12 }}><Btn onClick={() => setRec(true)}>{t('billing.bills.recordPayment', 'Record payment')}</Btn><Btn kind="ghost">{t('billing.bills.dispute', 'Mark disputed')}</Btn><Btn kind="tertiary">Send</Btn><Btn kind="ghost">Print</Btn><Btn kind="ghost">{t('billing.bills.creditLine', 'Credit a line')}</Btn><Btn kind="danger--ghost">Void</Btn></div>}
+          {(b[8] === 'paid' || b[8] === 'void') && <div style={{ marginTop: 12 }}><Btn kind="ghost">Print</Btn></div>}
+          {rec && (<div className="tile" style={{ marginTop: 12 }}><div className="fieldrow"><Field label="Amount"><input defaultValue={(b[6] - b[7]).toFixed(2)} /></Field><Field label="Date"><input defaultValue="20/10/2026" /></Field></div>
+            <div className="fieldrow"><Field label="Payment mode"><select><option>Bank transfer</option><option>Cash</option><option>Mobile money</option></select></Field><Field label="Reference (required)"><input /></Field></div>
+            <p className="note">Applied to the statement's lines, oldest first.</p><Btn onClick={() => setRec(false)}>Save</Btn><Btn kind="ghost" onClick={() => setRec(false)}>Cancel</Btn></div>)}
+        </div></div>); }} />
+  </div>);
+}
+
+/* ---------------- Quotes ---------------- */
+const quotes = [
+  ['Q-2026-0042', 'Highlands Water Authority', 'Water microbiology panel × 40, Heavy metals panel × 8', 8560, '30/11/2026', '12 of 48', ['green', 'Accepted']],
+  ['Q-2026-0040', 'Morobe Provincial Health Office', 'Food microbiology panel × 20', 2600, '15/11/2026', '0 of 20', ['purple', 'Sent']],
+  ['Q-2026-0039', 'Kokoda Fresh Produce', 'Pesticide residue panel × 6', 1920, '10/11/2026', '-', ['gray', 'Draft']],
+  ['Q-2026-0031', 'Highlands Water Authority', 'Water microbiology panel × 30', 4350, '01/09/2026', '30 of 30', ['teal', 'Converted']],
+  ['Q-2026-0028', 'Lae City Council', 'Heavy metals panel × 10', 3200, '20/08/2026', '0 of 10', ['warm-gray', 'Expired']],
+];
+const quoteLines = {
+  'Q-2026-0042': { lines: [['Water microbiology panel', '40', K(150), K(150), K(6000)], ['Heavy metals panel (Agreed with the client)', '8', K(340), K(320), K(2560)]], hist: ['15/10/2026 Accepted by email (S. Gima, Highlands Water Authority)', '18/10/2026 Used by CPHL-26-E00871 (12 water samples)'], used: 25 },
+  'Q-2026-0040': { lines: [['Food microbiology panel', '20', K(130), K(130), K(2600)]], hist: ['16/10/2026 Sent to phe.morobe@health.gov.pg'], used: 0 },
+  'Q-2026-0039': { lines: [['Pesticide residue panel', '6', K(320), K(320), K(1920)]], hist: ['19/10/2026 Draft by L. Morea'], used: 0 },
+  'Q-2026-0031': { lines: [['Water microbiology panel', '30', K(145), K(145), K(4350)]], hist: ['Accepted 02/07/2026 (Signed)', 'Used by CPHL-26-E00512, CPHL-26-E00590'], used: 100 },
+  'Q-2026-0028': { lines: [['Heavy metals panel', '10', K(320), K(320), K(3200)]], hist: ['Sent 21/07/2026', 'Expired 20/08/2026, not accepted'], used: 0 },
+};
+function Quotes() {
+  const [exp, setExp] = useState(0);
+  const [nw, setNw] = useState(false);
+  return (<div>
+    <Header crumbs={['Home', 'Billing', 'Quotes']} title="Quotes" sub={t('billing.quotes.subtitle', 'Prices agreed with environmental clients before their samples arrive.')} />
+    <div className="toolbar"><input className="search" placeholder="Search quote number or client" aria-label="Search" /><select className="sel" aria-label="Status"><option>All statuses</option><option>Draft</option><option>Sent</option><option>Accepted</option><option>Expired</option><option>Converted</option></select><Btn onClick={() => setNw(true)}>{t('billing.quotes.new', 'New quote')}</Btn></div>
+    {nw && (<div className="tile" style={{ marginBottom: 16 }}><h5 style={{ margin: '0 0 8px' }}>New quote</h5>
+      <div className="fieldrow"><Field label="Client (search payers)"><input defaultValue="Kokoda Fresh Produce" /></Field><Field label="Contact"><input defaultValue="T. Ravu, quality@kokodafresh.example" /></Field><Field label="Valid until"><input defaultValue="19/11/2026" /></Field></div>
+      <div className="fieldrow"><Field label="Add tests or panels (search)"><input placeholder="Search tests and panels" /></Field><Field label="Samples"><input defaultValue="6" /></Field><Field label="Notes printed on the quote"><input defaultValue="Samples must arrive chilled within 24 hours of collection." /></Field></div>
+      <Btn onClick={() => setNw(false)}>Save draft</Btn><Btn kind="tertiary" onClick={() => setNw(false)}>Save and send</Btn><Btn kind="ghost" onClick={() => setNw(false)}>Cancel</Btn></div>)}
+    <Table headers={['Quote', 'Client', 'Items', 'Total', 'Valid until', 'Samples received', 'Status']} num={[3]}
+      rows={quotes.map((x) => [x[0], x[1], x[2], K(x[3]), x[4], x[5], <Tag kind={x[6][0]}>{x[6][1]}</Tag>])}
+      onRow={(i) => setExp(exp === i ? null : i)} expanded={exp}
+      renderExpand={(i) => { const q = quotes[i]; const d = quoteLines[q[0]]; return (<div className="row"><div style={{ flex: 2 }}>
+        <Table headers={['Item', 'Samples', 'List price', 'Quoted price', 'Line total']} num={[1, 2, 3, 4]} rows={[...d.lines, ['Total', '', '', '', K(q[3])]]} />
+        <p className="mini">{`Environmental clients 2026 prices include tax. Includes GST 10%: ${K(q[3] / 11)}.`}</p>
+        {q[6][1] === 'Accepted' && <p className="note">Prices locked until {q[4]}. Samples beyond the quoted counts, and tests not on the quote, are charged the list price and tagged "Over quote".</p>}</div>
+        <div style={{ flex: 1 }}>{d.hist.map((h, k) => <div key={k} className="mini">{h}</div>)}
+          {q[5] !== '-' && <div style={{ margin: '8px 0' }}><div className="bar"><span style={{ width: d.used + '%' }}></span></div><div className="mini">{q[5]} samples received</div></div>}
+          {q[6][1] === 'Draft' && <><Btn>Send</Btn><Btn kind="ghost">Edit</Btn></>}
+          {q[6][1] === 'Sent' && <><Btn>{t('billing.quotes.markAccepted', 'Mark accepted')}</Btn><Btn kind="ghost">Print</Btn></>}
+          {['Accepted', 'Expired', 'Converted'].includes(q[6][1]) && <><Btn kind="tertiary">Print</Btn><Btn kind="ghost">{t('billing.quotes.reissue', 'Re-issue')}</Btn></>}
+          {q[6][1] !== 'Draft' && <p className="note">A sent quote is never edited. Re-issue makes a new quote at today's prices, linked to this one.</p>}</div></div>); }} />
+  </div>);
+}
+
+/* ---------------- Claims ---------------- */
+const claims = [
+  ['CL-2026-00421', 'Kumul Health Cover', 'Batch, 9 patients', '12', 1278, 0, ['gray', 'Draft'], '-', '26/10/2026', true],
+  ['CL-2026-00418', 'Kumul Health Cover', 'M.K. · KHC-448812', '3', 121.5, 0, ['warm-gray', 'Partly accepted'], '19/10/2026', '-', true],
+  ['CL-2026-00417', 'Kumul Health Cover', 'P.W. · KHC-301177', '2', 112.5, 0, ['purple', 'Submitted'], '19/10/2026', '-', false],
+  ['CL-2026-00410', 'Kumul Health Cover', 'Batch, 14 patients', '21', 2480, 2480, ['green', 'Paid'], '06/10/2026', '-', false],
+  ['CL-2026-00402', 'Kumul Health Cover', 'L.N. · KHC-118230', '1', 63, 0, ['red', 'Rejected'], '08/10/2026', '-', true],
+  ['CL-2026-00396', 'Kumul Health Cover', 'Batch, 11 patients', '15', 1860, 1795, ['warm-gray', 'Partly paid'], '29/09/2026', '-', true],
+];
+function Claims() {
+  const [exp, setExp] = useState(1);
+  const [attn, setAttn] = useState(false);
+  const [voidAsk, setVoidAsk] = useState(false);
+  const rows = claims.filter((c) => !attn || c[9]);
+  const body = (c) => {
+    if (c[0] === 'CL-2026-00418') return (<div>
+      <Table headers={['Line', 'Service code', 'Service date', 'Claimed (Kumul 90%)', 'Allowed', 'Paid', 'Adjudication']} num={[3, 4, 5]} rows={[
+        ['CBC', 'KHC-LAB-001', '18/10/2026', K(20.25), K(20.25), K(0), <Tag kind="green">Accepted</Tag>],
+        ['Lipid panel', 'KHC-LAB-044', '18/10/2026', K(44.55), K(44.55), K(0), <Tag kind="green">Accepted</Tag>],
+        ['HbA1c', 'KHC-LAB-051', '18/10/2026', K(56.7), K(0), K(0), <span><Tag kind="red">Denied</Tag> Not covered: one HbA1c per 90 days</span>],
+      ]} />
+      <div className="row" style={{ marginTop: 12 }}><div style={{ flex: 1 }}>
+        <div className="mini">19/10/2026 08:02 Claim sent through the Kumul Health Cover HIE connection (FHIR R4 base adapter)</div>
+        <div className="mini">19/10/2026 11:40 ClaimResponse received: outcome partial</div>
+        <div className="mini">Coverage: checked 18/10/2026 07:55, Covered · Diagnosis E11.9</div></div>
+        <div><Btn>{t('billing.claims.fixResend', 'Fix and re-send')}</Btn><Btn kind="tertiary">{t('billing.claims.moveToPatient', "Move to the patient's share")}</Btn><Btn kind="danger--ghost" onClick={() => setVoidAsk(true)}>Void</Btn></div></div>
+      <p className="note">Fix and re-send sends a new claim for the denied line only, related "prior" to CL-2026-00418. Accepted lines cannot be re-sent. The denied line's charge stays Claimed until it is re-sent, moved to the patient or written off.</p></div>);
+    if (c[0] === 'CL-2026-00396') return (<div>
+      <h5 style={{ margin: '0 0 8px' }}>Differences (paid K1,795.00 of K1,860.00 by remittance "Paper advice 44/2026")</h5>
+      <Table headers={['Line', 'Claimed', 'Paid', 'Difference', 'Insurer reason', '']} num={[1, 2, 3]} rows={[
+        ['CPHL-26-003871 Lipid panel', K(44.55), K(40), K(4.55), 'Paid at 2025 tariff', <span><Btn kind="tertiary">{t('billing.claims.moveToPatient', "Move to the patient's share")}</Btn><Btn kind="ghost">{t('billing.claims.acceptAdjustment', 'Accept as adjustment')}</Btn></span>],
+        ['CPHL-26-003902 HIV viral load', K(63), K(2.55), K(60.45), 'Exceeds benefit limit', <span><Btn kind="tertiary">Move to the patient's share</Btn><Btn kind="ghost">Accept as adjustment</Btn></span>],
+        ['Total', '', '', K(65), '', ''],
+      ]} /></div>);
+    if (c[0] === 'CL-2026-00421') return (<div>
+      <p className="mini">12 lines from 9 patients, made by the daily batch at 18:00 on 19/10/2026. One line is <Tag kind="red">No pre-authorization</Tag> (Genotype, CPHL-26-004077). 2 lines reach their 90-day filing deadline on 26/10/2026, in 6 days.</p>
+      <Btn>Submit</Btn><Btn kind="ghost">{t('billing.claims.markPaper', 'Mark submitted on paper')}</Btn></div>);
+    if (c[0] === 'CL-2026-00402') return (<div><p className="mini">Rejected 08/10/2026: "Member not found". The member number on the patient was KHC-11823 (one digit short). Correct it, then Fix and re-send.</p><Btn>Fix and re-send</Btn></div>);
+    if (c[0] === 'CL-2026-00417') return (<div><p className="mini">Sent 19/10/2026 08:02. No answer yet; the adapter checks for a ClaimResponse every hour. Lines: HIV viral load {K(63)}, CD4 count {K(49.5)} (Kumul's 90%).</p></div>);
+    return (<div><p className="mini">Every line accepted 07/10/2026 and paid by remittance KHC-PN-2026-0998 on 12/10/2026 ({K(2480)}).</p></div>);
+  };
+  return (<div>
+    <Header crumbs={['Home', 'Billing', 'Claims']} title="Claims" sub={t('billing.claims.subtitle', 'Electronic claims to insurers for released tests, and what the insurers answered.')} />
+    <div className="toolbar"><input className="search" placeholder="Search claim, patient or member number" aria-label="Search" />
+      <select className="sel" aria-label="Insurer"><option>All insurers</option><option>Kumul Health Cover</option></select>
+      <select className="sel" aria-label="Status"><option>All statuses</option><option>Draft</option><option>Submitted</option><option>Accepted</option><option>Partly accepted</option><option>Rejected</option><option>Paid</option><option>Partly paid</option><option>Void</option></select>
+      <Toggle on={attn} onChange={(v) => { setAttn(v); setExp(null); }} label={t('billing.claims.needsAttention', 'Needs attention')} />
+      <Btn>{t('billing.claims.submit', 'Submit')}</Btn></div>
+    <Table select headers={['Claim', 'Insurer', 'Patient or batch', 'Lines', 'Claimed', 'Paid', 'Status', 'Submitted', 'Filing deadline']} num={[3, 4, 5]}
+      rows={rows.map((c) => [c[0], c[1], c[2], c[3], K(c[4]), K(c[5]), <Tag kind={c[6][0]}>{c[6][1]}</Tag>, c[7], c[8] === '-' ? '-' : <span>{c[8]} <Tag kind="red">in 6 days</Tag></span>])}
+      onRow={(i) => setExp(exp === i ? null : i)} expanded={exp} renderExpand={(i) => body(rows[i])} />
+    <p className="note">Claim lines carry the payer's share; Kumul Health Cover leaves a 10% patient share.</p>
+    {voidAsk && <div className="modal-back"><div className="modal" role="dialog" aria-modal="true"><div className="mini">Claims</div><h3 style={{ fontWeight: 400 }}>Void claim CL-2026-00418?</h3>
+      <p style={{ fontSize: 14 }}>The insurer is told the claim was sent in error. The claim is kept, marked Void.</p>
+      <div className="ft"><button style={{ background: '#393939', color: '#fff' }} onClick={() => setVoidAsk(false)}>Cancel</button><button style={{ background: '#da1e28', color: '#fff' }} onClick={() => setVoidAsk(false)}>Void claim</button></div></div></div>}
+  </div>);
+}
+
+/* ---------------- Remittances ---------------- */
+function Remittances() {
+  const [exp, setExp] = useState(0);
+  const [applied, setApplied] = useState(false);
+  const [byHand, setByHand] = useState(false);
+  const r = [
+    ['20/10/2026', 'Kumul Health Cover', 'KHC-PR-2026-1019', K(3420), '3 of 3', '0', applied ? ['green', 'Applied'] : ['blue', 'Matched']],
+    ['18/10/2026', 'Kumul Health Cover', 'KHC-PR-2026-1012', K(1985), '1 of 2', '1', ['red', 'Review']],
+    ['12/10/2026', 'Kumul Health Cover', 'KHC-PN-2026-0998', K(2480), '1 of 1', '0', ['green', 'Applied']],
+    ['06/10/2026', 'Kumul Health Cover (entered by hand)', 'Paper advice 44/2026', K(1795), '1 of 1', '0', ['green', 'Applied']],
+  ];
+  const det = [
+    [['CL-2026-00413', K(2480), 'Matched'], ['CL-2026-00414', K(560), 'Matched'], ['CL-2026-00415', K(380), 'Matched']],
+    [['CL-2026-00405', K(1795), 'Matched'], ['CL-2026-00399', K(190), 'Review']],
+    [['CL-2026-00410', K(2480), 'Applied']],
+    [['CL-2026-00396', K(1795), 'Applied']],
+  ];
+  return (<div>
+    <Header crumbs={['Home', 'Billing', 'Remittances']} title="Remittances" sub={t('billing.remittances.subtitle', "Insurers' payment notices, matched to the claims they pay.")} />
+    <div className="toolbar"><select className="sel" aria-label="Insurer"><option>All insurers</option></select><select className="sel" aria-label="Status"><option>All statuses</option><option>Matched</option><option>Review</option><option>Applied</option></select>
+      <Btn kind="tertiary" onClick={() => setApplied(true)}>{t('billing.remit.applyAll', 'Apply all matched')}</Btn><Btn kind="ghost" onClick={() => setByHand(true)}>{t('billing.remit.enterByHand', 'Enter a remittance by hand')}</Btn></div>
+    {byHand && (<div className="tile" style={{ marginBottom: 16 }}><h5 style={{ margin: '0 0 8px' }}>Enter a remittance by hand</h5>
+      <div className="fieldrow"><Field label="Insurer"><input defaultValue="Kumul Health Cover" /></Field><Field label="Payment date"><input defaultValue="20/10/2026" /></Field><Field label="Amount"><input defaultValue="560.00" /></Field><Field label="Reference"><input defaultValue="Paper advice 51/2026" /></Field></div>
+      <div className="fieldrow"><Field label="Claim (search)"><input defaultValue="CL-2026-00417" /></Field><Field label="Amount for this claim"><input defaultValue="112.50" /></Field><Field label=" "><Btn kind="ghost">Add another claim</Btn></Field></div>
+      <p className="note">Matched the same way as electronic remittances.</p><Btn onClick={() => setByHand(false)}>Save and match</Btn><Btn kind="ghost" onClick={() => setByHand(false)}>Cancel</Btn></div>)}
+    <Table headers={['Received', 'Insurer', 'Reference', 'Amount', 'Matched', 'Unmatched', 'Status']} num={[3]}
+      rows={r.map((x) => [x[0], x[1], x[2], x[3], x[4], x[5], <Tag kind={x[6][0]}>{x[6][1]}</Tag>])}
+      onRow={(i) => setExp(exp === i ? null : i)} expanded={exp}
+      renderExpand={(i) => (<div>
+        <p className="mini">{i === 3 ? 'Entered by hand by L. Morea from a paper advice.' : 'Received as PaymentReconciliation (FHIR R4 base adapter, the Kumul Health Cover claim connection).'}{i === 1 && ' Nothing on this remittance is applied until every detail is matched or held.'}</p>
+        <Table headers={['Claim', 'Amount', 'Match', '']} num={[1]} rows={det[i].map((d) => [d[0], d[1],
+          d[2] === 'Review' ? <span><Tag kind="red">Review</Tag> No claim CL-2026-00399 for this insurer</span> : d[2] === 'Applied' || (i === 0 && applied) ? <Tag kind="green">Applied</Tag> : <Tag kind="blue">Matched</Tag>,
+          d[2] === 'Review' ? <span><Btn kind="tertiary">{t('billing.remit.matchToClaim', 'Match to a claim')}</Btn><Btn kind="ghost">{t('billing.remit.holdUnapplied', 'Hold as unapplied')}</Btn></span> : ''])} />
+        {i === 0 && !applied && <div style={{ marginTop: 8 }}><Btn onClick={() => setApplied(true)}>{t('billing.remit.apply', 'Apply')}</Btn></div>}
+        {i === 0 && applied && <Notice kind="success">Applied. 24 charges set to Paid; order Payment status "Set by Billing".</Notice>}
+      </div>)} />
+  </div>);
+}
+
+/* ---------------- Unbilled Work ---------------- */
+function Unbilled() {
+  const [done, setDone] = useState([]);
+  const u = [
+    ['19/10/2026', 'CPHL-26-004102', 'Culture & sensitivity', 'Microbiology', 'Added at bench', 'Patient'],
+    ['19/10/2026', 'CPHL-26-004110', 'HIV confirmatory test', 'Serology', 'Reflex', 'Kumul Health Cover'],
+    ['19/10/2026', 'CPHL-26-004133', 'HbA1c', 'Chemistry', 'Analyzer', 'Port Moresby General Hospital'],
+    ['20/10/2026', 'CPHL-26-004150', 'Vitamin D', 'Chemistry', 'No price', 'Kumul Health Cover'],
+    ['20/10/2026', 'CPHL-26-004161', 'Malaria RDT', 'Haematology', 'Repeat', 'Patient'],
+    ['20/10/2026', 'CPHL-26-E00873', 'Total coliforms', 'Environmental Microbiology', 'Added at bench', 'Highlands Water Authority'],
+    ['20/10/2026', 'CPHL-26-004170', 'Gram stain', 'Microbiology', 'Unknown', 'Patient'],
+  ];
+  const rows = u.filter((x, i) => !done.includes(i));
+  return (<div>
+    <Header crumbs={['Home', 'Billing', 'Unbilled Work']} title="Unbilled Work" sub={t('billing.unbilled.subtitle', 'Released tests that have no charge and no reason to be free. Charge them or say why they are free.')} />
+    <div className="toolbar"><select className="sel" aria-label="Lab unit"><option>All lab units</option><option>Chemistry</option><option>Microbiology</option></select><select className="sel" aria-label="How added"><option>Any way added</option><option>Added at bench</option><option>Reflex</option><option>Analyzer</option><option>Repeat</option><option>No price</option></select><select className="sel" aria-label="Period"><option>Last 7 days</option></select></div>
+    {rows.length === 0 ? <div className="tile">{t('billing.unbilled.empty', 'Every released test is charged or has a reason to be free.')}</div> :
+      <Table select headers={['Released', 'Lab No', 'Test', 'Lab unit', 'How it was added', 'Bill to', '']}
+        rows={rows.map((x) => [x[0], x[1], x[2], x[3], x[4] === 'No price' ? <Tag kind="red">No price</Tag> : x[4], x[5],
+          <span><Btn kind="tertiary" onClick={() => setDone([...done, u.indexOf(x)])}>{t('billing.unbilled.charge', 'Charge')}</Btn><Btn kind="ghost" onClick={() => setDone([...done, u.indexOf(x)])}>{t('billing.unbilled.markFree', 'Mark as free')}</Btn></span>])} />}
+    <p className="note">Vitamin D has no price on the Kumul Health Cover list. Add the price on Price Lists, then Re-price the order. Mark as free asks for a free reason; Waived also needs a note.</p>
+  </div>);
+}
+
+/* ---------------- Reports ---------------- */
+function Reports() {
+  const [rep, setRep] = useState('integrity');
+  const names = { integrity: 'Revenue integrity', revenue: 'Revenue', overrides: 'Overrides', aging: 'Aging', collections: 'Collections', tax: 'Tax', freeServices: 'Value of free services', referralCosts: 'Referral costs', denials: 'Denials and underpayment' };
+  return (<div>
+    <Header crumbs={['Home', 'Billing', 'Reports']} title="Reports" sub={t('billing.reports.subtitle', 'Revenue integrity, overrides, aging, collections, free services, referral costs and denials.')} />
+    <div className="toolbar"><select className="sel" value={rep} onChange={(e) => setRep(e.target.value)} aria-label="Report">{Object.entries(names).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
+      <select className="sel" aria-label="Period"><option>October 2026</option><option>September 2026</option></select>
+      {['integrity', 'overrides'].includes(rep) && <select className="sel" aria-label="Person"><option>Everyone</option><option>J. Kaupa</option><option>R. Tau</option><option>A. Siaguru</option></select>}
+      <select className="sel" aria-label="Cash point"><option>All cash points</option><option>Main reception</option><option>Outpatients</option></select><Btn kind="ghost">{t('billing.reports.export', 'Export CSV')}</Btn></div>
+    <div className="tile">
+      {rep === 'integrity' && (<div>
+        <h4 style={{ margin: '0 0 8px' }}>Released or delivered while unpaid</h4>
+        <Table headers={['Lab No', 'Patient balance', 'How released', 'By', 'Gate release reason']} num={[1]} rows={[
+          ['CPHL-26-003990', K(35), 'Report printed', 'A. Siaguru', '-'],
+          ['CPHL-26-004012', K(60), 'Report sent by email (automatic)', 'Automatic', '-'],
+          ['CPHL-26-004044', K(25), 'Testing released by gate', 'Dr. N. Pomat', 'Urgent: suspected meningitis'],
+          ['CPHL-26-004071', K(12), 'Report printed', 'A. Siaguru', '-'],
+        ]} />
+        <h4 style={{ margin: '16px 0 8px' }}>Receipt sequence</h4><p className="mini">No gaps in receipt numbers R-2026-004001 to R-2026-004417. 2 voids: R-2026-004133 (Wrong patient, J. Kaupa), R-2026-004290 (Wrong amount, R. Tau).</p>
+        <h4 style={{ margin: '16px 0 8px' }}>Refunds and credits</h4>
+        <Table headers={['Date', 'Receipt', 'Amount', 'Reason', 'Cashier', 'Approved by']} num={[2]} rows={[
+          ['08/10/2026', 'R-2026-004201', K(-150), 'Test cancelled: sample rejected', 'R. Tau', 'L. Morea'],
+          ['19/10/2026', 'R-2026-004330', K(-60), 'Test cancelled before testing', 'J. Kaupa', '-'],
+          ['19/10/2026', 'R-2026-004311', K(-25), 'Wrong price list', 'R. Tau', '-'],
+          ['19/10/2026', 'R-2026-004356', 'Credit K15.00', 'Overpaid: kept as credit', 'R. Tau', '-']]} />
+        <h4 style={{ margin: '16px 0 8px' }}>Cash counts</h4>
+        <Table headers={['Shift', 'Cashier', 'Expected', 'Counted', 'Difference', 'Note']} num={[2, 3, 4]} rows={[['19/10 07:40 to 16:05, Main reception', 'J. Kaupa', K(1380), K(1370), K(-10), 'Short K10'], ['19/10 07:55 to 16:30, Outpatients', 'R. Tau', K(860), K(860), K(0), ''], ['18/10 08:00, Outpatients', 'R. Tau', K(410), 'Not counted', '-', 'Closed automatically']]} />
+      </div>)}
+      {rep === 'overrides' && (<div>
+        <h4 style={{ margin: '0 0 8px' }}>Overrides and waivers</h4>
+        <Table headers={['Date', 'Lab No', 'Item', 'Payer', 'List', 'Charged', 'Difference', 'Reason', 'Note', 'By']} num={[4, 5, 6]} rows={[
+          ['20/10', 'CPHL-26-004188', 'Culture & sensitivity', 'Patient', K(45), K(28), K(-17), 'Hardship', 'Unemployed, two children tested', 'J. Kaupa'],
+          ['19/10', 'CPHL-26-004120', 'LFT panel', 'Patient', K(55), K(0), K(-55), 'Waived: Staff', 'Lab staff member', 'R. Tau'],
+          ['18/10', 'CPHL-26-004077', 'Whole order', 'OpenMRS (Hospital EMR)', '-', '-', '-', 'Bill in the lab instead', 'EMR invoice voided by the ward', 'J. Kaupa'],
+        ]} /><p className="mini">Totals: Hardship {K(-210)} (9) · Staff {K(-145)} (4). By person: J. Kaupa {K(-190)}, R. Tau {K(-165)}.</p>
+        <h4 style={{ margin: '16px 0 8px' }}>{t('billing.reports.overrides.exemptions', 'Exemptions')}</h4>
+        <Table headers={['Rule', 'Charges', 'Patient share waived']} num={[1, 2]} rows={[['Under-5 free care', '52', K(980)], ['Pensioners (50%)', '18', K(406)], ['Antenatal tests', '61', K(1830)]]} />
+        <h4 style={{ margin: '16px 0 8px' }}>{t('billing.reports.overrides.promotions', 'Promotions')}</h4>
+        <Table headers={['Promotion', 'Charges', 'Discount given']} num={[1, 2]} rows={[['Water week (running)', '31', K(372)]]} />
+      </div>)}
+      {rep === 'revenue' && (<div><Table headers={['Lab unit', 'Tests', 'Charged', 'Discounted', 'Waived and exempted', 'Collected', 'vs September']} num={[1, 2, 3, 4, 5]} rows={[
+        ['Haematology', '1,240', K(24800), K(-310), K(-1150), K(19880), '+6%'], ['Chemistry', '980', K(48020), K(-520), K(-640), K(38410), '+2%'], ['Microbiology', '410', K(18450), K(-210), K(-90), K(12930), '-4%'], ['Molecular', '702', K(42120), K(0), K(-47600), K(3120), '+11%'], ['Environmental Microbiology', '186', K(27900), K(-372), K(0), K(21600), '+18%']]} />
+        <p className="note">Group by test or panel, lab unit, payer, payer kind or month. Waived and exempted includes paying programs (National TB and HIV Programs).</p></div>)}
+      {rep === 'tax' && (<Table headers={['Rate', 'Payer kind', 'Taxable', 'Tax charged', 'Tax collected']} num={[2, 3, 4]} rows={[['GST 10%', 'Environmental client', K(25363.64), K(2536.36), K(1963.64)], ['Exempt', 'Patients, insurers, programs', K(141390), K(0), K(0)]]} />)}
+      {rep === 'aging' && (<Table headers={['Payer', 'Not yet due', '1 to 30', '31 to 60', '61 to 90', 'Over 90', 'Disputed', 'Total', '']} num={[1, 2, 3, 4, 5, 6, 7]} rows={[
+        ['Port Moresby General Hospital', K(6180), K(0), K(0), K(0), K(0), K(32), K(6180), <Tag kind="red">Over limit</Tag>],
+        ['9 Mile Urban Clinic', K(0), K(1860), K(0), K(0), K(0), K(0), K(1860), ''],
+        ['Kumul Health Cover (unapplied K190.00 on hold)', K(1410.5), K(256.5), K(65.5), K(0), K(0), K(0), K(1732.5), ''],
+        ['Highlands Water Authority', K(1800), K(0), K(0), K(0), K(0), K(0), K(1800), ''],
+        ['Gerehu General Hospital', K(0), K(0), K(0), K(860), K(4120), K(0), K(4980), ''],
+        ['Patients (all), 41 patients', K(0), K(612), K(140), K(35), K(0), K(0), K(787), ''],
+        ['Total', K(9390.5), K(2728.5), K(205.5), K(895), K(4120), K(32), K(17339.5), ''],
+      ]} />)}
+      {rep === 'collections' && (<div><Table headers={['Day', 'Cash', 'Mobile money', 'Card', 'Bank transfer', 'Remittances applied', 'Refunds', 'Total']} num={[1, 2, 3, 4, 5, 6, 7]} rows={[
+        ['20/10', K(1240), K(1594.5), K(350), K(0), K(0), K(0), K(3184.5)], ['19/10', K(1925), K(1120), K(205), K(3000), K(0), K(-85), K(6165)], ['18/10', K(1870), K(980), K(0), K(0), K(0), K(0), K(2850)]]} />
+        <p className="note">Remittances count on the day they are applied. KHC-PR-2026-1019 (Matched) and KHC-PR-2026-1012 (Review) are not applied yet.</p></div>)}
+      {rep === 'freeServices' && (<Table headers={['Program or rule', 'Tests', 'Value at Default list']} num={[1, 2]} rows={[
+        ['National TB Program (pays, K0 to patients)', '412', K(24720)], ['National HIV Program (pays)', '286', K(22880)], ['Exemption: Under-5 free care', '52', K(980)], ['Waivers (Hardship, Staff, Goodwill)', '17', K(410)], ['Total', '767', K(48990)]]} />)}
+      {rep === 'referralCosts' && (<div><Table headers={['Reference lab', 'Referred tests', 'Their charge to us', 'Our charge', 'Margin']} num={[1, 2, 3, 4]} rows={[
+        ['Pacific Reference Laboratory', '18', K(2160), K(2700), K(540)], ['Institute of Medical Research, Goroka', '6', K(480), K(480), K(0)]]} />
+        <h4 style={{ margin: '16px 0 8px' }}>Check an invoice: Pacific Reference Laboratory INV 7781, K2,160.00</h4>
+        <p className="mini">17 lines matched (K2,040.00). 1 invoiced but not sent: "TB culture, CPHL-26-003777" (K120.00). 1 sent but not invoiced: CPHL-26-003940 Genotype (cost K120.00).</p></div>)}
+      {rep === 'denials' && (<Table headers={['Insurer', 'Reason', 'Lines', 'Amount']} num={[2, 3]} rows={[
+        ['Kumul Health Cover', 'Denied: Not covered, one HbA1c per 90 days', '6', K(340.2)], ['Kumul Health Cover', 'Rejected: Member not found', '3', K(150)], ['Kumul Health Cover', 'Underpaid: Paid at 2025 tariff', '8', K(36.4)], ['Kumul Health Cover', 'Underpaid: Exceeds benefit limit', '2', K(100.9)]]} />)}
+    </div></div>);
+}
+
+/* ---------------- Admin: Price Lists ---------------- */
+function PriceLists() {
+  const [exp, setExp] = useState(1);
+  const [unpricedOnly, setUnpricedOnly] = useState(false);
+  const lists = [
+    ['Default (walk-in patients)', 'Patients, 2 programs', '412 of 418 billable', 6, 'Panel price', '01/01/2026', true],
+    ['Kumul Health Cover 2026', 'Kumul Health Cover', '398 of 418 billable', 20, 'Panel price', '01/03/2026', false],
+    ['Institutions 2026', 'Port Moresby General Hospital, 9 Mile Urban Clinic, Gerehu General Hospital', '418 of 418 billable', 0, 'Sum of tests', '01/01/2026', false],
+    ['Environmental clients 2026', 'Highlands Water Authority, 4 more', '96 of 102 billable', 6, 'Panel price', '01/01/2026', false],
+    ['Pacific Reference Laboratory (what they charge us)', 'Cost list for referrals', '44 of 44 referred tests', 0, 'Panel price', '01/07/2026', false, 'Cost list'],
+  ];
+  const items = [
+    ['CBC', 'HEM-001', 'Test', 'Haematology', K(22.5), 'KHC-LAB-001', '01/03/2026', 'L. Morea'],
+    ['Lipid panel', 'PNL-LIP', 'Panel', 'Chemistry', K(49.5), 'KHC-LAB-044', '01/03/2026', 'L. Morea'],
+    ['HbA1c', 'CHE-051', 'Test', 'Chemistry', <span>{K(63)} <span className="note">From 01/11/2026: {K(66)}</span></span>, 'KHC-LAB-051', '01/03/2026', 'L. Morea'],
+    ['Vitamin D', 'CHE-088', 'Test', 'Chemistry', <Tag kind="red">No price</Tag>, '', '', ''],
+    ['HIV viral load', 'MOL-010', 'Test', 'Molecular', K(70), 'KHC-LAB-210', '01/03/2026', 'L. Morea'],
+    ['Urgent surcharge', 'SVC-URG', 'Billable service', '-', K(20), 'KHC-SVC-02', '01/03/2026', 'L. Morea'],
+    ['Ferritin', 'CHE-090', 'Test', 'Chemistry', <Tag kind="red">No price</Tag>, '', '', ''],
+  ];
+  const shown = items.filter((x) => !unpricedOnly || x[6] === '');
+  const scope = ['Any domain', 'Any domain', 'Any domain', 'Environmental', 'Cost list for a reference lab'];
+  const otherItems = { 0: [['CBC', 'HEM-001', 'Test', 'Haematology', K(25), '', '01/01/2026', 'L. Morea'], ['Lipid panel', 'PNL-LIP', 'Panel', 'Chemistry', K(40), '', '01/01/2026', 'L. Morea'], ['GeneXpert MTB/RIF', 'MOL-001', 'Test', 'Molecular', K(60), '', '01/01/2026', 'L. Morea'], ['Ferritin', 'CHE-090', 'Test', 'Chemistry', <Tag kind="red">No price</Tag>, '', '', '']], 2: [['CBC', 'HEM-001', 'Test', 'Haematology', K(20), 'PMGH-H01', '01/01/2026', 'L. Morea'], ['HIV viral load', 'MOL-010', 'Test', 'Molecular', K(70), 'PMGH-V10', '01/01/2026', 'L. Morea']], 3: [['Water microbiology panel', 'ENV-WMP', 'Panel', 'Environmental Microbiology', K(150), 'HWA-WMP', '01/01/2026', 'L. Morea'], ['Heavy metals panel', 'ENV-HMP', 'Panel', 'Environmental Chemistry', K(340), '', '01/01/2026', 'L. Morea'], ['Pesticide residue panel', 'ENV-PRP', 'Panel', 'Environmental Chemistry', <Tag kind="red">No price</Tag>, '', '', '']], 4: [['TB culture', 'MYC-010', 'Test', 'Mycobacteriology', K(120), 'PRL-TBC', '01/07/2026', 'L. Morea'], ['Genotype', 'MOL-030', 'Test', 'Molecular', K(120), 'PRL-GEN', '01/07/2026', 'L. Morea']] };
+  const promos = { 0: [['World TB Day screening', 'GeneXpert MTB/RIF', K(0), '24/03 to 31/03/2026', 'Default', 'National TB Program campaign', <Tag kind="gray">Ended</Tag>, ''], ['Diabetes awareness month', 'HbA1c, Glucose fasting', '50% off', '01/11 to 30/11/2026', 'Default, Kumul Health Cover 2026', 'Ministry of Health campaign', <Tag kind="purple">Scheduled</Tag>, <Btn kind="ghost">Edit</Btn>]], 1: [['Diabetes awareness month', 'HbA1c, Glucose fasting', '50% off', '01/11 to 30/11/2026', 'Default, Kumul Health Cover 2026 (named)', 'Ministry of Health campaign', <Tag kind="purple">Scheduled</Tag>, <Btn kind="ghost">Edit</Btn>]], 2: [], 3: [['Water week', 'Every test in Environmental Microbiology', '20% off', '14/10 to 27/10/2026', 'Environmental clients 2026', 'Agreed with the Water Authority association', <Tag kind="green">Running</Tag>, <Btn kind="ghost">End now</Btn>]], 4: [] };
+  return (<div>
+    <Header crumbs={['Home', 'Admin Management', 'Billing', 'Price Lists']} title="Price Lists" sub={t('admin.billing.priceLists.subtitle', 'What each payer is charged for tests, panels and other fees. One list is the default.')} />
+    <div className="toolbar"><input className="search" placeholder="Search price lists" aria-label="Search" /><select className="sel" aria-label="Status"><option>Active</option><option>Inactive</option><option>All</option></select>
+      <a href="#promos" className="mini" style={{ margin: '0 8px' }}>Promotions: 1 running</a><Btn kind="tertiary">{t('admin.billing.priceLists.import', 'Import CSV')}</Btn><Btn>{t('admin.billing.priceLists.add', 'Add price list')}</Btn></div>
+    <Table headers={['Name', 'Used by', 'Items priced', 'Unpriced', 'Panel pricing', 'Valid from', 'Active']}
+      rows={lists.map((l) => [<span>{l[0]} {l[6] && <Tag kind="blue">Default</Tag>}</span>, l[1], l[2], l[3] ? <a href="#">{l[3]}</a> : '0', l[4], l[5], <input type="checkbox" defaultChecked aria-label="Active" disabled={l[6]} />])}
+      onRow={(i) => setExp(exp === i ? null : i)} expanded={exp}
+      renderExpand={(li) => (<div>
+        <div className="fieldrow"><Field label="Name"><input key={li} defaultValue={lists[li][0]} /></Field><Field label={t('admin.billing.priceLists.col.panelPricing', 'Panel pricing')}><select key={'p' + li} defaultValue={lists[li][4]}><option>Panel price</option><option>Sum of tests</option></select></Field><Field label="Scope"><input value={scope[li]} disabled /></Field><Field label={t('admin.billing.tax.includes', 'Prices include tax')}><select key={'t' + li} defaultValue={li === 3 ? 'Yes' : 'No'}><option>No</option><option>Yes</option></select></Field><Field label="Used by"><input value={lists[li][1]} disabled /></Field></div>
+        {lists[li][3] > 0 && <Notice kind="warning">{`${lists[li][3]} billable items have no price on this list. Orders billed with this list will show them as unpriced.`}</Notice>}
+        <div className="toolbar"><input className="search" placeholder={t('admin.billing.priceLists.itemSearch', 'Search tests, panels and services')} aria-label="Search items" /><select className="sel" aria-label="Kind"><option>All kinds</option><option>Test</option><option>Panel</option><option>Billable service</option></select><select className="sel" aria-label="Lab unit"><option>All lab units</option></select>
+          <Toggle on={unpricedOnly} onChange={setUnpricedOnly} label={t('admin.billing.priceLists.unpricedOnly', 'Unpriced only')} /><Btn kind="tertiary">{t('admin.billing.priceLists.addItem', 'Add item')}</Btn><Btn kind="ghost">{t('admin.billing.priceLists.export', 'Export CSV')}</Btn></div>
+        <Table headers={['Item', 'Code', 'Kind', 'Lab unit', 'Price', 'Payer billing code', 'Valid from', 'Changed by']} rows={li === 1 ? shown : otherItems[li].filter((x) => !unpricedOnly || x[6] === '')} />
+        <p className="note">{`Showing ${li === 1 ? shown.length : otherItems[li].length} of ${lists[li][2].split(' of ')[1]} · server-side paging · a price change asks for the date it takes effect.`}</p>
+        <h4 id="promos" style={{ margin: '16px 0 8px' }}>{t('admin.billing.promotions.title', 'Promotions')}</h4>
+        {promos[li].length ? <Table headers={['Name', 'Covers', 'Price or discount', 'Runs', 'Price lists', 'Reason', 'Status', '']} rows={promos[li]} /> : <p className="mini">No promotions on this list.</p>}
+        <div style={{ marginTop: 8 }}><Btn kind="tertiary">{t('admin.billing.promotions.add', 'Add promotion')}</Btn></div>
+      </div>)} />
+  </div>);
+}
+
+function Services() {
+  const [inact, setInact] = useState(false);
+  return (<div>
+    <Header crumbs={['Home', 'Admin Management', 'Billing', 'Billable Services']} title="Billable Services" sub={t('admin.billing.services.subtitle', 'Fees that are not tests, such as sample collection or an urgent surcharge. Price them on each price list.')} />
+    <div className="toolbar"><input className="search" placeholder="Search services" aria-label="Search" /><Toggle on={inact} onChange={setInact} label="Show deactivated" /><Btn>Add service</Btn></div>
+    <Table headers={['Name', 'Code', 'Kind', 'Added', 'Active']} rows={[
+      ['Venous blood collection', 'SVC-COL', 'Collection', 'By hand', <input type="checkbox" defaultChecked aria-label="Active" />],
+      ['Home collection', 'SVC-HOME', 'Collection', 'Automatically: Home collection', <input type="checkbox" defaultChecked aria-label="Active" />],
+      ['Urgent surcharge', 'SVC-URG', 'Surcharge', 'Automatically: Urgent priority', <input type="checkbox" defaultChecked aria-label="Active" />],
+      ['Report copy', 'SVC-COPY', 'Report or certificate', 'By hand', <input type="checkbox" defaultChecked aria-label="Active" />],
+      ['Certificate of analysis', 'SVC-CERT', 'Report or certificate', 'Automatically: Certificate issued', <input type="checkbox" defaultChecked aria-label="Active" />],
+      ['Courier (outer islands)', 'SVC-COUR', 'Other', 'By hand', <input type="checkbox" defaultChecked aria-label="Active" />],
+      ...(inact ? [['Weekend surcharge', 'SVC-WKND', 'Surcharge', 'By hand', <span><input type="checkbox" aria-label="Active" /> Deactivated 01/03/2026</span>]] : []),
+    ]} />
+  </div>);
+}
+
+function Exemptions() {
+  const [inact, setInact] = useState(false);
+  return (<div>
+    <Header crumbs={['Home', 'Admin Management', 'Billing', 'Exemption Rules']} title="Exemption Rules" sub={t('admin.billing.exemptions.subtitle', "Rules that waive the patient's share automatically, for example free care for children under 5.")} />
+    <div className="toolbar"><input className="search" placeholder="Search rules" aria-label="Search" /><Toggle on={inact} onChange={setInact} label="Show deactivated" /><Btn>{t('admin.billing.exemptions.add', 'Add rule')}</Btn></div>
+    <Table headers={['Name', 'When', 'Waives', 'Runs', 'Active']} rows={[
+      ['Under-5 free care', 'Patient age under 5 years', "All of the patient's share", 'No end date', <input type="checkbox" defaultChecked aria-label="Active" />],
+      ['Antenatal tests', 'Sex Female · Order program Antenatal care · Tests: Hb, Syphilis RDT, HIV RDT, Blood group', "All of the patient's share", 'No end date', <input type="checkbox" defaultChecked aria-label="Active" />],
+      ['Pensioners', 'Patient age over 65 years · Payer type Patient', "50% of the patient's share", 'From 01/07/2026', <input type="checkbox" defaultChecked aria-label="Active" />],
+      ['TB contacts screening', 'Enrolled in program National TB Program · Lab unit Mycobacteriology', "All of the patient's share", 'Until 31/12/2026', <input type="checkbox" defaultChecked aria-label="Active" />],
+      ...(inact ? [['COVID-19 testing (2021)', 'Tests: SARS-CoV-2 PCR', "All of the patient's share", 'Ended 31/12/2022', <span><input type="checkbox" aria-label="Active" /> Deactivated</span>]] : []),
+    ]} expanded={0} renderExpand={() => (<div>
+      <div className="fieldrow"><Field label="Name (printed on receipts)"><input defaultValue="Under-5 free care" /></Field><Field label="Waives"><select><option>All of the patient's share</option><option>A percentage</option></select></Field></div>
+      <div className="fieldrow"><Field label="Patient age"><select><option>Under</option><option>Over</option><option>Between</option></select></Field><Field label="Age"><input defaultValue="5" /></Field><Field label="Unit"><select><option>Years</option><option>Months</option></select></Field><Field label="Tests or panels (search)" helper="Empty means every billable item"><input placeholder="Search tests and panels" /></Field></div>
+      <Btn>Save</Btn><Btn kind="ghost">Cancel</Btn><Btn kind="danger--ghost">Deactivate</Btn></div>)} />
+  </div>);
+}
+
+function PaymentModes() {
+  return (<div>
+    <Header crumbs={['Home', 'Admin Management', 'Billing', 'Payment Modes & Cash Points']} title="Payment Modes & Cash Points" sub={t('admin.billing.paymentModes.subtitle', 'How patients can pay, and the cash points where cashiers take payments.')} />
+    <h4 style={{ margin: '8px 0' }}>{t('admin.billing.paymentModes.modes', 'Payment modes')}</h4>
+    <Table headers={['Name', 'Kind', 'Extra fields', 'Counted in the drawer', 'Active']} rows={[
+      ['Cash', 'Cash', '-', 'Yes', <input type="checkbox" defaultChecked aria-label="Active" />],
+      ['Mobile money', 'Mobile money', 'Phone number (required) · Transaction reference (required)', 'No', <input type="checkbox" defaultChecked aria-label="Active" />],
+      ['Card', 'Card', 'Last four digits (required) · Approval code (required)', 'No', <input type="checkbox" defaultChecked aria-label="Active" />],
+      ['Bank transfer', 'Bank transfer', 'Reference (required)', 'No', <input type="checkbox" defaultChecked aria-label="Active" />],
+      ['Hospital voucher', 'Voucher', 'Voucher number (required, pattern PMGH-#####)', 'No', <input type="checkbox" aria-label="Active" />],
+    ]} />
+    <div style={{ margin: '8px 0 16px' }}><Btn kind="tertiary">Add payment mode</Btn></div>
+    <h4 style={{ margin: '8px 0' }}>{t('admin.billing.paymentModes.cashPoints', 'Cash points')}</h4>
+    <Table headers={['Name', 'Location', 'Open shifts', 'Active']} rows={[['Main reception', 'Ground floor, CPHL main building', '1 (J. Kaupa)', <input type="checkbox" defaultChecked aria-label="Active" />], ['Outpatients', 'Collection room 2', '1 (R. Tau)', <input type="checkbox" defaultChecked aria-label="Active" />], ['Environmental intake', 'Sample reception, Block C', '0', <input type="checkbox" defaultChecked aria-label="Active" />]]} />
+    <div style={{ marginTop: 8 }}><Btn kind="tertiary">Add cash point</Btn></div>
+  </div>);
+}
+
+function TaxRates() {
+  const [inact, setInact] = useState(false);
+  return (<div>
+    <Header crumbs={['Home', 'Admin Management', 'Billing', 'Tax Rates']} title="Tax Rates" sub="Tax charged on tests, panels and other fees. Each item has a tax category; payers can be tax exempt." />
+    <div className="toolbar"><input className="search" placeholder="Search tax rates" aria-label="Search" /><Toggle on={inact} onChange={setInact} label="Show deactivated" /><Btn>Add tax rate</Btn></div>
+    <Table headers={['Name', 'Rate', 'Tax code', 'Valid from', 'Items in this category', 'Active']} num={[1]} rows={[
+      [<span>Exempt <Tag kind="blue">Default</Tag></span>, '0%', 'EX', '01/01/2026', '412 clinical tests and panels', <input type="checkbox" defaultChecked disabled aria-label="Active" />],
+      ['GST 10%', '10%', 'GST10', '01/01/2026', '96 environmental tests and panels, 3 billable services', <input type="checkbox" defaultChecked aria-label="Active" />],
+      ...(inact ? [['GST 10% (to 2025)', '10%', 'GST10', '01/01/2019 to 31/12/2025', '0', <span><input type="checkbox" aria-label="Active" /> Deactivated</span>]] : []),
+    ]} />
+    <p className="note">Tax-exempt payers (for example National TB Program, certificate NTP-TX-2026-04) are set in the payer's Billing section on Organizations or Programs.</p>
+  </div>);
+}
+
+function Config() {
+  const areas = ['All areas', 'Lab identity', 'Language & display', 'Patients', 'Orders & samples', 'Billing', 'Results & validation', 'Workplans', 'Labels & barcodes', 'Notifications', 'Integrations & exchange', 'Storage & devices', 'Security & access', 'Menus & help', 'System & server'];
+  const S = ({ t: title, d, v }) => <div className="setting"><div><div className="t">{title}</div><div className="ds">{d}</div></div><div style={{ minWidth: 260, textAlign: 'right', fontSize: 14 }}>{v}</div></div>;
+  return (<div>
+    <Header crumbs={['Home', 'Admin Management', 'Configuration']} title="Configuration" sub="Every laboratory setting in one place. Search, or narrow the list by area." />
+    <div className="area"><div className="left">{areas.map((a) => <div key={a} className={a === 'Billing' ? 'on' : ''}>{a}</div>)}</div>
+      <div style={{ flex: 1 }} className="tile"><h4 style={{ margin: '0 0 8px' }}>BILLING</h4>
+        <S t="Payment gate" d="Hold testing or the report until the patient's share is paid. Orders billed to an insurer, institution, program or client never wait." v={<select className="sel"><option>Off</option><option>Hold testing until the patient's share is paid</option><option>Hold the report until paid</option></select>} />
+        <S t="Currency" d="Set once in the distribution configuration." v="PGK, K, 2 decimal places (read-only)" />
+        <S t="Receipt prefix" d="" v="R" />
+        <S t="Restart receipt numbers each year" d="" v="On" />
+        <S t="Receipt paper" d="" v="80 mm" />
+        <S t="Fiscal number required on receipts" d="" v="Off" />
+        <S t="Refund approval limit" d="Refunds above this amount need a billing manager's approval. Leave empty for no approval." v={K(100)} />
+        <S t="Statements show" d="" v="Initials and patient ID" />
+        <S t="Statement payment instructions" d="Printed on every statement, per language." v="BSP account 1000 2299 11, reference = statement number" />
+        <S t="Reminders" d="Days after due before the first reminder, days between reminders, reminders to send." v="7 · 14 · 3" />
+        <S t="Patient balance reminders" d="One SMS or email to a patient whose balance is still due this many days after release. Never names a test." v="Off" />
+        <S t="Quote valid for (days)" d="" v="30" />
+        <S t="Coverage check valid for (hours)" d="" v="24" />
+        <S t="Warn before a claim filing deadline (days)" d="" v="7" />
+        <S t="Track patient payment" d="trackPayment" v="Replaced by Billing" />
+        <S t="Billing reference number" d="billingRefNumber, label per language" v="On · Label: Hospital invoice no." />
+        <p className="note">Odoo settings stay in Integrations & exchange (server file, read-only).</p></div></div>
+  </div>);
+}
+
+/* ---------------- Order entry section 7 ---------------- */
+function OrderEntry() {
+  const [sc, setSc] = useState('insurer');
+  const [cov, setCov] = useState(null);
+  const [mem, setMem] = useState('KHC-512090');
+  return (<div>
+    <Header crumbs={['Home', 'Orders & Patients', 'Add Order']} title="Add Order: section 7" sub="Order entry shows Bill to and the order's charges when Billing is on. The rest of the order entry page belongs to Clinical Order Entry v4 and Environmental and Vector Order Entry v4." />
+    <div className="toolbar"><span className="mini">Scenario:</span>
+      {[['patient', 'Walk-in patient'], ['insurer', 'Insured patient'], ['emr', 'Electronic order billed by the EMR'], ['quote', 'Environmental order from a quote']].map(([k, v]) => <Btn key={k} kind={sc === k ? 'primary' : 'ghost'} onClick={() => setSc(k)}>{v}</Btn>)}</div>
+    <div className="tile" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, borderLeft: '3px solid #0f62fe' }}>
+      <div className="mini"><b>{sc === 'quote' ? 'CPHL-26-E00874 · Highlands Water Authority · 12 water samples' : sc === 'emr' ? 'CPHL-26-004230 · Anna Toua · F, 45 y · PMGH Ward 4B' : sc === 'insurer' ? 'CPHL-26-004236 · Paul Ere · M, 58 y · KHC-512090' : 'CPHL-26-004240 · Esther Gima · F, 29 y · DOB 02/06/1997'}</b> · Order summary strip (Clinical Order Entry v4 FR-B2)</div>
+      <div><span className="mini" style={{ marginRight: 8 }}>Payment</span>{sc === 'quote' ? <PaymentChip state="payer" payer="Highlands Water Authority" labNo="CPHL-26-E00874" /> : sc === 'emr' ? <PaymentChip state="emr" labNo="CPHL-26-004230" /> : sc === 'insurer' ? <PaymentChip state="unpaid" amount={31.5} labNo="CPHL-26-004236" /> : <PaymentChip state="unpaid" amount={67} labNo="CPHL-26-004240" />}</div></div>
+    <p className="note">The payment chip sits on the summary strip on every order entry step. Cashiers can open the order at the Cash Desk from it; users without billing privileges see the status without the amount.</p>
+    <Fence owner="Clinical Order Entry v4 (OGC-1266) sections 1 to 6">
+      <div className="mini">1. Order · 2. Patient: {sc === 'quote' ? 'none (environmental)' : sc === 'insurer' ? 'Paul Ere, PT-0042120' : sc === 'emr' ? 'Anna Toua, PT-0042133' : 'Esther Gima, PT-0042140'} · 3. Requester: {sc === 'quote' ? 'Highlands Water Authority' : sc === 'patient' ? 'Self-referred (walk-in)' : sc === 'emr' ? 'Port Moresby General Hospital, Ward 4B (electronic order)' : 'Dr. P. Siune, Kumul Health clinic (not a payer)'} · 4. Request details · 5. Tests · 6. Samples</div></Fence>
+    <div className="tile">
+      <h4 style={{ margin: '0 0 12px' }}>7. Billing and notifications</h4>
+      {sc === 'emr' ? (<div>
+        <p style={{ fontSize: 14 }}><Tag kind="gray">Billed by EMR</Tag> Billed by OpenMRS (Hospital EMR). This order came from the hospital's EMR, which bills the patient. No lab charges are created.</p>
+        <Btn kind="tertiary">{t('order.billing.billInLab', 'Bill in the lab instead')}</Btn><span className="note">Needs a reason, recorded on the Overrides report.</span>
+        <div className="fieldrow" style={{ marginTop: 12 }}><Field label="Payment status"><input disabled value="Billed by EMR · Set by Billing" /></Field></div>
+      </div>) : (<div>
+        <div className="fieldrow">
+          <Field label={t('billing.common.billTo', 'Bill to')} helper={sc === 'quote' ? 'From the requesting site' : 'Type to search payers by name or code'}>
+            <input key={sc} list="payers" defaultValue={sc === 'insurer' ? 'Kumul Health Cover (Insurer)' : sc === 'quote' ? 'Highlands Water Authority (Environmental client)' : 'Patient'} /></Field>
+          <datalist id="payers"><option value="Patient" /><option value="Kumul Health Cover (Insurer)" /><option value="Port Moresby General Hospital (Institution)" /><option value="National TB Program (Program)" /><option value="Highlands Water Authority (Environmental client)" /></datalist>
+          {sc === 'insurer' && <Field label={t('order.billing.memberNumber', 'Member number')} err={mem ? '' : 'Enter the member number to complete the order.'}><input value={mem} onChange={(e) => setMem(e.target.value)} /></Field>}
+          {sc === 'insurer' && <Field label={t('order.billing.patientShare', "Patient's share")} helper="From Kumul Health Cover"><select defaultValue="10%"><option>None</option><option>10%</option><option>Fixed amount</option></select></Field>}
+          {sc === 'quote' && <Field label="Quote"><input value="Q-2026-0042, accepted, valid until 30/11/2026, 12 of 48 samples received before this order" disabled /></Field>}
+        </div>
+        {sc === 'insurer' && (<div className="fieldrow" style={{ alignItems: 'center' }}>
+          <div><Btn kind="tertiary" onClick={() => setCov(cov === null ? 'ok' : cov === 'ok' ? 'no' : cov === 'no' ? 'err' : 'ok')}>{t('order.billing.checkCoverage', 'Check coverage')}</Btn>
+            {cov === 'ok' && <Tag kind="green">Covered</Tag>}{cov === 'no' && <Tag kind="red">Not covered: membership lapsed 30/09/2026</Tag>}{cov === 'err' && <Tag kind="gray">Could not check (09:02)</Tag>}
+            <div className="note">Never blocks saving. Press again in this preview to see each answer.</div></div>
+          <Field label={t('order.billing.diagnosis', 'Diagnosis codes (ICD-10)')} helper="Kumul Health Cover requires a coded diagnosis."><div><span className="chip">E11.9 Type 2 diabetes without complications ×</span><input placeholder="Search code or words" style={{ width: 160 }} /></div></Field>
+        </div>)}
+        {sc === 'quote' && <Notice kind="info">Started from quote Q-2026-0042: requester, Bill to and tests filled in. Quoted prices are locked; samples beyond the quote are charged the list price.</Notice>}
+        <Table headers={['Item', 'List price', 'Charged', 'Patient pays', 'Payer pays', 'Status', 'Reason']} num={[1, 2, 3, 4]} rows={
+          sc === 'insurer' ? [
+            ['CBC', K(22.5), K(22.5), K(2.25), K(20.25), <Tag kind="red">Unpaid</Tag>, ''],
+            ['HbA1c', K(63), K(63), K(6.3), K(56.7), <Tag kind="red">Unpaid</Tag>, ''],
+            ['Lipid panel', K(49.5), K(49.5), K(4.95), K(44.55), <Tag kind="red">Unpaid</Tag>, 'Panel price'],
+            ['Genotype', K(180), K(180), K(18), K(162), <Tag kind="red">Unpaid</Tag>, <span><Tag kind="warm-gray">{t('order.billing.needsPreauth', 'Needs pre-authorization')}</Tag><a href="#">Request pre-authorization</a></span>],
+            ['Vitamin D', <Tag kind="red">No price on this list</Tag>, '-', '-', '-', '-', 'Listed on Unbilled Work'],
+          ] : sc === 'quote' ? [
+            ['Water microbiology panel × 12', K(150 * 12), K(1800), '-', K(1800), <Tag kind="blue">Billed to payer</Tag>, 'Quote Q-2026-0042'],
+            ['Total coliforms (not on the quote)', K(40), K(32), '-', K(32), <Tag kind="blue">Billed to payer</Tag>, <span><Tag kind="warm-gray">Over quote</Tag>Promotion: Water week</span>],
+            ['Field blank (QC sample)', K(0), K(0), '-', '-', <Tag kind="gray">Not charged</Tag>, 'QC sample'],
+          ] : [
+            ['CBC', K(25), K(25), K(25), K(0), <Tag kind="red">Unpaid</Tag>, ''],
+            ['Malaria RDT', K(10), K(10), K(10), K(0), <Tag kind="red">Unpaid</Tag>, ''],
+            ['Urinalysis', K(12), K(12), K(12), K(0), <Tag kind="red">Unpaid</Tag>, ''],
+            ['Urgent surcharge', K(20), K(20), K(20), K(0), <Tag kind="red">Unpaid</Tag>, 'Added automatically: Urgent priority'],
+          ]} />
+        <div className="row" style={{ marginTop: 8, justifyContent: 'space-between' }}>
+          <div><Btn kind="ghost">{t('billing.cashDesk.overridePrice', 'Override price')}</Btn>{sc !== 'quote' && <Btn kind="ghost">Re-price</Btn>}</div>
+          <div style={{ fontSize: 14 }}>{sc === 'insurer' ? <span>Patient pays <b>{K(31.5)}</b> · Kumul pays {K(283.5)}</span> : sc === 'quote' ? <span>Highlands Water Authority pays <b>{K(1832)}</b> · Certificate of analysis is added when the certificate is issued</span> : <span>Patient pays <b>{K(67)}</b></span>}</div></div>
+        <div className="fieldrow" style={{ marginTop: 12 }}><Field label="Payment status"><input disabled value={sc === 'quote' ? 'Billed to payer · Set by Billing' : 'Unpaid · Set by Billing'} /></Field><Field label="Billing reference"><input placeholder="Hospital invoice no." /></Field></div>
+      </div>)}
+      <Fence owner="Result Delivery (OGC-1506), Result reporting block"><div className="mini">Patient agreed to receive messages from the lab · Send reports to the ordering clinician</div></Fence>
+    </div>
+  </div>);
+}
+
+function TestCatalog() {
+  return (<div>
+    <Header crumbs={['Home', 'Admin Management', 'Test Catalog', 'Culture & sensitivity']} title="Culture & sensitivity: Billing" sub="The Billing section of the test editor. Other sections belong to the Test Catalog spec." />
+    <Fence owner="Test Catalog test editor (sections: Basics, Sample types, Results, Ranges, Terminology, Alerts)"><div className="mini">Culture & sensitivity · MIC-005 · Microbiology</div></Fence>
+    <div className="tile"><h4 style={{ margin: '0 0 12px' }}>{t('label.testCatalog.billing.section', 'Billing')}</h4>
+      <div className="fieldrow"><Field label={t('label.testCatalog.billing.billable', 'Billable')}><select><option>Yes</option><option>No</option></select></Field>
+        <Field label={t('label.testCatalog.billing.reruns', 'Charge reruns')}><select><option>No</option><option>Yes</option></select></Field>
+        <Field label={t('label.testCatalog.billing.repeats', 'Charge repeats that become new tests')}><select><option>Yes</option><option>No</option></select></Field></div>
+      <div className="fieldrow"><Field label={t('label.testCatalog.billing.redraws', 'Charge redraws after a rejected sample')}><select><option>No</option><option>Yes</option></select></Field>
+        <Field label={t('label.testCatalog.billing.reflex', 'Charge when added as a reflex test')}><select><option>Yes</option><option>No</option></select></Field>
+        <Field label={t('label.testCatalog.billing.addedLater', 'Charge when added after registration')}><select><option>Yes</option><option>No</option></select></Field></div>
+      <div className="fieldrow"><Field label="Charge when cancelled after testing started"><select><option>Yes</option><option>No</option></select></Field><Field label="Tax category"><select><option>Exempt</option><option>GST 10%</option></select></Field></div>
+      <div className="fieldrow"><Field label={t('label.testCatalog.billing.preauth', 'Pre-authorization required by')} helper={t('label.testCatalog.billing.qcNote', 'QC and EQA samples are never charged.')}><div><span className="chip">Kumul Health Cover ×</span><input placeholder="Search insurers" style={{ width: 160 }} /></div></Field></div>
+      <Notice kind="warning" title="Completeness">No price on Kumul Health Cover 2026. No price on Environmental clients 2026 (not used: this test is clinical only).</Notice>
+      <Btn>Save</Btn><Btn kind="ghost">Cancel</Btn></div>
+  </div>);
+}
+
+function Organization() {
+  const [row, setRow] = useState(0);
+  const kinds = ['Insurer', 'Institution', 'Environmental client', 'Not a payer'];
+  const [kind, setKind] = useState('Insurer');
+  return (<div>
+    <Header crumbs={['Home', 'Admin Management', 'Locations & Organizations', 'Organizations']} title="Organizations: Billing section" sub="The Billing section of an organization's open row. Locations & Organizations owns the row and mints its keys." />
+    <div className="toolbar"><input className="search" placeholder="Search organizations" aria-label="Search" /><select className="sel" aria-label="Payer"><option>All payers</option><option>Insurers</option><option>Institutions</option><option>Environmental clients</option><option>Not a payer</option></select></div>
+    <Table headers={['Name', 'Code', 'Type', 'Payer', 'Active']} rows={[
+      ['Kumul Health Cover', 'KHC', 'Insurer', <Tag kind="purple">Insurer</Tag>, 'Yes'],
+      ['Port Moresby General Hospital', 'PMGH', 'Referring clinic', <Tag kind="blue">Institution</Tag>, 'Yes'],
+      ['Highlands Water Authority', 'HWA', 'Environmental client', <Tag kind="teal">Environmental client</Tag>, 'Yes'],
+      ['Pacific Reference Laboratory', 'PRL', 'Referral lab', <Tag kind="gray">Not a payer</Tag>, 'Yes'],
+    ]} expanded={row} onRow={(i) => { setRow(i); setKind(kinds[i]); }} renderExpand={() => (<div>
+      <Fence owner="Locations & Organizations (OGC-1363): Details, Identifiers, Result delivery sections"><div className="mini">Identifiers: {['Code KHC · Payer ID KHC-PAYER-0001', 'Code PMGH · Payer ID PMGH-ACC-118', 'Code HWA · Payer ID HWA-0007', 'Code PRL'][row]}</div></Fence>
+      <h4 style={{ margin: '0 0 12px' }}>Billing</h4>
+      <div className="fieldrow"><Field label="Payer type"><select value={kind} onChange={(e) => setKind(e.target.value)}><option>Not a payer</option><option>Insurer</option><option>Institution</option><option>Environmental client</option></select></Field>
+        <Field label="Price list"><select key={kind}>{kind === 'Insurer' ? <option>Kumul Health Cover 2026</option> : kind === 'Environmental client' ? <option>Environmental clients 2026</option> : kind === 'Not a payer' ? <option>None</option> : <option>Institutions 2026</option>}<option>Default (walk-in patients)</option></select></Field>
+        <Field label="Statement schedule"><select defaultValue={kind === 'Insurer' ? 'Per order only' : 'Monthly on day 1'}><option>Monthly on day 1</option><option>Every 2 weeks</option><option>Per order only</option></select></Field></div>
+      <div className="fieldrow"><Field label="Payment terms (days)"><input defaultValue="30" /></Field><Field label="Credit limit"><input defaultValue={kind === 'Insurer' ? '' : '5,000.00'} /></Field><Field label="Billing contact"><input defaultValue={kind === 'Insurer' ? 'Claims office, claims@kumulhealth.example, +675 321 0000' : 'Accounts, accounts@pmgh.health.gov.pg'} /></Field></div>
+      <div className="fieldrow"><Field label="Tax exempt" helper="With the certificate number"><select key={'tx' + kind}><option>No</option><option>Yes</option></select></Field><Field label="Exemption certificate"><input placeholder="for example PMGH-TX-2026-01" /></Field></div>
+      {kind === 'Insurer' && (<>
+        <div className="fieldrow"><Field label="Claim connection" helper="An External Connection of type FHIR claims"><select><option>Kumul Health Cover HIE (FHIR R4 base adapter)</option><option>None: paper claims</option></select></Field>
+          <Field label="Send claims"><select defaultValue="Daily batch"><option>Per order when results are released</option><option>Daily batch</option><option>Weekly batch</option></select></Field>
+          <Field label="Claim filing limit (days after release)"><input defaultValue="90" /></Field></div>
+        <div className="fieldrow"><Field label="Patient's share default"><select defaultValue="10%"><option>None</option><option>10%</option><option>Fixed amount</option></select></Field>
+          <Field label="Supports coverage check"><select><option>Yes</option><option>No</option></select></Field>
+          <Field label="Requires coded diagnosis"><select><option>Yes</option><option>No</option></select></Field>
+          <Field label="Overrides change the claimed amount" helper="Provisional: validate with the insurer"><select><option>No</option><option>Yes</option></select></Field></div></>)}
+      {kind === 'Institution' && <div className="fieldrow"><Field label="Who bills orders from this referring facility"><select><option>Billed by the lab</option><option>Billed by the EMR</option></select></Field></div>}
+      {row === 3 && <div className="fieldrow"><Field label="What they charge us" helper="Referral labs also have this cost list (FR-C11)"><select><option>Pacific Reference Laboratory (what they charge us)</option></select></Field></div>}
+      <Btn>Save</Btn><Btn kind="ghost">Cancel</Btn></div>)} />
+    
+  </div>);
+}
+
+function Program() {
+  return (<div>
+    <Header crumbs={['Home', 'Admin Management', 'Programs']} title="Programs: Billing section" sub="The Billing section of a program's open row. Programs Management owns the row." />
+    <Table headers={['Program', 'Domain', 'Pays for its tests', 'Price list', 'Active']} rows={[
+      ['National TB Program', 'Clinical', 'Yes', 'Default (walk-in patients)', 'Yes'], ['National HIV Program', 'Clinical', 'Yes', 'Default (walk-in patients)', 'Yes'], ['Antenatal care', 'Clinical', 'No', '-', 'Yes'], ['Rural water surveillance', 'Environmental', 'Yes', 'Environmental clients 2026', 'Yes']]}
+      expanded={0} renderExpand={() => (<div>
+        <h4 style={{ margin: '0 0 12px' }}>Billing</h4>
+        <div className="fieldrow"><Field label="Program pays for its tests"><select><option>Yes</option><option>No</option></select></Field><Field label="Price list"><select><option>Default (walk-in patients)</option></select></Field><Field label="Statement schedule"><select><option>Monthly on day 1</option></select></Field><Field label="Billing contact"><input defaultValue="NTP finance officer, ntp.finance@health.gov.pg" /></Field></div>
+        <div className="fieldrow"><Field label="Tax exempt"><select><option>Yes</option><option>No</option></select></Field><Field label="Exemption certificate"><input defaultValue="NTP-TX-2026-04" /></Field></div>
+        <p className="note">Tests on orders for this program are charged to the program at this list; the patient pays nothing. The Value of Free Services report counts them.</p>
+        <Btn>Save</Btn><Btn kind="ghost">Cancel</Btn></div>)} />
+  </div>);
+}
+
+
+function PaidTag({ paid, why, src, link, labNo }) {
+  if (paid === null) return <span className="mini" title={why}>None</span>;
+  const tip = `${why ? why + '. ' : ''}${src}`;
+  const tag = <span className={`cds--tag cds--tag--${paid ? 'green' : 'red'}`} style={{ margin: 0, whiteSpace: 'nowrap', cursor: link ? 'pointer' : 'default' }} title={link ? `${tip}. Open ${labNo} at the Cash Desk` : tip}>{paid ? 'Paid' : 'Not paid'}</span>;
+  return link ? <a href="#" aria-label={`Not paid. ${tip}. Open ${labNo} at the Cash Desk`} onClick={(e) => e.preventDefault()} style={{ textDecoration: 'none' }}>{tag}</a> : tag;
+}
+function OrderDashboard() {
+  const [f, setF] = useState('all');
+  const [src, setSrc] = useState('billing');
+  const [asCashier, setAsCashier] = useState(true);
+  const base = [
+    ['CPHL-26-004188', 'Mary Kaupa', 'Self-referred', ['green', 'Entered'], '5 (2 awaiting)', '3', '08:12'],
+    ['CPHL-26-004191', 'Peter Wari', 'Kumul Health clinic', ['teal', 'Samples prepared'], '2', '1', '08:31'],
+    ['CPHL-26-004195', 'Grace Lohia', 'Self-referred', ['green', 'Entered'], '2', '1', '08:44'],
+    ['CPHL-26-004158', 'Martha Wani', 'Self-referred', ['teal', 'Samples prepared'], '3', '2', '07:22'],
+    ['CPHL-26-004180', 'Simon Kaupa', 'Port Moresby General Hospital', ['teal', 'Samples prepared'], '4', '2', '07:58'],
+    ['CPHL-26-004177', 'Lucy Bai', 'Self-referred', ['teal', 'Samples prepared'], '1', '1', '07:50'],
+    ['CPHL-26-004172', 'Joseph Kila', 'Self-referred', ['teal', 'Samples prepared'], '3', '1', '07:41'],
+    ['CPHL-26-004230', 'Anna Toua', 'PMGH Ward 4B (electronic order)', ['green', 'Entered'], '2', '1', '09:20'],
+    ['CPHL-26-004166', 'Ben Oa', 'Self-referred', ['teal', 'Samples prepared'], '2', '1', '07:35'],
+  ];
+  // [paid, reason] per row. Billing: from charges. Odoo (Billing off): from the invoice's payment_state, read 10:40.
+  const billing = [[false, 'Unpaid'], [false, 'Unpaid'], [false, 'Unpaid'], [false, 'Partly paid'], [true, 'Billed to Port Moresby General Hospital'], [true, 'Paid in full'], [false, 'Held by the payment gate'], [true, 'Billed by EMR'], [true, 'Waived']];
+  const odoo = [[false, 'Invoice OE-CPHL-26-004188: not paid'], [true, 'Invoice OE-CPHL-26-004191: paid'], [false, 'Invoice OE-CPHL-26-004195: not paid'], [false, 'Invoice OE-CPHL-26-004158: partly paid'], [true, 'Invoice OE-CPHL-26-004180: paid'], [true, 'Invoice OE-CPHL-26-004177: in payment'], [false, 'Invoice OE-CPHL-26-004172: not paid'], [null, 'No invoice in Odoo'], [null, 'Invoice OE-CPHL-26-004166 cancelled in Odoo']];
+  const st = src === 'billing' ? billing : odoo;
+  const srcText = src === 'billing' ? 'Set by Billing' : 'Set by Odoo, read 10:40';
+  const rows = base.map((r, k) => [...r, st[k][0], st[k][1]]);
+  const notPaidCount = rows.filter((r) => r[7] === false).length;
+  const shown = rows.filter((r) => f === 'all' || (f === 'paid' ? r[7] === true : r[7] === false));
+  return (<div>
+    <Header crumbs={['Home', 'Orders', 'Clinical Orders']} title="Clinical orders" sub="The order dashboard of Clinical Order Entry v4 (section H). Billing adds the Payment column and filter: Paid or Not paid only, with no amounts. Everything else on this page belongs to that spec." />
+    <div className="toolbar"><span className="mini">Status source in this preview:</span>
+      <select className="sel" aria-label="Status source" value={src} onChange={(e) => { setSrc(e.target.value); setF('all'); }}><option value="billing">Billing on (FR-D15)</option><option value="odoo">Billing off, Odoo connected (FR-J8)</option></select>
+      {src === 'billing' && <Toggle on={asCashier} onChange={setAsCashier} label="Preview as a user with billing:collect" />}</div>
+    <div className="toolbar"><span className="mini">Quick filters:</span>
+      <Btn kind="ghost">In progress (14)</Btn><Btn kind="ghost">Awaiting sample (3)</Btn><Btn kind={f === 'notPaid' ? 'primary' : 'ghost'} onClick={() => setF(f === 'notPaid' ? 'all' : 'notPaid')}>{`Unpaid (${notPaidCount})`}</Btn><Btn kind="ghost">Cancelled</Btn>
+      <select className="sel" aria-label="Payment" value={f} onChange={(e) => setF(e.target.value)}><option value="all">All payment states</option><option value="paid">Paid</option><option value="notPaid">Not paid</option></select></div>
+    <Table headers={['Lab No', 'Patient', 'Facility', 'Progress', 'Tests', 'Samples', 'Entered', 'Payment', '']}
+      rows={shown.map((r) => [r[0], r[1], r[2], <Tag kind={r[3][0]}>{r[3][1]}</Tag>, r[4], r[5], r[6], <PaidTag paid={r[7]} why={r[8]} src={srcText} link={src === 'billing' && asCashier && r[7] === false} labNo={r[0]} />, <Btn kind="ghost">Open</Btn>])} />
+    <p className="note">{`URL: /order/clinical${f === 'all' ? '' : '?payment=' + f} · Hover a Payment tag for its reason and source; no amount is shown on this page for any user. Paid means nothing is left to collect at the counter, so orders billed to a payer, waived or billed by an EMR show Paid (BL-38; a setting to change this may come later).${src === 'odoo' ? ' With Billing off, the status comes from each order\'s Odoo invoice (ref OE-{lab number}): paid and in payment are Paid; not paid and partly paid are Not paid; no invoice or a cancelled one shows None. Odoo statuses never link to the Cash Desk.' : ' For users with billing:collect, a Not paid tag opens the order at the Cash Desk.'}`}</p>
+  </div>);
+}
+function PatientRecord() {
+  return (<div>
+    <Header crumbs={['Home', 'Patients', 'Mary Kaupa']} title="Mary Kaupa: Billing section" sub="The Billing section of the patient record, for users with billing:view or billing:collect. The rest of the patient record belongs to the patient spec." />
+    <Fence owner="Patient record (Patient Management): Demographics, Identifiers, Orders"><div className="mini">Mary Kaupa · PT-0041872 · F, 34 y · National ID 1992-0312-4471</div></Fence>
+    <div className="row">
+      <div className="tile kpi"><div className="l">Balance due on all orders</div><div className="v">{K(75)}</div><div className="d">1 open bill</div></div>
+      <div className="tile kpi"><div className="l">Credit on file</div><div className="v">{K(0)}</div><div className="d">Last credit used 02/09/2026</div></div>
+      <div className="tile kpi"><div className="l">Insurer member numbers</div><div className="v" style={{ fontSize: 16 }}>None</div><div className="d">Exemptions applied: none</div></div>
+    </div>
+    <div style={{ margin: '12px 0' }}><Btn>Take payment</Btn></div>
+    <h4 style={{ margin: '8px 0' }}>Payments and receipts</h4>
+    <Table headers={['Date', 'Receipt', 'Lab No', 'Amount', 'Mode', 'Cashier', '']} num={[3]} rows={[
+      ['02/09/2026', 'R-2026-003602', 'CPHL-26-003322', K(45), 'Mobile money', 'R. Tau', <Btn kind="ghost">Reprint</Btn>],
+      ['14/06/2026', 'R-2026-001877', 'CPHL-26-001905', K(110), 'Cash', 'J. Kaupa', <Btn kind="ghost">Reprint</Btn>],
+      ['14/06/2026', 'R-2026-001878', 'CPHL-26-001905', 'Refund K-25.00', 'Cash', 'J. Kaupa', <Btn kind="ghost">Reprint</Btn>],
+    ]} />
+    <p className="note">Balance reminders are off in this lab (Configuration › Billing).</p>
+  </div>);
+}
+
+/* ---------------- App ---------------- */
+const views = {
+  overview: ['/Billing', Overview], cash: ['/Billing/cash-desk', CashDesk], bills: ['/Billing/bills', Bills], quotes: ['/Billing/quotes', Quotes],
+  claims: ['/Billing/claims', Claims], remit: ['/Billing/remittances', Remittances], unbilled: ['/Billing/unbilled', Unbilled], reports: ['/Billing/reports', Reports],
+  prices: ['/MasterListsPage/priceLists', PriceLists], services: ['/MasterListsPage/billableServices', Services], exempt: ['/MasterListsPage/exemptionRules', Exemptions], modes: ['/MasterListsPage/paymentModes', PaymentModes],
+  config: ['/MasterListsPage/configuration?area=billing', Config], order: ['Order entry, section 7 (existing route)', OrderEntry], dash: ['/order/clinical (existing)', OrderDashboard], patient: ['Patient record, Billing section (existing route)', PatientRecord], tax: ['/MasterListsPage/taxRates', TaxRates], test: ['Test Catalog test editor (existing route)', TestCatalog],
+  org: ['/MasterListsPage/locations (existing)', Organization], program: ['Programs (existing route)', Program],
+};
+function App() {
+  const [v, setV] = useState('overview');
+  const N = ({ id, children, sub }) => <button className={(v === id ? 'active ' : '') + (sub ? 'sub' : '')} onClick={() => setV(id)}>{children}</button>;
+  const Comp = views[v][1];
+  return (<div>
+    <div className="preview-banner">Visual Preview: Billing (S-13) &nbsp;|&nbsp; OpenELIS Design Mockup &nbsp;|&nbsp; Not a live application &nbsp;|&nbsp; Route: {views[v][0]}</div>
+    <div className="shell"><nav className="nav" aria-label="Preview navigation">
+      <h6>Main menu: Billing</h6>
+      <N id="overview">Overview</N><N id="cash">Cash Desk</N><N id="bills">Bills & Statements</N><N id="quotes">Quotes</N><N id="claims">Claims</N><N id="remit">Remittances</N><N id="unbilled">Unbilled Work</N><N id="reports">Reports</N>
+      <h6>Admin: Resources › Billing</h6>
+      <N id="prices">Price Lists</N><N id="services">Billable Services</N><N id="exempt">Exemption Rules</N><N id="modes">Payment Modes & Cash Points</N><N id="tax">Tax Rates</N>
+      <h6>Admin: Config</h6><N id="config">Configuration › Billing</N>
+      <h6>Changes in other screens</h6>
+      <N id="dash">Order dashboard</N><N id="patient">Patient record › Billing</N><N id="order">Order entry, section 7</N><N id="test">Test Catalog › Billing</N><N id="org">Organizations › Billing</N><N id="program">Programs › Billing</N>
+    </nav>
+    <main className="main"><Comp go={(x) => setV(x === 'cash' ? 'cash' : x === 'unbilled' ? 'unbilled' : x === 'claims' ? 'claims' : 'reports')} /></main></div>
+  </div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

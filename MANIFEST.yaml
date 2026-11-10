@@ -44,7 +44,8 @@
   category: admin-config
   description: Data dictionary FRS
   paired_with: data-dictionary
-  links: {}
+  links:
+    jira: [OGC-243]
   added: "2026-03-03"
 
 - id: lab-units
@@ -180,7 +181,8 @@
   category: admin-config
   description: Range editor FRS
   paired_with: range-editor
-  links: {}
+  links:
+    jira: [OGC-758]
   added: "2026-03-03"
 
 - id: result-options
@@ -198,7 +200,8 @@
   category: admin-config
   description: Result options FRS
   paired_with: result-options
-  links: {}
+  links:
+    jira: [OGC-206]
   added: "2026-03-03"
 
 - id: test-catalog
@@ -441,7 +444,8 @@
   category: analyzer-integration
   description: Analyzer validation page FRS
   paired_with: analyzer-validation-page
-  links: {}
+  links:
+    jira: [OGC-1364]
   added: "2026-03-03"
 
 - id: hl7-mllp-listener-spec
@@ -511,7 +515,8 @@
   path: designs/analyzer-integration/biorad-cfx-opus-analyzer-connection-spec.md
   category: analyzer-integration
   description: BioRad CFX Opus Real-Time PCR System analyzer connection specification — CSV/RDML export, LIMS integration via CFX Maestro
-  links: {}
+  links:
+    jira: [OGC-416]
   added: "2026-03-05"
   updated: "2026-06-18"
 
@@ -520,7 +525,8 @@
   path: designs/analyzer-integration/sysmex-xn-field-mapping-v0.1.md
   category: analyzer-integration
   description: Sysmex XN-L Series (XN-330 through XN-550) ASTM field mapping & host-query bi-directional integration specification
-  links: {}
+  links:
+    jira: [OGC-381]
   added: "2026-03-06"
 
 - id: dna-technology-dtprime-field-mapping
@@ -528,7 +534,8 @@
   path: designs/analyzer-integration/dna-technology-dtprime-field-mapping-v0.2.md
   category: analyzer-integration
   description: DNA Technology DT-Prime Real-Time PCR — XML file-based export, windows-1251 encoding, qualitative results parsing
-  links: {}
+  links:
+    jira: [OGC-419]
   added: "2026-03-06"
 
 - id: tecan-infinite-f50-analyzer-connection-spec
@@ -536,7 +543,8 @@
   path: designs/analyzer-integration/tecan-infinite-f50-analyzer-connection-spec.md
   category: analyzer-integration
   description: Tecan Infinite F50 ELISA Reader — Magellan CSV/XML export, absorbance microplate reader integration
-  links: {}
+  links:
+    jira: [OGC-417]
   added: "2026-03-06"
 
 - id: thermo-multiskan-fc-analyzer-connection-spec
@@ -544,7 +552,8 @@
   path: designs/analyzer-integration/thermo-multiskan-fc-analyzer-connection-spec.md
   category: analyzer-integration
   description: Thermo Scientific Multiskan FC ELISA Reader — SkanIt CSV/TXT export, filter-based microplate photometer integration
-  links: {}
+  links:
+    jira: [OGC-418]
   added: "2026-03-06"
 
 - id: quantstudio-field-mapping-spec
@@ -573,7 +582,8 @@
   category: analyzer-integration
   description: Bruker FluoroCycler XT molecular PCR flat file import spec — Excel-based manual workflow
   paired_with: fluorocycler-xt-companion-guide
-  links: {}
+  links:
+    jira: [OGC-420]
   added: "2026-03-06"
 
 - id: fluorocycler-xt-companion-guide
@@ -582,7 +592,8 @@
   category: analyzer-integration
   description: Bruker FluoroCycler XT analyzer setup guide for lab staff
   paired_with: fluorocycler-xt-integration-spec
-  links: {}
+  links:
+    jira: [OGC-420]
   added: "2026-03-06"
 
 - id: tecan-infinite-f50-companion-guide
@@ -591,7 +602,8 @@
   category: analyzer-integration
   description: Tecan Infinite F50 companion guide — Madagascar custom Excel workflow for OpenELIS
   paired_with: tecan-infinite-f50-analyzer-connection-spec
-  links: {}
+  links:
+    jira: [OGC-417]
   added: "2026-03-06"
 
 - id: thermo-multiskan-fc-companion-guide
@@ -600,7 +612,8 @@
   category: analyzer-integration
   description: Thermo Multiskan FC companion guide — SkanIt export configuration for OpenELIS
   paired_with: thermo-multiskan-fc-analyzer-connection-spec
-  links: {}
+  links:
+    jira: [OGC-418]
   added: "2026-03-06"
 
 - id: fluorocycler-xt-template
@@ -983,6 +996,7 @@
     domain boundary (extends D-004). Inline signal queue + Detection History. FRS v1.0 + interactive
     preview. Depends on the OGC-782 microbiology module (not yet on develop).
   links:
+    jira: [OGC-1618]
     gallery: https://digi-uw.github.io/openelis-work/#/microbiology/m-16-cluster-detection-outbreak-signals
     preview: designs/microbiology/m-16-cluster-detection-preview.html
   added: "2026-09-04"
@@ -1117,7 +1131,8 @@
   category: nce
   description: NCE analytics FRS
   paired_with: nce-analytics
-  links: {}
+  links:
+    jira: [OGC-315]
   added: "2026-03-03"
 
 - id: nce-dashboard
@@ -1126,7 +1141,8 @@
   category: nce
   description: NCE dashboard with CAPA tracking
   paired_with: nce-dashboard-spec
-  links: {}
+  links:
+    jira: [OGC-313, OGC-707]
   added: "2026-03-03"
 
 - id: nce-dashboard-spec
@@ -1135,7 +1151,8 @@
   category: nce
   description: NCE dashboard FRS
   paired_with: nce-dashboard
-  links: {}
+  links:
+    jira: [OGC-313, OGC-707]
   added: "2026-03-03"
 
 - id: nce-results-entry
@@ -1153,7 +1170,8 @@
   category: nce
   description: NCE results entry FRS
   paired_with: nce-results-entry
-  links: {}
+  links:
+    jira: [OGC-314]
   added: "2026-03-03"
 
 - id: nce-report
@@ -1171,7 +1189,8 @@
   category: nce
   description: NCE report FRS
   paired_with: nce-report
-  links: {}
+  links:
+    jira: [OGC-312]
   added: "2026-03-03"
 
 # ─── Pathology ──────────────────────────────────────────────
@@ -1191,7 +1210,8 @@
   category: pathology
   description: "SUPERSEDED (Dec 2025) — replaced by pathology-case-view-v2. Kept for provenance; do not build from it"
   paired_with: pathology-case-view
-  links: {}
+  links:
+    jira: [OGC-264]
   added: "2026-03-03"
 
 - id: ihc-case-view
@@ -1209,7 +1229,8 @@
   category: pathology
   description: "SUPERSEDED (Dec 2025) — replaced by ihc-case-view-v2. Kept for provenance; do not build from it"
   paired_with: ihc-case-view
-  links: {}
+  links:
+    jira: [OGC-265]
   added: "2026-03-03"
 
 - id: cytology-case-view
@@ -1219,6 +1240,7 @@
   description: Bethesda 2014 cytology case view — interactive Carbon HTML preview. Accordion layout grounded in real cytology schema, HPV sibling-Analysis display, anti-anchoring ASCCP recommendation UX, critical-result acknowledgment hook for HSIL+ findings
   paired_with: cytology-case-view-spec
   links:
+    jira: [OGC-266]
     preview: https://digi-uw.github.io/openelis-work/designs/pathology/cytology-case-view.html
     gallery: https://digi-uw.github.io/openelis-work/#/pathology/cytology-case-view
   added: "2026-03-03"
@@ -1313,6 +1335,7 @@
   category: pathology
   description: The Specimen Journey — illustrated developer orientation following one (fictional) patient through cytology, histopathology and IHC; SVG diagrams of the nine-stage journey and the case/part/block/slide hierarchy
   links:
+    jira: [OGC-264, OGC-265, OGC-266]
     preview: https://digi-uw.github.io/openelis-work/designs/pathology/specimen-journey.html
     gallery: https://digi-uw.github.io/openelis-work/#/pathology/specimen-journey
   added: "2026-09-04"
@@ -1383,7 +1406,8 @@
   path: designs/quality/westgard-rules.md
   category: quality
   description: Westgard rules for QC
-  links: {}
+  links:
+    jira: [OGC-41, OGC-684]
   added: "2026-03-03"
 
 - id: whonet-integration-spec
@@ -1411,7 +1435,8 @@
   category: system
   description: Audit trail FRS
   paired_with: audit-trail
-  links: {}
+  links:
+    jira: [OGC-253]
   added: "2026-03-03"
 
 - id: in-app-help-system
@@ -1676,7 +1701,8 @@
   category: admin-config
   description: RBAC revamp UI mockup — role management, permission matrix, user assignment
   paired_with: rbac-revamp-prd
-  links: {}
+  links:
+    jira: [OGC-383]
   added: "2026-03-04"
 
 - id: rbac-revamp-prd
@@ -1703,7 +1729,8 @@
   category: admin-config
   description: Password Policy Enhancements FRS v1.0 — OWASP alignment, force reset, length-based rules
   paired_with: password-enhancements
-  links: {}
+  links:
+    jira: [OGC-425]
   added: "2026-03-15"
 
 # ─── Other ──────────────────────────────────────────────────
@@ -2089,6 +2116,8 @@
   category: reports
   description: Positivity Rate Report & Dashboard Widget FRS v1.2 — inline-only positivity-definition model; numeric-result tests restricted to All-Non-Normal; dashboard tiles provisioned via PositivityDashboardTile (seed + CSV import) on the Lab Management Dashboard
   paired_with: positivity-rate
+  links:
+    jira: [OGC-433]
   added: "2026-03-19"
   updated: "2026-09-10"
 
@@ -2234,6 +2263,7 @@
     and live connection test. Companion admin UI for the FHIR Outbound Push pipeline (OGC-446).
   related: [fhir-outbound-push]
   links:
+    jira: [OGC-446, OGC-435]
     gallery: https://digi-uw.github.io/openelis-work/#/system/fhir-publication-settings
   added: "2026-04-27"
   status: draft
@@ -2627,6 +2657,7 @@
     surveillance reporting with weekly TB/HIV positivity trends, volume-by-site breakdowns,
     and FHIR-sourced aggregate indicators for program managers.
   links:
+    jira: [OGC-435]
     github_issue: 57
     gallery: https://digi-uw.github.io/openelis-work/#/reports/disease-surveillance-dashboard
   added: "2026-04-16"
@@ -3082,6 +3113,7 @@
     Reconciliation of EQA workflow compilation against V1 FRS artifacts. Corrects ~30% of
     "Missing" flags, establishes true V2 amendment scope, and surfaces resolved design decisions.
   links:
+    jira: [OGC-608]
     github: https://github.com/DIGI-UW/openelis-work/issues/93
     gallery: https://digi-uw.github.io/openelis-work/#/quality/eqa-v1-v2-crosswalk
   tags:
@@ -3104,6 +3136,7 @@
     Covers architectural comparison, differentiators of the integrated LIMS model, gaps, and
     lessons for V2/V3 scoping. Informational; no binding scope changes.
   links:
+    jira: [OGC-608]
     github: https://github.com/DIGI-UW/openelis-work/issues/94
     gallery: https://digi-uw.github.io/openelis-work/#/quality/eqa-v2-aphl-e-pt-platform-crosswalk
   tags:
@@ -3130,6 +3163,7 @@
     on the standard Add Order screen — no separate modal. V3.2 extends in-place with packaging
     checklist, tolerance validation, and disposition radio. Pending Casey approval before filing.
   links:
+    jira: [OGC-608]
     github: https://github.com/DIGI-UW/openelis-work/issues/95
     gallery: https://digi-uw.github.io/openelis-work/#/quality/eqa-v2-epic-stories
   tags:
@@ -3155,6 +3189,7 @@
     documents panel receipt redesign: receipt fields move to EQA-conditional section on standard
     Add Order; V3.2 cold-chain extension layers in-place on same section.
   links:
+    jira: [OGC-608]
     github: https://github.com/DIGI-UW/openelis-work/issues/103
   tags:
     - quality
@@ -4440,7 +4475,8 @@
     view with critical values pinned, identifier search, on-screen results, report PDF download;
     visibility honors Test Catalog portal-visibility labels.
   paired_with: results-portal-c0-discovery-brief
-  links: {}
+  links:
+    jira: [OGC-1626]
   added: "2026-07-27"
 
 - id: patient-self-registration
@@ -4455,7 +4491,8 @@
     OpenELIS FHIR flexible matching). Single looping flow with big type, helper-fillable, short
     code + QR handed to reception for confirmation; personal-phone pre-registration is v2.
   paired_with: results-portal-c0-discovery-brief
-  links: {}
+  links:
+    jira: [OGC-1627]
   added: "2026-07-27"
 
 - id: results-portal-c0-discovery-brief
@@ -4468,7 +4505,8 @@
     implementer/MoH-operated; configurable visibility policy; PractitionerRole access with
     attestation; bundled IdP + optional federation; portal-before-messaging) plus a per-country
     readiness checklist.
-  links: {}
+  links:
+    jira: [OGC-1626, OGC-1627]
   added: "2026-07-27"
 - id: openelis-style-guide-v2-component-usage
   type: spec
@@ -4672,6 +4710,7 @@
     packs and layers, import rules R-1..R-11, sense checks and guarded fields, roadmap P0..P5.
     First slice is Import Review. Companions: two /analyze passes and the slicing guide.
   links:
+    jira: [OGC-1530]
     gallery: https://digi-uw.github.io/openelis-work/#/admin-config/reference-data-as-configuration
   added: "2026-10-20"
   status: draft
@@ -4689,6 +4728,7 @@
     decision tables, sense checks and guarded fields, Undo, Compare, Export with codes.
     Preview covers six scenarios. Carbon React mockup + critique companion.
   links:
+    jira: [OGC-1531]
     gallery: https://digi-uw.github.io/openelis-work/#/admin-config/import-review
     preview: https://digi-uw.github.io/openelis-work/designs/admin-config/import-review-preview.html
   added: "2026-10-20"
@@ -4732,3 +4772,55 @@
   added: "2026-10-20"
   status: draft
   tags: ["admin", "redesign", "configuration", "navigation", "settings", "report-management", "ia"]
+- id: billing
+  type: mockup
+  path: designs/system/billing.html
+  spec: designs/system/billing.md
+  preview: designs/system/billing.html
+  category: system
+  description: >
+    Billing FRS v0.4.1 (S-13): native billing core with price lists per payer, a charge for every billable test, cash desk with receipts and shifts, statements and quotes for institutions and clients, electronic insurer claims and remittances (FHIR, Kenya eClaims first adapter), payment gate, revenue integrity reports; Odoo optional as accounting backend. Three suggested releases.
+  links:
+    jira: [OGC-1621]
+    github: https://github.com/DIGI-UW/openelis-work/issues/389
+    gallery: https://digi-uw.github.io/openelis-work/#/system/billing-s-13
+  added: "2026-11-10"
+- id: ehr-lab-interface
+  type: mockup
+  path: designs/system/ehr-lab-interface.html
+  spec: designs/system/ehr-lab-interface.md
+  preview: designs/system/ehr-lab-interface.html
+  category: system
+  description: >
+    EHR Lab Interface FRS v0.2: HL7 v2 orders in from Epic, Oracle Health, athenahealth, eClinicalWorks, NextGen, MEDITECH and OpenEMR, results back per report version with the PDF. One engine with EHR profiles as data, per-client code maps, incoming orders on the order dashboard, CLIA verification records. First deployment SolAura (California).
+  links:
+    jira: [OGC-1622]
+    github: https://github.com/DIGI-UW/openelis-work/issues/390
+    gallery: https://digi-uw.github.io/openelis-work/#/system/ehr-lab-interface
+  added: "2026-11-10"
+- id: state-elr
+  type: mockup
+  path: designs/system/state-elr.html
+  spec: designs/system/state-elr.md
+  preview: designs/system/state-elr.html
+  category: system
+  description: >
+    Public Health Reporting FRS v0.2: reportable results sent automatically on release to public health jurisdictions as HL7 v2.5.1 ELR (CalREDIE first; LA County, Texas, New York, Florida, Washington, APHL AIMS profiles), imported code lists, routing rules, phone reporting prompts and follow-up of refused, missing-data and unrouted reports. Reuses the EHR Lab Interface engine.
+  links:
+    jira: [OGC-1623]
+    github: https://github.com/DIGI-UW/openelis-work/issues/391
+    gallery: https://digi-uw.github.io/openelis-work/#/system/public-health-reporting-state-elr
+  added: "2026-11-10"
+- id: pathogen-wgs
+  type: mockup
+  path: designs/microbiology/pathogen-wgs.html
+  spec: designs/microbiology/pathogen-wgs.md
+  preview: designs/microbiology/pathogen-wgs.html
+  category: microbiology
+  description: >
+    Pathogen WGS FRS v0.1: genomic targets library loaded from reference catalogues (WHO TB, AMRFinderPlus, Nextclade), WGS tests with headline calls as result components, sequencing runs with barcodes, pipeline import through analyzer profiles, one genomic result detail with QC holds and heteroresistance, provenance on every result.
+  links:
+    jira: [OGC-1624]
+    github: https://github.com/DIGI-UW/openelis-work/issues/392
+    gallery: https://digi-uw.github.io/openelis-work/#/microbiology/pathogen-whole-genome-sequencing
+  added: "2026-11-10"

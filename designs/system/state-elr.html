@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Public Health Reporting</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1.62.0/css/styles.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  :root { --bg:#f4f4f4; --layer:#ffffff; --text:#161616; --muted:#525252; --border:#e0e0e0; --accent:#0f62fe; --danger:#da1e28; --code:#f2f4f8; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#161616; --layer:#262626; --text:#f4f4f4; --muted:#c6c6c6; --border:#393939; --accent:#78a9ff; --danger:#ff8389; --code:#1c1c1c; } }
+  :root[data-theme="dark"] { --bg:#161616; --layer:#262626; --text:#f4f4f4; --muted:#c6c6c6; --border:#393939; --accent:#78a9ff; --danger:#ff8389; --code:#1c1c1c; }
+  body { background: var(--bg); color: var(--text); margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; }
+  .banner { background:#0f62fe; color:#fff; padding:6px 16px; font-size:12px; font-family: 'IBM Plex Mono', monospace; }
+  .switch { display:flex; flex-wrap:wrap; gap:4px; padding:8px 16px; background: var(--layer); border-bottom:1px solid var(--border); }
+  .switch button { border:1px solid var(--border); background:transparent; color:var(--text); padding:6px 10px; font-size:13px; cursor:pointer; }
+  .switch button.on { background:#0f62fe; color:#fff; border-color:#0f62fe; }
+  .shell { display:flex; min-height: calc(100vh - 80px); }
+  .side { width:240px; flex-shrink:0; background: var(--layer); border-right:1px solid var(--border); padding:12px 0; font-size:14px; }
+  .side .h { padding:12px 16px 4px; font-size:12px; color: var(--muted); text-transform:uppercase; letter-spacing:.32px; }
+  .side .i { padding:6px 16px; color: var(--text); }
+  .side .i.c { padding-left:32px; }
+  .side .i.cc { padding-left:48px; font-size:13px; }
+  .side .i.on { border-left:3px solid var(--accent); background: rgba(15,98,254,.08); font-weight:600; }
+  .main { flex:1; padding:16px 24px; min-width:0; }
+  .crumb { font-size:12px; color: var(--muted); margin-bottom:6px; }
+  .crumb a { color: var(--accent); text-decoration:none; }
+  h1 { font-size:28px; font-weight:400; margin:4px 0 4px; }
+  .sub { color: var(--muted); margin:0 0 16px; font-size:14px; }
+  .tile { background: var(--layer); border:1px solid var(--border); padding:16px; margin-bottom:12px; }
+  .toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:8px; }
+  .chip { border:1px solid var(--border); background: var(--layer); color:var(--text); padding:6px 10px; font-size:13px; cursor:pointer; border-radius:16px; }
+  .chip.on { border-color: var(--accent); color: var(--accent); font-weight:600; }
+  .inp { border:none; border-bottom:1px solid #8d8d8d; background: var(--layer); color: var(--text); padding:8px 10px; font-size:14px; min-width:220px; }
+  select.inp { min-width:180px; }
+  table.t { width:100%; border-collapse:collapse; background: var(--layer); font-size:14px; }
+  .tw { overflow-x:auto; border:1px solid var(--border); }
+  table.t th { text-align:left; background: #e0e0e0; color:#161616; padding:10px 12px; font-weight:600; white-space:nowrap; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) table.t th { background:#393939; color:#f4f4f4; } }
+  table.t td { padding:10px 12px; border-top:1px solid var(--border); vertical-align:top; }
+  .tag { display:inline-block; font-size:12px; padding:2px 8px; border-radius:12px; margin-right:4px; white-space:nowrap; }
+  .tg-purple{background:#e8daff;color:#491d8b} .tg-green{background:#a7f0ba;color:#044317} .tg-teal{background:#9ef0f0;color:#004144} .tg-red{background:#ffd7d9;color:#750e13} .tg-gray{background:#e0e0e0;color:#161616} .tg-blue{background:#d0e2ff;color:#002d9c} .tg-warm{background:#e5e0df;color:#3c3838}
+  .reason { color: var(--danger); font-size:13px; margin-top:4px; }
+  .note { color: var(--muted); font-size:13px; margin-top:4px; }
+  .btn { border:none; padding:8px 14px; font-size:14px; cursor:pointer; margin-right:6px; }
+  .btn.p { background:#0f62fe; color:#fff; } .btn.s { background:#393939; color:#fff; } .btn.g { background:transparent; color: var(--accent); padding:6px 8px; } .btn.d { background:#da1e28; color:#fff; }
+  .mono { font-family:'IBM Plex Mono', monospace; font-size:12px; }
+  pre.msg { background: var(--code); border:1px solid var(--border); padding:12px; overflow-x:auto; font-size:12px; line-height:1.5; margin:8px 0; white-space:pre; }
+  .grid2 { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap:12px; }
+  .kv { font-size:14px; margin:6px 0; } .kv b { display:inline-block; min-width:210px; font-weight:600; }
+  .toggle { display:inline-block; width:36px; height:18px; border-radius:9px; background:#24a148; position:relative; vertical-align:middle; margin-right:8px; }
+  .toggle.off { background:#8d8d8d; } .toggle::after { content:''; position:absolute; top:2px; left:20px; width:14px; height:14px; border-radius:50%; background:#fff; } .toggle.off::after { left:2px; }
+  .notice { border-left:3px solid var(--accent); background: var(--layer); padding:10px 14px; font-size:14px; margin-bottom:12px; }
+  .notice.warn { border-left-color:#f1c21b; } .notice.err { border-left-color: var(--danger); }
+  .marked { border-left:3px solid var(--danger); padding-left:10px; }
+  .count { display:inline-block; min-width:18px; padding:0 6px; border-radius:9px; background:#393939; color:#fff; font-size:11px; margin-left:6px; }
+  @media (max-width: 760px) { .inp { min-width:0 !important; max-width:100%; } .banner { word-break:break-word; } .side { display:none; } .main { padding:12px 16px; } h1 { font-size:22px; } .kv b { min-width:0; display:block; } }
+</style>
+</head>
+<body>
+<div class="banner">Visual preview: Public Health Reporting (state ELR) | OpenELIS design mockup | not a live application</div>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+const Tag = ({k, children}) => <span className={`tag tg-${k}`}>{children}</span>;
+
+function AdminSide({ active, section, setSection }) {
+  const secs = [['connection','Connection'],['profile','Profile'],['reportable','Reportable results'],['routing','Routing'],['data','Required data'],['golive','Test and go-live']];
+  return (<nav className="side" aria-label="Admin menu">
+    <div className="i">Back to main menu</div>
+    <div className="h">Config</div><div className="i">Configuration</div>
+    <div className="h">Resources</div><div className="i">Test Catalog</div>
+    <div className="h">Automation</div><div className="i">External Connections</div>
+    <div className="i">Interfaces</div>
+    <div className="i c">EHR Interfaces</div>
+    <div className="i c">EHR Profiles</div>
+    <div className={`i c ${active==='list'?'on':''}`}>Public Health Reporting</div>
+    {active==='editor' && <><div className="i cc">Back to Public Health Reporting</div>
+      {secs.map(([k,v]) => <div key={k} className={`i cc ${section===k?'on':''}`} style={{cursor:'pointer'}} onClick={()=>setSection(k)}>{v}</div>)}</>}
+    <div className="i">Notifications</div>
+  </nav>);
+}
+function MainSide({ active }) {
+  return (<nav className="side" aria-label="Main menu">
+    <div className="i">Home</div><div className="i">Alerts</div>
+    <div className="h">Orders & Patients</div><div className="i">Add Order</div><div className={`i ${active==='patient'?'on':''}`}>Patients</div>
+    <div className="h">Testing</div><div className="i">Results</div><div className={`i ${active==='val'?'on':''}`}>Validation</div>
+    <div className="h">Reports</div><div className="i">Report Print Queue</div><div className={`i ${active==='sent'?'on':''}`}>Sent Messages</div>
+  </nav>);
+}
+
+/* 1. list */
+function List({ go }) {
+  const rows = [
+    ['California CalREDIE','California CalREDIE (Dec 2024)','Tested at this lab; California residents tested elsewhere','Production','green','Ready',412,0],
+    ['Los Angeles County','Los Angeles County ELR','Patients living in Los Angeles County','Staging','blue','Ready',0,0],
+    ['Texas DSHS','Texas DSHS (v3.1)','Patients living in Texas','Production','green','Ready',6,1],
+    ['APHL AIMS','APHL AIMS','Patients living in New York, Florida, Washington','Staging','gray','Not set up',0,0],
+  ];
+  return (<div className="shell"><AdminSide active="list"/><main className="main">
+    <div className="crumb"><a href="#">Home</a> / <a href="#">Admin Management</a> / Interfaces / Public Health Reporting</div>
+    <h1>Public Health Reporting</h1>
+    <p className="sub">Where reportable results are sent, and which results are reportable.</p>
+    <div className="toolbar"><input className="inp" placeholder="Search jurisdictions"/><select className="inp"><option>Status: Active</option><option>Inactive</option><option>All</option></select><button className="btn p">Add jurisdiction</button></div>
+    <div className="tw"><table className="t"><thead><tr><th>Jurisdiction</th><th>Profile</th><th>Receives</th><th>Environment</th><th>Status</th><th>Sent (7 days)</th><th>Refused (7 days)</th><th>Active</th><th></th></tr></thead>
+    <tbody>{rows.map((r,i)=>(<tr key={i}><td><a href="#" style={{color:'var(--accent)'}} onClick={e=>{e.preventDefault();go('editor')}}>{r[0]}</a></td><td>{r[1]}</td><td>{r[2]}</td><td><Tag k={r[3]==='Staging'?'blue':'gray'}>{r[3]}</Tag></td><td><Tag k={r[4]}>{r[5]}</Tag></td><td>{r[6]}</td><td className={r[7]?'reason':''}>{r[7]}</td><td><span className="toggle"></span></td><td><button className="btn g" onClick={()=>go('editor')}>Edit</button></td></tr>))}</tbody></table></div>
+    <p className="note">Shipped profiles also include National ELR 2.5.1, New York ECLRS, Florida DOH and Washington DOH, ready to add as jurisdictions.</p>
+  </main></div>);
+}
+
+/* 2. editor */
+function Editor() {
+  const [section, setSection] = useState('reportable');
+  const [preview, setPreview] = useState(true);
+  return (<div className="shell"><AdminSide active="editor" section={section} setSection={setSection}/><main className="main">
+    <div className="crumb"><a href="#">Home</a> / <a href="#">Admin Management</a> / Interfaces / <a href="#">Public Health Reporting</a> / California CalREDIE / {({connection:'Connection',profile:'Profile',reportable:'Reportable results',routing:'Routing',data:'Required data',golive:'Test and go-live'})[section]}</div>
+    <h1>California CalREDIE</h1>
+    <p className="sub"><Tag k="gray">Production</Tag><Tag k="green">Ready</Tag> Profile: California CalREDIE, from the CDPH ELR HL7 Specifications Guide, December 2024.</p>
+
+    {section==='reportable' && <>
+      {preview && <div className="tile" style={{borderLeft:'3px solid #0f62fe'}}>
+        <h3 style={{fontSize:16,fontWeight:600,margin:'0 0 8px'}}>Import preview: CalREDIE ELR LOINC and SNOMED Code List, December 2024</h3>
+        <p className="note">Illustrative counts and codes. 1,946 entries in the file; 61 match tests in this lab's catalog. Nothing changes until you apply.</p>
+        <div className="grid2" style={{marginTop:8}}>
+          <div><b>Become reportable (3)</b><div className="note">Syphilis IgG (63464-1), positive only</div><div className="note">HCV RNA quantitative (11011-4), all results</div><div className="note">Mpox virus DNA PCR (100383-9), positive only</div></div>
+          <div><b>Stop being reportable (1)</b><div className="note">Legionella urine antigen (32781-2): removed from the list</div></div>
+          <div><b>Change (2)</b><div className="note">TB IGRA (71774-4): positive only to all results</div><div className="note">Influenza A/B, RSV panel (95941-1): adds subtypes</div></div>
+          <div><b className="reason">Cannot be matched: no LOINC (2)</b><div className="note">Dengue NS1 antigen <a href="#" style={{color:'var(--accent)'}}>Open test</a></div><div className="note">Valley fever immunodiffusion <a href="#" style={{color:'var(--accent)'}}>Open test</a></div></div>
+        </div>
+        <div style={{marginTop:12}}><button className="btn p" onClick={()=>setPreview(false)}>Apply 6 changes</button><button className="btn g" onClick={()=>setPreview(false)}>Cancel import</button></div>
+      </div>}
+      <div className="tile">
+        <div className="toolbar"><input className="inp" placeholder="Search test, LOINC or condition"/><select className="inp"><option>All entries in this lab's catalog</option><option>Overrides only</option><option>Phone within 1 hour</option></select><button className="btn s" onClick={()=>setPreview(true)}>Import code list</button></div>
+        <div className="tw"><table className="t"><thead><tr><th>Test (LOINC)</th><th>Condition</th><th>Report</th><th>Positive values</th><th>Flags</th></tr></thead><tbody>
+          <tr><td>CT/NG NAAT, Chlamydia trachomatis <span className="mono">(43304-5)</span></td><td>Chlamydia</td><td>Positive or abnormal only</td><td className="note">Detected (260373001)</td><td></td></tr>
+          <tr><td>RPR titer <span className="mono">(31147-2)</span></td><td>Syphilis</td><td>All results, including negative</td><td className="note">numeric with abnormal flag</td><td></td></tr>
+          <tr><td>Measles IgM <span className="mono">(35275-7)</span></td><td>Measles</td><td>Positive or abnormal only</td><td className="note">Positive (10828004)</td><td><Tag k="red">Phone within 1 hour</Tag></td></tr>
+          <tr><td>HIV-1/2 Ag/Ab screen <span className="mono">(56888-1)</span></td><td>HIV</td><td>Positive or abnormal only</td><td className="note">Reactive (11214006)</td><td><Tag k="purple">Separate message</Tag></td></tr>
+          <tr><td>Urine culture, organism <span className="mono">(630-4)</span></td><td>CRE, CPO</td><td>Positive or abnormal only</td><td className="note">K. pneumoniae with carbapenemase (organism list)</td><td></td></tr>
+          <tr><td>Strep A rapid antigen <span className="mono">(78012-2)</span></td><td>(lab override)</td><td>Never report</td><td className="note">Override: "Screening test; the confirmatory culture is reported instead"</td><td><Tag k="warm">Override</Tag></td></tr>
+        </tbody></table></div>
+      </div></>}
+
+    {section==='routing' && <div className="tile">
+      <p className="note">A result goes to this jurisdiction when any rule matches.</p>
+      <div className="kv"><b>Tested at this lab</b> Yes (the lab is in California)</div>
+      <div className="kv"><b>Patient lives in</b> <Tag k="gray">California</Tag></div>
+      <div className="kv"><b>Except</b> <Tag k="gray">Los Angeles County</Tag> <span className="note">only while the LA County route takes those patients (Open Question 1)</span></div>
+      <div className="kv"><b>Ordering facility is in</b> <span className="note">not used</span></div>
+      <div className="notice warn">Patients whose address has no state are sent here (tested at this lab) and listed as Sent with missing data.</div>
+    </div>}
+
+    {section==='data' && <div className="tile">
+      <p className="note">Missing data never holds a report. It is listed in Sent Messages under Sent with missing data.</p>
+      <div className="tw"><table className="t"><thead><tr><th>Required</th><th>Where OpenELIS takes it from</th><th>Missing in the last 7 days</th></tr></thead><tbody>
+        <tr><td>Race, ethnicity</td><td>Patient</td><td>38 of 412</td></tr>
+        <tr><td>Patient address and phone</td><td>Patient</td><td>4</td></tr>
+        <tr><td>Pregnancy status (mother-to-child conditions)</td><td>Order question</td><td>11</td></tr>
+        <tr><td>Ordering provider NPI and phone</td><td>Provider</td><td>2</td></tr>
+        <tr><td>Ordering facility address and phone</td><td>Organization</td><td>0</td></tr>
+        <tr><td>Specimen source site</td><td>Body site on the sample</td><td>9</td></tr>
+      </tbody></table></div></div>}
+
+    {section==='connection' && <div className="tile"><div className="notice">Transport is the implementing engineer's choice (EHR Lab Interface D-389). CDPH describes a direct interface and allows APHL AIMS for multistate labs.</div>
+      <div className="kv"><b>Outbound</b> External Connection "CalREDIE ELR production"</div><div className="kv"><b>Acknowledgments</b> Expected</div>
+      <div className="marked"><div className="kv"><b>Environment</b> Production</div><div className="note">Reportable results for real patients will be sent to California CalREDIE.</div></div></div>}
+
+    {section==='profile' && <div className="tile"><div className="notice">Starting values from the jurisdiction's published guide, December 2024; confirm during onboarding.</div>
+      <div className="grid2"><div><div className="kv"><b>Message</b> ORU^R01, HL7 2.5.1, ELR R1 with errata</div><div className="kv"><b>Required segments</b> MSH, SFT, PID, ORC, OBR, OBX, SPM</div><div className="kv"><b>Sending facility</b> Name up to 20 characters, CLIA in MSH-4.2</div></div>
+      <div><div className="kv"><b>Pregnancy status</b> OBR-13, never blank</div><div className="kv"><b>Names</b> No non-ASCII letters; hyphens kept</div><div className="kv"><b>Separate messages</b> HIV</div><div className="kv"><b>Order questions</b> NTE after OBX</div></div></div>
+      <button className="btn s">Duplicate profile</button></div>}
+
+    {section==='golive' && <div className="tile"><h3 style={{fontSize:16,fontWeight:600}}>Go-live checklist</h3>
+      <div className="kv">Connection set: yes</div><div className="kv">Code list imported and applied: December 2024</div><div className="kv reason">Tests on the code list without a LOINC: 2</div><div className="kv">Race and ethnicity capture on: yes</div><div className="kv">Test message accepted in Staging: yes (10/30)</div><div className="kv">Lab CLIA number set: 05D2198765</div>
+      <button className="btn s">Export messages for validation</button></div>}
+  </main></div>);
+}
+
+/* 3. Sent Messages */
+function Sent() {
+  const [f, setF] = useState('all');
+  const rows = [
+    ['10:14','SOL-26-018233','Chlamydia','Final','California CalREDIE','green','Sent','AA',null],
+    ['10:14','SOL-26-018233','Chlamydia','Final','Texas DSHS','green','Sent','Delivered (file 20261104-1015)',null],
+    ['09:52','SOL-26-018220','Syphilis','Final','California CalREDIE','green','Sent','AA','race, pregnancy status'],
+    ['09:40','SOL-26-018212','Hepatitis C','Amended','California CalREDIE','red','Refused','AE: SPM-4 specimen type not SNOMED CT',null],
+    ['09:31','SOL-26-018209','Gonorrhea','Final','(none)','gray','Skipped','No public health route for Nevada',null],
+    ['09:25','SOL-26-018198','Syphilis','Final','California CalREDIE','gray','Skipped','Reported by Quest Diagnostics (referred, reports to CA)',null],
+    ['11/02 16:40','SOL-26-017950','Hepatitis B','Final','California CalREDIE','green','Sent','AA 11/04 09:10',null,false,true],
+    ['09:20','SOL-26-018201','HIV','Final','California CalREDIE','green','Sent','AA',null,true],
+  ];
+  const shown = rows.filter(r => f==='all' || (f==='refused' && r[6]==='Refused') || (f==='missing' && r[8]) || (f==='noroute' && r[6]==='Skipped' && r[7].startsWith('No public')) || (f==='late' && r[10]));
+  return (<div className="shell"><MainSide active="sent"/><main className="main">
+    <div className="crumb"><a href="#">Home</a> / <a href="#">Reports</a> / Sent Messages</div>
+    <h1>Sent Messages</h1><p className="sub">Product: Public health. Result Delivery owns this page; this spec adds the product and three follow-up filters.</p>
+    <div className="toolbar">{[['all','All',rows.length],['refused','Refused',1],['missing','Sent with missing data',1],['noroute','No route',1],['late','Late',1]].map(([k,l,c])=><button key={k} className={`chip ${f===k?'on':''}`} onClick={()=>setF(k)}>{l}<span className="count">{c}</span></button>)}</div>
+    <div className="tw"><table className="t"><thead><tr><th>Time</th><th>Lab number</th><th>Condition</th><th>Version</th><th>Jurisdiction</th><th>Status</th><th>Answer</th><th></th></tr></thead><tbody>
+      {shown.map((r,i)=>(<tr key={i}><td className="note">{r[0]}</td><td>{r[1]}</td><td>{r[9] ? <span className="note">Sensitive test</span> : r[2]}</td><td>{r[3]}</td><td>{r[4]}</td>
+        <td><Tag k={r[5]}>{r[6]}</Tag>{r[10] && <Tag k="red">Late</Tag>}{r[8] && <div className="reason">Sent with missing data: {r[8]}</div>}</td><td className={r[6]==='Refused'?'reason':'note'}>{r[7]}</td>
+        <td style={{whiteSpace:'nowrap'}}><button className="btn g">Details</button>{r[6]==='Refused' && <button className="btn g">Resend</button>}{r[8] && <button className="btn g">Send update</button>}</td></tr>))}
+    </tbody></table></div>
+    <div style={{marginTop:8}}><button className="btn s">Export for inspection</button></div>
+    <p className="note">Codes and counts in this preview are illustrative; confirm against the CalREDIE list. The HIV row is masked for users without sensitive-results access. A Skipped row means the result still needs reporting another way.</p>
+  </main></div>);
+}
+
+/* 4. Bench and records */
+function Bench() {
+  const [called, setCalled] = useState(false);
+  return (<div className="shell"><MainSide active="val"/><main className="main">
+    <div className="crumb"><a href="#">Home</a> / <a href="#">Testing</a> / Validation</div>
+    <h1>Validation</h1><p className="sub">Places this spec touches outside its admin pages: the validation row, the test editor, the patient form and the referral lab record.</p>
+    <div className="tile">
+      <div className="kv"><b>SOL-26-018240</b> Measles IgM, Serum: <b>Positive</b> <Tag k="red">Reportable</Tag></div>
+      {!called ? <div className="notice err">Report by phone to the local health officer within 1 hour (Measles). The electronic report is sent on release either way. <button className="btn g" onClick={()=>setCalled(true)}>Record call</button></div>
+        : <div className="notice">Call recorded: Fresno County Public Health, (559) 555-0134, 10:42, read back by Dr. A. Sandoval. Recorded by M. Lopez.</div>}
+      <button className="btn p">Release</button>
+    </div>
+    <div className="grid2">
+      <div className="tile"><div className="crumb">Admin Management / Test Catalog / Tests / Syphilis IgG / Results</div>
+        <div className="kv"><b>Reportable (on the patient report)</b> <span className="toggle"></span></div>
+        <div className="kv"><b>Public health reporting</b> <select className="inp"><option>Use code lists</option><option>Always report</option><option>Never report</option></select></div>
+        <div className="note">On the CalREDIE list (63464-1), positive only.</div></div>
+      <div className="tile"><div className="crumb">Patients / Maria Delgado</div>
+        <div className="kv"><b>Race</b> <Tag k="gray">White (2106-3)</Tag><Tag k="gray">American Indian or Alaska Native (1002-5)</Tag></div>
+        <div className="kv"><b>Ethnicity</b> Hispanic or Latino (2135-2)</div>
+        <div className="kv"><b>Order question: Pregnancy status</b> <select className="inp"><option>Not answered</option><option>Prenatal</option><option>Not pregnant</option><option>Unknown</option></select></div>
+        <div className="note">Shown when any public health jurisdiction is in Production. Never required to save.</div></div>
+      <div className="tile"><div className="crumb">Admin Management / Locations & Organizations / Quest Diagnostics, San Juan Capistrano / Referral lab</div>
+        <div className="kv"><b>Reports to public health in</b> <Tag k="gray">California</Tag></div>
+        <div className="note">Reportable results referred here are left to this lab; Sent Messages shows "Reported by Quest Diagnostics".</div></div>
+    </div>
+  </main></div>);
+}
+
+function App() {
+  const [s, setS] = useState('list');
+  const S = [['list','1. Admin: jurisdictions'],['editor','2. Admin: CalREDIE'],['sent','3. Sent Messages: public health'],['bench','4. Validation, test, patient']];
+  return (<div><div className="switch" role="navigation" aria-label="Preview screens">{S.map(([k,l])=><button key={k} className={s===k?'on':''} onClick={()=>setS(k)}>{l}</button>)}</div>
+    {s==='list' && <List go={setS}/>}{s==='editor' && <Editor/>}{s==='sent' && <Sent/>}{s==='bench' && <Bench/>}</div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

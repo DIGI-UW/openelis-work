@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EHR Lab Interface</title>
+<link rel="stylesheet" href="https://unpkg.com/@carbon/styles@1.62.0/css/styles.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  :root { --bg:#f4f4f4; --layer:#ffffff; --text:#161616; --muted:#525252; --border:#e0e0e0; --accent:#0f62fe; --danger:#da1e28; --code:#f2f4f8; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#161616; --layer:#262626; --text:#f4f4f4; --muted:#c6c6c6; --border:#393939; --accent:#78a9ff; --danger:#ff8389; --code:#1c1c1c; } }
+  :root[data-theme="dark"] { --bg:#161616; --layer:#262626; --text:#f4f4f4; --muted:#c6c6c6; --border:#393939; --accent:#78a9ff; --danger:#ff8389; --code:#1c1c1c; }
+  body { background: var(--bg); color: var(--text); margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; }
+  .banner { background:#0f62fe; color:#fff; padding:6px 16px; font-size:12px; font-family: 'IBM Plex Mono', monospace; }
+  .switch { display:flex; flex-wrap:wrap; gap:4px; padding:8px 16px; background: var(--layer); border-bottom:1px solid var(--border); }
+  .switch button { border:1px solid var(--border); background:transparent; color:var(--text); padding:6px 10px; font-size:13px; cursor:pointer; }
+  .switch button.on { background:#0f62fe; color:#fff; border-color:#0f62fe; }
+  .shell { display:flex; min-height: calc(100vh - 80px); }
+  .side { width:240px; flex-shrink:0; background: var(--layer); border-right:1px solid var(--border); padding:12px 0; font-size:14px; }
+  .side .h { padding:12px 16px 4px; font-size:12px; color: var(--muted); text-transform:uppercase; letter-spacing:.32px; }
+  .side .i { padding:6px 16px; color: var(--text); }
+  .side .i.c { padding-left:32px; }
+  .side .i.cc { padding-left:48px; font-size:13px; }
+  .side .i.on { border-left:3px solid var(--accent); background: rgba(15,98,254,.08); font-weight:600; }
+  .main { flex:1; padding:16px 24px; min-width:0; }
+  .crumb { font-size:12px; color: var(--muted); margin-bottom:6px; }
+  .crumb a { color: var(--accent); text-decoration:none; }
+  h1 { font-size:28px; font-weight:400; margin:4px 0 4px; }
+  .sub { color: var(--muted); margin:0 0 16px; font-size:14px; }
+  .tile { background: var(--layer); border:1px solid var(--border); padding:16px; margin-bottom:12px; }
+  .toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:8px; }
+  .chip { border:1px solid var(--border); background: var(--layer); color:var(--text); padding:6px 10px; font-size:13px; cursor:pointer; border-radius:16px; }
+  .chip.on { border-color: var(--accent); color: var(--accent); font-weight:600; }
+  .inp { border:none; border-bottom:1px solid #8d8d8d; background: var(--layer); color: var(--text); padding:8px 10px; font-size:14px; min-width:220px; }
+  select.inp { min-width:180px; }
+  table.t { width:100%; border-collapse:collapse; background: var(--layer); font-size:14px; }
+  .tw { overflow-x:auto; border:1px solid var(--border); }
+  table.t th { text-align:left; background: #e0e0e0; color:#161616; padding:10px 12px; font-weight:600; white-space:nowrap; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) table.t th { background:#393939; color:#f4f4f4; } }
+  table.t td { padding:10px 12px; border-top:1px solid var(--border); vertical-align:top; }
+  .tag { display:inline-block; font-size:12px; padding:2px 8px; border-radius:12px; margin-right:4px; white-space:nowrap; }
+  .tg-purple{background:#e8daff;color:#491d8b} .tg-green{background:#a7f0ba;color:#044317} .tg-teal{background:#9ef0f0;color:#004144} .tg-red{background:#ffd7d9;color:#750e13} .tg-gray{background:#e0e0e0;color:#161616} .tg-blue{background:#d0e2ff;color:#002d9c} .tg-warm{background:#e5e0df;color:#3c3838}
+  .reason { color: var(--danger); font-size:13px; margin-top:4px; }
+  .note { color: var(--muted); font-size:13px; margin-top:4px; }
+  .btn { border:none; padding:8px 14px; font-size:14px; cursor:pointer; margin-right:6px; }
+  .btn.p { background:#0f62fe; color:#fff; } .btn.s { background:#393939; color:#fff; } .btn.g { background:transparent; color: var(--accent); padding:6px 8px; } .btn.d { background:#da1e28; color:#fff; }
+  .mono { font-family:'IBM Plex Mono', monospace; font-size:12px; }
+  pre.msg { background: var(--code); border:1px solid var(--border); padding:12px; overflow-x:auto; font-size:12px; line-height:1.5; margin:8px 0; white-space:pre; }
+  .grid2 { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap:12px; }
+  .kv { font-size:14px; margin:6px 0; } .kv b { display:inline-block; min-width:210px; font-weight:600; }
+  .toggle { display:inline-block; width:36px; height:18px; border-radius:9px; background:#24a148; position:relative; vertical-align:middle; margin-right:8px; }
+  .toggle.off { background:#8d8d8d; } .toggle::after { content:''; position:absolute; top:2px; left:20px; width:14px; height:14px; border-radius:50%; background:#fff; } .toggle.off::after { left:2px; }
+  .notice { border-left:3px solid var(--accent); background: var(--layer); padding:10px 14px; font-size:14px; margin-bottom:12px; }
+  .notice.warn { border-left-color:#f1c21b; } .notice.err { border-left-color: var(--danger); }
+  .marked { border-left:3px solid var(--danger); padding-left:10px; }
+  .count { display:inline-block; min-width:18px; padding:0 6px; border-radius:9px; background:#393939; color:#fff; font-size:11px; margin-left:6px; }
+  @media (max-width: 760px) { .inp { min-width:0 !important; max-width:100%; } label.mini select.inp { max-width:calc(100vw - 100px); } .banner { word-break:break-word; } .side { display:none; } .main { padding:12px 16px; } h1 { font-size:22px; } .kv b { min-width:0; display:block; } }
+</style>
+</head>
+<body>
+<div class="banner">Visual preview: EHR Lab Interface (HL7 v2 orders and results) | OpenELIS design mockup | not a live application</div>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+const Tag = ({k, children}) => <span className={`tag tg-${k}`}>{children}</span>;
+
+function MainSide({ active }) {
+  return (<nav className="side" aria-label="Main menu">
+    <div className="i">Home</div><div className="i">Alerts</div>
+    <div className="h">Orders & Patients</div>
+    <div className={`i ${active==='orders'?'on':''}`}>Add Order</div><div className="i">Patients</div>
+    <div className="h">Testing</div><div className="i">Results</div><div className="i">Validation</div>
+    <div className="h">Reports</div><div className="i">Report Print Queue</div>
+    <div className={`i ${active==='sent'?'on':''}`}>Sent Messages</div>
+    <div className="h">Administration</div><div className="i">Admin</div>
+  </nav>);
+}
+
+function AdminSide({ active, section, setSection }) {
+  const secs = [['connection','Connection'],['profile','Profile and options'],['facilities','Facilities and providers'],['orderCodes','Order codes'],['questions','Questions'],['results','Results'],['verification','Verification'],['golive','Test and go-live']];
+  return (<nav className="side" aria-label="Admin menu">
+    <div className="i">Back to main menu</div>
+    <div className="h">Config</div><div className="i">Configuration</div>
+    <div className="h">Organization</div><div className="i">Locations & Organizations</div><div className="i">Providers</div>
+    <div className="h">Resources</div><div className="i">Test Catalog</div>
+    <div className="h">Automation</div><div className="i">External Connections</div>
+    <div className="i">Interfaces</div>
+    <div className={`i c ${active==='list'?'on':''}`}>EHR Interfaces</div>
+    {active==='editor' && <>
+      <div className="i cc">Back to EHR Interfaces</div>
+      {secs.map(([k,v]) => <div key={k} className={`i cc ${section===k?'on':''}`} style={{cursor:'pointer'}} onClick={()=>setSection(k)}>{v}</div>)}
+    </>}
+    <div className="i c">EHR Profiles</div>
+    <div className="i c">Public Health Reporting</div>
+    <div className="i">Notifications</div>
+  </nav>);
+}
+
+/* ---------------- Screen 1: order dashboard ---------------- */
+const orders = [
+  { kind:'in', placer:'REQ-88412', src:'Epic, Valley Family Clinic', pt:'Maria Delgado', dob:'03/14/1981', tests:'Lipid Panel, Hemoglobin A1c', n:2, age:'ordered 2 h ago', attention:null },
+  { kind:'in', placer:'REQ-88415', src:'Epic, Valley Family Clinic', pt:'James Okafor', dob:'11/02/1967', tests:'Comprehensive Metabolic Panel, TSH, Glucose (82947)', n:3, age:'ordered 1 h ago', attention:['Unmapped test code 82947 Glucose, serum','map'] },
+  { kind:'in', placer:'AT-5501-1', src:'athenahealth, Sunrise Pediatrics', pt:'Lily Tran', dob:'06/30/2019', tests:'CBC with Differential', n:1, age:'ordered 25 min ago', attention:['Choose the patient: 2 possible matches','patient'] },
+  { kind:'in', placer:'ECW-20931', src:'eClinicalWorks, Central Valley Women\'s Health', pt:'Ana Ruiz', dob:'09/09/1994', tests:'Chlamydia/Gonorrhea NAAT, Syphilis IgG', n:2, age:'ordered 3 d ago', attention:null, late:false },
+  { kind:'in', placer:'REQ-87990', src:'Epic, Valley Family Clinic', pt:'Robert Chen', dob:'01/22/1955', tests:'PSA, total', n:1, age:'ordered 9 d ago', attention:null, late:true },
+  { kind:'in', placer:'(message 4471)', src:'Epic, Mercy Outpatient', pt:'Unknown', dob:'', tests:'', n:0, age:'received 40 min ago', attention:['Could not read message: MSH-9 missing','view'] },
+  { kind:'acc', lab:'SOL-26-018204', placer:'REQ-88390', src:'Epic, Valley Family Clinic', pt:'Grace Kim', dob:'04/18/1979', tests:'Basic Metabolic Panel', n:1, age:'entered 08:12', status:['teal','Samples prepared'] },
+  { kind:'acc', lab:'SOL-26-018188', placer:'REQ-88377', src:'Epic, Valley Family Clinic (linked after downtime)', pt:'Oscar Villa', dob:'02/11/1972', tests:'CBC, Comprehensive Metabolic Panel', n:2, age:'entered 06:40', status:['teal','Samples prepared'], attention:['Differs from the electronic order: Lipid Panel ordered, not on the lab order','diff'] },
+  { kind:'local', lab:'SOL-26-018206', pt:'Daniel Ortiz', dob:'12/01/1988', tests:'Urinalysis, Urine Culture', n:2, age:'entered 08:31', status:['green','Entered'] },
+  { kind:'acc', lab:'SOL-26-018199', placer:'NG-7731', src:'NextGen, Foothill Internal Medicine', pt:'Helen Park', dob:'07/05/1960', tests:'Hepatic Function Panel', n:1, age:'entered 07:58', status:['teal','Samples prepared'], attention:['Sender changed the order after receipt','diff'] },
+];
+
+function Dashboard() {
+  const [src, setSrc] = useState('external');
+  const [q, setQ] = useState('incoming');
+  const [msg, setMsg] = useState(null);
+  const [toast, setToast] = useState(null);
+  let rows = orders.filter(o => src==='all' ? true : src==='local' ? o.kind==='local' : o.kind!=='local');
+  if (q==='incoming') rows = rows.filter(o=>o.kind==='in' && !o.attention);
+  if (q==='attention') rows = rows.filter(o=>o.attention);
+  const cnt = (f) => orders.filter(f).length;
+  return (<div className="shell"><MainSide active="orders"/><main className="main">
+    <div className="crumb"><a href="#">Home</a> / <a href="#">Orders</a> / Clinical Orders</div>
+    <h1>Clinical orders</h1>
+    <p className="sub">The order dashboard of Clinical Order Entry v4. Incoming electronic orders from clinics' EHRs wait here until the specimen arrives.</p>
+    {toast && <div className="notice">{toast}</div>}
+    <div className="toolbar">
+      <input className="inp" placeholder="Search or scan: lab number, patient, requisition, MRN" defaultValue="" aria-label="Search"/>
+      <label className="mini" style={{fontSize:13, maxWidth:"100%"}}>Source&nbsp;
+        <select className="inp" value={src} onChange={e=>setSrc(e.target.value)}>
+          <option value="all">All</option><option value="local">Entered at the lab</option>
+          <option value="external">From an external system</option>
+          <option value="epic">&nbsp;&nbsp;Epic, Valley Family Clinic</option>
+          <option value="athena">&nbsp;&nbsp;athenahealth, Sunrise Pediatrics</option>
+          <option value="ecw">&nbsp;&nbsp;eClinicalWorks, Central Valley Women's Health</option>
+          <option value="fhir">&nbsp;&nbsp;FHIR order source</option>
+        </select></label>
+      <button className="btn p">New order</button>
+    </div>
+    <div className="toolbar">
+      {[['all','All',orders.length],['incoming','Incoming',cnt(o=>o.kind==='in'&&!o.attention)],['attention','Needs attention',cnt(o=>o.attention)],['progress','In progress',14],['awaiting','Awaiting sample',3]].map(([k,l,c]) =>
+        <button key={k} className={`chip ${q===k?'on':''}`} onClick={()=>setQ(k)}>{l}<span className="count">{c}</span></button>)}
+    </div>
+    <div className="tw"><table className="t">
+      <thead><tr><th>Lab number</th><th>Patient</th><th>Source</th><th>Tests</th><th>Status</th><th>Time</th><th>Actions</th></tr></thead>
+      <tbody>{rows.map((o,i) => (<React.Fragment key={i}><tr>
+        <td>{o.lab ? <b>{o.lab}</b> : <span className="note">Not yet accepted</span>}{o.placer && <div className="note mono">Req. {o.placer}</div>}</td>
+        <td>{o.pt}{o.dob && <div className="note">DOB {o.dob}</div>}
+          {o.attention && <div className="reason">{o.attention[0]}</div>}
+          {o.late && <div className="note">Specimen not received</div>}</td>
+        <td>{o.kind!=='local' ? <><Tag k="purple">External</Tag><div className="note">{o.src}</div></> : <span className="note">Entered at the lab</span>}</td>
+        <td>{o.tests}{o.n>0 && <div className="note">{o.n} {o.n===1?'test':'tests'}</div>}</td>
+        <td>{o.kind==='in' ? (o.attention ? <Tag k="red">Needs attention</Tag> : <Tag k="purple">Incoming</Tag>) : <Tag k={o.status[0]}>{o.status[1]}</Tag>}</td>
+        <td className="note">{o.age}</td>
+        <td style={{whiteSpace:'nowrap'}}>
+          {o.kind==='in' && !o.attention && <><button className="btn p" onClick={()=>setToast(`Opening ${o.placer} in Enter Order with patient, provider, tests, answers, diagnosis and insurance filled.`)}>Accept</button><button className="btn g">Reject</button></>}
+          {o.attention && o.attention[1]==='map' && <button className="btn g">Map this code</button>}
+          {o.attention && o.attention[1]==='patient' && <button className="btn p">Accept and choose patient</button>}
+          {o.attention && o.attention[1]==='diff' && <button className="btn g">Review changes</button>}
+          {o.kind!=='local' && <button className="btn g" onClick={()=>setMsg(msg===i?null:i)}>{msg===i?'Hide message':'View message'}</button>}
+          {o.kind!=='in' && <button className="btn g">Open</button>}
+        </td></tr>
+        {msg===i && <tr><td colSpan="7"><div className="note">Received {o.age.replace('ordered ','')} on interface "Epic, Valley Family Clinic". Stored before acknowledgment (AA sent).</div>
+<pre className="msg">{o.attention && o.attention[1]==='view' ? `MSH|^~\\&|EPIC|MERCYOP|||20261104091233||^|4471|P|2.3
+PID|1||E8841203^^^MERCY^MR||...` :
+`MSH|^~\\&|EPIC|VFC|SOLAURA|SOLAURA|20261104071502||ORM^O01|88412-1|P|2.3
+PID|1||E2290017^^^VFC^MR||DELGADO^MARIA^L||19810314|F|||2210 MAIN ST^^FRESNO^CA^93721||5595550142
+PV1|1|O|VFC^^^VALLEY FAMILY CLINIC||||1457389021^NGUYEN^THERESA^^^MD
+IN1|1|BCCA01|BC123|BLUE SHIELD OF CALIFORNIA|||||||||||1|DELGADO^MARIA|SELF|||||||||||||||||||XEB884120017
+ORC|NW|REQ-88412^EPIC||REQ-88412^EPIC|||||20261104071455|||1457389021^NGUYEN^THERESA^^^MD
+OBR|1|REQ-88412^EPIC||80061^LIPID PANEL^L|||20261104070000|||||||||1457389021^NGUYEN^THERESA^^^MD
+OBX|1|ST|FAST^FASTING 12 HOURS^L||Y
+DG1|1|I10|E78.5^Hyperlipidemia, unspecified^I10
+ORC|NW|REQ-88412-2^EPIC||REQ-88412^EPIC
+OBR|2|REQ-88412-2^EPIC||83036^HEMOGLOBIN A1C^L`}</pre></td></tr>}
+      </React.Fragment>))}</tbody></table></div>
+    <p className="note">Source replaces the "Include external sources" toggle. Accept is offered on Needs attention rows only for reasons Enter Order itself resolves (choosing the patient).</p>
+  </main></div>);
+}
+
+/* ---------------- Screen 2: EHR Interfaces list ---------------- */
+function InterfaceList({ go }) {
+  const rows = [
+    ['Epic, Valley Family Clinic','Epic','Valley Family Clinic (3 sites)','Orders in, results out','Production','green','Ready','09:20','09:31'],
+    ['athenahealth, Sunrise Pediatrics','athenahealth','Sunrise Pediatrics','Orders in, results out','Production','green','Ready','08:55','09:02'],
+    ['eClinicalWorks, Central Valley Women\'s Health','eClinicalWorks','Central Valley Women\'s Health','Orders in, results out','Production','red','Failing','07:40','Yesterday 16:12'],
+    ['NextGen, Foothill Internal Medicine','NextGen','Foothill Internal Medicine','Orders in, results out','Production','warm','Paused since 06:00','05:58','05:59'],
+    ['Epic, Mercy Outpatient','Epic (Mercy variant)','Mercy Outpatient Center','Orders in, results out','Test','blue','Ready','09:12','Never'],
+    ['MEDITECH, Sierra Community Hospital','MEDITECH Expanse','Sierra Community Hospital','Results out','Test','gray','Not set up','Never','Never'],
+  ];
+  return (<div className="shell"><AdminSide active="list"/><main className="main">
+    <div className="crumb"><a href="#">Home</a> / <a href="#">Admin Management</a> / Interfaces / EHR Interfaces</div>
+    <h1>EHR Interfaces</h1>
+    <p className="sub">Connections that receive orders from clinics' electronic health records and send results back.</p>
+    <div className="toolbar"><input className="inp" placeholder="Search by name or client"/><select className="inp"><option>Status: Active</option><option>Inactive</option><option>All</option></select>
+      <button className="btn s">Export compendium</button><button className="btn p">Add EHR interface</button></div>
+    <div className="tw"><table className="t"><thead><tr><th>Name</th><th>Profile</th><th>Clients</th><th>Direction</th><th>Environment</th><th>Status</th><th>Last order received</th><th>Last result sent</th><th>Active</th><th></th></tr></thead>
+    <tbody>{rows.map((r,i)=>(<tr key={i}><td><a href="#" onClick={e=>{e.preventDefault();go('editor')}} style={{color:'var(--accent)'}}>{r[0]}</a></td><td>{r[1]}</td><td>{r[2]}</td><td>{r[3]}</td>
+      <td><Tag k={r[4]==='Test'?'blue':'gray'}>{r[4]}</Tag></td><td><Tag k={r[5]}>{r[6]}</Tag>{r[6]==='Failing' && <div className="reason">3 results refused: AE "Provider not found"</div>}</td>
+      <td className="note">{r[7]}</td><td className="note">{r[8]}</td><td><span className="toggle"></span></td><td><button className="btn g" onClick={()=>go('editor')}>Edit</button></td></tr>))}</tbody></table></div>
+  </main></div>);
+}
+
+/* ---------------- Screen 3: interface editor ---------------- */
+const codes = [
+  ['80061','LIPID PANEL','Lipid Panel (panel LIPID, Serum)','green','Mapped',412,'09:20',null],
+  ['83036','HEMOGLOBIN A1C','Hemoglobin A1c (Whole blood EDTA)','green','Mapped',388,'09:20',null],
+  ['82947','GLUCOSE, SERUM',null,'red','Not mapped',1,'08:44','Glucose (Serum), LOINC 2345-7'],
+  ['84443','TSH','Thyroid Stimulating Hormone (Serum)','green','Mapped',201,'09:02',null],
+  ['87591','CHLAMYDIA/GC NAAT','CT/NG NAAT (Urine), refer to Quest','purple','Refer out',36,'Yesterday',null],
+  ['VITD25','VITAMIN D 25-OH',null,'red','Not mapped',4,'Yesterday','Vitamin D, 25-hydroxy (Serum), LOINC 62292-8'],
+  ['ZZTEST','EPIC TEST ORDER',null,'gray','Ignored',12,'10/28',null],
+];
+function Editor() {
+  const [section, setSection] = useState('orderCodes');
+  const [mapped, setMapped] = useState({});
+  return (<div className="shell"><AdminSide active="editor" section={section} setSection={setSection}/><main className="main">
+    <div className="crumb"><a href="#">Home</a> / <a href="#">Admin Management</a> / Interfaces / <a href="#">EHR Interfaces</a> / Epic, Valley Family Clinic / {({connection:'Connection',profile:'Profile and options',facilities:'Facilities and providers',orderCodes:'Order codes',questions:'Questions',results:'Results',verification:'Verification',golive:'Test and go-live'})[section]}</div>
+    <h1>Epic, Valley Family Clinic</h1>
+    <p className="sub"><Tag k="gray">Production</Tag><Tag k="green">Ready</Tag> Profile: Epic (shipped, version 1). Each section saves on its own.</p>
+
+    {section==='orderCodes' && <div className="tile">
+      <div className="toolbar"><input className="inp" placeholder="Search code or text"/><select className="inp"><option>Not mapped first</option><option>All</option><option>Mapped</option><option>Ignored</option></select><button className="btn s">Load codes from a file</button></div>
+      <div className="tw"><table className="t"><thead><tr><th>EHR code</th><th>EHR text</th><th>Mapped to</th><th>Status</th><th>Times received</th><th>Last received</th></tr></thead>
+      <tbody>{codes.map((c,i)=>{ const m = mapped[i]; return (<tr key={i}><td className="mono">{c[0]}</td><td>{c[1]}</td>
+        <td>{c[4]==='Ignored' ? <span className="note">Not a lab test (EHR build test code)</span> : c[2] || m ? (c[2]||c[7]) : <><input className="inp" style={{minWidth:200}} placeholder="Search tests and panels"/>{c[7] && <div className="note">Suggested: {c[7]} <button className="btn g" onClick={()=>setMapped({...mapped,[i]:true})}>Use suggestion</button></div>}</>}</td>
+        <td>{m ? <Tag k="green">Mapped</Tag> : <Tag k={c[3]}>{c[4]}</Tag>}</td><td>{c[5]}</td><td className="note">{c[6]}</td></tr>)})}</tbody></table></div>
+      <p className="note">Mapping applies to the next message. Incoming orders waiting on a code lose the Needs attention reason as soon as it is mapped.</p>
+      <div style={{marginTop:12}}><button className="btn p">Save</button><button className="btn g">Cancel</button><button className="btn g">History</button></div>
+    </div>}
+
+    {section==='profile' && <div className="tile">
+      <div className="kv"><b>Profile</b> Epic (shipped) <button className="btn g">Change</button></div>
+      <div className="notice">Starting values from the vendor's published specification; confirm at interface build. Duplicate the profile for a site variant.</div>
+      <div className="grid2">
+        <div><div className="kv"><b>Orders accepted</b> ORM^O01 (2.3, 2.3.1, 2.4), OML^O21 (2.5.1)</div><div className="kv"><b>Results sent as</b> ORU^R01 2.5.1, LRI</div><div className="kv"><b>Acknowledgment</b> Original mode</div><div className="kv"><b>Requisition number</b> ORC-2</div><div className="kv"><b>PDF placement</b> Separate OBR, OBX type ED</div></div>
+        <div>
+          <div className="kv"><span className="toggle"></span>Accept orders</div>
+          <div className="kv"><span className="toggle"></span>Send results</div>
+          <div className="kv"><span className="toggle off"></span>Send results for orders entered at the lab</div>
+          <div className="kv"><span className="toggle"></span>Embed the report PDF</div>
+          <div className="kv"><span className="toggle"></span>Send preliminary (partial) report versions</div>
+          <div className="kv"><b>Specimen expected within (days)</b> 7</div>
+          <div className="kv"><b>Patient identifier sent back</b> EHR medical record number, then lab patient ID</div>
+          <div className="kv"><span className="toggle"></span>Send results for lab-added tests</div>
+          <div className="kv"><span className="toggle off"></span>Send received status</div>
+          <div className="kv"><span className="toggle off"></span>Keep SSN for billing</div>
+          <div className="kv"><b>Expect orders between</b> Mon to Fri, 07:00 to 19:00 <b style={{minWidth:0,marginLeft:12}}>Alert after</b> 120 min without orders</div>
+          <div className="kv"><b>Re-verify every (months)</b> 12</div>
+        </div></div>
+      <div style={{marginTop:12}}><button className="btn p">Save</button><button className="btn g">Cancel</button></div>
+    </div>}
+
+    {section==='connection' && <div className="tile">
+      <div className="notice">Which transports OpenELIS supports is the implementing engineer's choice (D-389). The connection details live on an External Connection of type "HL7 interface".</div>
+      <div className="grid2"><div><div className="kv"><b>Inbound (orders)</b> External Connection "VFC Epic orders in"</div><div className="kv"><b>Listening on</b> <span className="mono">hl7.solauralab.com:6661</span></div><div className="kv"><b>Last message</b> 09:20, AA</div></div>
+      <div><div className="kv"><b>Outbound (results)</b> External Connection "VFC Epic results out"</div><div className="kv"><b>Sends to</b> <span className="mono">interfaces.valleyfamily.org:5501</span></div><div className="kv"><b>Certificate</b> Set <button className="btn g">Replace</button></div></div></div>
+      <div className="marked" style={{marginTop:12}}><div className="kv"><b>Environment</b> Production</div><div className="note">Orders from this interface will create real patient orders.</div></div>
+      <div style={{marginTop:12}}><button className="btn s">Pause</button><button className="btn g">History</button></div>
+    </div>}
+
+    {section==='facilities' && <div className="tile">
+      <div className="toolbar"><input className="inp" placeholder="Search organizations to add"/></div>
+      <div className="tw"><table className="t"><thead><tr><th>Organization</th><th>EHR facility code</th><th>Orders (7 days)</th></tr></thead><tbody>
+        <tr><td>Valley Family Clinic, Fresno</td><td className="mono">VFC</td><td>612</td></tr>
+        <tr><td>Valley Family Clinic, Clovis</td><td className="mono">VFC-CLV</td><td>205</td></tr>
+        <tr><td>Valley Family Clinic, Madera</td><td className="mono">VFC-MAD</td><td>88</td></tr>
+        <tr><td><span className="reason">Unknown code from orders</span></td><td className="mono">VFC-SNG</td><td>2 <button className="btn g">Link facility</button></td></tr>
+      </tbody></table></div><p className="note">Providers match on NPI and need no list; a new NPI is created at Accept.</p>
+    </div>}
+
+    {section==='questions' && <div className="tile"><div className="tw"><table className="t"><thead><tr><th>EHR question</th><th>Asked for</th><th>OpenELIS question</th><th>Status</th></tr></thead><tbody>
+      <tr><td className="mono">FAST</td><td>Lipid Panel</td><td>Fasting (12 hours)</td><td><Tag k="green">Mapped</Tag></td></tr>
+      <tr><td className="mono">PREG</td><td>CT/NG NAAT, Syphilis IgG</td><td>Pregnancy status</td><td><Tag k="green">Mapped</Tag></td></tr>
+      <tr><td className="mono">SRC</td><td>Urine Culture</td><td><input className="inp" placeholder="Search questions"/></td><td><Tag k="red">Not mapped</Tag><div className="note">Answers kept as an order note</div></td></tr>
+    </tbody></table></div></div>}
+
+    {section==='results' && <div className="tile"><div className="notice">Results go out with LOINC as the identifier and the lab's code as the alternate. Map only where this client's EHR was built on its own result codes.</div>
+      <div className="tw"><table className="t"><thead><tr><th>OpenELIS result</th><th>LOINC</th><th>EHR result code</th></tr></thead><tbody>
+      <tr><td>Cholesterol, total</td><td className="mono">2093-3</td><td className="note">LOINC (default)</td></tr>
+      <tr><td>LDL cholesterol, calculated</td><td className="mono">13457-7</td><td className="mono">VFC-LDLC</td></tr>
+      <tr><td>Hemoglobin A1c</td><td className="mono">4548-4</td><td className="note">LOINC (default)</td></tr></tbody></table></div></div>}
+
+    {section==='verification' && <div className="tile">
+      <div className="notice warn">Verification due: result code map changed on 11/03 by J. Park (LDL cholesterol now sent as VFC-LDLC). Messages keep flowing.</div>
+      <div className="toolbar"><button className="btn p">Record a verification</button></div>
+      <div className="tw"><table className="t"><thead><tr><th>Date</th><th>Reason</th><th>Orders checked</th><th>Outcome</th><th>Verified by</th><th>Evidence</th></tr></thead><tbody>
+        <tr><td>09/15/2026</td><td>Go-live</td><td>12 (numeric, coded, narrative, critical, corrected, PDF)</td><td><Tag k="green">Passed</Tag></td><td>Dr. R. Alvarez, Lab Director</td><td>12 screenshots</td></tr>
+        <tr><td>09/02/2026</td><td>Go-live (Test)</td><td>8</td><td><Tag k="red">Failed</Tag><div className="note">Units missing on A1c; fixed in profile</div></td><td>J. Park</td><td>3 screenshots</td></tr>
+      </tbody></table></div>
+      <div className="tile" style={{marginTop:12}}><b>Record a verification: checking SOL-26-018204 (Basic metabolic panel)</b>
+        <div className="tw" style={{marginTop:8}}><table className="t"><thead><tr><th>What OpenELIS sent</th><th>Matches the EHR</th></tr></thead><tbody>
+          <tr><td>Glucose 112 mg/dL, 70 to 99, H, Final</td><td><input type="checkbox" defaultChecked/></td></tr>
+          <tr><td>Creatinine 0.9 mg/dL, 0.6 to 1.1, Final</td><td><input type="checkbox" defaultChecked/></td></tr>
+          <tr><td>Report PDF, version 1 (Partial)</td><td><input type="checkbox"/> <span className="note">Attach a screenshot of the EHR view</span></td></tr></tbody></table></div></div>
+      <p className="note">CLIA 42 CFR 493.1291(a). Records are never deleted. The latest verification is shown to Accreditation Readiness.</p>
+    </div>}
+
+    {section==='golive' && <div className="tile">
+      <div className="grid2"><div><h3 style={{fontWeight:600,fontSize:16}}>Last 7 days</h3>
+        <div className="kv"><b>Orders received</b> 905</div><div className="kv"><b>Accepted</b> 861</div><div className="kv"><b>Needing attention</b> 3 <button className="btn g">Open on dashboard</button></div><div className="kv"><b>Rejected at the lab</b> 6</div><div className="kv"><b>Results sent</b> 1,722</div><div className="kv"><b>Results failed</b> 0</div></div>
+      <div><h3 style={{fontWeight:600,fontSize:16}}>Go-live checklist</h3>
+        <div className="kv">Connection set: yes</div><div className="kv">Profile chosen: Epic</div><div className="kv">Order codes received in Test mapped or ignored: 64 of 64</div><div className="kv">Test order accepted: yes</div><div className="kv">Test result acknowledged: yes</div><div className="kv">Facilities linked: 3 of 3</div><div className="kv">Mapped tests with LOINC on every reported result: 61 of 64</div><div className="kv">Trading-partner agreement on file: 08/20/2026</div><div className="kv">Passed verification: 09/15/2026</div></div></div>
+      <div style={{marginTop:12}}><button className="btn s">Send test result</button><button className="btn s">Paste a message</button></div>
+    </div>}
+  </main></div>);
+}
+
+/* ---------------- Screen 4: Sent Messages ---------------- */
+function Sent() {
+  const [open, setOpen] = useState(1);
+  const rows = [
+    ['09:31','SOL-26-018190','Final','Epic, Valley Family Clinic','green','Sent','AA'],
+    ['09:28','SOL-26-018204','Partial','Epic, Valley Family Clinic','green','Sent','AA'],
+    ['09:02','SOL-26-018172','Final','athenahealth, Sunrise Pediatrics','green','Sent','AA'],
+    ['08:40','SOL-26-018150','Amended','eClinicalWorks, Central Valley Women\'s Health','red','Failed','AE: Provider not found'],
+    ['08:39','SOL-26-018151','Final','NextGen, Foothill Internal Medicine','purple','Queued','Interface paused since 06:00'],
+    ['08:21','SOL-26-018144','Final','athenahealth, Sunrise Pediatrics','warm','Sent, not acknowledged','No answer after 5 min; retrying'],
+  ];
+  return (<div className="shell"><MainSide active="sent"/><main className="main">
+    <div className="crumb"><a href="#">Home</a> / <a href="#">Reports</a> / Sent Messages</div>
+    <h1>Sent Messages</h1>
+    <p className="sub">Everything OpenELIS sent, by email, SMS and interface. Result Delivery owns this page; this spec adds the product EHR results.</p>
+    <div className="toolbar"><select className="inp" defaultValue="ehr"><option>All products</option><option value="ehr">EHR results</option><option>Report delivery</option><option>Priority alerts</option><option>Public health</option></select>
+      <select className="inp"><option>All statuses</option><option>Queued</option><option>Sent</option><option>Failed</option><option>Skipped</option></select><input className="inp" placeholder="Lab number"/></div>
+    <div className="tw"><table className="t"><thead><tr><th>Time</th><th>Lab number</th><th>Version</th><th>Recipient</th><th>Status</th><th>Answer</th><th></th></tr></thead>
+    <tbody>{rows.map((r,i)=>(<React.Fragment key={i}><tr><td className="note">{r[0]}</td><td>{r[1]}</td><td>{r[2]}</td><td>{r[3]}</td><td><Tag k={r[4]}>{r[5]}</Tag></td><td className={r[5]==='Failed'?'reason':'note'}>{r[6]}</td>
+      <td><button className="btn g" onClick={()=>setOpen(open===i?null:i)}>{open===i?'Hide':'Details'}</button>{r[5]==='Failed' && <button className="btn g">Resend</button>}</td></tr>
+      {open===i && <tr><td colSpan="7"><div className="note">Attempts: 09:28:04 sent, acknowledgment AA received 09:28:05. Report version 1 (Partial), 1 of 2 tests released.</div>
+<pre className="msg">{`MSH|^~\\&|OPENELIS|SOLAURA^05D2198765^CLIA|EPIC|VFC|20261104092804-0800||ORU^R01^ORU_R01|SOL-ORU-77120|P|2.5.1|||NE|AL|||||LRI_Common_Component^^2.16.840.1.113883.9.16^ISO
+PID|1||E2290017^^^VFC^MR~SOL-P-004412^^^SOLAURA^PI||GRACE^KIM||19790418|F
+ORC|RE|REQ-88390^EPIC|SOL-26-018204^SOLAURA
+OBR|1|REQ-88390^EPIC|SOL-26-018204^SOLAURA|51990-0^Basic metabolic panel^LN|||20261104070500|||||||||1457389021^NGUYEN^THERESA^^^MD||||||20261104092700|||P
+OBX|1|NM|2345-7^Glucose [Mass/volume] in Serum or Plasma^LN||112|mg/dL^^UCUM|70-99|H|||F|||20261104091500|||||20261104092700||||SolAura Clinical Laboratory^^^^^CLIA&2.16.840.1.113883.4.7&ISO^XX^^^05D2198765|1450 W Shaw Ave^^Fresno^CA^93711
+OBX|2|NM|2160-0^Creatinine [Mass/volume] in Serum or Plasma^LN||0.9|mg/dL^^UCUM|0.6-1.1|N|||F
+OBX|3|NM|2823-3^Potassium [Moles/volume] in Serum or Plasma^LN||6.8|mmol/L^^UCUM|3.5-5.1|HH|||F
+NTE|1|L|Critical value called to RN T. Lee at 09:24 by M. Lopez; read back
+OBR|2|REQ-88390^EPIC|SOL-26-018204^SOLAURA|11502-2^Laboratory report^LN|||20261104070500||||||||||||||||||P
+OBX|1|ED|11502-2^Laboratory report^LN||^AP^PDF^Base64^(PDF, 214 KB)||||||P`}</pre>
+<pre className="msg">{`MSH|^~\\&|EPIC|VFC|OPENELIS|SOLAURA|20261104092805||ACK^R01|A-77120|P|2.5.1
+MSA|AA|SOL-ORU-77120`}</pre></td></tr>}</React.Fragment>))}</tbody></table></div>
+  </main></div>);
+}
+
+function App() {
+  const [screen, setScreen] = useState('dash');
+  const S = [['dash','1. Order dashboard: incoming orders'],['list','2. Admin: EHR Interfaces'],['editor','3. Admin: one interface'],['sent','4. Sent Messages: EHR results']];
+  return (<div>
+    <div className="switch" role="navigation" aria-label="Preview screens">{S.map(([k,l]) => <button key={k} className={screen===k?'on':''} onClick={()=>setScreen(k)}>{l}</button>)}</div>
+    {screen==='dash' && <Dashboard/>}{screen==='list' && <InterfaceList go={setScreen}/>}{screen==='editor' && <Editor/>}{screen==='sent' && <Sent/>}
+  </div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
