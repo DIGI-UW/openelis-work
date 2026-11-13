@@ -2,15 +2,44 @@
 
 | | |
 |---|---|
-| **Version** | v0.2 (2026-11-05: OpenEMR profile added; gap review of 2026-11-05 applied: reflex and added tests, downtime linking, EHR specimen labels, interface verification under CLIA, release trigger, criticals, narrative results, non-functional requirements, admin register rows). v0.1 (2026-11-04) first draft |
+| **Version** | v0.3 (2026-11-13: Phase 1 scope and architecture change: HL7 moves to an external mediator, OpenELIS exchanges FHIR only; requirement disposition added).  v0.2 (2026-11-05: OpenEMR profile added; gap review of 2026-11-05 applied: reflex and added tests, downtime linking, EHR specimen labels, interface verification under CLIA, release trigger, criticals, narrative results, non-functional requirements, admin register rows). v0.1 (2026-11-04) first draft |
 | **Date** | 2026-11-04 |
 | **Author** | Casey Iiams-Hauser (Director of Product) |
-| **Status** | Draft. Clarify, crosscheck and a gap review done (`ehr-elr-review-2026-11-05.md`); ready for `/breakdown` after Casey reviews |
+| **Status** | Draft. v0.3 reduces Phase 1 to the subset in "Phase 1 scope and architecture change"; breakdown follows MED-1 and DOOR-1 |
 | **First deployment** | SolAura Clinical Laboratory (California): clinics that order on Epic and other EHRs. Written as a general US capability |
 | **Preview** | `ehr-lab-interface-preview.html` |
 | **Sibling spec** | `state-elr-frs.md` (public health reporting), which reuses the HL7 engine, the outbox and the profiles model defined here |
 | **Verified against** | `DIGI-UW/OpenELIS-Global-2` `develop` at `1b1acbf` (2026-11-04) for built mechanisms; Clinical Order Entry v4 FRS v0.20; Result Delivery FRS v0.3; Billing FRS; Users and Roles FRS v0.1; Admin Redesign FRS v1.1 |
 | **Decisions** | D-384 to D-389 and D-395 to D-397 proposed. Renumbered on 2026-11-05: the ledger on `main` ends at D-374 and AMR Surveillance FRS v0.1 holds D-375 to D-383; the State ELR spec holds D-390 to D-394 and D-398. Confirm at registration |
+
+---
+
+## Phase 1 scope and architecture change (v0.3, 2026-11-13)
+
+Set by Piotr Mankowski on 2026-11-13 and recorded in the SolAura Build Roadmap (https://claude.ai/artifact/XTi6qdfi6iXgfisbUm7AXR). Jira: OGC-1622. This section governs where it conflicts with the requirements below; the rest of the spec stays as the record for later phases.
+
+### What changed
+
+- **HL7 v2 leaves OpenELIS.** A new HL7 to FHIR mediator (new DIGI-UW repository, not an OpenHIM mediator) owns MLLP, translation both ways and acknowledgments for every outside HL7 partner. The HL7 order endpoints removed in October 2026 (#4657) do not return. The translator is chosen by a pilot (MED-1).
+- **OpenELIS exchanges FHIR only.** Orders arrive by a new paired-push orders door beside the existing Task pull; both feed one order intake service (DOOR-2, DOOR-3). Orders never enter by writing into the co-resident FHIR store.
+- **Results leave by a FHIR results door** on the existing delivery queue (Result Delivery, OGC-439) beside email, SMS and WhatsApp, with retry and resend in Sent Messages (DOOR-6, DOOR-7). The mediator reports the delivery outcome back.
+- **No interface admin screens.** EHR profiles, interface records and connection settings become mediator configuration files (MED-7). The clinic's order codes are held on tests (catalog import), not in code map screens.
+- **Design before build.** DOOR-1 (door design, reviewed with the team alongside the paused data exchange roadmap #4660) precedes construction. Story breakdown follows MED-1 and DOOR-1, not this spec's requirement list.
+
+### Requirement disposition
+
+| Disposition | Where | Requirements |
+|---|---|---|
+| Kept | Mediator | C1 receive ORM and OML; C2, K2 no acknowledgment for an order not accepted; C4a remove Social Security numbers; G2, G5, G6 US results message, corrections and cancelled tests |
+| Kept | OpenELIS | C3 one order per Epic order number; C4 keep patient, provider, tests, insurance, diagnosis; D1, D2 patient and provider matching as built; D3, D5 match order codes on tests, hold unmatched; F2, F5 incoming orders on the dashboard with Accept, as built; G1, G4 send on release, released results only; G9, G10, H1 through the delivery queue, in order, shown in Sent Messages; H5 missing acknowledgment shown as failed |
+| Moved to config | Mediator files or catalog | A1 Epic profile as one mediator file; B1 to B5 interface record; B6 test or production mode; E1 to E4 clinic order codes loaded onto tests by catalog import; E6 LOINC result codes by default; K4, K5 time zone and character encoding |
+| Out of Phase 1 | | A2 to A4 other vendor profiles and profile editor; B7, B8 admin screens, pause, computed status; C5 Epic cancels and changes (by decision; DOOR-1 defines their later arrival); C6 to C8 order replies, add-on tests, standing orders; D4 facility linking; F1, F3, F4, F6 to F11 new dashboard filters, waiting notes, downtime and late-order linking; G3 report PDF in the message; G7, G8, G11 to G14 referred, culture, reflex, substituted, critical and narrative results; H2 to H4, H6 inbound problem views, counts, quiet-interface alerts; I1 to I3 paste-a-message and go-live checklist screens; J1 to J3 test list export; L1 to L5 verification record screens (kept on paper for CLIA) |
+
+Sections not listed above (M non-functional, Access, Localization) apply only to the kept requirements. The disposition was made from the requirement list and is open to correction by the author.
+
+### Roadmap items
+
+MED-1 to MED-8 (mediator), DOOR-1 to DOOR-8 (OpenELIS doors; DOOR-8 needs Billing BILL-1 and is not a go-live requirement), CFG-1 (UTI panel with Epic order codes). Go-live gate: a final and a corrected result displayed in Epic and both recorded in Sent Messages.
 
 ---
 
