@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-11-07T09:44:59Z",
-  "reportAt": "2026-11-07T09:44:11.174Z",
-  "sections": 91,
-  "contracts": 91,
-  "ok": 0,
-  "review": 83,
+  "generatedAt": "2026-11-14T09:43:08Z",
+  "reportAt": "2026-11-14T09:42:19.459Z",
+  "sections": 92,
+  "contracts": 92,
+  "ok": 1,
+  "review": 81,
   "errors": 5,
   "stale": [
     "add-patient",
@@ -99,7 +99,7 @@
     "vector-surveillance-report",
     "workplans"
   ],
-  "capturedOld": 72,
+  "capturedOld": 73,
   "unchecked": [],
   "instances": {
     "pngtest.openelis-global.org": {
@@ -110,17 +110,17 @@
       "drift": 0,
       "error": 0,
       "version": "3.4.0",
-      "checkedAt": "2026-11-07T09:35:37.061Z"
+      "checkedAt": "2026-11-14T09:33:20.492Z"
     },
     "testing.openelis-global.org": {
-      "contracts": 90,
-      "checked": 90,
-      "ok": 0,
-      "review": 82,
-      "drift": 3,
+      "contracts": 91,
+      "checked": 91,
+      "ok": 1,
+      "review": 80,
+      "drift": 5,
       "error": 5,
       "version": "3.4.0",
-      "checkedAt": "2026-11-07T09:44:11.168Z"
+      "checkedAt": "2026-11-14T09:42:19.452Z"
     }
   },
   "drift": [
@@ -139,6 +139,22 @@
         "/analyzers?setup=instrument :: Continue to Assays"
       ],
       "page": "1648361491"
+    },
+    {
+      "id": "label-store-shared",
+      "base": "testing.openelis-global.org",
+      "missing": [
+        "/order/environmental/enter :: Add Environmental Order"
+      ],
+      "page": "1428684802"
+    },
+    {
+      "id": "laporan-hasil-report",
+      "base": "testing.openelis-global.org",
+      "missing": [
+        "/LaporanHasil :: Generate compliance certificates for validated environmental orders"
+      ],
+      "page": "1427505177"
     },
     {
       "id": "vector-surveillance",
@@ -198,5 +214,5 @@
       "page": null
     }
   ],
-  "summary": "91 of 91 contracts checked: 0 ok, 83 review, 3 drift, 5 route errors."
+  "summary": "92 of 92 contracts checked: 1 ok, 81 review, 5 drift, 5 route errors."
 }

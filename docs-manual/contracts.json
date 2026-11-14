@@ -2955,6 +2955,47 @@
      ]
     }
    ]
+  },
+  {
+   "id": "domains-concept",
+   "title": "The three order domains",
+   "confluencePageId": "1428881409",
+   "manualDoc": "docs-manual/publish/domains-concept/1428881409.xhtml",
+   "captureSpec": "tests/docs/domains-340.docs.spec.ts",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.4.0",
+   "capturedDate": "2026-11-06",
+   "routes": [
+    {
+     "path": "/order/environmental/enter",
+     "anchors": [
+      "Label & Store",
+      "Sample check",
+      "Default Collection Conditions",
+      "Applicable Compliance Standards",
+      "Per-Sample Manifest"
+     ]
+    },
+    {
+     "path": "/order/vector/enter",
+     "anchors": [
+      "Label & Store",
+      "Sample check",
+      "Complete",
+      "Add Animal/Organism"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/order",
+    "frontend/src/components/vector"
+   ],
+   "docType": "concept",
+   "audience": "end-user",
+   "updateTrigger": "scheduled",
+   "grade": "A",
+   "gradedDate": "2026-11-07",
+   "notes": "Rewritten 2026-11-06 for 3.4.0 (was the four-stage wizard page; old text in LEGACY Versions 1770717197). Anchors read off docs-media/domains-340 environmental-enter.png and vector-enter.png. Clinical rows rest on 1648787462. Review: OGC-1271 (no sub-task yet)."
   }
  ]
 }
