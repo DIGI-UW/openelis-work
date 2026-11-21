@@ -346,7 +346,9 @@
    "uiPaths": [
     "frontend/src/components/validation"
    ],
-   "capturedDate": "2026-06-24"
+   "capturedDate": "2026-06-24",
+   "retired": true,
+   "notes": " Retired 17 Nov 2026: legacy routes now redirect to the 3.3.0+ Results and Validation pages, which have their own contracts (results-entry, validation-v4); no Confluence page."
   },
   {
    "id": "sample-shipment-referral",
@@ -355,7 +357,7 @@
    "capturedVersion": "3.2.1.10",
    "routes": [
     {
-     "path": "/SampleShipment",
+     "path": "/SampleShipment/boxes",
      "anchors": [
       "Shipment Dashboard"
      ]
@@ -370,7 +372,8 @@
    "uiPaths": [
     "frontend/src/components/shipment"
    ],
-   "capturedDate": "2026-06-24"
+   "capturedDate": "2026-06-24",
+   "notes": " 17 Nov 2026: /SampleShipment now opens /SampleShipment/boxes. /ReferredOutTests redirected to /api/OpenELIS-Global/ReferredOutTests in the drift run (possible defect A11 in claude/handoff-possible-bugs-2026-11-17.md); no page linked."
   },
   {
    "id": "sample-storage-management",
@@ -406,17 +409,18 @@
   {
    "id": "vector-surveillance",
    "title": "Vector Surveillance",
-   "confluencePageId": "1420230657",
+   "confluencePageId": "1427898389",
    "base": "https://testing.openelis-global.org",
    "capturedVersion": "3.2.1.10",
    "routes": [
     {
      "path": "/order/vector/enter",
      "anchors": [
+      "New Vector Order",
       "Animal/Organism 1",
       "Quantity in Pool",
       "Trap Type",
-      "Tests & Panels"
+      "Add Animal/Organism"
      ]
     },
     {
@@ -424,9 +428,8 @@
      "anchors": [
       "Vector Identification Worklist",
       "Lot ID",
-      "Species Distribution",
-      "Identify",
-      "Split"
+      "Sampling Site",
+      "ID Status"
      ]
     }
    ],
@@ -435,12 +438,13 @@
     "frontend/src/components/order"
    ],
    "capturedDate": "2026-06-24",
-   "notes": "Re-pointed to testing 2026-09-22. 'Animal / Organism 1' -> 'Animal/Organism 1' (verified on screen: h5 on /order/vector/enter). UNRESOLVED on testing: 'Tests & Panels' renders only after a sample type is picked (cold load shows 'Select a sample type above to see available panels and tests'); 'Species Distribution', 'Identify' and 'Split' are lot-row/detail controls and /vector/identification is empty on testing ('No lots in this queue', all status counts 0). Testing also has 0 species and 0 sampling sites configured, so no vector lot can be raised there. These three are a seed-data gap on testing, NOT UI drift - do not re-anchor them green. capturedVersion deliberately left at 3.2.1.10."
+   "notes": "Re-pointed to testing 2026-09-22. 'Animal / Organism 1' -> 'Animal/Organism 1' (verified on screen: h5 on /order/vector/enter). UNRESOLVED on testing: 'Tests & Panels' renders only after a sample type is picked (cold load shows 'Select a sample type above to see available panels and tests'); 'Species Distribution', 'Identify' and 'Split' are lot-row/detail controls and /vector/identification is empty on testing ('No lots in this queue', all status counts 0). Testing also has 0 species and 0 sampling sites configured, so no vector lot can be raised there. These three are a seed-data gap on testing, NOT UI drift - do not re-anchor them green. capturedVersion deliberately left at 3.2.1.10. 17 Nov 2026: page 1420230657 no longer exists; repointed to 1427898389 (order entry) and 1428094999 (identification). Anchors re-read on testing 3.4.0-SNAPSHOT: Tests & Panels renders only after a sample type is chosen; Species Distribution, Identify and Split need a lot, and testing has none. Both pages predate 3.3.0 and need re-verifying (bench vectorpages340).",
+   "manualDoc": "Confluence 1427898389 Enter a vector order; 1428094999 Identify vector species & deconvolute a pool (both last edited 31 Jul 2026)"
   },
   {
    "id": "environmental-surveillance",
    "title": "Environmental Surveillance",
-   "confluencePageId": "1420099592",
+   "confluencePageId": "1427898372",
    "base": "https://testing.openelis-global.org",
    "capturedVersion": "3.2.1.10",
    "routes": [
@@ -454,13 +458,13 @@
      ]
     },
     {
-     "path": "/LogbookResults?type=",
+     "path": "/LogbookResults",
      "anchors": [
       "Results"
      ]
     },
     {
-     "path": "/ResultValidation?type=&test=",
+     "path": "/ResultValidation",
      "anchors": [
       "Validation"
      ]
@@ -472,7 +476,8 @@
     "frontend/src/components/validation"
    ],
    "capturedDate": "2026-06-24",
-   "notes": "Re-pointed to testing 2026-09-22. /order/environmental/enter and /ResultValidation?type=&test= pass all anchors. FINDING: /LogbookResults?type= redirects to /Results on testing 3.2.2.0 and will score as a routeError. capturedVersion deliberately left at 3.2.1.10 pending that route decision."
+   "notes": "Re-pointed to testing 2026-09-22. /order/environmental/enter and /ResultValidation?type=&test= pass all anchors. FINDING: /LogbookResults?type= redirects to /Results on testing 3.2.2.0 and will score as a routeError. capturedVersion deliberately left at 3.2.1.10 pending that route decision. 17 Nov 2026: page 1420099592 no longer exists; repointed to 1427898372. Query-string routes that redirect were replaced by /LogbookResults and /ResultValidation.",
+   "manualDoc": "Confluence 1427898372 Enter an environmental order (last edited 31 Jul 2026)"
   },
   {
    "id": "admin-vector-reference-data",
@@ -831,7 +836,7 @@
   {
    "id": "calculated-value-tests",
    "title": "Calculated Value Tests",
-   "manualDoc": "Confluence 1438842886 (draft)",
+   "manualDoc": "Confluence 1438842886, Admin: Define calculated value tests (3.4.0, doc-in-review); 3.2.1 text in LEGACY 1790509069",
    "captureSpec": "tests/docs/reflex-discover.docs.spec.ts",
    "routes": [
     {
@@ -839,13 +844,18 @@
      "anchors": [
       "Calculated Value Tests Management",
       "Calculation Name",
-      "Add Rule"
+      "Add Rule",
+      "Activate / Deactivate",
+      "View Rule"
      ]
     }
    ],
    "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.1.10",
-   "capturedDate": "2026-06-30"
+   "capturedVersion": "3.4.0",
+   "capturedDate": "2026-11-17",
+   "confluencePageId": "1438842886",
+   "jiraEpic": "OGC-1587",
+   "notes": "Rewritten 17 Nov 2026 for 3.4.0 (PR 4852 bounded operations, PR 4908 refusals). Insert Operation, Final Result and Result Component render only inside an expanded rule, so they are not on-load anchors. Seed: rules 'LDL cholesterol (Friedewald)' (off) and 'LDL cholesterol, Friedewald (mg/dL)' (active); order 260001NJ."
   },
   {
    "id": "results-entry",
@@ -888,7 +898,8 @@
    ],
    "capturedVersion": "3.2.1.10",
    "capturedDate": "2026-06-30",
-   "notes": "Re-pointed to testing 2026-09-22. FINDING: /LogbookResults?type= no longer exists on testing 3.2.2.0 - it redirects to /Results (the unified results screen), and 'Select Test Unit' is now 'Lab Unit'. Under the redirect guard added to drift.check this scores as a routeError. The legacy screen this section documents appears to be retired on 3.2.2.0; decide whether to retire the section rather than re-anchor it. capturedVersion deliberately left at 3.2.1.10."
+   "notes": "Re-pointed to testing 2026-09-22. FINDING: /LogbookResults?type= no longer exists on testing 3.2.2.0 - it redirects to /Results (the unified results screen), and 'Select Test Unit' is now 'Lab Unit'. Under the redirect guard added to drift.check this scores as a routeError. The legacy screen this section documents appears to be retired on 3.2.2.0; decide whether to retire the section rather than re-anchor it. capturedVersion deliberately left at 3.2.1.10. Retired 17 Nov 2026: legacy routes now redirect to the 3.3.0+ Results and Validation pages, which have their own contracts (results-entry, validation-v4); no Confluence page.",
+   "retired": true
   },
   {
    "id": "validation",
@@ -906,7 +917,9 @@
     }
    ],
    "capturedVersion": "3.2.2.0",
-   "capturedDate": "2026-09-22"
+   "capturedDate": "2026-09-22",
+   "retired": true,
+   "notes": " Retired 17 Nov 2026: legacy routes now redirect to the 3.3.0+ Results and Validation pages, which have their own contracts (results-entry, validation-v4); no Confluence page."
   },
   {
    "id": "running-reports",
@@ -1153,25 +1166,29 @@
   {
    "id": "laporan-hasil-report",
    "title": "Compliance Report (Laporan Hasil)",
-   "manualDoc": "",
+   "manualDoc": "Confluence 1427505177 Generate a compliance certificate or results report (doc-in-review); earlier text LEGACY 1789296654",
    "captureSpec": "",
    "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.2.2.0",
+   "capturedVersion": "3.4.0",
    "routes": [
     {
      "path": "/LaporanHasil",
      "anchors": [
       "Compliance Report",
-      "Generate compliance certificates for validated environmental orders",
-      "All Standards"
+      "Generate the results report or compliance certificate for validated environmental orders",
+      "Lab number",
+      "Compliance Standard",
+      "Generation Status",
+      "Search"
      ]
     }
    ],
    "uiPaths": [
     "frontend/src/components/reports/compliance"
    ],
-   "capturedDate": "2026-09-22",
-   "confluencePageId": "1427505177"
+   "capturedDate": "2026-11-17",
+   "confluencePageId": "1427505177",
+   "notes": " 17 Nov 2026: rewritten after the drift run (subtitle changed, results report for orders without a standard, tiles, preview). Tiles and rows appear only after Search, so they are not on-load anchors."
   },
   {
    "id": "reference-lab-results",
@@ -1345,16 +1362,17 @@
     {
      "path": "/order/environmental/enter",
      "anchors": [
-      "Add Environmental Order",
+      "Environmental Orders",
       "Label & Store",
-      "Sample check"
+      "Sample Check"
      ]
     }
    ],
    "capturedVersion": "3.3.0",
    "capturedDate": "2026-09-16",
    "note": "2026-09-22: the 19 Sep 'drift' was not drift - all five anchors are present on the real Label & Store screen (verified live). /order/clinical/label is wizard-gated: OrderContext redirects a cold visit to /order/clinical/enter, where 'Label & Store', 'Print Labels' and 'Save & Next' false-pass from the stepper and the other two correctly fail. Route now deep-links by in-progress lab number, the way the product's own storage-assign-order-label.spec.ts does, and the checker refuses to score anchors after a redirect. 2026-10-09: Order Entry v4 changed the clinical lane: Label & Store folded into Prepare Samples and QA Review became Sample check, so this contract's clinical route will drift. The page documents the shared stage for environmental and vector orders; re-point the route to the environmental lane once that lane is verified. 13 Oct 2026: clinical orders left this stage in 3.3.0 (Prepare samples); page rewritten for environmental and vector, driven on pngtest because testing has no environmental sample types. The Label & Store route redirects to Enter Order without an order, so the contract watches the stepper on Enter Order.",
-   "confluencePageId": "1428684802"
+   "confluencePageId": "1428684802",
+   "notes": " 17 Nov 2026: Add Environmental Order menu entry is now Environmental Orders (3.4.0-SNAPSHOT); page text updated."
   },
   {
    "id": "qa-review-shared",
@@ -1401,7 +1419,7 @@
    ],
    "capturedVersion": "3.3.0",
    "capturedDate": "2026-10-09",
-   "notes": "3.3.0 merged Routine / By Order / By Range / By Date into one search bar (Search, Lab Unit, From, To, Search by patient, Load results). Queue header controls (Release all clear, filter chips, lane tags, Review) render only after Load results returns rows, and Include auto-validated only for a lab-number search, so none are on-load anchors. Electronic signatures are on at testing.",
+   "notes": "3.3.0 merged Routine / By Order / By Range / By Date into one search bar (Search, Lab Unit, From, To, Search by patient, Load results). Queue header controls (Release all clear, filter chips, lane tags, Review) render only after Load results returns rows, and Include auto-validated only for a lab-number search, so none are on-load anchors. Electronic signatures are on at testing. 2026-11-17: section 'When a result needs more than one sign-off' added for 3.4.0 (Epic OGC-1364), driven with a Biochemistry override of two reviews; its labels (Level 1 of 2, Sign level 1 of 2, Show results waiting for others) appear only for results under a multi-level policy, so they are not on-load anchors. 2026-11-17: subsection 'The Clear lane: what it is and what it is for' added under Overview (Release all clear dialog wording unchanged in 3.4.0). Drift seen on 3.4.0-SNAPSHOT: the QC failed legend now reads 'A quality control covering this result failed: its non-conformity is still open, or a control failed in the run it came from'; Step 2 still quotes the 3.3.0 text.",
    "confluencePageId": "1661763585"
   },
   {
@@ -1411,39 +1429,28 @@
    "manualDoc": "Confluence 1648361491 (draft under 1189609473)",
    "captureSpec": "pending",
    "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.3.0",
-   "capturedDate": "2026-10-13",
+   "capturedVersion": "3.4.0-SNAPSHOT",
+   "capturedDate": "2026-11-17",
    "routes": [
     {
      "path": "/analyzers",
      "anchors": [
-      "Analyzers",
-      "Add Analyzer",
-      "Paired with the Analyzer Bridge",
-      "Total analyzers",
+      "Paired with the Analy",
+      "Total analy",
       "In setup",
-      "Needs attention"
+      "Show retired analy"
      ]
     },
     {
      "path": "/analyzers?setup=instrument",
      "anchors": [
-      "Set up a new analyzer",
-      "Analyzer type",
-      "Analyzer name",
-      "Lab units",
-      "Continue to Assays",
-      "Instrument not listed?"
-     ]
-    },
-    {
-     "path": "/analyzers/types",
-     "anchors": [
-      "Analyzer Types",
-      "The reusable setups behind your analyzers",
-      "Duplicate Profile",
-      "Create Profile",
-      "Mapping status"
+      "Instrument",
+      "Connect",
+      "Assays",
+      "Verify",
+      "Continue to Connect",
+      "Instrument not listed?",
+      "Lab units"
      ]
     }
    ],
@@ -1452,7 +1459,13 @@
    ],
    "captures": "docs-manual/captures/sept15/1648361491",
    "notes": "13 Oct 2026: rewritten for 3.3.0 on paired testing (four-step wizard, per-analyser mapping). 3.2.2.0 copy 1708425232.",
-   "note": "Anchors use en-US spelling (the drift run uses the default locale); the page figures were captured in the en locale (Analyser)."
+   "note": "Anchors use en-US spelling (the drift run uses the default locale); the page figures were captured in the en locale (Analyser).",
+   "jiraEpic": "OGC-1054",
+   "docType": "task",
+   "audience": "admin",
+   "updateTrigger": "release",
+   "grade": "A",
+   "gradedDate": "2026-11-17"
   },
   {
    "id": "analyzer-mapping-qc",
@@ -1461,54 +1474,18 @@
    "manualDoc": "Confluence 1648590851 (draft under 1189609473)",
    "captureSpec": "pending",
    "base": "https://testing.openelis-global.org",
-   "capturedVersion": "3.3.0",
-   "capturedDate": "2026-10-13",
+   "capturedVersion": "3.4.0-SNAPSHOT",
+   "capturedDate": "2026-11-17",
    "routes": [
     {
-     "path": "/qa/qc/dashboard",
+     "path": "/analyzers/11/mapping",
      "anchors": [
-      "Quality Control Dashboard",
-      "Monitor instrument QC status and alerts",
-      "Instruments In Control",
-      "Warning Status",
-      "Out of Control",
-      "% Instruments In Control",
-      "Instrument Quality Control Status",
-      "Instrument Name",
-      "Recent Violations",
-      "Last Update"
-     ]
-    },
-    {
-     "path": "/qa/qc/rule-config",
-     "anchors": [
-      "Rule Configuration",
-      "Configure Westgard rules per analyzer and test combination",
-      "Configured Rule Sets",
-      "Enabled Rules"
-     ]
-    },
-    {
-     "path": "/qa/qc/control-lots",
-     "anchors": [
-      "Control Lots",
-      "Manage QC control lots for Westgard rule evaluation",
-      "New Control Lot",
-      "Lot Number",
-      "Control Material",
-      "Manufacturer",
-      "Control Level",
-      "Calculation Method",
-      "Expiration Date"
-     ]
-    },
-    {
-     "path": "/analyzers/6/mapping",
-     "anchors": [
-      "This analyzer's own mapping",
+      "own mapping",
       "Apply mappings and retry held results",
-      "Test and result mappings",
-      "Control result recognition"
+      "Tests mapped",
+      "Results mapped",
+      "Confirmation",
+      "Test and result mappings"
      ]
     }
    ],
@@ -1517,7 +1494,13 @@
     "frontend/src/components/analyzers"
    ],
    "captures": "docs-manual/captures/sept15/1648590851",
-   "notes": "QC moved from /analyzers/qc/* to /qa/qc/* in 3.2.3.0; paths repointed 28 Sept 2026, anchors not yet re-checked 13 Oct 2026: Part 1 rewritten for per-analyser mappings; route /analyzers/6/mapping is the seed analyser GeneXpert IV 803456 (TB lab) on testing. 3.2.2.0 copy 1708818439."
+   "notes": "QC moved from /analyzers/qc/* to /qa/qc/* in 3.2.3.0; paths repointed 28 Sept 2026, anchors not yet re-checked 13 Oct 2026: Part 1 rewritten for per-analyser mappings; route /analyzers/6/mapping is the seed analyser GeneXpert IV 803456 (TB lab) on testing. 3.2.2.0 copy 1708818439. 2026-11-17: Part 3 (Westgard QC) is now a pointer to Statistical QC 1680048163; its routes were dropped here. Analyzer 11 is Mindray BC-5380 (Hematology bench 2), seeded on testing.",
+   "jiraEpic": "OGC-1054",
+   "docType": "task",
+   "audience": "admin",
+   "updateTrigger": "release",
+   "grade": "A",
+   "gradedDate": "2026-11-17"
   },
   {
    "id": "general-configurations",
@@ -1527,7 +1510,7 @@
    "captureSpec": "pending",
    "base": "https://testing.openelis-global.org",
    "capturedVersion": "3.3.0",
-   "capturedDate": "2026-10-12",
+   "capturedDate": "2026-11-17",
    "routes": [
     {
      "path": "/MasterListsPage/SampleEntryConfigurationMenu",
@@ -1544,11 +1527,16 @@
     {
      "path": "/MasterListsPage/ResultConfigurationMenu",
      "anchors": [
-      "Result Entry Configuration",
-      "Modify",
-      "Value",
-      "qcFailBlocksValidation",
-      "allowBulkReleaseClear"
+      "Result & Validation Configuration",
+      "Use the validation policy",
+      "Result entry",
+      "Modification, rejection and retest",
+      "Release and display",
+      "Access and privacy",
+      "Validation policy",
+      "Lab-wide default",
+      "Lab unit overrides",
+      "Effective policy"
      ]
     },
     {
@@ -1611,7 +1599,8 @@
     "frontend/src/components/admin"
    ],
    "captures": "docs-manual/captures/sept15/1649082375",
-   "notes": "Seven property screens, one route each, anchored on the on-screen heading plus the Modify action, the Value column and setting names read off each figure. All seven verified on testing.openelis-global.org 3.2.2.0 on 2026-09-22. Site Branding (/MasterListsPage/SiteBrandingMenu) and MenuStatement Configuration (/MasterListsPage/MenuStatementConfigMenu) both load on testing but have no figure on the page, so they are not anchored. 3.3.0 (12 Oct 2026): resultsEntryUnifiedRoute removed; new settings marked on the page."
+   "notes": "Seven property screens, one route each, anchored on the on-screen heading plus the Modify action, the Value column and setting names read off each figure. All seven verified on testing.openelis-global.org 3.2.2.0 on 2026-09-22. Site Branding (/MasterListsPage/SiteBrandingMenu) and MenuStatement Configuration (/MasterListsPage/MenuStatementConfigMenu) both load on testing but have no figure on the page, so they are not anchored. 3.3.0 (12 Oct 2026): resultsEntryUnifiedRoute removed; new settings marked on the page. 2026-11-17: Result Entry Configuration section rewritten for 3.4.0-SNAPSHOT; other sections still as captured on 3.3.0. 2026-11-17: Validation policy section added; its anchors (Validation policy, Lab-wide default, Lab unit overrides, Effective policy) render only while Use the validation policy is on, which it is on testing from 17 Nov 2026.",
+   "jiraEpic": "OGC-1364"
   },
   {
    "id": "clinical-order-enter",
@@ -2671,7 +2660,7 @@
       "Count mode",
       "Manage tags",
       "Import items",
-      "Log usage"
+      "Record Usage"
      ]
     },
     {
@@ -2682,7 +2671,8 @@
      ]
     }
    ],
-   "featureDoc": "OGC-1554"
+   "featureDoc": "OGC-1554",
+   "notes": " 17 Nov 2026: Log usage renamed Record Usage on 3.4.0-SNAPSHOT; page updated."
   },
   {
    "id": "inventory-receive-reports",
@@ -2703,7 +2693,7 @@
       "Item Name",
       "Lot Number",
       "Expiration Date",
-      "Current Quantity",
+      "Quantity received",
       "Add to delivery"
      ]
     },
@@ -2718,7 +2708,8 @@
      ]
     }
    ],
-   "featureDoc": "OGC-1554"
+   "featureDoc": "OGC-1554",
+   "notes": " 17 Nov 2026: Current Quantity renamed Quantity received on 3.4.0-SNAPSHOT; page updated."
   },
   {
    "id": "microbiology-v2",
@@ -2964,7 +2955,7 @@
    "captureSpec": "tests/docs/domains-340.docs.spec.ts",
    "base": "https://testing.openelis-global.org",
    "capturedVersion": "3.4.0",
-   "capturedDate": "2026-11-06",
+   "capturedDate": "2026-11-17",
    "routes": [
     {
      "path": "/order/environmental/enter",
@@ -2996,6 +2987,179 @@
    "grade": "A",
    "gradedDate": "2026-11-07",
    "notes": "Rewritten 2026-11-06 for 3.4.0 (was the four-stage wizard page; old text in LEGACY Versions 1770717197). Anchors read off docs-media/domains-340 environmental-enter.png and vector-enter.png. Clinical rows rest on 1648787462. Review: OGC-1271 (no sub-task yet)."
+  },
+  {
+   "id": "management-overview",
+   "title": "View the Management Overview",
+   "confluencePageId": "1787002882",
+   "manualDoc": "docs-manual/publish/nc-1116/mo/management-overview.xhtml",
+   "captureSpec": null,
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.4.0-SNAPSHOT",
+   "capturedDate": "2026-11-17",
+   "routes": [
+    {
+     "path": "/dashboards/management",
+     "anchors": [
+      "Management Overview",
+      "Total samples",
+      "Median TAT",
+      "Workload & turnaround time",
+      "Quality rollup",
+      "Disease surveillance",
+      "Export PDF",
+      "Download CSV"
+     ]
+    },
+    {
+     "path": "/qa/qi/config",
+     "anchors": [
+      "QI Configuration",
+      "Composite quality score weights"
+     ]
+    }
+   ],
+   "uiPaths": [
+    "frontend/src/components/dashboards"
+   ],
+   "jiraEpic": "OGC-897",
+   "docType": "task",
+   "audience": "end-user",
+   "updateTrigger": "release",
+   "grade": "A",
+   "gradedDate": "2026-11-17",
+   "notes": "Figures hide automated-QA rows on testing. Video attached: management-overview-walkthrough.mp4."
+  },
+  {
+   "id": "batch-workplan",
+   "title": "Run a batch workplan",
+   "confluencePageId": "1790115861",
+   "manualDoc": "Confluence 1790115861",
+   "jiraEpic": "OGC-427",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.4.0-SNAPSHOT",
+   "capturedDate": "2026-11-17",
+   "routes": [
+    {
+     "path": "/Workplan",
+     "anchors": [
+      "Batch Workplan",
+      "Pending Tests",
+      "Batches",
+      "Batch name (optional)",
+      "Create batch",
+      "Add to an existing draft batch",
+      "Clear filters"
+     ]
+    }
+   ],
+   "docType": "how-to",
+   "audience": "bench",
+   "updateTrigger": "Batch Workplan, reagent QC or NCE override changes (OGC-427)",
+   "grade": "C",
+   "notes": "17 Nov 2026: new page; seed batch Glucose afternoon run (NCE-2026-00023), reagent Glucose GOD-PAP reagent lots GL26114, GL26187."
+  },
+  {
+   "id": "concept-order-lifecycle",
+   "title": "How a clinical order moves through OpenELIS",
+   "confluencePageId": "1794572290",
+   "manualDoc": "Confluence 1794572290",
+   "routes": [
+    {
+     "path": "/order/clinical",
+     "anchors": [
+      "Lab Number"
+     ]
+    },
+    {
+     "path": "/ReportPrintQueue",
+     "anchors": []
+    }
+   ],
+   "notes": "18 Nov 2026: new concept page, review OGC-1672. Re-checked with order 26000220 (stopped at Sample Check).",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.4.0-SNAPSHOT",
+   "capturedDate": "2026-11-18",
+   "docType": "concept",
+   "audience": "end-user",
+   "updateTrigger": "scheduled",
+   "grade": "C"
+  },
+  {
+   "id": "concept-lab-number",
+   "title": "Orders, samples and the Lab Number",
+   "confluencePageId": "1794342915",
+   "manualDoc": "Confluence 1794342915",
+   "routes": [
+    {
+     "path": "/MasterListsPage/labNumber",
+     "anchors": [
+      "Lab Number Type",
+      "Use Prefix",
+      "Current Format",
+      "New Format"
+     ]
+    }
+   ],
+   "notes": "18 Nov 2026: new concept page, review OGC-1673.",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.4.0-SNAPSHOT",
+   "capturedDate": "2026-11-18",
+   "docType": "concept",
+   "audience": "end-user",
+   "updateTrigger": "scheduled",
+   "grade": "C"
+  },
+  {
+   "id": "concept-results",
+   "title": "How results are reviewed, released and corrected",
+   "confluencePageId": "1794342938",
+   "manualDoc": "Confluence 1794342938",
+   "routes": [
+    {
+     "path": "/validation",
+     "anchors": [
+      "Release all clear"
+     ]
+    },
+    {
+     "path": "/MasterListsPage/ResultConfigurationMenu",
+     "anchors": [
+      "Which results need review",
+      "Number of reviews"
+     ]
+    }
+   ],
+   "notes": "18 Nov 2026: new concept page, review OGC-1674.",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.4.0-SNAPSHOT",
+   "capturedDate": "2026-11-18",
+   "docType": "concept",
+   "audience": "end-user",
+   "updateTrigger": "scheduled",
+   "grade": "C"
+  },
+  {
+   "id": "concept-why-different",
+   "title": "Why your OpenELIS looks different from the manual",
+   "confluencePageId": "1794670594",
+   "manualDoc": "Confluence 1794670594",
+   "routes": [
+    {
+     "path": "/MasterListsPage/labNumber",
+     "anchors": [
+      "Lab Number Type"
+     ]
+    }
+   ],
+   "notes": "18 Nov 2026: new concept page, review OGC-1675.",
+   "base": "https://testing.openelis-global.org",
+   "capturedVersion": "3.4.0-SNAPSHOT",
+   "capturedDate": "2026-11-18",
+   "docType": "concept",
+   "audience": "end-user",
+   "updateTrigger": "scheduled",
+   "grade": "C"
   }
  ]
 }

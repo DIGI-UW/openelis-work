@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-11-14T09:43:08Z",
-  "reportAt": "2026-11-14T09:42:19.459Z",
-  "sections": 92,
-  "contracts": 92,
-  "ok": 1,
-  "review": 81,
-  "errors": 5,
+  "generatedAt": "2026-11-21T09:42:12Z",
+  "reportAt": "2026-11-21T09:41:27.537Z",
+  "sections": 95,
+  "contracts": 95,
+  "ok": 3,
+  "review": 88,
+  "errors": 3,
   "stale": [
     "add-patient",
     "admin-compliance-standards",
@@ -20,13 +20,17 @@
     "analyzer-setup",
     "application-properties",
     "barcode-labels",
-    "calculated-value-tests",
+    "batch-workplan",
     "calendar-management",
     "capa-register",
     "catalog-import-csv",
     "clinical-collect",
     "clinical-order-enter",
     "clinical-sample-check",
+    "concept-lab-number",
+    "concept-order-lifecycle",
+    "concept-results",
+    "concept-why-different",
     "custom-data-export",
     "dictionary-menu",
     "electronic-lab-notebook",
@@ -45,9 +49,9 @@
     "lab-units-editor",
     "label-presets",
     "label-store-shared",
-    "laporan-hasil-report",
     "locations-import-export",
     "logging-configuration",
+    "management-overview",
     "menu-configuration",
     "microbiology-v2",
     "modify-order-requester",
@@ -75,9 +79,7 @@
     "register-new-patient",
     "report-print-queue",
     "result-reporting-configuration",
-    "result-validation",
     "results-entry",
-    "results-entry-legacy",
     "running-reports",
     "sample-acceptance-checklist",
     "sample-shipment-referral",
@@ -93,13 +95,12 @@
     "test-catalogue-add-test",
     "test-notification-configuration",
     "user-management",
-    "validation",
     "validation-v4",
     "vector-surveillance",
     "vector-surveillance-report",
     "workplans"
   ],
-  "capturedOld": 73,
+  "capturedOld": 78,
   "unchecked": [],
   "instances": {
     "pngtest.openelis-global.org": {
@@ -110,109 +111,55 @@
       "drift": 0,
       "error": 0,
       "version": "3.4.0",
-      "checkedAt": "2026-11-14T09:33:20.492Z"
+      "checkedAt": "2026-11-21T09:33:35.575Z"
     },
     "testing.openelis-global.org": {
-      "contracts": 91,
-      "checked": 91,
-      "ok": 1,
-      "review": 80,
-      "drift": 5,
-      "error": 5,
+      "contracts": 94,
+      "checked": 94,
+      "ok": 3,
+      "review": 87,
+      "drift": 1,
+      "error": 3,
       "version": "3.4.0",
-      "checkedAt": "2026-11-14T09:42:19.452Z"
+      "checkedAt": "2026-11-21T09:41:27.530Z"
     }
   },
   "drift": [
     {
-      "id": "analyzer-mapping-qc",
+      "id": "concept-results",
       "base": "testing.openelis-global.org",
       "missing": [
-        "/analyzers/6/mapping :: Control result recognition"
+        "/validation :: Release all clear"
       ],
-      "page": "1648590851"
-    },
-    {
-      "id": "analyzer-setup",
-      "base": "testing.openelis-global.org",
-      "missing": [
-        "/analyzers?setup=instrument :: Continue to Assays"
-      ],
-      "page": "1648361491"
-    },
-    {
-      "id": "label-store-shared",
-      "base": "testing.openelis-global.org",
-      "missing": [
-        "/order/environmental/enter :: Add Environmental Order"
-      ],
-      "page": "1428684802"
-    },
-    {
-      "id": "laporan-hasil-report",
-      "base": "testing.openelis-global.org",
-      "missing": [
-        "/LaporanHasil :: Generate compliance certificates for validated environmental orders"
-      ],
-      "page": "1427505177"
-    },
-    {
-      "id": "vector-surveillance",
-      "base": "testing.openelis-global.org",
-      "missing": [
-        "/order/vector/enter :: Tests & Panels",
-        "/vector/identification :: Species Distribution",
-        "/vector/identification :: Identify",
-        "/vector/identification :: Split"
-      ],
-      "page": "1420230657"
+      "page": "1794342938"
     }
   ],
   "errorRoutes": [
     {
+      "id": "concept-order-lifecycle",
+      "base": "testing.openelis-global.org",
+      "routes": [
+        "/order/clinical :: redirected to /order/clinical/collect"
+      ],
+      "page": "1794572290"
+    },
+    {
       "id": "environmental-surveillance",
       "base": "testing.openelis-global.org",
       "routes": [
-        "/LogbookResults?type= :: redirected to /Results",
-        "/ResultValidation?type=&test= :: redirected to /validation"
+        "/LogbookResults :: redirected to /Results",
+        "/ResultValidation :: redirected to /validation"
       ],
-      "page": "1420099592"
-    },
-    {
-      "id": "result-validation",
-      "base": "testing.openelis-global.org",
-      "routes": [
-        "/ResultValidation?type=&test= :: redirected to /validation",
-        "/AccessionValidation :: redirected to /validation",
-        "/ResultValidationByTestDate :: redirected to /validation"
-      ],
-      "page": null
-    },
-    {
-      "id": "results-entry-legacy",
-      "base": "testing.openelis-global.org",
-      "routes": [
-        "/LogbookResults?type= :: redirected to /Results"
-      ],
-      "page": null
+      "page": "1427898372"
     },
     {
       "id": "sample-shipment-referral",
       "base": "testing.openelis-global.org",
       "routes": [
-        "/SampleShipment :: redirected to /SampleShipment/boxes",
         "/ReferredOutTests :: redirected to /api/OpenELIS-Global/ReferredOutTests"
-      ],
-      "page": null
-    },
-    {
-      "id": "validation",
-      "base": "testing.openelis-global.org",
-      "routes": [
-        "/ResultValidation?type=&test= :: redirected to /validation"
       ],
       "page": null
     }
   ],
-  "summary": "92 of 92 contracts checked: 1 ok, 81 review, 5 drift, 5 route errors."
+  "summary": "95 of 95 contracts checked: 3 ok, 88 review, 1 drift, 3 route errors."
 }

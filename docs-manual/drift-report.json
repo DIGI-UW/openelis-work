@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-14T09:42:19.459Z",
+  "generatedAt": "2026-11-21T09:41:27.537Z",
   "sections": [
     {
       "id": "add-patient",
@@ -11,21 +11,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:33:47.164Z",
+      "checkedAt": "2026-11-21T09:33:54.489Z",
       "codeChanged": {
-        "count": 22,
+        "count": 23,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/patient"
         ],
         "branches": {
-          "develop": 20,
+          "develop": 21,
           "demo-silnas": 2
         },
         "latest": {
-          "sha": "c37745d",
-          "date": "2026-10-15",
-          "msg": "fix: EQA order entry, EQA sample rejection and patient form messages (OGC-1483, OGC-1488, OGC-1497) (#4731)",
+          "sha": "bddc182",
+          "date": "2026-11-17",
+          "msg": "refactor(frontend): exported components read their contexts from contexts.js, not Layout (OGC-1640) (#5104)",
           "branch": "develop"
         }
       }
@@ -39,7 +39,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:35:43.345Z",
+      "checkedAt": "2026-11-21T09:35:24.942Z",
       "codeChanged": {
         "count": 7,
         "since": "2026-06-24",
@@ -68,7 +68,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:35:46.476Z",
+      "checkedAt": "2026-11-21T09:35:27.541Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-10-12",
@@ -91,7 +91,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:35:26.779Z",
+      "checkedAt": "2026-11-21T09:35:10.963Z",
       "codeChanged": {
         "count": 3,
         "since": "2026-06-24",
@@ -121,7 +121,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:40:47.687Z"
+      "checkedAt": "2026-11-21T09:39:40.376Z"
     },
     {
       "id": "aliquot",
@@ -133,7 +133,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:37:27.595Z"
+      "checkedAt": "2026-11-21T09:37:01.693Z"
     },
     {
       "id": "analyzer-bridge-install",
@@ -145,21 +145,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:40:44.540Z",
+      "checkedAt": "2026-11-21T09:39:37.757Z",
       "codeChanged": {
-        "count": 24,
+        "count": 25,
         "since": "2026-10-13",
         "paths": [
           "frontend/src/components/analyzers"
         ],
         "branches": {
-          "develop": 24,
+          "develop": 25,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "c72504a",
-          "date": "2026-11-04",
-          "msg": "fix(ui): report, NCE, results and batch lists are searched by typing (OGC-1515) (#4929)",
+          "sha": "d619563",
+          "date": "2026-11-16",
+          "msg": "feat(frontend): download only the active locale instead of every translation on first load (OGC-1636) (#5101)",
           "branch": "develop"
         }
       }
@@ -174,22 +174,22 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:33:50.291Z",
+      "checkedAt": "2026-11-21T09:33:57.079Z",
       "codeChanged": {
-        "count": 37,
+        "count": 38,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/analyzers",
           "frontend/src/components/genericSample"
         ],
         "branches": {
-          "develop": 36,
+          "develop": 37,
           "demo-silnas": 1
         },
         "latest": {
-          "sha": "c72504a",
-          "date": "2026-11-04",
-          "msg": "fix(ui): report, NCE, results and batch lists are searched by typing (OGC-1515) (#4929)",
+          "sha": "bddc182",
+          "date": "2026-11-17",
+          "msg": "refactor(frontend): exported components read their contexts from contexts.js, not Layout (OGC-1640) (#5104)",
           "branch": "develop"
         }
       }
@@ -203,7 +203,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:33:54.821Z",
+      "checkedAt": "2026-11-21T09:34:01.696Z",
       "codeChanged": {
         "count": 31,
         "since": "2026-06-24",
@@ -215,9 +215,9 @@
           "demo-silnas": 1
         },
         "latest": {
-          "sha": "c72504a",
-          "date": "2026-11-04",
-          "msg": "fix(ui): report, NCE, results and batch lists are searched by typing (OGC-1515) (#4929)",
+          "sha": "d619563",
+          "date": "2026-11-16",
+          "msg": "feat(frontend): download only the active locale instead of every translation on first load (OGC-1636) (#5101)",
           "branch": "develop"
         }
       }
@@ -227,31 +227,24 @@
       "title": "Map analyzer codes, resolve held results, and run QC",
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.4.0",
-      "capturedVersion": "3.3.0",
+      "capturedVersion": "3.4.0-SNAPSHOT",
       "manualDoc": "Confluence 1648590851 (draft under 1189609473)",
-      "status": "drift",
-      "missingAnchors": [
-        "/analyzers/6/mapping :: Control result recognition"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:38:26.614Z",
+      "checkedAt": "2026-11-21T09:37:41.972Z",
       "codeChanged": {
-        "count": 27,
-        "since": "2026-10-13",
+        "count": 0,
+        "since": "2026-11-17",
         "paths": [
           "frontend/src/components/qc",
           "frontend/src/components/analyzers"
         ],
         "branches": {
-          "develop": 27,
+          "develop": 0,
           "demo-silnas": 0
         },
-        "latest": {
-          "sha": "c72504a",
-          "date": "2026-11-04",
-          "msg": "fix(ui): report, NCE, results and batch lists are searched by typing (OGC-1515) (#4929)",
-          "branch": "develop"
-        }
+        "latest": null
       }
     },
     {
@@ -259,30 +252,23 @@
       "title": "Set up an analyzer",
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.4.0",
-      "capturedVersion": "3.3.0",
+      "capturedVersion": "3.4.0-SNAPSHOT",
       "manualDoc": "Confluence 1648361491 (draft under 1189609473)",
-      "status": "drift",
-      "missingAnchors": [
-        "/analyzers?setup=instrument :: Continue to Assays"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:38:13.759Z",
+      "checkedAt": "2026-11-21T09:37:39.059Z",
       "codeChanged": {
-        "count": 24,
-        "since": "2026-10-13",
+        "count": 0,
+        "since": "2026-11-17",
         "paths": [
           "frontend/src/components/analyzers"
         ],
         "branches": {
-          "develop": 24,
+          "develop": 0,
           "demo-silnas": 0
         },
-        "latest": {
-          "sha": "c72504a",
-          "date": "2026-11-04",
-          "msg": "fix(ui): report, NCE, results and batch lists are searched by typing (OGC-1515) (#4929)",
-          "branch": "develop"
-        }
+        "latest": null
       }
     },
     {
@@ -295,7 +281,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:35:59.050Z"
+      "checkedAt": "2026-11-21T09:35:37.900Z"
     },
     {
       "id": "barcode-labels",
@@ -306,37 +292,49 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:33:57.965Z",
+      "checkedAt": "2026-11-21T09:34:04.277Z",
       "codeChanged": {
-        "count": 10,
+        "count": 11,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/printBarcode",
           "frontend/src/components/barcodeWorkflow"
         ],
         "branches": {
-          "develop": 10,
+          "develop": 11,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "f7eb2d4",
-          "date": "2026-11-05",
-          "msg": "feat(modules): the OpenELIS module system (OGC-1577) (#4954)",
+          "sha": "bddc182",
+          "date": "2026-11-17",
+          "msg": "refactor(frontend): exported components read their contexts from contexts.js, not Layout (OGC-1640) (#5104)",
           "branch": "develop"
         }
       }
+    },
+    {
+      "id": "batch-workplan",
+      "title": "Run a batch workplan",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.4.0",
+      "capturedVersion": "3.4.0-SNAPSHOT",
+      "manualDoc": "Confluence 1790115861",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-11-21T09:41:04.922Z"
     },
     {
       "id": "calculated-value-tests",
       "title": "Calculated Value Tests",
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.4.0",
-      "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1438842886 (draft)",
-      "status": "review",
+      "capturedVersion": "3.4.0",
+      "manualDoc": "Confluence 1438842886, Admin: Define calculated value tests (3.4.0, doc-in-review); 3.2.1 text in LEGACY 1790509069",
+      "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:36:49.385Z"
+      "checkedAt": "2026-11-21T09:36:35.314Z"
     },
     {
       "id": "calendar-management",
@@ -348,7 +346,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:37:14.966Z"
+      "checkedAt": "2026-11-21T09:36:51.198Z"
     },
     {
       "id": "capa-register",
@@ -360,7 +358,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:41:51.030Z"
+      "checkedAt": "2026-11-21T09:40:33.151Z"
     },
     {
       "id": "catalog-import-csv",
@@ -372,21 +370,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:39:07.809Z",
+      "checkedAt": "2026-11-21T09:38:16.928Z",
       "codeChanged": {
-        "count": 1,
+        "count": 2,
         "since": "2026-09-22",
         "paths": [
           "frontend/src/components/admin/catalogImport"
         ],
         "branches": {
-          "develop": 1,
+          "develop": 2,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "427410d",
-          "date": "2026-10-14",
-          "msg": "fix(catalog-import): the tests loader reads Excel files and a preview changes nothing (OGC-1466) (#4723)",
+          "sha": "e0ddcc1",
+          "date": "2026-11-19",
+          "msg": "fix(microbiology): bring the V3 follow-up fixes, #4996 to #5009, to develop (OGC-1607) (#5139)",
           "branch": "develop"
         }
       }
@@ -401,7 +399,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:37:47.594Z"
+      "checkedAt": "2026-11-21T09:37:18.522Z"
     },
     {
       "id": "clinical-order-enter",
@@ -413,7 +411,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:38:51.993Z",
+      "checkedAt": "2026-11-21T09:38:03.836Z",
       "codeChanged": {
         "count": 38,
         "since": "2026-10-09",
@@ -426,9 +424,9 @@
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "5172e3b",
-          "date": "2026-11-12",
-          "msg": "fix(order-entry): an incoming order keeps its patient, so Submit is enabled; validation answers are per request (#5042)",
+          "sha": "e0ddcc1",
+          "date": "2026-11-19",
+          "msg": "fix(microbiology): bring the V3 follow-up fixes, #4996 to #5009, to develop (OGC-1607) (#5139)",
           "branch": "develop"
         }
       }
@@ -443,7 +441,59 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:40:14.562Z"
+      "checkedAt": "2026-11-21T09:39:12.102Z"
+    },
+    {
+      "id": "concept-lab-number",
+      "title": "Orders, samples and the Lab Number",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.4.0",
+      "capturedVersion": "3.4.0-SNAPSHOT",
+      "manualDoc": "Confluence 1794342915",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-11-21T09:41:18.452Z"
+    },
+    {
+      "id": "concept-order-lifecycle",
+      "title": "How a clinical order moves through OpenELIS",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.4.0",
+      "capturedVersion": "3.4.0-SNAPSHOT",
+      "manualDoc": "Confluence 1794572290",
+      "status": "error",
+      "missingAnchors": [],
+      "routeErrors": [
+        "/order/clinical :: redirected to /order/clinical/collect"
+      ],
+      "checkedAt": "2026-11-21T09:41:15.857Z"
+    },
+    {
+      "id": "concept-results",
+      "title": "How results are reviewed, released and corrected",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.4.0",
+      "capturedVersion": "3.4.0-SNAPSHOT",
+      "manualDoc": "Confluence 1794342938",
+      "status": "drift",
+      "missingAnchors": [
+        "/validation :: Release all clear"
+      ],
+      "routeErrors": [],
+      "checkedAt": "2026-11-21T09:41:24.832Z"
+    },
+    {
+      "id": "concept-why-different",
+      "title": "Why your OpenELIS looks different from the manual",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.4.0",
+      "capturedVersion": "3.4.0-SNAPSHOT",
+      "manualDoc": "Confluence 1794670594",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-11-21T09:41:27.530Z"
     },
     {
       "id": "custom-data-export",
@@ -455,7 +505,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:40:39.999Z"
+      "checkedAt": "2026-11-21T09:39:33.061Z"
     },
     {
       "id": "dictionary-menu",
@@ -467,7 +517,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:36:29.882Z"
+      "checkedAt": "2026-11-21T09:36:05.953Z"
     },
     {
       "id": "domains-concept",
@@ -479,22 +529,22 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:42:19.452Z",
+      "checkedAt": "2026-11-21T09:40:56.669Z",
       "codeChanged": {
-        "count": 8,
-        "since": "2026-11-06",
+        "count": 2,
+        "since": "2026-11-17",
         "paths": [
           "frontend/src/components/order",
           "frontend/src/components/vector"
         ],
         "branches": {
-          "develop": 8,
+          "develop": 2,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "ac2d325",
-          "date": "2026-11-12",
-          "msg": "fix(referrals): two OpenELIS labs exchange referrals without manual pairing (#5053)",
+          "sha": "e0ddcc1",
+          "date": "2026-11-19",
+          "msg": "fix(microbiology): bring the V3 follow-up fixes, #4996 to #5009, to develop (OGC-1607) (#5139)",
           "branch": "develop"
         }
       }
@@ -508,7 +558,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:34:01.084Z",
+      "checkedAt": "2026-11-21T09:34:06.862Z",
       "codeChanged": {
         "count": 14,
         "since": "2026-06-24",
@@ -536,22 +586,22 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:34:07.353Z",
+      "checkedAt": "2026-11-21T09:34:12.148Z",
       "codeChanged": {
-        "count": 11,
+        "count": 15,
         "since": "2026-10-12",
         "paths": [
           "frontend/src/components/esignature",
           "frontend/src/components/validation"
         ],
         "branches": {
-          "develop": 11,
+          "develop": 15,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "1aaf0d2",
-          "date": "2026-11-13",
-          "msg": "feat(validation): sequential multi-level sign-off (OGC-1364 v2 slice 1) (#5073)",
+          "sha": "e0ddcc1",
+          "date": "2026-11-19",
+          "msg": "fix(microbiology): bring the V3 follow-up fixes, #4996 to #5009, to develop (OGC-1607) (#5139)",
           "branch": "develop"
         }
       }
@@ -566,9 +616,9 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:34:16.965Z",
+      "checkedAt": "2026-11-21T09:34:20.178Z",
       "codeChanged": {
-        "count": 57,
+        "count": 59,
         "since": "2026-09-22",
         "paths": [
           "frontend/src/components/order",
@@ -576,13 +626,13 @@
           "frontend/src/components/compliance"
         ],
         "branches": {
-          "develop": 57,
+          "develop": 59,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "5172e3b",
-          "date": "2026-11-12",
-          "msg": "fix(order-entry): an incoming order keeps its patient, so Submit is enabled; validation answers are per request (#5042)",
+          "sha": "e0ddcc1",
+          "date": "2026-11-19",
+          "msg": "fix(microbiology): bring the V3 follow-up fixes, #4996 to #5009, to develop (OGC-1607) (#5139)",
           "branch": "develop"
         }
       }
@@ -593,13 +643,14 @@
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.4.0",
       "capturedVersion": "3.2.1.10",
+      "manualDoc": "Confluence 1427898372 Enter an environmental order (last edited 31 Jul 2026)",
       "status": "error",
       "missingAnchors": [],
       "routeErrors": [
-        "/LogbookResults?type= :: redirected to /Results",
-        "/ResultValidation?type=&test= :: redirected to /validation"
+        "/LogbookResults :: redirected to /Results",
+        "/ResultValidation :: redirected to /validation"
       ],
-      "checkedAt": "2026-11-14T09:35:20.492Z",
+      "checkedAt": "2026-11-21T09:35:05.774Z",
       "codeChanged": {
         "count": 110,
         "since": "2026-06-24",
@@ -613,9 +664,9 @@
           "demo-silnas": 20
         },
         "latest": {
-          "sha": "1aaf0d2",
-          "date": "2026-11-13",
-          "msg": "feat(validation): sequential multi-level sign-off (OGC-1364 v2 slice 1) (#5073)",
+          "sha": "e0ddcc1",
+          "date": "2026-11-19",
+          "msg": "fix(microbiology): bring the V3 follow-up fixes, #4996 to #5009, to develop (OGC-1607) (#5139)",
           "branch": "develop"
         }
       }
@@ -630,7 +681,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:41:57.334Z"
+      "checkedAt": "2026-11-21T09:40:38.346Z"
     },
     {
       "id": "eqa-participant",
@@ -642,21 +693,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:39:49.227Z",
+      "checkedAt": "2026-11-21T09:38:51.076Z",
       "codeChanged": {
-        "count": 12,
+        "count": 14,
         "since": "2026-10-12",
         "paths": [
           "frontend/src/components/eqa"
         ],
         "branches": {
-          "develop": 12,
+          "develop": 14,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "6ce1505",
-          "date": "2026-11-11",
-          "msg": "fix(eqa): EQA coverage text cites ISO 15189:2022 \u00a77.3.7.3 (OGC-1495)",
+          "sha": "bddc182",
+          "date": "2026-11-17",
+          "msg": "refactor(frontend): exported components read their contexts from contexts.js, not Layout (OGC-1640) (#5104)",
           "branch": "develop"
         }
       }
@@ -671,21 +722,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:39:33.296Z",
+      "checkedAt": "2026-11-21T09:38:37.847Z",
       "codeChanged": {
-        "count": 12,
+        "count": 14,
         "since": "2026-10-12",
         "paths": [
           "frontend/src/components/eqa"
         ],
         "branches": {
-          "develop": 12,
+          "develop": 14,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "6ce1505",
-          "date": "2026-11-11",
-          "msg": "fix(eqa): EQA coverage text cites ISO 15189:2022 \u00a77.3.7.3 (OGC-1495)",
+          "sha": "bddc182",
+          "date": "2026-11-17",
+          "msg": "refactor(frontend): exported components read their contexts from contexts.js, not Layout (OGC-1640) (#5104)",
           "branch": "develop"
         }
       }
@@ -700,21 +751,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:38:48.675Z",
+      "checkedAt": "2026-11-21T09:38:01.095Z",
       "codeChanged": {
-        "count": 30,
-        "since": "2026-10-12",
+        "count": 6,
+        "since": "2026-11-17",
         "paths": [
           "frontend/src/components/admin"
         ],
         "branches": {
-          "develop": 30,
+          "develop": 6,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "605aac8",
-          "date": "2026-11-13",
-          "msg": "feat(validation): a lab unit can override the validation policy (OGC-1364 v1 slice 2) (#5069)",
+          "sha": "bf10dd0",
+          "date": "2026-11-20",
+          "msg": "feat(microbiology): make the V3 stack and WHONET's reference tables work together (OGC-1528, OGC-1629) (#5137)",
           "branch": "develop"
         }
       }
@@ -729,7 +780,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:40:30.454Z"
+      "checkedAt": "2026-11-21T09:39:25.228Z"
     },
     {
       "id": "inventory-items",
@@ -741,7 +792,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:41:28.854Z"
+      "checkedAt": "2026-11-21T09:40:14.733Z"
     },
     {
       "id": "inventory-receive-reports",
@@ -753,7 +804,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:41:35.164Z"
+      "checkedAt": "2026-11-21T09:40:19.934Z"
     },
     {
       "id": "lab-number-management",
@@ -765,7 +816,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:35:55.881Z"
+      "checkedAt": "2026-11-21T09:35:35.304Z"
     },
     {
       "id": "lab-unit-add",
@@ -777,21 +828,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:39:04.668Z",
+      "checkedAt": "2026-11-21T09:38:14.329Z",
       "codeChanged": {
-        "count": 9,
+        "count": 10,
         "since": "2026-09-15",
         "paths": [
           "frontend/src/components/admin/labUnitManagement"
         ],
         "branches": {
-          "develop": 9,
+          "develop": 10,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "3054ddc",
-          "date": "2026-10-25",
-          "msg": "feat(microbiology): add culture rows and media tracking",
+          "sha": "e0ddcc1",
+          "date": "2026-11-19",
+          "msg": "fix(microbiology): bring the V3 follow-up fixes, #4996 to #5009, to develop (OGC-1607) (#5139)",
           "branch": "develop"
         }
       }
@@ -806,21 +857,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:39:14.242Z",
+      "checkedAt": "2026-11-21T09:38:22.164Z",
       "codeChanged": {
-        "count": 9,
+        "count": 10,
         "since": "2026-09-21",
         "paths": [
           "frontend/src/components/admin/labUnitManagement"
         ],
         "branches": {
-          "develop": 9,
+          "develop": 10,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "3054ddc",
-          "date": "2026-10-25",
-          "msg": "feat(microbiology): add culture rows and media tracking",
+          "sha": "e0ddcc1",
+          "date": "2026-11-19",
+          "msg": "fix(microbiology): bring the V3 follow-up fixes, #4996 to #5009, to develop (OGC-1607) (#5139)",
           "branch": "develop"
         }
       }
@@ -835,21 +886,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:40:24.088Z",
+      "checkedAt": "2026-11-21T09:39:19.997Z",
       "codeChanged": {
-        "count": 1,
+        "count": 2,
         "since": "2026-10-12",
         "paths": [
           "frontend/src/components/admin/labelPresets"
         ],
         "branches": {
-          "develop": 1,
+          "develop": 2,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "169dfee",
-          "date": "2026-10-25",
-          "msg": "feat(microbiology): connect incoming results and bench workflows",
+          "sha": "bddc182",
+          "date": "2026-11-17",
+          "msg": "refactor(frontend): exported components read their contexts from contexts.js, not Layout (OGC-1640) (#5104)",
           "branch": "develop"
         }
       }
@@ -861,40 +912,36 @@
       "instanceVersion": "3.4.0",
       "capturedVersion": "3.3.0",
       "manualDoc": "Confluence 1428684802 (draft)",
-      "status": "drift",
-      "missingAnchors": [
-        "/order/environmental/enter :: Add Environmental Order"
-      ],
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:37:50.871Z"
+      "checkedAt": "2026-11-21T09:37:21.312Z"
     },
     {
       "id": "laporan-hasil-report",
       "title": "Compliance Report (Laporan Hasil)",
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.4.0",
-      "capturedVersion": "3.2.2.0",
-      "manualDoc": "",
-      "status": "drift",
-      "missingAnchors": [
-        "/LaporanHasil :: Generate compliance certificates for validated environmental orders"
-      ],
+      "capturedVersion": "3.4.0",
+      "manualDoc": "Confluence 1427505177 Generate a compliance certificate or results report (doc-in-review); earlier text LEGACY 1789296654",
+      "status": "ok",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:37:40.188Z",
+      "checkedAt": "2026-11-21T09:37:12.142Z",
       "codeChanged": {
-        "count": 8,
-        "since": "2026-09-22",
+        "count": 1,
+        "since": "2026-11-17",
         "paths": [
           "frontend/src/components/reports/compliance"
         ],
         "branches": {
-          "develop": 8,
+          "develop": 1,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "6587a46",
-          "date": "2026-11-11",
-          "msg": "fix(compliance): a certificate is offered only when every test of the order is validated (OGC-1620) (#5021)",
+          "sha": "4fc36f9",
+          "date": "2026-11-18",
+          "msg": "fix(dates): environmental and vector order dates follow the site date format (OGC-1657) (#5127)",
           "branch": "develop"
         }
       }
@@ -909,7 +956,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:40:27.263Z"
+      "checkedAt": "2026-11-21T09:39:22.605Z"
     },
     {
       "id": "logging-configuration",
@@ -921,7 +968,31 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:36:23.493Z"
+      "checkedAt": "2026-11-21T09:36:00.720Z"
+    },
+    {
+      "id": "management-overview",
+      "title": "View the Management Overview",
+      "base": "https://testing.openelis-global.org",
+      "instanceVersion": "3.4.0",
+      "capturedVersion": "3.4.0-SNAPSHOT",
+      "manualDoc": "docs-manual/publish/nc-1116/mo/management-overview.xhtml",
+      "status": "review",
+      "missingAnchors": [],
+      "routeErrors": [],
+      "checkedAt": "2026-11-21T09:41:01.972Z",
+      "codeChanged": {
+        "count": 0,
+        "since": "2026-11-17",
+        "paths": [
+          "frontend/src/components/dashboards"
+        ],
+        "branches": {
+          "develop": 0,
+          "demo-silnas": 0
+        },
+        "latest": null
+      }
     },
     {
       "id": "menu-configuration",
@@ -933,7 +1004,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:37:11.744Z"
+      "checkedAt": "2026-11-21T09:36:48.587Z"
     },
     {
       "id": "microbiology-v2",
@@ -945,7 +1016,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:33:20.492Z"
+      "checkedAt": "2026-11-21T09:33:35.575Z"
     },
     {
       "id": "modify-order-requester",
@@ -957,7 +1028,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:41:19.372Z"
+      "checkedAt": "2026-11-21T09:40:06.898Z"
     },
     {
       "id": "nce-capa",
@@ -968,21 +1039,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:34:26.377Z",
+      "checkedAt": "2026-11-21T09:34:27.927Z",
       "codeChanged": {
-        "count": 12,
+        "count": 14,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/nonconform"
         ],
         "branches": {
-          "develop": 11,
+          "develop": 13,
           "demo-silnas": 1
         },
         "latest": {
-          "sha": "c1715a5",
-          "date": "2026-11-09",
-          "msg": "fix(frontend): date filters follow the site date format (OGC-1616)",
+          "sha": "e3d826f",
+          "date": "2026-11-16",
+          "msg": "fix(dates): every date picker commits a typed date (OGC-1635 follow-up) (#5095)",
           "branch": "develop"
         }
       }
@@ -997,7 +1068,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:40:11.368Z"
+      "checkedAt": "2026-11-21T09:39:09.501Z"
     },
     {
       "id": "notifications-admin",
@@ -1009,7 +1080,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:42:09.942Z"
+      "checkedAt": "2026-11-21T09:40:48.714Z"
     },
     {
       "id": "order-entry",
@@ -1021,7 +1092,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:34:29.538Z",
+      "checkedAt": "2026-11-21T09:34:30.527Z",
       "codeChanged": {
         "count": 76,
         "since": "2026-06-30",
@@ -1035,9 +1106,9 @@
           "demo-silnas": 12
         },
         "latest": {
-          "sha": "5172e3b",
-          "date": "2026-11-12",
-          "msg": "fix(order-entry): an incoming order keeps its patient, so Submit is enabled; validation answers are per request (#5042)",
+          "sha": "e0ddcc1",
+          "date": "2026-11-19",
+          "msg": "fix(microbiology): bring the V3 follow-up fixes, #4996 to #5009, to develop (OGC-1607) (#5139)",
           "branch": "develop"
         }
       }
@@ -1052,7 +1123,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:37:21.257Z"
+      "checkedAt": "2026-11-21T09:36:56.384Z"
     },
     {
       "id": "organization-management-330",
@@ -1064,7 +1135,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:40:20.916Z"
+      "checkedAt": "2026-11-21T09:39:17.373Z"
     },
     {
       "id": "organizations-management",
@@ -1075,7 +1146,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:34:32.677Z",
+      "checkedAt": "2026-11-21T09:34:33.118Z",
       "codeChanged": {
         "count": 47,
         "since": "2026-06-24",
@@ -1087,9 +1158,9 @@
           "demo-silnas": 17
         },
         "latest": {
-          "sha": "605aac8",
-          "date": "2026-11-13",
-          "msg": "feat(validation): a lab unit can override the validation policy (OGC-1364 v1 slice 2) (#5069)",
+          "sha": "bf10dd0",
+          "date": "2026-11-20",
+          "msg": "feat(microbiology): make the V3 stack and WHONET's reference tables work together (OGC-1528, OGC-1629) (#5137)",
           "branch": "develop"
         }
       }
@@ -1104,7 +1175,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:39:01.511Z",
+      "checkedAt": "2026-11-21T09:38:11.691Z",
       "codeChanged": {
         "count": 30,
         "since": "2026-09-15",
@@ -1116,9 +1187,9 @@
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "36f822b",
-          "date": "2026-11-12",
-          "msg": "feat(container-types): tests name their expected containers; sample types a default container (OGC-1611 P2) (#5047)",
+          "sha": "e0ddcc1",
+          "date": "2026-11-19",
+          "msg": "fix(microbiology): bring the V3 follow-up fixes, #4996 to #5009, to develop (OGC-1607) (#5139)",
           "branch": "develop"
         }
       }
@@ -1133,7 +1204,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:41:22.519Z"
+      "checkedAt": "2026-11-21T09:40:09.492Z"
     },
     {
       "id": "patient-management",
@@ -1145,7 +1216,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:37:05.194Z"
+      "checkedAt": "2026-11-21T09:36:43.193Z"
     },
     {
       "id": "patient-merge",
@@ -1157,7 +1228,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:37:30.747Z"
+      "checkedAt": "2026-11-21T09:37:04.302Z"
     },
     {
       "id": "patient-order-enhancements",
@@ -1168,21 +1239,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:34:38.943Z",
+      "checkedAt": "2026-11-21T09:34:38.291Z",
       "codeChanged": {
-        "count": 22,
+        "count": 23,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/patient"
         ],
         "branches": {
-          "develop": 20,
+          "develop": 21,
           "demo-silnas": 2
         },
         "latest": {
-          "sha": "c37745d",
-          "date": "2026-10-15",
-          "msg": "fix: EQA order entry, EQA sample rejection and patient form messages (OGC-1483, OGC-1488, OGC-1497) (#4731)",
+          "sha": "bddc182",
+          "date": "2026-11-17",
+          "msg": "refactor(frontend): exported components read their contexts from contexts.js, not Layout (OGC-1640) (#5104)",
           "branch": "develop"
         }
       }
@@ -1197,7 +1268,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:42:13.101Z"
+      "checkedAt": "2026-11-21T09:40:51.306Z"
     },
     {
       "id": "programs-v2",
@@ -1209,7 +1280,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:39:52.369Z"
+      "checkedAt": "2026-11-21T09:38:53.680Z"
     },
     {
       "id": "provider-management",
@@ -1221,7 +1292,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:35:52.744Z",
+      "checkedAt": "2026-11-21T09:35:32.721Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-30",
@@ -1245,7 +1316,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:41:44.661Z"
+      "checkedAt": "2026-11-21T09:40:27.952Z"
     },
     {
       "id": "qa-review-shared",
@@ -1257,7 +1328,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:37:54.031Z"
+      "checkedAt": "2026-11-21T09:37:23.899Z"
     },
     {
       "id": "qc-control-lot",
@@ -1269,7 +1340,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:39:58.701Z"
+      "checkedAt": "2026-11-21T09:38:59.086Z"
     },
     {
       "id": "qc-overview",
@@ -1281,7 +1352,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:40:05.016Z"
+      "checkedAt": "2026-11-21T09:39:04.282Z"
     },
     {
       "id": "reference-lab-results",
@@ -1293,21 +1364,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:37:43.363Z",
+      "checkedAt": "2026-11-21T09:37:14.742Z",
       "codeChanged": {
-        "count": 5,
+        "count": 7,
         "since": "2026-09-22",
         "paths": [
           "frontend/src/components/referenceLabResults"
         ],
         "branches": {
-          "develop": 5,
+          "develop": 7,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "a4bb56c",
-          "date": "2026-11-12",
-          "msg": "fix(reference-lab-results): the date range filter has room for both dates (#5061)",
+          "sha": "e3d826f",
+          "date": "2026-11-16",
+          "msg": "fix(dates): every date picker commits a typed date (OGC-1635 follow-up) (#5095)",
           "branch": "develop"
         }
       }
@@ -1322,7 +1393,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:36:33.160Z"
+      "checkedAt": "2026-11-21T09:36:08.833Z"
     },
     {
       "id": "register-new-patient",
@@ -1334,7 +1405,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:37:33.903Z"
+      "checkedAt": "2026-11-21T09:37:06.909Z"
     },
     {
       "id": "report-print-queue",
@@ -1346,7 +1417,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:41:03.511Z"
+      "checkedAt": "2026-11-21T09:39:53.756Z"
     },
     {
       "id": "result-reporting-configuration",
@@ -1358,39 +1429,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:37:18.108Z"
-    },
-    {
-      "id": "result-validation",
-      "title": "Result validation",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.4.0",
-      "capturedVersion": "3.2.1.10",
-      "status": "error",
-      "missingAnchors": [],
-      "routeErrors": [
-        "/ResultValidation?type=&test= :: redirected to /validation",
-        "/AccessionValidation :: redirected to /validation",
-        "/ResultValidationByTestDate :: redirected to /validation"
-      ],
-      "checkedAt": "2026-11-14T09:34:48.359Z",
-      "codeChanged": {
-        "count": 34,
-        "since": "2026-06-24",
-        "paths": [
-          "frontend/src/components/validation"
-        ],
-        "branches": {
-          "develop": 30,
-          "demo-silnas": 4
-        },
-        "latest": {
-          "sha": "1aaf0d2",
-          "date": "2026-11-13",
-          "msg": "feat(validation): sequential multi-level sign-off (OGC-1364 v2 slice 1) (#5073)",
-          "branch": "develop"
-        }
-      }
+      "checkedAt": "2026-11-21T09:36:53.790Z"
     },
     {
       "id": "results-entry",
@@ -1402,21 +1441,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:36:52.587Z"
-    },
-    {
-      "id": "results-entry-legacy",
-      "title": "Results Entry (legacy screen)",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.4.0",
-      "capturedVersion": "3.2.1.10",
-      "manualDoc": "Confluence 1653604361 (superseded)",
-      "status": "error",
-      "missingAnchors": [],
-      "routeErrors": [
-        "/LogbookResults?type= :: redirected to /Results"
-      ],
-      "checkedAt": "2026-11-14T09:36:55.735Z"
+      "checkedAt": "2026-11-21T09:36:38.004Z"
     },
     {
       "id": "running-reports",
@@ -1428,7 +1453,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:37:02.041Z"
+      "checkedAt": "2026-11-21T09:36:40.602Z"
     },
     {
       "id": "sample-acceptance-checklist",
@@ -1440,7 +1465,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:35:49.599Z",
+      "checkedAt": "2026-11-21T09:35:30.122Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-09-22",
@@ -1463,24 +1488,23 @@
       "status": "error",
       "missingAnchors": [],
       "routeErrors": [
-        "/SampleShipment :: redirected to /SampleShipment/boxes",
         "/ReferredOutTests :: redirected to /api/OpenELIS-Global/ReferredOutTests"
       ],
-      "checkedAt": "2026-11-14T09:34:55.151Z",
+      "checkedAt": "2026-11-21T09:34:44.164Z",
       "codeChanged": {
-        "count": 12,
+        "count": 15,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/shipment"
         ],
         "branches": {
-          "develop": 10,
+          "develop": 13,
           "demo-silnas": 2
         },
         "latest": {
-          "sha": "c1715a5",
-          "date": "2026-11-09",
-          "msg": "fix(frontend): date filters follow the site date format (OGC-1616)",
+          "sha": "bddc182",
+          "date": "2026-11-17",
+          "msg": "refactor(frontend): exported components read their contexts from contexts.js, not Layout (OGC-1640) (#5104)",
           "branch": "develop"
         }
       }
@@ -1495,7 +1519,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:37:24.437Z"
+      "checkedAt": "2026-11-21T09:36:59.093Z"
     },
     {
       "id": "sample-storage-management",
@@ -1506,22 +1530,22 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:35:04.605Z",
+      "checkedAt": "2026-11-21T09:34:52.062Z",
       "codeChanged": {
-        "count": 16,
+        "count": 19,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/storage",
           "frontend/src/components/coldStorage"
         ],
         "branches": {
-          "develop": 15,
+          "develop": 18,
           "demo-silnas": 1
         },
         "latest": {
-          "sha": "9b4ed8f",
-          "date": "2026-11-11",
-          "msg": "fix(coldstorage): resolve reports, NPE, and warning text (#4261) (#4343)",
+          "sha": "e3d826f",
+          "date": "2026-11-16",
+          "msg": "fix(dates): every date picker commits a typed date (OGC-1635 follow-up) (#5095)",
           "branch": "develop"
         }
       }
@@ -1536,7 +1560,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:38:55.186Z",
+      "checkedAt": "2026-11-21T09:38:06.454Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-09-15",
@@ -1560,7 +1584,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:40:33.673Z"
+      "checkedAt": "2026-11-21T09:39:27.830Z"
     },
     {
       "id": "search-index-management",
@@ -1572,7 +1596,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:36:05.337Z"
+      "checkedAt": "2026-11-21T09:35:43.100Z"
     },
     {
       "id": "sent-messages",
@@ -1584,7 +1608,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:41:09.878Z"
+      "checkedAt": "2026-11-21T09:39:58.972Z"
     },
     {
       "id": "site-information",
@@ -1596,7 +1620,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:37:08.336Z"
+      "checkedAt": "2026-11-21T09:36:45.791Z"
     },
     {
       "id": "test-accreditation",
@@ -1608,7 +1632,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:40:36.843Z"
+      "checkedAt": "2026-11-21T09:39:30.456Z"
     },
     {
       "id": "test-catalog-editor",
@@ -1620,7 +1644,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:39:10.998Z",
+      "checkedAt": "2026-11-21T09:38:19.550Z",
       "codeChanged": {
         "count": 30,
         "since": "2026-09-21",
@@ -1632,9 +1656,9 @@
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "36f822b",
-          "date": "2026-11-12",
-          "msg": "feat(container-types): tests name their expected containers; sample types a default container (OGC-1611 P2) (#5047)",
+          "sha": "e0ddcc1",
+          "date": "2026-11-19",
+          "msg": "fix(microbiology): bring the V3 follow-up fixes, #4996 to #5009, to develop (OGC-1607) (#5139)",
           "branch": "develop"
         }
       }
@@ -1649,7 +1673,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:38:58.348Z",
+      "checkedAt": "2026-11-21T09:38:09.066Z",
       "codeChanged": {
         "count": 30,
         "since": "2026-09-15",
@@ -1661,9 +1685,9 @@
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "36f822b",
-          "date": "2026-11-12",
-          "msg": "feat(container-types): tests name their expected containers; sample types a default container (OGC-1611 P2) (#5047)",
+          "sha": "e0ddcc1",
+          "date": "2026-11-19",
+          "msg": "fix(microbiology): bring the V3 follow-up fixes, #4996 to #5009, to develop (OGC-1607) (#5139)",
           "branch": "develop"
         }
       }
@@ -1678,7 +1702,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:36:02.206Z"
+      "checkedAt": "2026-11-21T09:35:40.521Z"
     },
     {
       "id": "user-management",
@@ -1690,21 +1714,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:36:26.676Z"
-    },
-    {
-      "id": "validation",
-      "title": "Validation",
-      "base": "https://testing.openelis-global.org",
-      "instanceVersion": "3.4.0",
-      "capturedVersion": "3.2.2.0",
-      "manualDoc": "Confluence 1441202177 (draft)",
-      "status": "error",
-      "missingAnchors": [],
-      "routeErrors": [
-        "/ResultValidation?type=&test= :: redirected to /validation"
-      ],
-      "checkedAt": "2026-11-14T09:36:58.895Z"
+      "checkedAt": "2026-11-21T09:36:03.353Z"
     },
     {
       "id": "validation-v4",
@@ -1716,7 +1726,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:37:57.215Z"
+      "checkedAt": "2026-11-21T09:37:26.514Z"
     },
     {
       "id": "vector-surveillance",
@@ -1724,15 +1734,11 @@
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.4.0",
       "capturedVersion": "3.2.1.10",
-      "status": "drift",
-      "missingAnchors": [
-        "/order/vector/enter :: Tests & Panels",
-        "/vector/identification :: Species Distribution",
-        "/vector/identification :: Identify",
-        "/vector/identification :: Split"
-      ],
+      "manualDoc": "Confluence 1427898389 Enter a vector order; 1428094999 Identify vector species & deconvolute a pool (both last edited 31 Jul 2026)",
+      "status": "review",
+      "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:35:11.008Z",
+      "checkedAt": "2026-11-21T09:34:57.825Z",
       "codeChanged": {
         "count": 39,
         "since": "2026-06-24",
@@ -1745,9 +1751,9 @@
           "demo-silnas": 9
         },
         "latest": {
-          "sha": "ac2d325",
-          "date": "2026-11-12",
-          "msg": "fix(referrals): two OpenELIS labs exchange referrals without manual pairing (#5053)",
+          "sha": "e0ddcc1",
+          "date": "2026-11-19",
+          "msg": "fix(microbiology): bring the V3 follow-up fixes, #4996 to #5009, to develop (OGC-1607) (#5139)",
           "branch": "develop"
         }
       }
@@ -1762,7 +1768,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:37:37.050Z",
+      "checkedAt": "2026-11-21T09:37:09.531Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-09-22",
@@ -1791,7 +1797,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-14T09:41:00.252Z"
+      "checkedAt": "2026-11-21T09:39:50.869Z"
     }
   ],
   "note": "indonesiademo unreachable (auth setup failed all retries) on 2026-09-23; its sections carried over from previous published report",
