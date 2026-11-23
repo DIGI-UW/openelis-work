@@ -12,7 +12,7 @@
 
 > This FRS is version-agnostic — it describes the whole feature. Version/sprint boundaries are decided later in `/breakdown`.
 >
-> **Terminology:** the user-facing name is **Analyzer Type** — the reusable, forkable configuration for a kind of analyzer (test codes, result mappings, QC codes, formatting). This document uses **"profile"** as a synonym for that same object/entity; all UI labels read "Analyzer Type." (It is distinct from the dev-only **Plugin Type**, which stays in the Advanced/implementer area.)
+> **Terminology:** the user-facing name is **Analyzer Type** — the reusable description of a kind of analyzer (test codes, result values, QC codes, formatting), which every analyzer of that kind starts from. This document uses **"profile"** as a synonym for that same object/entity; all UI labels read "Analyzer Type." (It is distinct from the dev-only **Plugin Type**, which stays in the Advanced/implementer area.)
 
 ---
 
@@ -68,7 +68,7 @@ The governing principle: **verifying is the norm, editing is the exception.** A 
 2. *As a lab administrator,* I want OpenELIS to tell me which of the instrument's tests already exist and are active in my catalog (matched by LOINC), so that I can trust what will receive results and fix what won't.
 3. *As a lab administrator,* I want to confirm — not hand-build — how the instrument's result values map to my result options, so that qualitative results record correctly with a human sign-off.
 4. *As a lab administrator,* when an instrument's test or value isn't recognized, I want to map it to an existing catalog test by searching, or be told to add it in Test Catalog first, so that I'm never stuck and never silently dropping results.
-5. *As a lab administrator,* I want a change I make for one analyzer to default to a new profile (not silently alter every other analyzer), so that I can't break the others by accident.
+5. *As a lab administrator,* I want a change I make for one analyzer to change only that analyzer, so that I can't break the others by accident.
 6. *As a lab administrator,* I want unmapped codes or results from a live analyzer to raise an alert and flag the analyzer, so that nothing piles up unnoticed.
 7. *As a lab administrator,* I want one place that lists the reusable profiles with how complete their mappings are, so that I can see and manage what's configured.
 
@@ -78,9 +78,9 @@ The governing principle: **verifying is the norm, editing is the exception.** A 
 
 ### A. Profiles
 
-**FR-A1 — Profile as the unit of configuration.** A *profile* is a reusable configuration for a kind of analyzer. It carries: test-code mappings (analyzer code → catalog test, with the test's LOINC), result mappings (analyzer value → the test's result option), QC codes (control identifiers and how they're recognized), result formatting (date format, decimal separator, units), and the instrument's protocol/connection capability (including whether it supports two-way). It does **not** carry analyzer-specific facts: name, lab unit assignment, network address, or connection direction in use.
+**FR-A1 — Profile as the unit of configuration.** A *profile* is a reusable description of a kind of analyzer, taken from the vendor's own LIS documentation. It carries: the instrument's test codes (with the test's LOINC), the result values it sends (each with a standard answer code and the vendor's translations), where each part of a result sits in the message (qualitative call, quantity, flags, complementary values such as LOG or Ct, notes; see MC-7), QC codes (control identifiers and how they're recognized), result formatting (date format, decimal separator, units), and the instrument's protocol/connection capability (including whether it supports two-way). It stays catalog-independent: binding to the lab's tests and result options is each analyzer's mapping (FR-A2). It does **not** carry analyzer-specific facts: name, lab unit assignment, network address, or connection direction in use.
 
-**FR-A2 — Shared, with fork.** An analyzer references exactly one profile. Multiple analyzers may share a profile. There is no per-analyzer override layer and no "clone": when an analyzer must differ, the change is saved as a **new profile** (a fork).
+**FR-A2 — Profile shared, mapping per analyzer.** An analyzer references exactly one profile revision; many analyzers may share it. Each analyzer holds its own mapping: the profile's defaults, resolved by exact match against the catalog when the analyzer is set up, plus that analyzer's own overrides (codes, values, components). Vendors make test codes and result language a setting of each instrument (Cepheid 303-0251 §1: "Test codes can be user-defined"; a host test code belongs to one assay definition, 302-7279 §2), so an analyzer that differs needs no fork. A change to the instrument model itself is a new profile revision, which each analyzer adopts explicitly. *(Revised 2026-10-06; previously "shared, with fork". See the OpenELIS analyzer baseline roadmap, rule 3.)*
 
 **FR-A3 — Deactivate, never delete.** Profiles (and analyzers) are deactivated/reactivated, never hard-deleted. Lists hide deactivated profiles by default with a "Show deactivated" toggle. (See constitution: no hard delete in a LIMS.)
 
@@ -112,7 +112,7 @@ The governing principle: **verifying is the norm, editing is the exception.** A 
 - **Not transmitted:** a mapped test that did *not* appear in this message stays "not seen yet" (not an error — the assay may simply not have run).
 - **Nothing matches / blank profile:** when the profile has no mappings yet (the "not listed → new profile" path), the transmission **populates** the rows from what was received and the administrator maps each — i.e., a new profile is built directly from a real message rather than from a blank form.
 
-Mappings resolved this way update the profile immediately (subject to the save-scope rule, FR-H). Reconciliation never discards a transmitted item.
+Mappings resolved this way update this analyzer's mapping immediately (FR-H). Reconciliation never discards a transmitted item.
 
 ### C. Catalog readiness check (LOINC matching)
 
@@ -152,25 +152,25 @@ Mappings resolved this way update the profile immediately (subject to the save-s
 
 **FR-G2 — Active analyzers raise alerts.** For an **active** analyzer, an unmapped code/result posts to the **Alerts** page for acknowledgment and handling (acknowledged by Admin; Lab Manager optional), and raises a visible flag on the **Analyzers List** row and on the **profile**. (Aligns with the global critical-acknowledgment direction.)
 
-**FR-G3 — Resolve updates the profile.** Resolving a pending item from the alert/queue maps it; the resolution updates the analyzer's profile so the same code/value maps automatically next time. This is the same mechanism that handles a new cartridge's new test code or a newly-seen result value. HL7 pending items show the display name (OBX-3.2) and value type (OBX-2); ASTM shows the bare code.
+**FR-G3 — Resolve updates the analyzer's mapping.** Resolving a pending item from the alert/queue maps it; the resolution updates that analyzer's mapping so the same code/value maps automatically next time. A code or value the vendor documents but the profile lacks is reported for a new profile revision. HL7 pending items show the display name (OBX-3.2) and value type (OBX-2); ASTM shows the bare code.
 
-### H. Edit scope (shared-with-fork)
+### H. Edit scope (per analyzer)
 
-**FR-H1 — Save choices.** Saving changes made from an analyzer's mapping editor presents two choices: **Save as a new profile** (default) or **Update this profile (affects N analyzers)**.
+**FR-H1 — Save scope.** Saving from an analyzer's mapping editor changes only that analyzer's mapping; no other analyzer changes. The save lists every row that changes before it writes.
 
-**FR-H2 — Safe default.** When the profile is used by more than one analyzer, **Save as a new profile** is the default and "Update this profile" carries an explicit warning naming the affected analyzers. When the profile is used by only the current analyzer, "Update this profile" is harmless and may be the default.
+**FR-H2 — Default or override.** Each row records whether it is the profile's default or this analyzer's override, so a later profile revision can show what changed beside what the lab chose.
 
-**FR-H3 — Unique names by default.** A new (forked) profile's suggested name is the source profile's name with an **auto-incremented suffix** (`-1`, `-2`, …) chosen as the next value that is not already in use, guaranteeing uniqueness; the administrator may rename. The fork records its **lineage** ("derived from …").
+**FR-H3 — Model changes are revisions.** A change to the instrument model (a code or value the vendor documents) is a new profile revision, adopted per analyzer through one review screen; the analyzer keeps receiving on its current revision until it is confirmed and re-activated.
 
 ### I. Analyzer Types page
 
-**FR-I1 — List.** Columns: Profile (name + manufacturer/model/version), Protocol, **Tests mapped (X/Y · %)**, **Results mapped (X/Y · %)**, Used by (count), Status. Row actions: Edit mappings, Export (download a copy for backup/support — re-import is future), Deactivate/Reactivate. (No Clone, no Delete.)
+**FR-I1 — List.** Columns: Profile (name + manufacturer/model/version), Protocol, **Tests mapped (X/Y · %)**, **Results mapped (X/Y · %)**, Used by (count), Status. Row actions: View defaults (read-only), Export (download a copy for backup/support — re-import is future), Deactivate/Reactivate. (No Clone, no Delete.)
 
 **FR-I2 — Search & filters.** A search over name/manufacturer/model (built for large libraries). Filters: **Created** (site-created / shipped), **Protocol**, **Mapping status** (has unmapped results / fully mapped), and **Show deactivated** (off by default).
 
-**FR-I3 — Intro/explainer.** The page opens with a short plain-language explanation of what a profile is and how to use it (share across identical analyzers; fork when one differs; deactivate not delete).
+**FR-I3 — Intro/explainer.** The page opens with a short plain-language explanation of what a profile is and how to use it (every analyzer of this kind starts from it; each analyzer keeps its own mapping; deactivate not delete).
 
-**FR-I4 — Editing a profile == the mapping editor.** Editing a profile opens the same editor reached from an analyzer's Field Mappings — a profile *is* its mappings, not just a list row.
+**FR-I4 — The page previews defaults.** Opening a profile shows, read-only, the defaults a new analyzer of that kind would get against the current catalog. Mappings are edited on each analyzer (FR-A2); the page has no save or confirm action.
 
 ---
 
@@ -185,7 +185,8 @@ Grounded in existing OpenELIS entities; new data is flagged as a named dependenc
 | Lab unit (test unit) | **Existing** — used for analyzer assignment and RBAC context. |
 | Analyzer (instance) | **Existing** — gains a profile reference, lab-unit association, and verified data-flow direction. |
 | Analyzer plugin / type | **Existing** ("Analyzer Types" registry) — the generic plugin per protocol; profiles ride on the generic plugin. Lab-facing surface replaced by Analyzer Profiles. |
-| **Analyzer profile** | **NEW** — reusable config entity (FR-A1) with lineage to a parent profile for forks; `@Audited`. |
+| **Analyzer profile** | **NEW** — reusable, revisioned description of an instrument (FR-A1); each analyzer adopts a revision explicitly; `@Audited`. |
+| **Analyzer mapping** | **NEW**: each analyzer's own mapping (FR-A2): defaults plus overrides, rows targeting a test or a component; `@Audited`. |
 | Pending/unmapped code & result queue | **Dependency** — learn-from-traffic store; surfaces to Alerts. Partly exists as "pending codes" on the deployed Field Mappings page; extend to cover unmapped result values. |
 | Alerts | **Existing** Alerts page — receives unmapped-code/result events for active analyzers (FR-G2). |
 | QC identification rules / control codes | **Existing** in profiles/QC config — surfaced for verification (FR-B5); detailed QC limits live in Quality Control. |
@@ -214,8 +215,7 @@ All UI strings use localization keys (`label.analyzer.profile.*`, `label.analyze
 | `label.analyzer.connect.oneway` | Results only (one-way) |
 | `label.analyzer.connect.twoway` | Two-way (send orders/queries) |
 | `label.analyzer.connect.twowayUnreachable` | Two-way not reachable on this network; running results-only |
-| `label.analyzer.scope.newProfile` | Save as a new profile |
-| `label.analyzer.scope.updateProfile` | Update this profile (affects {count} analyzers) |
+| `label.analyzer.scope.thisAnalyzer` | Changes apply to this analyzer only |
 | `label.analyzer.mapping.testsMapped` | Tests mapped |
 | `label.analyzer.mapping.resultsMapped` | Results mapped |
 | `label.analyzer.unmapped.alert` | Analyzer is sending a result that isn't mapped |
@@ -236,8 +236,8 @@ All UI strings use localization keys (`label.analyzer.profile.*`, `label.analyze
 - [ ] **AC-10** Connect defaults to one-way; two-way is offered only when the profile supports it, is verified by a probe, and degrades to one-way on timeout without blocking setup.
 - [ ] **AC-11** In the editor, every test-code row is editable (re-point linked test via search, edit code, remove, add).
 - [ ] **AC-12** Result mapping targets are exactly the matched test's result options; an empty option set shows the Test-Catalog guidance.
-- [ ] **AC-13** Saving from an analyzer defaults to Save-as-new-profile when used-by > 1; Update-this-profile warns and names affected analyzers.
-- [ ] **AC-14** A forked profile's suggested name uses the next free `-N` suffix and is guaranteed unique; lineage is recorded.
+- [ ] **AC-13** Saving from an analyzer's mapping editor changes only that analyzer, after listing every changed row.
+- [ ] **AC-14** Each mapping row shows whether it is the profile's default or this analyzer's override.
 - [ ] **AC-15** Unmapped codes/results from an active analyzer post to Alerts and flag the row and the profile; results are never dropped or blocked.
 - [ ] **AC-16** The Analyzer Profiles list shows Tests mapped and Results mapped as X/Y · %, supports search and the four filters, and hides deactivated by default.
 - [ ] **AC-17** Profiles are deactivated/reactivated; no delete action exists.
@@ -245,7 +245,7 @@ All UI strings use localization keys (`label.analyzer.profile.*`, `label.analyze
 - [ ] **AC-19** No developer-only fields (plugin class, identifier-pattern regex, raw config JSON) appear in the lab-facing flow; any such reference is in a clearly secondary "Advanced — for IT/implementers" area.
 - [ ] **AC-20** All UI strings use localization keys.
 - [ ] **AC-21** "Send a result from the analyzer" reconciles the transmission live: matched items are marked verified-against-live; a new result value surfaces pre-populated with the test's options to map; a new test code surfaces with a catalog search; a mapped test not in the message stays "not seen yet."
-- [ ] **AC-22** Reconciliation never discards a transmitted item; resolving one updates the profile (per FR-H scope).
+- [ ] **AC-22** Reconciliation never discards a transmitted item; resolving one updates this analyzer's mapping (FR-H).
 - [ ] **AC-23** On the "not listed → new profile" path, a received message populates the (empty) mapping rows so a new profile can be built from real data; the "My instrument isn't listed" control reveals the new-profile fields (name, protocol, connection type).
 
 ---
@@ -292,6 +292,15 @@ test — not only to a test.
   from the import review) is available to the **`results` permission** — **not** admin-gated — because it
   is clinical-catalog knowledge the bench owns. The *technical* analyzer config (connection, plugin,
   profile plumbing) stays admin. The new RBAC will make this more granular later.
+
+- **MC-7. Result parts (2026-10-06).** One instrument record can carry several parts: a qualitative
+  call and a quantity in one field (ASTM R.4 components 1 and 2, HL7 OBX-5), an off-scale or abnormal
+  flag (R.7, OBX-8), complementary values the record names (LOG, Ct, EndPt), and notes or errors (C
+  records, NTE). The profile declares where each part sits; each part maps like a target, to the test's
+  primary or one of its components. Worked example, Cepheid HIV-1 VL XC (303-0251 §2.1): the number with
+  its comparator on the primary (`<40` arrives as `DETECTED` with an R.7 `<` and the range limit), the
+  call on a call component, LOG on its component; Not detected fills only the call. A log value never
+  lands on the quantity's target.
 
 **Mockup delta:** extend the existing mapping mockup (`analyzer-mapping-templates.jsx` /
 `analyzer-profile-mapping-prototype.html`) — add the **Component** column/selector to the result-mapping
