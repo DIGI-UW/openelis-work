@@ -139,6 +139,14 @@ All labels, messages and filter names are localized (English and French at least
 - **AC-S-08** After an Import Review run adds a synonym, the field finds the organism by that synonym without a manual reindex.
 - **AC-S-09** All labels appear in French when the user's locale is French; a screen reader announces "20 of 312 matches".
 
+## Proposed change with AMR v3.2 draft 0.35 (Part F)
+
+If Part F of `amr-micro-v3-frs.md` is agreed, three lines here change and nothing else does:
+
+- **FR-1.3:** an organism's codes are its WHONET code and SNOMED code; its former names are WHONET's older names for that code. The AMR code is no longer an organism identifier.
+- **FR-1.4:** organism commonness is WHONET's Common flag, in place of the AMR for R `prevalence` score. Pinned and seen-here ranking are unchanged.
+- **FR-1.4a:** the organism list is about 2,350 entries, not about 103,000.
+
 ## Decisions
 
 | ID | Decision |
