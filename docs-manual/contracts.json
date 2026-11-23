@@ -2552,6 +2552,7 @@
    "confluencePageId": "1729724423",
    "manualDoc": "Confluence 1729724423",
    "captureSpec": "tests/docs/rpq-330-manual-r2.docs.spec.ts",
+   "notes": "Step 3 updated on 2026-11-23 against a local develop build with OGC-1551 (#5156): a resend is its own row tagged Resend with its attempt recorded, the expanded row names the message it repeats with Show the original (one-message view, Show all messages), the list and an expanded row offer Retry when they fail to load, and the breadcrumb reads Home / Reports / Sent Messages. New captures under docs-manual/captures/sent-messages/.",
    "featureDoc": "OGC-1557",
    "base": "https://testing.openelis-global.org",
    "capturedVersion": "3.3.0",
