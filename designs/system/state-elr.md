@@ -2,15 +2,44 @@
 
 | | |
 |---|---|
-| **Version** | v0.2 (gap review of 2026-11-05 applied: send on release rather than on issue, referred-out results, clinical domain only, resistance-defined conditions, timeliness, proof of reporting, sensitive rows, non-functional requirements). v0.1 (2026-11-04) first draft |
+| **Version** | v0.3 (2026-11-13: Phase 1 scope and architecture change: reporting as a saved report definition delivered through the FHIR results door, mediator builds ELR; requirement disposition added).  v0.2 (gap review of 2026-11-05 applied: send on release rather than on issue, referred-out results, clinical domain only, resistance-defined conditions, timeliness, proof of reporting, sensitive rows, non-functional requirements). v0.1 (2026-11-04) first draft |
 | **Date** | 2026-11-04 |
 | **Author** | Casey Iiams-Hauser (Director of Product) |
-| **Status** | Draft. Clarify, crosscheck and a gap review done (`ehr-elr-review-2026-11-05.md`); ready for `/breakdown` after Casey reviews |
+| **Status** | Draft. v0.3 reduces Phase 1 to the subset in "Phase 1 scope and architecture change"; breakdown follows RPT-1 |
 | **First deployment** | SolAura Clinical Laboratory (California): reporting to CalREDIE. Written as a general US capability |
 | **Preview** | `state-elr-preview.html` |
 | **Builds on** | `ehr-lab-interface-frs.md` (the HL7 v2 engine, profiles as data, the Interfaces admin group, the outbox product model) |
 | **Verified against** | `DIGI-UW/OpenELIS-Global-2` `develop` at `1b1acbf` (2026-11-04); Result Delivery FRS v0.3; Clinical Order Entry v4 FRS v0.20; AMR v3 FRS; Users and Roles FRS v0.1 |
 | **Decisions** | D-390 to D-394 and D-398 proposed (the EHR spec holds D-384 to D-389 and D-395 to D-397; AMR Surveillance holds D-375 to D-383). Confirm at registration |
+
+---
+
+## Phase 1 scope and architecture change (v0.3, 2026-11-13)
+
+Set by Piotr Mankowski on 2026-11-13 and recorded in the SolAura Build Roadmap (https://claude.ai/artifact/XTi6qdfi6iXgfisbUm7AXR). Jira: OGC-1623. This section governs where it conflicts with the requirements below; the rest of the spec stays as the record for later phases.
+
+### What changed
+
+- **State reporting is a reporting task.** It fits the OpenELIS reporting strategy rather than a separate HL7 engine: a saved report definition in the report builder (OGC-479) selects reportable results by test and result (RPT-1, RPT-3).
+- **Delivery as results are released.** A new delivery option on a saved definition sends each newly matching released result through the FHIR results door on the delivery queue, shown in Sent Messages (RPT-2, DOOR-6). The same mechanism is meant to serve AMR surveillance (OGC-1618).
+- **The mediator builds the message.** The external HL7 to FHIR mediator turns bundles addressed to the state into ELR 2.5.1 with the lab's name, CLIA number and address, and sends them over the state's direct interface (MED-6). California direct is assumed until SolAura and the state confirm.
+- **No destination admin screens.** The single destination, California, is mediator configuration; the reportable list is a shared report definition shipped in the distro, viewable, editable and runnable as CSV.
+- **Design before build.** RPT-1 precedes construction (definition expression, trigger on release or sweep, corrections already sent, destination naming, AMR reuse).
+
+### Requirement disposition
+
+| Disposition | Where | Requirements |
+|---|---|---|
+| Kept | Mediator | D1 to D4, D6 the California report message; I1 test records only during onboarding; I2 export of recent messages for the state's validator |
+| Kept | OpenELIS | B1, B4 reportable by test and result, as a saved report definition; F1, F2 send on release, send corrections; F3, H1, H2 through the delivery queue, shown in Sent Messages; E2 send with the data available, never held; E5 race and ethnicity on the patient (RPT-4); D8, E4 questions asked at order carried into the report (RPT-5, OGC-1144); H7 proof of reporting by running the same definition as CSV |
+| Moved to config | Mediator files or distro | A1, A2 one destination, California, in the mediator; B1 to B3 the reportable list as a shared report definition shipped in the distro; C1 routing: everything tested at this lab; lab name, CLIA number and address |
+| Out of Phase 1 | | A3 other state and national profiles; A4, A5 destination admin screens; B2, B5 code list import with preview, per-test override; B7, B9 referred-out tests, list aging; C2 to C4 routing by patient residence; D5, D7 culture results, separate HIV messages; E3, F4 send-update after late data, batching; G1, G2 phone reporting notices; H3 to H6 sensitive-row masking, counts, timeliness tags; I3 go-live checklist screen |
+
+Sections not listed above (J non-functional, Access, Localization) apply only to the kept requirements. The reportable list for SolAura is expected to cover only the carbapenemase resistance genes on the UTI panel; SolAura confirms it. The disposition was made from the requirement list and is open to correction by the author.
+
+### Roadmap items
+
+RPT-1 to RPT-5, MED-6, DOOR-6. Done when the state accepts test messages; production approval follows the state's timeline.
 
 ---
 
