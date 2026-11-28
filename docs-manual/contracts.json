@@ -2552,7 +2552,6 @@
    "confluencePageId": "1729724423",
    "manualDoc": "Confluence 1729724423",
    "captureSpec": "tests/docs/rpq-330-manual-r2.docs.spec.ts",
-   "notes": "Step 3 updated on 2026-11-23 against a local develop build with OGC-1551 (#5156): a resend is its own row tagged Resend with its attempt recorded, the expanded row names the message it repeats with Show the original (one-message view, Show all messages), the list and an expanded row offer Retry when they fail to load, and the breadcrumb reads Home / Reports / Sent Messages. New captures under docs-manual/captures/sent-messages/.",
    "featureDoc": "OGC-1557",
    "base": "https://testing.openelis-global.org",
    "capturedVersion": "3.3.0",
@@ -2991,18 +2990,18 @@
   },
   {
    "id": "management-overview",
-   "title": "View the Management Overview",
+   "title": "View the Management Dashboard",
    "confluencePageId": "1787002882",
-   "manualDoc": "docs-manual/publish/nc-1116/mo/management-overview.xhtml",
+   "manualDoc": "docs-manual/publish/nc-1116/mo2/management-dashboard.xhtml",
    "captureSpec": null,
    "base": "https://testing.openelis-global.org",
    "capturedVersion": "3.4.0-SNAPSHOT",
-   "capturedDate": "2026-11-17",
+   "capturedDate": "2026-11-20",
    "routes": [
     {
      "path": "/dashboards/management",
      "anchors": [
-      "Management Overview",
+      "Management Dashboard",
       "Total samples",
       "Median TAT",
       "Workload & turnaround time",
@@ -3029,7 +3028,8 @@
    "updateTrigger": "release",
    "grade": "A",
    "gradedDate": "2026-11-17",
-   "notes": "Figures hide automated-QA rows on testing. Video attached: management-overview-walkthrough.mp4."
+   "notes": "Figures hide automated-QA rows on testing. Video attached: management-overview-walkthrough.mp4. Screen renamed Management Dashboard (en_US Transifex); develop en.json still has Management Overview for sideNav.title.managementOverview and label.mgmt.title. QI Configuration help text and export file names still say Management Overview and are quoted as seen.",
+   "reviewKey": "OGC-1679"
   },
   {
    "id": "batch-workplan",

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-21T09:41:27.537Z",
+  "generatedAt": "2026-11-28T09:42:03.322Z",
   "sections": [
     {
       "id": "add-patient",
@@ -11,7 +11,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:33:54.489Z",
+      "checkedAt": "2026-11-28T09:34:21.409Z",
       "codeChanged": {
         "count": 23,
         "since": "2026-06-24",
@@ -39,7 +39,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:35:24.942Z",
+      "checkedAt": "2026-11-28T09:35:52.455Z",
       "codeChanged": {
         "count": 7,
         "since": "2026-06-24",
@@ -68,7 +68,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:35:27.541Z",
+      "checkedAt": "2026-11-28T09:35:55.053Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-10-12",
@@ -91,7 +91,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:35:10.963Z",
+      "checkedAt": "2026-11-28T09:35:38.146Z",
       "codeChanged": {
         "count": 3,
         "since": "2026-06-24",
@@ -121,7 +121,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:39:40.376Z"
+      "checkedAt": "2026-11-28T09:40:16.342Z"
     },
     {
       "id": "aliquot",
@@ -133,7 +133,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:37:01.693Z"
+      "checkedAt": "2026-11-28T09:37:33.901Z"
     },
     {
       "id": "analyzer-bridge-install",
@@ -145,7 +145,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:39:37.757Z",
+      "checkedAt": "2026-11-28T09:40:13.725Z",
       "codeChanged": {
         "count": 25,
         "since": "2026-10-13",
@@ -174,22 +174,22 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:33:57.079Z",
+      "checkedAt": "2026-11-28T09:34:24.106Z",
       "codeChanged": {
-        "count": 38,
+        "count": 39,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/analyzers",
           "frontend/src/components/genericSample"
         ],
         "branches": {
-          "develop": 37,
+          "develop": 38,
           "demo-silnas": 1
         },
         "latest": {
-          "sha": "bddc182",
-          "date": "2026-11-17",
-          "msg": "refactor(frontend): exported components read their contexts from contexts.js, not Layout (OGC-1640) (#5104)",
+          "sha": "18ee207",
+          "date": "2026-11-25",
+          "msg": "fix(limits): bound the work one request can ask for (#4980)",
           "branch": "develop"
         }
       }
@@ -203,7 +203,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:34:01.696Z",
+      "checkedAt": "2026-11-28T09:34:29.154Z",
       "codeChanged": {
         "count": 31,
         "since": "2026-06-24",
@@ -232,19 +232,24 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:37:41.972Z",
+      "checkedAt": "2026-11-28T09:38:15.424Z",
       "codeChanged": {
-        "count": 0,
+        "count": 2,
         "since": "2026-11-17",
         "paths": [
           "frontend/src/components/qc",
           "frontend/src/components/analyzers"
         ],
         "branches": {
-          "develop": 0,
+          "develop": 2,
           "demo-silnas": 0
         },
-        "latest": null
+        "latest": {
+          "sha": "7909b7f",
+          "date": "2026-11-26",
+          "msg": "feat(runs): a result recorded in a run that carries a lot uses that lot, and the QC dashboard links a control to its run",
+          "branch": "develop"
+        }
       }
     },
     {
@@ -257,7 +262,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:37:39.059Z",
+      "checkedAt": "2026-11-28T09:38:12.463Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-11-17",
@@ -281,7 +286,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:35:37.900Z"
+      "checkedAt": "2026-11-28T09:36:05.413Z"
     },
     {
       "id": "barcode-labels",
@@ -292,7 +297,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:34:04.277Z",
+      "checkedAt": "2026-11-28T09:34:31.734Z",
       "codeChanged": {
         "count": 11,
         "since": "2026-06-24",
@@ -322,7 +327,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:41:04.922Z"
+      "checkedAt": "2026-11-28T09:41:41.274Z"
     },
     {
       "id": "calculated-value-tests",
@@ -334,7 +339,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:36:35.314Z"
+      "checkedAt": "2026-11-28T09:37:07.438Z"
     },
     {
       "id": "calendar-management",
@@ -346,7 +351,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:36:51.198Z"
+      "checkedAt": "2026-11-28T09:37:23.377Z"
     },
     {
       "id": "capa-register",
@@ -358,7 +363,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:40:33.151Z"
+      "checkedAt": "2026-11-28T09:41:09.338Z"
     },
     {
       "id": "catalog-import-csv",
@@ -370,7 +375,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:38:16.928Z",
+      "checkedAt": "2026-11-28T09:38:50.852Z",
       "codeChanged": {
         "count": 2,
         "since": "2026-09-22",
@@ -399,7 +404,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:37:18.522Z"
+      "checkedAt": "2026-11-28T09:37:50.892Z"
     },
     {
       "id": "clinical-order-enter",
@@ -411,7 +416,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:38:03.836Z",
+      "checkedAt": "2026-11-28T09:38:37.631Z",
       "codeChanged": {
         "count": 38,
         "since": "2026-10-09",
@@ -424,9 +429,9 @@
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "e0ddcc1",
-          "date": "2026-11-19",
-          "msg": "fix(microbiology): bring the V3 follow-up fixes, #4996 to #5009, to develop (OGC-1607) (#5139)",
+          "sha": "eded613",
+          "date": "2026-11-24",
+          "msg": "feat(env-orders): regulation-driven environmental orders with a test plan from the selected standards (OGC-768) (#5166)",
           "branch": "develop"
         }
       }
@@ -441,7 +446,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:39:12.102Z"
+      "checkedAt": "2026-11-28T09:39:46.059Z"
     },
     {
       "id": "concept-lab-number",
@@ -453,7 +458,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:41:18.452Z"
+      "checkedAt": "2026-11-28T09:41:55.070Z"
     },
     {
       "id": "concept-order-lifecycle",
@@ -467,7 +472,7 @@
       "routeErrors": [
         "/order/clinical :: redirected to /order/clinical/collect"
       ],
-      "checkedAt": "2026-11-21T09:41:15.857Z"
+      "checkedAt": "2026-11-28T09:41:52.480Z"
     },
     {
       "id": "concept-results",
@@ -481,7 +486,7 @@
         "/validation :: Release all clear"
       ],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:41:24.832Z"
+      "checkedAt": "2026-11-28T09:42:00.735Z"
     },
     {
       "id": "concept-why-different",
@@ -493,7 +498,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:41:27.530Z"
+      "checkedAt": "2026-11-28T09:42:03.315Z"
     },
     {
       "id": "custom-data-export",
@@ -505,7 +510,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:39:33.061Z"
+      "checkedAt": "2026-11-28T09:40:08.749Z"
     },
     {
       "id": "dictionary-menu",
@@ -517,7 +522,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:36:05.953Z"
+      "checkedAt": "2026-11-28T09:36:33.457Z"
     },
     {
       "id": "domains-concept",
@@ -526,25 +531,27 @@
       "instanceVersion": "3.4.0",
       "capturedVersion": "3.4.0",
       "manualDoc": "docs-manual/publish/domains-concept/1428881409.xhtml",
-      "status": "ok",
-      "missingAnchors": [],
+      "status": "drift",
+      "missingAnchors": [
+        "/order/environmental/enter :: Applicable Compliance Standards"
+      ],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:40:56.669Z",
+      "checkedAt": "2026-11-28T09:41:33.008Z",
       "codeChanged": {
-        "count": 2,
+        "count": 4,
         "since": "2026-11-17",
         "paths": [
           "frontend/src/components/order",
           "frontend/src/components/vector"
         ],
         "branches": {
-          "develop": 2,
+          "develop": 4,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "e0ddcc1",
-          "date": "2026-11-19",
-          "msg": "fix(microbiology): bring the V3 follow-up fixes, #4996 to #5009, to develop (OGC-1607) (#5139)",
+          "sha": "eded613",
+          "date": "2026-11-24",
+          "msg": "feat(env-orders): regulation-driven environmental orders with a test plan from the selected standards (OGC-768) (#5166)",
           "branch": "develop"
         }
       }
@@ -558,7 +565,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:34:06.862Z",
+      "checkedAt": "2026-11-28T09:34:34.315Z",
       "codeChanged": {
         "count": 14,
         "since": "2026-06-24",
@@ -586,22 +593,22 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:34:12.148Z",
+      "checkedAt": "2026-11-28T09:34:39.569Z",
       "codeChanged": {
-        "count": 15,
+        "count": 18,
         "since": "2026-10-12",
         "paths": [
           "frontend/src/components/esignature",
           "frontend/src/components/validation"
         ],
         "branches": {
-          "develop": 15,
+          "develop": 18,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "e0ddcc1",
-          "date": "2026-11-19",
-          "msg": "fix(microbiology): bring the V3 follow-up fixes, #4996 to #5009, to develop (OGC-1607) (#5139)",
+          "sha": "ca357ee",
+          "date": "2026-11-24",
+          "msg": "feat(validation): record each automatic release with the rule that released it, and refuse a stale policy save (OGC-1017",
           "branch": "develop"
         }
       }
@@ -613,10 +620,12 @@
       "instanceVersion": "3.4.0",
       "capturedVersion": "3.2.2.0",
       "manualDoc": "OpenELIS Feature Design/Environmental-Order-Entry-and-Results-User-Manual.docx",
-      "status": "review",
-      "missingAnchors": [],
+      "status": "drift",
+      "missingAnchors": [
+        "/order/environmental/enter :: Applicable Compliance Standards"
+      ],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:34:20.178Z",
+      "checkedAt": "2026-11-28T09:34:47.537Z",
       "codeChanged": {
         "count": 59,
         "since": "2026-09-22",
@@ -630,9 +639,9 @@
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "e0ddcc1",
-          "date": "2026-11-19",
-          "msg": "fix(microbiology): bring the V3 follow-up fixes, #4996 to #5009, to develop (OGC-1607) (#5139)",
+          "sha": "eded613",
+          "date": "2026-11-24",
+          "msg": "feat(env-orders): regulation-driven environmental orders with a test plan from the selected standards (OGC-768) (#5166)",
           "branch": "develop"
         }
       }
@@ -645,12 +654,14 @@
       "capturedVersion": "3.2.1.10",
       "manualDoc": "Confluence 1427898372 Enter an environmental order (last edited 31 Jul 2026)",
       "status": "error",
-      "missingAnchors": [],
+      "missingAnchors": [
+        "/order/environmental/enter :: Applicable Compliance Standards"
+      ],
       "routeErrors": [
         "/LogbookResults :: redirected to /Results",
         "/ResultValidation :: redirected to /validation"
       ],
-      "checkedAt": "2026-11-21T09:35:05.774Z",
+      "checkedAt": "2026-11-28T09:35:32.957Z",
       "codeChanged": {
         "count": 110,
         "since": "2026-06-24",
@@ -664,9 +675,9 @@
           "demo-silnas": 20
         },
         "latest": {
-          "sha": "e0ddcc1",
-          "date": "2026-11-19",
-          "msg": "fix(microbiology): bring the V3 follow-up fixes, #4996 to #5009, to develop (OGC-1607) (#5139)",
+          "sha": "e19ed6c",
+          "date": "2026-11-26",
+          "msg": "feat(runs): a result saved on a row in no run is a run of one, and the row's sections show its run (OGC-1200) (#5197)",
           "branch": "develop"
         }
       }
@@ -681,7 +692,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:40:38.346Z"
+      "checkedAt": "2026-11-28T09:41:14.529Z"
     },
     {
       "id": "eqa-participant",
@@ -693,21 +704,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:38:51.076Z",
+      "checkedAt": "2026-11-28T09:39:24.935Z",
       "codeChanged": {
-        "count": 14,
+        "count": 15,
         "since": "2026-10-12",
         "paths": [
           "frontend/src/components/eqa"
         ],
         "branches": {
-          "develop": 14,
+          "develop": 15,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "bddc182",
-          "date": "2026-11-17",
-          "msg": "refactor(frontend): exported components read their contexts from contexts.js, not Layout (OGC-1640) (#5104)",
+          "sha": "ff4c9a6",
+          "date": "2026-11-23",
+          "msg": "feat(eqa): name the panel sample on each Scoring detail row, in sample order (OGC-1666) (#5153)",
           "branch": "develop"
         }
       }
@@ -722,21 +733,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:38:37.847Z",
+      "checkedAt": "2026-11-28T09:39:11.778Z",
       "codeChanged": {
-        "count": 14,
+        "count": 15,
         "since": "2026-10-12",
         "paths": [
           "frontend/src/components/eqa"
         ],
         "branches": {
-          "develop": 14,
+          "develop": 15,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "bddc182",
-          "date": "2026-11-17",
-          "msg": "refactor(frontend): exported components read their contexts from contexts.js, not Layout (OGC-1640) (#5104)",
+          "sha": "ff4c9a6",
+          "date": "2026-11-23",
+          "msg": "feat(eqa): name the panel sample on each Scoring detail row, in sample order (OGC-1666) (#5153)",
           "branch": "develop"
         }
       }
@@ -751,21 +762,21 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:38:01.095Z",
+      "checkedAt": "2026-11-28T09:38:34.847Z",
       "codeChanged": {
-        "count": 6,
+        "count": 10,
         "since": "2026-11-17",
         "paths": [
           "frontend/src/components/admin"
         ],
         "branches": {
-          "develop": 6,
+          "develop": 10,
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "bf10dd0",
-          "date": "2026-11-20",
-          "msg": "feat(microbiology): make the V3 stack and WHONET's reference tables work together (OGC-1528, OGC-1629) (#5137)",
+          "sha": "7909b7f",
+          "date": "2026-11-26",
+          "msg": "feat(runs): a result recorded in a run that carries a lot uses that lot, and the QC dashboard links a control to its run",
           "branch": "develop"
         }
       }
@@ -780,7 +791,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:39:25.228Z"
+      "checkedAt": "2026-11-28T09:39:59.215Z"
     },
     {
       "id": "inventory-items",
@@ -792,7 +803,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:40:14.733Z"
+      "checkedAt": "2026-11-28T09:40:50.830Z"
     },
     {
       "id": "inventory-receive-reports",
@@ -804,7 +815,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:40:19.934Z"
+      "checkedAt": "2026-11-28T09:40:56.168Z"
     },
     {
       "id": "lab-number-management",
@@ -816,7 +827,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:35:35.304Z"
+      "checkedAt": "2026-11-28T09:36:02.816Z"
     },
     {
       "id": "lab-unit-add",
@@ -828,7 +839,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:38:14.329Z",
+      "checkedAt": "2026-11-28T09:38:48.203Z",
       "codeChanged": {
         "count": 10,
         "since": "2026-09-15",
@@ -857,7 +868,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:38:22.164Z",
+      "checkedAt": "2026-11-28T09:38:56.097Z",
       "codeChanged": {
         "count": 10,
         "since": "2026-09-21",
@@ -886,7 +897,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:39:19.997Z",
+      "checkedAt": "2026-11-28T09:39:53.995Z",
       "codeChanged": {
         "count": 2,
         "since": "2026-10-12",
@@ -915,7 +926,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:37:21.312Z"
+      "checkedAt": "2026-11-28T09:37:53.643Z"
     },
     {
       "id": "laporan-hasil-report",
@@ -927,7 +938,7 @@
       "status": "ok",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:37:12.142Z",
+      "checkedAt": "2026-11-28T09:37:44.435Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-11-17",
@@ -956,7 +967,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:39:22.605Z"
+      "checkedAt": "2026-11-28T09:39:56.593Z"
     },
     {
       "id": "logging-configuration",
@@ -968,22 +979,24 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:36:00.720Z"
+      "checkedAt": "2026-11-28T09:36:28.211Z"
     },
     {
       "id": "management-overview",
-      "title": "View the Management Overview",
+      "title": "View the Management Dashboard",
       "base": "https://testing.openelis-global.org",
       "instanceVersion": "3.4.0",
       "capturedVersion": "3.4.0-SNAPSHOT",
-      "manualDoc": "docs-manual/publish/nc-1116/mo/management-overview.xhtml",
-      "status": "review",
-      "missingAnchors": [],
+      "manualDoc": "docs-manual/publish/nc-1116/mo2/management-dashboard.xhtml",
+      "status": "drift",
+      "missingAnchors": [
+        "/dashboards/management :: Management Dashboard"
+      ],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:41:01.972Z",
+      "checkedAt": "2026-11-28T09:41:38.300Z",
       "codeChanged": {
         "count": 0,
-        "since": "2026-11-17",
+        "since": "2026-11-20",
         "paths": [
           "frontend/src/components/dashboards"
         ],
@@ -1004,7 +1017,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:36:48.587Z"
+      "checkedAt": "2026-11-28T09:37:20.785Z"
     },
     {
       "id": "microbiology-v2",
@@ -1016,7 +1029,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:33:35.575Z"
+      "checkedAt": "2026-11-28T09:34:02.540Z"
     },
     {
       "id": "modify-order-requester",
@@ -1028,7 +1041,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:40:06.898Z"
+      "checkedAt": "2026-11-28T09:40:42.982Z"
     },
     {
       "id": "nce-capa",
@@ -1039,7 +1052,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:34:27.927Z",
+      "checkedAt": "2026-11-28T09:34:55.314Z",
       "codeChanged": {
         "count": 14,
         "since": "2026-06-24",
@@ -1068,7 +1081,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:39:09.501Z"
+      "checkedAt": "2026-11-28T09:39:43.417Z"
     },
     {
       "id": "notifications-admin",
@@ -1080,7 +1093,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:40:48.714Z"
+      "checkedAt": "2026-11-28T09:41:24.875Z"
     },
     {
       "id": "order-entry",
@@ -1092,7 +1105,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:34:30.527Z",
+      "checkedAt": "2026-11-28T09:34:57.926Z",
       "codeChanged": {
         "count": 76,
         "since": "2026-06-30",
@@ -1106,9 +1119,9 @@
           "demo-silnas": 12
         },
         "latest": {
-          "sha": "e0ddcc1",
-          "date": "2026-11-19",
-          "msg": "fix(microbiology): bring the V3 follow-up fixes, #4996 to #5009, to develop (OGC-1607) (#5139)",
+          "sha": "eded613",
+          "date": "2026-11-24",
+          "msg": "feat(env-orders): regulation-driven environmental orders with a test plan from the selected standards (OGC-768) (#5166)",
           "branch": "develop"
         }
       }
@@ -1123,7 +1136,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:36:56.384Z"
+      "checkedAt": "2026-11-28T09:37:28.560Z"
     },
     {
       "id": "organization-management-330",
@@ -1135,7 +1148,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:39:17.373Z"
+      "checkedAt": "2026-11-28T09:39:51.366Z"
     },
     {
       "id": "organizations-management",
@@ -1146,7 +1159,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:34:33.118Z",
+      "checkedAt": "2026-11-28T09:35:00.497Z",
       "codeChanged": {
         "count": 47,
         "since": "2026-06-24",
@@ -1158,9 +1171,9 @@
           "demo-silnas": 17
         },
         "latest": {
-          "sha": "bf10dd0",
-          "date": "2026-11-20",
-          "msg": "feat(microbiology): make the V3 stack and WHONET's reference tables work together (OGC-1528, OGC-1629) (#5137)",
+          "sha": "7909b7f",
+          "date": "2026-11-26",
+          "msg": "feat(runs): a result recorded in a run that carries a lot uses that lot, and the QC dashboard links a control to its run",
           "branch": "develop"
         }
       }
@@ -1175,7 +1188,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:38:11.691Z",
+      "checkedAt": "2026-11-28T09:38:45.495Z",
       "codeChanged": {
         "count": 30,
         "since": "2026-09-15",
@@ -1187,9 +1200,9 @@
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "e0ddcc1",
-          "date": "2026-11-19",
-          "msg": "fix(microbiology): bring the V3 follow-up fixes, #4996 to #5009, to develop (OGC-1607) (#5139)",
+          "sha": "7909b7f",
+          "date": "2026-11-26",
+          "msg": "feat(runs): a result recorded in a run that carries a lot uses that lot, and the QC dashboard links a control to its run",
           "branch": "develop"
         }
       }
@@ -1204,7 +1217,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:40:09.492Z"
+      "checkedAt": "2026-11-28T09:40:45.583Z"
     },
     {
       "id": "patient-management",
@@ -1216,7 +1229,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:36:43.193Z"
+      "checkedAt": "2026-11-28T09:37:15.385Z"
     },
     {
       "id": "patient-merge",
@@ -1228,7 +1241,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:37:04.302Z"
+      "checkedAt": "2026-11-28T09:37:36.514Z"
     },
     {
       "id": "patient-order-enhancements",
@@ -1239,7 +1252,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:34:38.291Z",
+      "checkedAt": "2026-11-28T09:35:05.687Z",
       "codeChanged": {
         "count": 23,
         "since": "2026-06-24",
@@ -1268,7 +1281,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:40:51.306Z"
+      "checkedAt": "2026-11-28T09:41:27.519Z"
     },
     {
       "id": "programs-v2",
@@ -1280,7 +1293,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:38:53.680Z"
+      "checkedAt": "2026-11-28T09:39:27.528Z"
     },
     {
       "id": "provider-management",
@@ -1292,7 +1305,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:35:32.721Z",
+      "checkedAt": "2026-11-28T09:36:00.233Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-06-30",
@@ -1316,7 +1329,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:40:27.952Z"
+      "checkedAt": "2026-11-28T09:41:04.151Z"
     },
     {
       "id": "qa-review-shared",
@@ -1328,7 +1341,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:37:23.899Z"
+      "checkedAt": "2026-11-28T09:37:56.249Z"
     },
     {
       "id": "qc-control-lot",
@@ -1340,7 +1353,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:38:59.086Z"
+      "checkedAt": "2026-11-28T09:39:32.956Z"
     },
     {
       "id": "qc-overview",
@@ -1352,7 +1365,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:39:04.282Z"
+      "checkedAt": "2026-11-28T09:39:38.205Z"
     },
     {
       "id": "reference-lab-results",
@@ -1364,7 +1377,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:37:14.742Z",
+      "checkedAt": "2026-11-28T09:37:47.039Z",
       "codeChanged": {
         "count": 7,
         "since": "2026-09-22",
@@ -1393,7 +1406,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:36:08.833Z"
+      "checkedAt": "2026-11-28T09:36:36.396Z"
     },
     {
       "id": "register-new-patient",
@@ -1405,7 +1418,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:37:06.909Z"
+      "checkedAt": "2026-11-28T09:37:39.110Z"
     },
     {
       "id": "report-print-queue",
@@ -1417,7 +1430,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:39:53.756Z"
+      "checkedAt": "2026-11-28T09:40:29.831Z"
     },
     {
       "id": "result-reporting-configuration",
@@ -1429,7 +1442,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:36:53.790Z"
+      "checkedAt": "2026-11-28T09:37:25.962Z"
     },
     {
       "id": "results-entry",
@@ -1441,7 +1454,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:36:38.004Z"
+      "checkedAt": "2026-11-28T09:37:10.183Z"
     },
     {
       "id": "running-reports",
@@ -1453,7 +1466,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:36:40.602Z"
+      "checkedAt": "2026-11-28T09:37:12.788Z"
     },
     {
       "id": "sample-acceptance-checklist",
@@ -1465,7 +1478,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:35:30.122Z",
+      "checkedAt": "2026-11-28T09:35:57.636Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-09-22",
@@ -1490,7 +1503,7 @@
       "routeErrors": [
         "/ReferredOutTests :: redirected to /api/OpenELIS-Global/ReferredOutTests"
       ],
-      "checkedAt": "2026-11-21T09:34:44.164Z",
+      "checkedAt": "2026-11-28T09:35:11.392Z",
       "codeChanged": {
         "count": 15,
         "since": "2026-06-24",
@@ -1519,7 +1532,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:36:59.093Z"
+      "checkedAt": "2026-11-28T09:37:31.314Z"
     },
     {
       "id": "sample-storage-management",
@@ -1530,22 +1543,22 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:34:52.062Z",
+      "checkedAt": "2026-11-28T09:35:19.450Z",
       "codeChanged": {
-        "count": 19,
+        "count": 20,
         "since": "2026-06-24",
         "paths": [
           "frontend/src/components/storage",
           "frontend/src/components/coldStorage"
         ],
         "branches": {
-          "develop": 18,
+          "develop": 19,
           "demo-silnas": 1
         },
         "latest": {
-          "sha": "e3d826f",
-          "date": "2026-11-16",
-          "msg": "fix(dates): every date picker commits a typed date (OGC-1635 follow-up) (#5095)",
+          "sha": "efa4819",
+          "date": "2026-11-26",
+          "msg": "issue-3743: add Clear action for Active Alerts and improve Acknowledge functionality (#4008)",
           "branch": "develop"
         }
       }
@@ -1560,7 +1573,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:38:06.454Z",
+      "checkedAt": "2026-11-28T09:38:40.241Z",
       "codeChanged": {
         "count": 0,
         "since": "2026-09-15",
@@ -1584,7 +1597,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:39:27.830Z"
+      "checkedAt": "2026-11-28T09:40:01.834Z"
     },
     {
       "id": "search-index-management",
@@ -1596,7 +1609,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:35:43.100Z"
+      "checkedAt": "2026-11-28T09:36:10.611Z"
     },
     {
       "id": "sent-messages",
@@ -1608,7 +1621,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:39:58.972Z"
+      "checkedAt": "2026-11-28T09:40:35.047Z"
     },
     {
       "id": "site-information",
@@ -1620,7 +1633,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:36:45.791Z"
+      "checkedAt": "2026-11-28T09:37:17.982Z"
     },
     {
       "id": "test-accreditation",
@@ -1632,7 +1645,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:39:30.456Z"
+      "checkedAt": "2026-11-28T09:40:04.452Z"
     },
     {
       "id": "test-catalog-editor",
@@ -1644,7 +1657,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:38:19.550Z",
+      "checkedAt": "2026-11-28T09:38:53.479Z",
       "codeChanged": {
         "count": 30,
         "since": "2026-09-21",
@@ -1656,9 +1669,9 @@
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "e0ddcc1",
-          "date": "2026-11-19",
-          "msg": "fix(microbiology): bring the V3 follow-up fixes, #4996 to #5009, to develop (OGC-1607) (#5139)",
+          "sha": "7909b7f",
+          "date": "2026-11-26",
+          "msg": "feat(runs): a result recorded in a run that carries a lot uses that lot, and the QC dashboard links a control to its run",
           "branch": "develop"
         }
       }
@@ -1673,7 +1686,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:38:09.066Z",
+      "checkedAt": "2026-11-28T09:38:42.856Z",
       "codeChanged": {
         "count": 30,
         "since": "2026-09-15",
@@ -1685,9 +1698,9 @@
           "demo-silnas": 0
         },
         "latest": {
-          "sha": "e0ddcc1",
-          "date": "2026-11-19",
-          "msg": "fix(microbiology): bring the V3 follow-up fixes, #4996 to #5009, to develop (OGC-1607) (#5139)",
+          "sha": "7909b7f",
+          "date": "2026-11-26",
+          "msg": "feat(runs): a result recorded in a run that carries a lot uses that lot, and the QC dashboard links a control to its run",
           "branch": "develop"
         }
       }
@@ -1702,7 +1715,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:35:40.521Z"
+      "checkedAt": "2026-11-28T09:36:08.032Z"
     },
     {
       "id": "user-management",
@@ -1714,7 +1727,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:36:03.353Z"
+      "checkedAt": "2026-11-28T09:36:30.865Z"
     },
     {
       "id": "validation-v4",
@@ -1726,7 +1739,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:37:26.514Z"
+      "checkedAt": "2026-11-28T09:37:58.850Z"
     },
     {
       "id": "vector-surveillance",
@@ -1738,7 +1751,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:34:57.825Z",
+      "checkedAt": "2026-11-28T09:35:25.115Z",
       "codeChanged": {
         "count": 39,
         "since": "2026-06-24",
@@ -1751,9 +1764,9 @@
           "demo-silnas": 9
         },
         "latest": {
-          "sha": "e0ddcc1",
-          "date": "2026-11-19",
-          "msg": "fix(microbiology): bring the V3 follow-up fixes, #4996 to #5009, to develop (OGC-1607) (#5139)",
+          "sha": "eded613",
+          "date": "2026-11-24",
+          "msg": "feat(env-orders): regulation-driven environmental orders with a test plan from the selected standards (OGC-768) (#5166)",
           "branch": "develop"
         }
       }
@@ -1768,7 +1781,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:37:09.531Z",
+      "checkedAt": "2026-11-28T09:37:41.833Z",
       "codeChanged": {
         "count": 1,
         "since": "2026-09-22",
@@ -1797,7 +1810,7 @@
       "status": "review",
       "missingAnchors": [],
       "routeErrors": [],
-      "checkedAt": "2026-11-21T09:39:50.869Z"
+      "checkedAt": "2026-11-28T09:40:26.745Z"
     }
   ],
   "note": "indonesiademo unreachable (auth setup failed all retries) on 2026-09-23; its sections carried over from previous published report",

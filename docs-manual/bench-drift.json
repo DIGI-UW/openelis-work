@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-11-21T09:42:12Z",
-  "reportAt": "2026-11-21T09:41:27.537Z",
+  "generatedAt": "2026-11-28T09:42:48Z",
+  "reportAt": "2026-11-28T09:42:03.322Z",
   "sections": 95,
   "contracts": 95,
-  "ok": 3,
-  "review": 88,
+  "ok": 2,
+  "review": 86,
   "errors": 3,
   "stale": [
     "add-patient",
@@ -111,17 +111,17 @@
       "drift": 0,
       "error": 0,
       "version": "3.4.0",
-      "checkedAt": "2026-11-21T09:33:35.575Z"
+      "checkedAt": "2026-11-28T09:34:02.540Z"
     },
     "testing.openelis-global.org": {
       "contracts": 94,
       "checked": 94,
-      "ok": 3,
-      "review": 87,
-      "drift": 1,
+      "ok": 2,
+      "review": 85,
+      "drift": 4,
       "error": 3,
       "version": "3.4.0",
-      "checkedAt": "2026-11-21T09:41:27.530Z"
+      "checkedAt": "2026-11-28T09:42:03.315Z"
     }
   },
   "drift": [
@@ -132,6 +132,30 @@
         "/validation :: Release all clear"
       ],
       "page": "1794342938"
+    },
+    {
+      "id": "domains-concept",
+      "base": "testing.openelis-global.org",
+      "missing": [
+        "/order/environmental/enter :: Applicable Compliance Standards"
+      ],
+      "page": "1428881409"
+    },
+    {
+      "id": "environmental-order-results",
+      "base": "testing.openelis-global.org",
+      "missing": [
+        "/order/environmental/enter :: Applicable Compliance Standards"
+      ],
+      "page": null
+    },
+    {
+      "id": "management-overview",
+      "base": "testing.openelis-global.org",
+      "missing": [
+        "/dashboards/management :: Management Dashboard"
+      ],
+      "page": "1787002882"
     }
   ],
   "errorRoutes": [
@@ -161,5 +185,5 @@
       "page": null
     }
   ],
-  "summary": "95 of 95 contracts checked: 3 ok, 88 review, 1 drift, 3 route errors."
+  "summary": "95 of 95 contracts checked: 2 ok, 86 review, 4 drift, 3 route errors."
 }
